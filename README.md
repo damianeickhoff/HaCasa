@@ -1,2 +1,2 @@
-# README
-Custom theme and cards for my HA dashboard.
+# HA Config
+![cover](hassmini.png)
