@@ -16,9 +16,9 @@ cards:
       card:
         type: custom:button-card
         template: custom_card_greeting
-        entity: person.dummy
+        entity: person.damian
         name: |
-          [[[ return states['sensor.greeting_sensor'].state + ', <p style="color:#7E46FF;display:inline;font-weight:700"><name>!</p>']]]
+          [[[ return states['sensor.greeting_sensor'].state + ', <p style="color:#7E46FF;display:inline;font-weight:700">Damian!</p>']]]
         label: What are you up to?
     - type: conditional
       conditions:
@@ -28,9 +28,9 @@ cards:
       card:
         type: custom:button-card
         template: custom_card_greeting
-        entity: person.dummy
+        entity: person.soraya
         name: |
-          [[[ return states['sensor.greeting_sensor'].state + ', <p style="color:#2F486F;display:inline;font-weight:700"><name>!</p>']]]
+          [[[ return states['sensor.greeting_sensor'].state + ', <p style="color:#2F486F;display:inline;font-weight:700">Soraya!</p>']]]
         label: What are you up to?
     - type: custom:button-card
       template:
@@ -69,9 +69,9 @@ cards:
         - custom_card_garbage_collection
       variables:
         label: |
-          [[[ return 'Days till pickup <br> ' + states['sensor.avri_eerst_volgende'].attributes.Upcoming_waste_types ]]]
+          [[[ return 'Dagen tot ophalen <br> ' + states['sensor.avri_eerst_volgende'].attributes.Upcoming_waste_types ]]]
         counter: >
           [[[ return states['sensor.avri_days_till_next_pickup'].state ]]]
       entity: input_boolean.toggle_button_notify_garbage
-  - type: 'custom:button-card'
-    color_type: blank-card      
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
