@@ -1,0 +1,55 @@
+title: Climate
+icon: mdi:thermostat
+path: "climate"
+cards:
+  - type: vertical-stack
+    cards:
+      - type: thermostat
+        entity: climate.woonkamer
+        name: ' '
+        card_mod:
+          style:
+            .: |
+              ha-card {
+                background: none;
+                overflow: visible;
+              }
+              .more-info {
+                width: 0;
+              }
+              :host {
+                --state-climate-heat-color: var(--color-purple);
+              }
+            ha-state-control-climate-temperature$:
+              div.container.lg: |
+                div.buttons {
+                  display: none;
+                }
+                div.container.lg ha-control-circular-slider {
+                  --control-circular-slider-color: var(--color-purple);
+                }
+              div.container.lg div.info: |
+                p.label {
+                  display: none;
+                }
+      - type: custom:mushroom-title-card
+        title: Acties
+      - type: grid
+        cards:
+          - type: custom:button-card
+            template: custom_card_button
+            icon: mdi:thermostat-auto
+            entity: climate.woonkamer
+            name: Auto
+          - type: custom:button-card
+            template: custom_card_button
+            icon: mdi:fire
+            entity: climate.woonkamer
+            name: Heat
+          - type: custom:button-card
+            template: custom_card_button      
+            icon: mdi:power
+            entity: climate.woonkamer
+            name: Uit
+            aspect_ratio: 1/1
+

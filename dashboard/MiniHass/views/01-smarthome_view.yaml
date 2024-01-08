@@ -23,6 +23,9 @@ cards:
           name2: Vocht Level
           icon2: mdi:water-outline
           color2: var(--color-teal)
+        tap_action:
+          action: navigate
+          navigation_path: 'climate'
       - type: custom:mini-graph-card
         entities:
           - entity: sensor.woonkamer_temperatuur
