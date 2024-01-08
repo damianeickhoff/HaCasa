@@ -1,0 +1,47 @@
+title: Home Security
+icon: mdi:shield
+path: "home-security"
+cards:
+  - type: custom:button-card
+    template: custom_card_navigationbar
+    variables:
+      color1: var(--color-cerise)
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: custom_card_header_left_back
+        name: Security
+      - type: "custom:button-card"
+        entity: alarm_control_panel.alarmo
+        template:
+          - custom_card_security
+      - type: custom:button-card
+        template: custom_card_section_title
+        name: Home Security
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+        - type: custom:button-card
+          template: 
+            - custom_card_sensor
+          entity: binary_sensor.voordeur_contact_openen
+          name: Voordeur
+        - type: custom:button-card
+          template: 
+            - custom_card_sensor
+          entity: binary_sensor.voordeur_contact_openen
+          name: Achterdeur
+        - type: custom:button-card
+          template: 
+            - custom_card_sensor
+          entity: sensor.low_battery
+          name: Sensor batterijen
+      - type: "custom:button-card"
+        entity: camera.wifi_videodeurbel
+        template:
+          - custom_card_camera
+        variables: 
+          name: Voordeur
+          background: "var(--gradient-orange)"
+          icon: <ha-icon icon="mdi:doorbell-video"></ha-icon>

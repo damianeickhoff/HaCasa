@@ -1,0 +1,88 @@
+custom_card_weather_sensor:
+  variables:
+    background:
+    icon:
+    name:
+    labelname:
+    labelunit:
+  show_icon: true
+  icon: mdi:gauge
+  show_state: false
+  name: '[[[ return variables.name ]]]'
+  aspect_ratio: 1/1
+  tap_action:
+    action: more-info
+  styles:
+    card:
+      - background: '[[[ return variables.background ]]]'
+      - padding: 15px
+    grid:
+      - grid-template-areas: '"i n" "label label" "state state"'
+      - grid-template-columns: min-content 1fr min-content
+      - grid-template-rows: min-content 1fr
+      - row-gap: 0.8rem
+      - column-gap: 0.8rem
+    icon:
+      - width: 100%
+      - padding: 0
+      - color: var(--color-white)
+      - opacity: 0.8
+    img_cell:
+      - width: 1rem
+      - height: 1.5rem
+      - padding: 0
+    name:
+      - font-size: 0.9rem
+      - color: var(--color-white)
+      - justify-self: start
+      - opacity: 0.8
+      - font-weight: 400
+      - font-family: montserrat
+    custom_fields:
+      state:
+        - align-self: end
+        - justify-self: start
+      label:
+        - align-self: start
+        - justify-self: start
+  custom_fields:
+    state:
+      card:
+        type: custom:button-card
+        name: Moderate Breeze
+        styles:
+          card:
+            - background: none
+            - padding: 0
+          name:
+            - color: var(--color-white)
+            - font-size: 0.8em
+            - font-family: montserrat
+            - font-weight: 500
+    label:
+      card:
+        type: custom:button-card
+        name: '[[[ return variables.labelname ]]]'
+        label: '[[[ return variables.labelunit ]]]'
+        show_label: true
+        styles:
+          grid:
+            - grid-template-areas: '"n l"'
+            - grid-template-rows: min-content
+          name:
+            - padding: 0 0 0 0
+            - margin: 0 0 0 0
+            - color: var(--color-white)
+            - font-size: 2.5rem
+            - font-family: montserrat
+            - font-weight: 600
+            - justify-self: start
+            - align-self: start
+          label:
+            - align-self: center
+            - padding-left: 5px
+            - justify-self: start
+            - color: var(--color-white)
+            - font-size: 0.9rem
+          card:
+            - background: none

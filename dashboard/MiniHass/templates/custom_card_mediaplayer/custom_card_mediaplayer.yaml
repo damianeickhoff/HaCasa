@@ -1,0 +1,229 @@
+custom_card_mediaplayer:
+  show_entity_picture: true
+  show_icon: false
+  show_name: true
+  show_label: true
+  aspect_ratio: 1/1
+  styles:
+    card:
+      - background: none
+      - padding: 0
+      - position: relative
+      - border-radius: var(--border-radius)
+    name:
+      - font-size: 1rem
+      - font-weight: 600
+      - color: white
+    label:
+      - font-size: 1rem
+      - color: white
+    icon:
+      - width: 150%
+      - height: 190%
+      - '-webkit-filter': blur(30px)
+      - '-moz-filter': blur(30px)
+      - '-o-filter': blur(30px)
+      - '-ms-filter': blur(30px)
+      - filter: blur(30px)
+    img_cell:
+      - position: absolute
+    custom_fields:
+      prev:
+        - justify-self: start
+        - align-self: end
+        - margin-bottom: 50px
+        - padding-left: 80px
+      next:
+        - justify-self: end
+        - align-self: end
+        - margin-bottom: 50px
+        - padding-right: 80px
+      play-pause:
+        - justify-self: center
+        - align-self: end
+        - margin-bottom: 50px
+  state:
+    - value: idle
+      styles:
+        card:
+          - background: var(--ha-card-background)
+        img_cell:
+          - justify-self: center
+          - align-self: center
+        icon:         
+          - color: white
+        name:
+          - display: none
+        label:
+          - display: none
+
+        
+  custom_fields:
+    info:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'
+        show_entity_picture: true
+        show_label: true
+        name: |
+          [[[ return states[ entity.entity_id ].attributes.media_title ]]]
+        label: >
+          [[[ return states[ entity.entity_id ].attributes.media_artist
+          ]]]         
+        styles:
+          card:
+            - background: none
+            - margin-bottom: 26%
+            - position: relative
+          name:
+            - color: var(--color-white)
+            - font-weight: 600
+            - padding-top: 20px
+          label:
+            - color: var(--color-white)
+            - font-size: .9rem
+            - padding-top: 4px
+          icon:
+            - border-radius: 24px
+    play-pause:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'
+        show_name: false
+        icon: mdi:play
+        tap_action:
+          action: call-service
+          haptic: medium
+          service: media_player.media_play_pause
+          service_data:
+            entity_id: '[[[ return entity.entity_id ]]]'
+        state:
+          - value: playing
+            icon: mdi:pause
+        styles:
+          card:
+            - background: none
+          icon:
+            - color: white
+            - opacity: 0.7
+            - width: 30px
+    next:
+      card:
+        type: custom:button-card
+        icon: mdi:skip-next
+        tap_action:
+          action: call-service
+          haptic: medium
+          service: media_player.media_next_track
+          service_data:
+            entity_id: '[[[ return entity.entity_id ]]]'
+        styles:
+          card:
+            - background: none
+          icon:
+            - color: white
+            - opacity: 0.7
+            - width: 30px
+    prev:
+      card:
+        type: custom:button-card
+        icon: mdi:skip-previous
+        tap_action:
+          action: call-service
+          haptic: medium
+          service: media_player.media_previous_track
+          service_data:
+            entity_id: '[[[ return entity.entity_id ]]]'
+        styles:
+          card:
+            - background: none
+          icon:
+            - color: white
+            - opacity: 0.7
+            - width: 30px
+            
+custom_card_mediaplayer_small:
+  show_entity_picture: true
+  show_icon: false
+  show_name: true
+  show_label: true
+  aspect_ratio: 1/1
+  styles:
+    card:
+      - background: none
+      - padding: 0
+      - position: absolute
+      - border-radius: var(--border-radius)
+    name:
+      - font-size: 1rem
+      - font-weight: 600
+      - color: white
+    label:
+      - font-size: 1rem
+      - color: white
+    icon:
+      - width: 150%
+      - height: 190%
+      - '-webkit-filter': blur(30px)
+      - '-moz-filter': blur(30px)
+      - '-o-filter': blur(30px)
+      - '-ms-filter': blur(30px)
+      - filter: blur(30px)
+    img_cell:
+      - position: absolute
+    custom_fields:
+      info:
+        - position: absolute
+        - top: 15%
+        - padding: 8px
+  state:
+    - value: idle
+      show_entity_picture: false
+      styles:
+        name:
+          - display: none
+        card:
+          - background: var(--gradient-purple)
+        icon:
+          - display: none
+  custom_fields:
+    info:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'
+        show_entity_picture: true
+        show_label: true
+        name: |
+          [[[ return states[ entity.entity_id ].attributes.media_title ]]]
+        label: >
+          [[[ return states[ entity.entity_id ].attributes.media_artist
+          ]]]         
+        styles:
+          grid:
+            - grid-template-areas: '"i" "n" "l"'
+            - grid-template-rows: 1fr min-content min-content
+            - row-gap: 5px
+          card:
+            - background: none
+            - overflow: visible
+          name:
+            - color: var(--color-white)
+            - font-weight: 600
+          label:
+            - color: var(--color-white)
+            - font-size: .9rem
+          icon:
+            - border-radius: 12px
+        state:
+          - value: idle
+            styles:
+              img_cell:
+                - justify-self: center
+                - align-self: center
+              icon:         
+                - color: white
+              name:
+                - display: none
+              label:
+                - display: none
+

@@ -1,0 +1,57 @@
+---
+custom_card_fan:
+  variables:
+    switch_name: 
+    switch_label:
+    switch_icon: "mdi:fan"
+    switch_background_on: "var(--color-yellow)"
+  entity: "[[[ return entity.entity_id ]]]"
+  name: "[[[ return variables.switch_name ]]]"
+  label: "[[[ return variables.switch_label ]]]"
+  show_name: true
+  show_icon: true
+  show_label: true
+  styles:
+    grid:
+      - grid-template-areas: '"n i" "n i"'
+      - grid-template-rows: 1fr 1fr
+      - grid-template-columns: 1fr
+    card:
+      - height: 80px
+      - border-radius: "var(--border-radius)"
+      - box-shadow: "var(--box-shadow)"
+      - padding: 1rem
+      - background: var(--gradient-blue-teal)
+    img_cell:
+      - overflow: visible
+      - padding: 0 0 0 0
+      - height: 40px
+      - width: 40px
+      - border-radius: 50px   
+    icon:
+      - width: "var(--button-small)"
+      - overflow: visible
+      - height: 22px
+      - width: 22px      
+      - margin-right: 40px
+      - padding: 10px
+      - background: var(--opacity-contrast-0)
+      - border-radius: 50px
+      - color: var(--color-white)      
+    name:
+      - text-align: left
+      - font-size: "var(--fs-500)"
+      - font-family: Montserrat
+      - font-weight: 600
+      - justify-self: start
+      - align-self: center
+      - overflow: visible
+      - color: white
+  state:
+    - value: 'on'
+      styles:
+        icon:
+          - animation: rotating 1.8s linear infinite
+          - background: rgba(255,255,255,.3)          
+  hold_action:
+    action: more-info

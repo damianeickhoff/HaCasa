@@ -1,0 +1,102 @@
+custom_card_weather_forecast:
+  show_icon: false
+  show_name: false
+  styles:
+    grid:
+      - grid-template-areas: '"item1 item2 item3 item4 item5"'
+      - grid-template-columns: 1fr 1fr 1fr 1fr 1fr
+    card:
+      - background: linear-gradient(90deg, rgba(124,187,231,1) 0%, rgba(124,186,234,1) 100%)
+  custom_fields:
+    item1:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'
+        label: '[[[ return states["weather.buienradar"].attributes.forecast[0].temperature + " °C" ]]]'
+        name: '[[[ return states["sensor.weather_forcast_1"].state ]]]'
+        show_label: true
+        show_icon: false        
+        styles: &item_styles
+          grid:
+            - grid-template-areas: '"l l" "icon icon" "n n"'
+            - grid-template-rows: min-content
+            - row-gap: 0.6rem
+          card:
+            - background: none
+          name:
+            - font-weight: 700
+            - font-size: 1.2rem
+            - color: var(--color-white)
+          label:
+            - font-size: 1rem
+            - color: var(--color-white)            
+          custom_fields:
+            icon:
+              - width: 50px
+              - justify-self: center
+        custom_fields: &item_custom_field
+          icon: |
+            [[[
+                var weather = states[ entity.entity_id ].attributes.forecast[0].condition;
+                return '<img src = "/local/weather-icons/' + weather + '.svg" />'
+            ]]]
+    item2:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'        
+        label: '[[[ return states[entity.entity_id].attributes.forecast[1].temperature + " °C" ]]]'
+        name: '[[[ return states["sensor.weather_forcast_2"].state ]]]'
+        show_label: true
+        show_icon: false        
+        custom_fields:
+          icon: |
+            [[[
+                var weather = states[ entity.entity_id ].attributes.forecast[1].condition;
+                return '<img src = "/local/weather-icons/' + weather + '.svg" />'
+            ]]]      
+        styles: *item_styles
+    item3:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'        
+        label: '[[[ return states[entity.entity_id].attributes.forecast[2].temperature + " °C" ]]]'
+        name: '[[[ return states["sensor.weather_forcast_3"].state ]]]'
+        show_label: true
+        show_icon: false
+        custom_fields:
+          icon: |
+            [[[
+                var weather = states[ entity.entity_id ].attributes.forecast[2].condition;
+                return '<img src = "/local/weather-icons/' + weather + '.svg" />'
+            ]]]      
+        styles: *item_styles
+    item4:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'        
+        label: '[[[ return states[entity.entity_id].attributes.forecast[3].temperature + " °C" ]]]'
+        name: '[[[ return states["sensor.weather_forcast_4"].state ]]]'
+        show_label: true
+        show_icon: false        
+        custom_fields:
+          icon: |
+            [[[
+                var weather = states[ entity.entity_id ].attributes.forecast[3].condition;
+                return '<img src = "/local/weather-icons/' + weather + '.svg" />'
+            ]]]      
+        styles: *item_styles
+    item5:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'        
+        label: '[[[ return states[entity.entity_id].attributes.forecast[4].temperature + " °C" ]]]'
+        name: '[[[ return states["sensor.weather_forcast_5"].state ]]]'
+        show_label: true
+        show_icon: false        
+        custom_fields:
+          icon: |
+            [[[
+                var weather = states[ entity.entity_id ].attributes.forecast[4].condition;
+                return '<img src = "/local/weather-icons/' + weather + '.svg" />'
+            ]]]
+        styles: *item_styles

@@ -1,0 +1,158 @@
+title: Smarthome
+icon: mdi:home-automation
+path: "smarthome"
+cards:
+  - type: custom:button-card
+    template: custom_card_navigationbar
+    variables:
+      color1: var(--color-cerise)
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: custom_card_header_left_back
+        name: Woonkamer
+      - type: custom:button-card
+        template: 
+          - custom_card_sensor_double
+        variables:
+          sensor1: sensor.round_temp
+          name1: Temperatuur
+          icon1: mdi:home-thermometer-outline
+          color1: var(--color-purple)
+          sensor2: sensor.woonkamer_luchtvochtigheid
+          name2: Vocht Level
+          icon2: mdi:water-outline
+          color2: var(--color-teal)
+      - type: custom:mini-graph-card
+        entities:
+          - entity: sensor.woonkamer_temperatuur
+            color: '#8F60FF'
+        name: Temperatuur Binnen
+        hours24: true
+        show_hours: 24
+        show:
+          graph: bar
+          icon: false
+          state: false
+        card_mod:
+          style: |
+            ha-card {
+              box-shadow: var(--box-shadow);
+              color: var(--contrast-100);
+            }
+            ha-card .name > span {
+              opacity: 1
+            }
+      - type: "custom:button-card"
+        entity: fan.whisper_flex
+        template:
+          - custom_card_fan
+        variables:
+          switch_name: Slaapkamer fan        
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Verlichting
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: "custom:button-card"
+            entity: light.nachtlamp
+            template:
+              - custom_card_light
+            variables:
+              light_name: Nachtlamp
+              light_label: Slaapkamer
+          - type: "custom:button-card"
+            entity: light.kinderkamer
+            template:
+              - custom_card_light
+            variables:
+              light_name: Plafond
+              light_label: Kinderkamer
+          - type: "custom:button-card"
+            entity: light.kantoor
+            template:
+              - custom_card_light
+            variables:
+              light_name: Staanlamp
+              light_label: Kantoor            
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+        - type: "custom:button-card"
+          entity: light.eettafel
+          template:
+            - custom_card_light
+          variables:
+            light_label: Eettafel
+        - type: "custom:button-card"
+          entity: light.woonkamer_plafond
+          template:
+            - custom_card_light
+          variables:
+            light_label: Salontafel
+        - type: "custom:button-card"
+          entity: light.sfeer_woonkamer
+          template:
+            - custom_card_light
+          variables:
+            light_label: Sfeerlamp
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: "custom:button-card"
+            entity: light.toilet
+            template:
+              - custom_card_light
+            variables:
+              light_name: Plafond
+              light_label: Toilet
+          - type: "custom:button-card"
+            entity: light.badkamer
+            template:
+              - custom_card_light
+            variables:
+              light_name: Plafond
+              light_label: Badkamer
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Plugs
+      - type: grid
+        columns: 2
+        square: false
+        cards:                       
+        - type: "custom:button-card"
+          entity: switch.wc_verwarming_stopcontact_1
+          template:
+            - custom_card_switch
+          variables:
+            switch_name: Verwarming
+            switch_label: Toilet
+            switch_background_on: "var(--gradient-orange)"
+        - type: "custom:button-card"
+          entity: switch.vitrinekast_stopcontact_1
+          template:
+            - custom_card_switch
+          variables:
+            switch_name: Vitrinekast
+            switch_label: Woonkamer
+  - type: "custom:button-card"
+    template:
+      - custom_card_navigate
+    variables: 
+      name: Devices
+      icon: mdi:home-automation
+      background: "var(--gradient-purple-teal)"
+      navigation_path: '/mini-hass/devices'            
+  - type: 'custom:button-card'
+    color_type: blank-card
+    styles:
+      card:
+        - height: 50px      

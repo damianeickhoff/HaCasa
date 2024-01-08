@@ -1,0 +1,97 @@
+---
+custom_card_light:
+  variables:
+    light_name: 
+    light_label:
+  entity: "[[[ return entity.entity_id ]]]"
+  name: |
+      [[[
+        var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
+        return ' ' + (bri ? bri + '%': 'Uit');
+      ]]]
+  label: "[[[ return variables.light_label ]]]"
+  show_name: true
+  show_icon: true
+  show_label: true
+  show_state: false
+  styles:
+    grid:
+      - grid-template-areas: '"icon i" "n n" "l l"'
+      - grid-template-rows: 1fr 1.5fr 1fr
+      - grid-template-columns: 1fr 1fr
+    card:
+      - height: 100%
+      - border-radius: "var(--border-radius)"
+      - padding: 0.7rem
+    img_cell:
+      - justify-content: flex-end
+      - justify-self: end
+      - overflow: hidden
+      - width: 25px
+      - height: 25px
+    icon:
+      - justify-self: end
+      - align-self: end
+      - color: "var(--color-white)"
+      - width: 25px    
+      - overflow: hidden
+    name:
+      - text-align: left
+      - font-size: "var(--fs-400)"
+      - font-family: Montserrat
+      - font-weight: 700
+      - justify-self: start
+      - align-self: end
+      - color: "var(--contrast-100)"
+      - overflow: visible
+    label:
+      - text-align: left
+      - font-size: "var(--fs-300)"
+      - font-family: Montserrat
+      - font-weight: 500
+      - justify-self: start
+      - align-self: center
+      - color: "var(--contrast-100)"
+      - overflow: visible
+    custom_fields:
+      icon:
+        - width: 20px
+        - justify-self: start
+        - color: "var(--contrast-33)"
+  state:
+    - value: "off"
+      icon: mdi:toggle-switch-off-outline
+      styles:
+        icon:
+          - color: "var(--contrast-33)"
+    - value: "on"
+      icon: mdi:toggle-switch
+      styles:
+        card:
+          - background: "var(--gradient-purple-light)"
+        name:
+          - color: "var(--color-white)"
+        label:
+          - color: "var(--color-white)"
+        icon:
+          - color: "var(--color-white)"
+        custom_fields:
+          icon:
+            - color: "var(--color-white)"
+    - value: "unavailable"
+      name: '?'
+      icon: mdi:toggle-switch-off-outline
+      styles:
+        icon:
+          - color: var(--contrast-33)
+  custom_fields:
+    icon: >
+      [[[
+        if (entity.state == "on"){
+          return '<ha-icon icon="mdi:lightbulb-on"></ha-icon>';
+        } else {
+          return '<ha-icon icon="mdi:lightbulb-off"></ha-icon>';
+        }
+      ]]]
+  hold_action:
+    action: more-info

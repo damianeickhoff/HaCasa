@@ -1,0 +1,44 @@
+custom_card_header_left_back:
+  styles:
+    card:
+      - padding: 5px
+      - background: none
+      - margin-bottom: 10px
+    grid:
+      - grid-template-areas: "'back n'"
+      - grid-template-columns: max-content 1fr
+    name:
+      - justify-self: center
+      - font-weight: 600
+      - font-family: montserrat
+      - font-size: 1.5rem
+      - margin-left: -2.5rem
+      - color: var(--contrast-100)
+  custom_fields:
+    back:
+      card:
+        type: custom:button-card
+        icon: mdi:arrow-left
+        name: Terug
+        show_icon: false
+        tap_action:
+          action: navigate
+          navigation_path: "home"
+        styles:
+          card:
+            - background: none        
+          icon:
+            - color: var(--color-cerise)
+            - width: 2.5rem
+          img_cell:
+            - justify-self: start
+            - align-self: start
+            - width: 2.5rem
+            - background: red
+          name:
+            - justify-self: start
+            - align-self: start
+            - font-size: 1rem   
+            - font-family: montserrat              
+            - color: var(--color-cerise)
+            - font-weight: 600

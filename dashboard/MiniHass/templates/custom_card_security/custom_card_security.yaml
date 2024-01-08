@@ -1,0 +1,162 @@
+---
+custom_card_security:
+  show_name: false
+  show_icon: false
+  show_label: true
+  show_state: false
+  tap_action: none
+  styles:
+    grid:
+      - grid-template-areas: '"item1 l" "item1 item2"'
+      - grid-template-rows: min-content min-content
+      - grid-template-columns: 40% 55%
+      - column-gap: 5%
+      - row-gap: 8px
+    card:
+      - height: 100%
+      - border-radius: "var(--border-radius)"
+      - overflow: visible
+      - justify-items: center
+      - justify-content: center
+      - padding: 1.2rem
+    label:
+      - text-align: left
+      - font-size: "var(--fs-600)"
+      - font-family: 'Montserrat'
+      - font-weight: 600
+      - justify-self: start
+      - align-self: end
+      - color: "var(--contrast-100)"
+      - padding-left: 3px
+    custom_fields:
+      item2:
+        - align-self: start
+        - align-content: start
+        - align-items: start
+        - background: none
+  state:
+    - value: "arming"
+      label: Stand by...
+      styles:
+        label:
+          - animation:
+            - flash 2s linear infinite
+    - value: "armed_home"
+      icon: mdi:shield-outline
+      label: Armed Home
+    - value: "armed_away"
+      label: Armed Away
+    - value: "disarmed"
+      label: Disarmed
+  custom_fields:
+    item1:
+      card:
+        type: 'custom:button-card'
+        entity: "[[[ return entity.entity_id ]]]"
+        show_name: false
+        show_icon: true
+        show_label: false
+        show_state: false
+        styles:
+          card:
+            - background: none
+            - overflow: visible
+          img_cell:
+            - height: 100px
+            - width: 100px
+            - box-shadow: "var(--box-shadow-neo)"
+            - border-radius: 200px
+            - justify-self: center
+            - align-self: start
+          icon:
+            - color: "var(--contrast-66)"
+        state:
+          - value: "arming"
+            icon: mdi:shield-refresh-outline
+            styles:
+              icon:
+                - color: "var(--color-orange)"
+                - animation:
+                  - flash 2s linear infinite
+          - value: "armed_home"
+            icon: mdi:shield-outline
+            styles:
+              icon:
+                - color: "var(--color-green)"
+                - animation:
+                  - rotate 4s linear infinite
+          - value: "armed_away"
+            icon: mdi:shield-outline
+            styles:
+              icon:
+                - color: "var(--color-orange)"
+                - animation:
+                  - rotate 4s linear infinite
+          - value: "disarmed"
+            icon: mdi:shield-off-outline
+        extra_styles: |
+          @keyframes flash {
+            0% {opacity: 100%;}
+            50% {opacity: 0%;}
+            100% {opacity: 100%;}
+          }
+          @keyframes rotate {
+            from {transform: rotateY(-deg);}
+            to {transform: rotateY(360deg);}
+          }
+    item2:
+      card:
+        type: 'custom:button-card'
+        entity: "[[[ return entity.entity_id ]]]"
+        icon: mdi:dots-grid
+        label: Numpad
+        show_name: false
+        show_icon: true
+        show_label: true
+        show_state: false
+        tap_action:
+          action: more-info
+        styles:
+          grid:
+            - grid-template-areas: '"i l"'
+            - grid-template-rows: 1fr
+            - grid-template-columns: min-content 1fr
+            - column-gap: 8px
+          card:
+            - background: none
+            - overflow: visible
+            - padding: 0
+          label:
+            - text-align: left
+            - font-size: "var(--fs-400)"
+            - font-family: 'Montserrat'
+            - font-weight: 500
+            - color: "var(--contrast-66)"
+            - text-align: left
+            - justify-self: start
+          img_cell:
+            - justify-self: center
+          icon:
+            - width: "var(--button-small)"
+            - color: "var(--contrast-66)"
+            - padding: 0
+            - margin: 0
+        state:
+          - value: "arming"
+            label: Activating
+          - value: "armed_home"
+            label: Deactive
+          - value: "armed_away"
+            label: Deactive
+          - value: "disarmed"
+            label: Activate
+  extra_styles: |
+    @keyframes flash {
+      0% {opacity: 100%;}
+      50% {opacity: 0%;}
+      100% {opacity: 100%;}
+    }
+    @keyframes rotate {
+      from {transform: rotateY(-deg);}
+      to {transform: rotateY(360deg);}
+    }

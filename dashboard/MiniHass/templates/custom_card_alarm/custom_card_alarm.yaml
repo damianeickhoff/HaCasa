@@ -1,0 +1,42 @@
+custom_card_alarm:
+  variables:
+    state_name_on:
+    state_name_off:
+    state_icon_color_on:
+    animation:
+  state:
+    - value: "off"
+      name: "[[[ return variables.state_name_off ]]]"
+      styles:
+        custom_fields:
+          icon:
+            - opacity: .25
+            - color: "var(--contrast-33)"
+        label:
+          - opacity: .25
+    - value: "on"
+      name: "[[[ return variables.state_name_on ]]]"
+      styles:
+        custom_fields:
+          icon:
+            - color: "[[[ return variables.state_icon_color_on ]]]"
+            - animation: "[[[ return variables.animation ]]]"
+        label:
+          - font-weight: 700
+        name:
+          - animation: "[[[ return variables.animation ]]]"
+  extra_styles: |
+    @keyframes scale {
+      0% {transform: scale(1); opacity: 1}
+      25% {transform: scale(1.1);}
+      50% {transform: scale(.9); opacity: 0}
+      75% {transform: scale(1.1);}
+      100% {scale: rotate(1); opacity: 1}
+    }
+
+    @keyframes shake {
+      0% {transform: rotate(0deg);}
+      25% {transform: rotate(-15deg);}
+      75% {transform: rotate(15deg);}
+      100% {transform: rotate(0deg);}
+    }

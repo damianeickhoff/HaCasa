@@ -1,0 +1,113 @@
+---
+custom_card_navigate:
+  variables: 
+    name:
+    icon:
+    background:
+    navigation_path:
+  name: "[[[ return variables.name ]]]"
+  icon: "[[[ return variables.icon ]]]"
+  show_name: true
+  show_icon: true
+  show_label: false
+  show_state: false
+  tap_action:
+    action: navigate
+    navigation_path: "[[[ return variables.navigation_path ]]]"
+  styles: &navigate_card_styles_3
+    grid:
+      - grid-template-areas: '"n" "ent1"'
+      - grid-template-rows: 1fr 1fr
+      - column-gap: 10px
+    card:
+      - height: 100%
+      - border-radius: "var(--border-radius)"
+      - box-shadow: "var(--box-shadow)"
+      - padding: 1rem
+      - background: "[[[ return variables.background ]]]"
+      - overflow: hidden
+      - aspect-ratio: 3/2
+    name:
+      - position: absolute
+      - top: 1rem
+      - text-align: left
+      - font-size: "var(--fs-500)"
+      - font-family: Montserrat
+      - font-weight: 600
+      - justify-self: start
+      - align-self: start
+      - color: "var(--color-white)"
+      - overflow: visible
+    img_cell:
+      - position: absolute
+      - top: 20%
+      - left: 40%
+      - overflow: visible
+    icon:
+      - position: absolute
+      - width: 20em
+      - opacity: 20%
+      - color: "var(--color-white)"
+      - transform: rotate(-20deg)
+    custom_fields:
+      ent1:
+        - justify-self: start
+        - align-self: end
+custom_card_navigate_alarm:
+  template:
+    - custom_card_navigate
+  custom_fields:
+    ent1:
+      card:
+        type: "custom:button-card"
+        entity: group.alarm_group
+        show_name: true
+        show_icon: true
+        show_label: false
+        show_state: false
+        state:
+          - value: "off"
+            styles:
+              card:
+                - display: none
+              img_cell:
+                - background: "var(--color-white)"
+          - value: "on"
+            name: Alarm detected
+            styles:
+              img_cell:
+                - background: "var(--color-red)"
+                - animation:
+                    - blink 1s ease infinite
+        styles:
+          grid:
+            - grid-template-areas: '"i n"'
+            - grid-template-rows: 1fr
+            - grid-template-columns: min-content 1fr
+            - column-gap: 8px
+          card:
+            - display: block
+            - height: 100%
+            - background: none
+            - border-radius: "var(--border-radius)"
+            - box-shadow: "var(--box-shadow)"
+            - padding: 0
+            - overflow: visible
+          name:
+            - color: "var(--color-black)"
+            - text-align: left
+            - font-size: "var(--fs-400)"
+            - font-family: Montserrat
+            - font-weight: 500
+            - justify-self: start
+            - align-self: center
+            - overflow: visible
+          img_cell:
+            - height: 10px
+            - width: 10px
+            - border-radius: 20px
+            - justify-content: start
+          icon:
+            - opacity: 0
+            - margin: 0
+            - padding: 0

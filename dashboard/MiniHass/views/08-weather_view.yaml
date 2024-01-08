@@ -1,0 +1,82 @@
+title: Weather
+icon: mdi:cloud
+path: "weather"
+cards:
+  - type: custom:button-card
+    template: custom_card_navigationbar
+    variables:
+      color1: var(--color-cerise)  
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: custom_card_header_left_back
+        name: Weer                 
+      - type: custom:mini-graph-card
+        entities:
+          - sensor.gevoelstemperatuur
+        line_color: gray
+        fill: false
+        hours_to_show: 24
+        points_per_hour: 1
+        decimals: 0
+        hour24: true
+        line_width: 2
+        show:
+          fill: false
+          legend: true
+          icon: false
+          name: true     
+      - type: custom:button-card
+        template:
+          custom_card_weather_forecast
+        entity: weather.buienradar
+      - type: custom:button-card
+        template: custom_card_section_title
+        name: Details
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:button-card
+            template: custom_card_weather_sensor
+            entity: weather.buienradar
+            variables:
+                background: var(--gradient-green)
+                icon: mdi:weather-windy
+                name: Windsnelheid
+                labelname: |
+                  [[[ return states[ entity.entity_id ].attributes.wind_speed ]]]
+                labelunit: km/h
+          - type: custom:button-card
+            template: custom_card_weather_sensor
+            entity: weather.buienradar
+            variables:
+                background: var(--gradient-purple-light)
+                icon: mdi:gauge
+                name: Luchtdruk
+                labelname: |
+                  [[[ return states[ entity.entity_id ].attributes.pressure ]]]
+                labelunit: hpa
+          - type: custom:button-card
+            template: custom_card_weather_sensor
+            entity: sensor.erzeijstraat_utrecht_luchtkwaliteitsindex
+            variables:
+                background: var(--gradient-blue)
+                icon: mdi:air-filter
+                name: AQI
+                labelname: |
+                  [[[ return states['sensor.erzeijstraat_utrecht_luchtkwaliteitsindex'].state ]]]
+          - type: custom:button-card
+            template: custom_card_weather_sensor
+            entity: sensor.straling
+            variables:
+                background: var(--gradient-orange)
+                icon: mdi:weather-sunny
+                name: UV-index
+                labelname: |
+                  [[[ return states['sensor.straling'].state]]]                                              
+  - type: 'custom:button-card'
+    color_type: blank-card
+    styles:
+      card:
+        - height: 50px                        

@@ -1,0 +1,95 @@
+custom_card_navigationbar:
+  variables:
+    color1:
+    color2:
+    color3:
+    color4:
+  styles:
+    grid:
+      - grid-template-areas: '". item_1 item_2 item_3 item_4 item_5 ."'
+      - grid-template-columns: 1fr repeat(5, min-content) 1fr
+      - grid-template-rows: 1fr
+      - column-gap: 2.5rem
+    card:
+      - height: 70px
+      - width: 100vw
+      - border-radius: 20px 20px 0px 0px
+      - box-shadow: 0px 0px 12px rgba(0,0,0,.2);
+      - background: var(--background)
+      - overflow: visible
+      - position: fixed
+      - margin: 0
+      - bottom: 0
+      - left: 0
+      - z-index: 4
+      - padding-bottom: 70px
+      - margin-top: 150px
+  custom_fields:
+    item_1:
+      card:
+        type: custom:button-card
+        icon: mdi:home
+        tap_action:
+          action: navigate
+          navigation_path: 'home'
+        styles:
+          card:
+            - height: 55px
+            - width: 55px
+            - margin: 0
+            - padding: 10
+            - background: none
+            - align-self: start
+          icon:
+            - color: '[[[ return variables.color1 ]]]'            
+    item_2:
+      card:
+        type: custom:button-card
+        icon: mdi:sofa
+        tap_action:
+          action: navigate
+          navigation_path: 'rooms'        
+        styles:
+          card:
+            - height: 55px
+            - width: 55px
+            - margin: 0
+            - padding: 10
+            - background: none
+            - align-self: start
+          icon:
+            - color: '[[[ return variables.color2 ]]]'            
+    item_3:
+      card:
+        type: custom:button-card
+        icon: mdi:devices
+        tap_action:
+          action: navigate
+          navigation_path: 'devices'             
+        styles:
+          card:
+            - height: 55px
+            - width: 55px
+            - margin: 0
+            - padding: 10
+            - background: none
+            - align-self: start
+          icon:
+            - color: '[[[ return variables.color3 ]]]'            
+    item_4:
+      card:
+        type: custom:button-card
+        icon: mdi:play
+        tap_action:
+          action: navigate
+          navigation_path: 'media-controls'        
+        styles:
+          card:
+            - height: 55px
+            - width: 55px
+            - margin: 0
+            - padding: 10
+            - background: none
+            - align-self: start
+          icon:
+            - color: '[[[ return variables.color4 ]]]'

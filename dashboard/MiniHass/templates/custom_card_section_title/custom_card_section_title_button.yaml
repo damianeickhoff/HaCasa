@@ -1,0 +1,53 @@
+custom_card_section_title_button:
+  styles:
+    grid:
+      - grid-template-areas: '"n button_1 button_2 button_3"'
+      - column-gap: 6px
+    name:
+      - justify-self: start
+      - align-self: start
+      - font-weight: 800
+      - font-family: montserrat
+      - font-size: 2rem
+      - color: var(--color-rhino)
+    card:
+      - background: none
+  custom_fields:
+    button_1:
+      card:
+        type: custom:button-card
+        tap_action:
+          action: call-service
+          service: script.all_lights_off        
+        icon: mdi:weather-night
+        styles: &icon_styles
+          grid:
+            - grid-template-areas: "'n i'"
+            - grid-template-columns: min-content
+          card:
+            - padding: 8px
+            - background: '#D8B9FF'
+            - border-radius: 500px
+          icon:
+            - width: 20px
+            - color: '#724FD1'
+          name:
+            - color: '#eb838d'
+            - font-family: montserrat
+            - font-weight: 500
+    button_2:
+      card:
+        type: custom:button-card
+        tap_action:
+          action: call-service
+          service: script.all_lights_off        
+        icon: mdi:movie
+        styles: *icon_styles
+    button_3:
+      card:
+        type: custom:button-card
+        tap_action:
+          action: call-service
+          service: script.all_lights_off        
+        icon: mdi:briefcase
+        styles: *icon_styles

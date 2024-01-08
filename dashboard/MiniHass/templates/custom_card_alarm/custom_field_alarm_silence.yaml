@@ -1,0 +1,28 @@
+custom_field_alarm_silence:
+  name: Silence
+  show_name: true
+  show_icon: false
+  show_label: false
+  show_state: false
+  styles:
+    card:
+        - margin: 0
+        - padding: 0
+    name:
+        - color: "var(--contrast-100)"
+        - text-align: left
+        - font-size: "var(--fs-400)"
+        - font-family: Montserrat
+        - font-weight: 500
+        - justify-self: center
+        - align-self: center
+        - overflow: visible
+  state:
+  - value: "off"
+    styles:
+      name:
+        - opacity: .25
+  - value: "on"
+    styles:
+      name:
+        - font-weight: 600
