@@ -16,7 +16,6 @@ custom_card_section_title:
       - background: "none"
       - margin-top: "0.4rem"
     name:
-      - color: "var(--contrast-100)"
       - font-size: "var(--fs-600)"
       - font-family: Montserrat
       - font-weight: 800
@@ -24,7 +23,6 @@ custom_card_section_title:
       - font-size: 2rem      
       - justify-self: start
     label:
-      - color: "var(--contrast-100)"
       - opacity: 0.5
       - font-size: "var(--fs-400)"
       - font-family: Montserrat

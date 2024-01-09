@@ -30,7 +30,6 @@ custom_card_garbage_collection:
       - font-weight: 600
       - justify-self: start
       - align-self: end
-      - color: "var(--contrast-100)"
     custom_fields:
       item1:
         - text-align: center
@@ -39,7 +38,6 @@ custom_card_garbage_collection:
         - font-weight: 700
         - justify-self: center
         - align-self: center
-        - color: "var(--contrast-100)"
         - overflow: visible
         - z-index: 1
       item2:
@@ -75,14 +73,14 @@ custom_card_garbage_collection:
             - font-size: "var(--fs-400)"
             - font-family: 'Montserrat'
             - font-weight: 500
-            - color: "var(--contrast-66)"
             - text-align: left
             - justify-self: start
+            - color: var(--label-color)
           img_cell:
             - justify-self: center
           icon:
             - width: "var(--button-small)"
-            - color: "var(--contrast-66)"
+            - color: var(--icon-color)
             - padding: 0
             - margin: 0
         state:

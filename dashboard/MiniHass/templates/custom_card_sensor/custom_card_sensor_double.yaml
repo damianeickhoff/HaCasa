@@ -13,8 +13,8 @@ custom_card_sensor_double:
       - grid-template-areas: '"item1 item2"'
     card:
       - padding: 20px 30px
-      - box-shadow: var(--box-shadow)
       - margin-bottom: 1rem
+      - background: var(--contrast-0)
     custom_fields:
       item1:
         - justify-self: start
@@ -39,15 +39,14 @@ custom_card_sensor_double:
             - justify-self: start
             - font-family: montserrat
             - font-weight: 700
-            - color: var(--contrast-100)
             - font-size: 1.2rem
           card:
             - background: none
           name:
-            - color: '#C0CBDD'
-            - font-weight: 500
+            - font-weight: 600
             - font-family: montserrat
             - font-size: 1rem
+            - color: var(--label-color)
     item2:
       card:
         type: custom:button-card
@@ -68,12 +67,11 @@ custom_card_sensor_double:
             - justify-self: start
             - font-family: montserrat
             - font-weight: 700
-            - color: var(--contrast-100)
             - font-size: 1.2rem
           card:
             - background: none
           name:
-            - color: '#C0CBDD'
-            - font-weight: 500
+            - font-weight: 600
             - font-family: montserrat
-            - font-size: 1rem        
+            - font-size: 1rem     
+            - color: var(--label-color)

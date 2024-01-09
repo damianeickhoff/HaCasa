@@ -5,7 +5,7 @@ cards:
   - type: custom:button-card
     template: custom_card_navigationbar
     variables:
-      color1: var(--color-cerise)
+      color1: var(--text)
   - type: vertical-stack
     cards:
     - type: conditional
@@ -18,7 +18,7 @@ cards:
         template: custom_card_greeting
         entity: person.damian
         name: |
-          [[[ return states['sensor.greeting_sensor'].state + ', <p style="color:#7E46FF;display:inline;font-weight:700">Damian!</p>']]]
+          [[[ return states['sensor.greeting_sensor'].state + ', <p style=";display:inline;font-weight:800">Damian!</p>']]]
         label: What are you up to?
     - type: conditional
       conditions:

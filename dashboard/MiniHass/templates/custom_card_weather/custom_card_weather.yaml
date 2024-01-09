@@ -71,7 +71,7 @@ custom_card_weather:
     icon: |
       [[[
           var weather = states['sensor.gedetailleerde_staat'].state;
-          return '<img src = "/local/weather-icons/' + weather + '.svg" width="50" height="50" />'
+          return '<img src = "/local/weather-icons/' + weather + '.svg" width="50" height="50" "opacity: 0.3" />'
       ]]]
     wind:
       card:
@@ -144,6 +144,8 @@ custom_card_weather_long:
     custom_fields:
       icon:
         - width: 8rem
+        - color: white
+        
   custom_fields:
     icon: |
       [[[

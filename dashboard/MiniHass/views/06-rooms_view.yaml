@@ -5,9 +5,7 @@ cards:
   - type: custom:button-card
     template: custom_card_navigationbar
     variables:
-      color2: var(--color-cerise)
-  - type: custom:button-card
-    template: custom_card_header_left_back
+      color2: var(--text)
   - type: custom:button-card
     name: Alle <p style="color:#7E46FF;display:inline">ruimtes</p>
     template:

@@ -5,7 +5,7 @@ cards:
   - type: custom:button-card
     template: custom_card_navigationbar
     variables:
-      color1: var(--color-cerise)
+      color1: var(--text)
   - type: vertical-stack
     cards:
       - type: custom:button-card
@@ -39,12 +39,10 @@ cards:
           state: false
         card_mod:
           style: |
-            ha-card {
-              box-shadow: var(--box-shadow);
-              color: var(--contrast-100);
-            }
             ha-card .name > span {
-              opacity: 1
+              opacity: 1;
+              font-family: montserrat;
+              font-weight: 600
             }
       - type: "custom:button-card"
         entity: fan.whisper_flex
@@ -145,15 +143,7 @@ cards:
             - custom_card_switch
           variables:
             switch_name: Vitrinekast
-            switch_label: Woonkamer
-  - type: "custom:button-card"
-    template:
-      - custom_card_navigate
-    variables: 
-      name: Devices
-      icon: mdi:home-automation
-      background: "var(--gradient-purple-teal)"
-      navigation_path: '/mini-hass/devices'            
+            switch_label: Woonkamer        
   - type: 'custom:button-card'
     color_type: blank-card
     styles:

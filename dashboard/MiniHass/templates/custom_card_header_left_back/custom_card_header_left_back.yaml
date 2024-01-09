@@ -9,11 +9,10 @@ custom_card_header_left_back:
       - grid-template-columns: max-content 1fr
     name:
       - justify-self: center
-      - font-weight: 600
+      - font-weight: 700
       - font-family: montserrat
       - font-size: 1.5rem
       - margin-left: -2.5rem
-      - color: var(--contrast-100)
   custom_fields:
     back:
       card:

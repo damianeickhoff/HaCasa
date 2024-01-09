@@ -22,7 +22,6 @@ custom_card_navigate:
     card:
       - height: 100%
       - border-radius: "var(--border-radius)"
-      - box-shadow: "var(--box-shadow)"
       - padding: 1rem
       - background: "[[[ return variables.background ]]]"
       - overflow: hidden

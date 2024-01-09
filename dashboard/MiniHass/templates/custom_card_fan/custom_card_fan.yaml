@@ -18,10 +18,8 @@ custom_card_fan:
       - grid-template-columns: 1fr
     card:
       - height: 80px
-      - border-radius: "var(--border-radius)"
-      - box-shadow: "var(--box-shadow)"
       - padding: 1rem
-      - background: var(--gradient-blue-teal)
+      - background: '#6FC1C6'
     img_cell:
       - overflow: visible
       - padding: 0 0 0 0
@@ -35,7 +33,7 @@ custom_card_fan:
       - width: 22px      
       - margin-right: 40px
       - padding: 10px
-      - background: var(--opacity-contrast-0)
+      - background: rgba(255, 255, 255,.3)
       - border-radius: 50px
       - color: var(--color-white)      
     name:

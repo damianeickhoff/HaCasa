@@ -2,6 +2,13 @@ title: Climate
 icon: mdi:thermostat
 path: "climate"
 cards:
+  - type: custom:button-card
+    template: custom_card_navigationbar
+    variables:
+      color1: var(--text)
+  - type: custom:button-card
+    template: custom_card_header_left_back
+    name: Klimaat
   - type: vertical-stack
     cards:
       - type: thermostat
@@ -41,15 +48,41 @@ cards:
             icon: mdi:thermostat-auto
             entity: climate.woonkamer
             name: Auto
+            state:
+              - value: auto
+                styles:
+                  card:
+                    - background: var(--gradient-purple)     
+                  icon:
+                    - color: white
+                  name:
+                    - color: white              
           - type: custom:button-card
             template: custom_card_button
             icon: mdi:fire
             entity: climate.woonkamer
             name: Heat
+            state:
+              - value: heat
+                styles:
+                  card:
+                    - background: var(--gradient-purple)     
+                  icon:
+                    - color: white
+                  name:
+                    - color: white
           - type: custom:button-card
             template: custom_card_button      
             icon: mdi:power
             entity: climate.woonkamer
             name: Uit
             aspect_ratio: 1/1
-
+            state:
+              - value: 'off'
+                styles:
+                  card:
+                    - background: var(--gradient-purple)     
+                  icon:
+                    - color: white
+                  name:
+                    - color: white

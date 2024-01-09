@@ -21,7 +21,6 @@ custom_card_light:
       - grid-template-columns: 1fr 1fr
     card:
       - height: 100%
-      - border-radius: "var(--border-radius)"
       - padding: 0.7rem
     img_cell:
       - justify-content: flex-end
@@ -32,7 +31,7 @@ custom_card_light:
     icon:
       - justify-self: end
       - align-self: end
-      - color: "var(--color-white)"
+      - color: var(--icon-color)
       - width: 25px    
       - overflow: hidden
     name:
@@ -42,7 +41,6 @@ custom_card_light:
       - font-weight: 700
       - justify-self: start
       - align-self: end
-      - color: "var(--contrast-100)"
       - overflow: visible
     label:
       - text-align: left
@@ -51,19 +49,19 @@ custom_card_light:
       - font-weight: 500
       - justify-self: start
       - align-self: center
-      - color: "var(--contrast-100)"
+      - color: var(--label-color)
       - overflow: visible
     custom_fields:
       icon:
         - width: 20px
         - justify-self: start
-        - color: "var(--contrast-33)"
+        - color: var(--icon-color)
   state:
     - value: "off"
-      icon: mdi:toggle-switch-off-outline
+      icon: mdi:toggle-switch-off
       styles:
         icon:
-          - color: "var(--contrast-33)"
+          - color: var(--icon-color)
     - value: "on"
       icon: mdi:toggle-switch
       styles:
@@ -80,10 +78,10 @@ custom_card_light:
             - color: "var(--color-white)"
     - value: "unavailable"
       name: '?'
-      icon: mdi:toggle-switch-off-outline
+      icon: mdi:toggle-switch-off
       styles:
         icon:
-          - color: var(--contrast-33)
+          - color: var(--icon-color)
   custom_fields:
     icon: >
       [[[

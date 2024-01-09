@@ -1,9 +1,11 @@
 custom_card_navigationbar:
   variables:
-    color1:
-    color2:
-    color3:
-    color4:
+    color1: var(--icon-color)
+    color2: var(--icon-color)
+    color3: var(--icon-color)
+    color4: var(--icon-color)
+  tap_action:
+    action: none
   styles:
     grid:
       - grid-template-areas: '". item_1 item_2 item_3 item_4 item_5 ."'
@@ -15,7 +17,7 @@ custom_card_navigationbar:
       - width: 100vw
       - border-radius: 20px 20px 0px 0px
       - box-shadow: 0px 0px 12px rgba(0,0,0,.2);
-      - background: var(--background)
+      - background: var(--contrast-0)
       - overflow: visible
       - position: fixed
       - margin: 0

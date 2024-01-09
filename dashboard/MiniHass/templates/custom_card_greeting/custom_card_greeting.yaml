@@ -12,13 +12,13 @@ custom_card_greeting:
     name:
       - justify-self: start
       - font-family: montserrat
-      - font-weight: 600
+      - font-weight: 700
     label:
       - justify-self: start
       - font-family: montserrat
-      - font-size: 12px
-      - font-weight: 600
-      - opacity: 0.6
+      - font-size: 15px
+      - font-weight: 500
+      - color: var(--label-color)
     entity_picture:
       - width: 50px
       - height: 50px

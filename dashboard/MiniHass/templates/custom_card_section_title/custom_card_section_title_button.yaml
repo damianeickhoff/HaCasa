@@ -9,7 +9,6 @@ custom_card_section_title_button:
       - font-weight: 800
       - font-family: montserrat
       - font-size: 2rem
-      - color: var(--color-rhino)
     card:
       - background: none
   custom_fields:

@@ -26,7 +26,6 @@ custom_card_security:
       - font-weight: 600
       - justify-self: start
       - align-self: end
-      - color: "var(--contrast-100)"
       - padding-left: 3px
     custom_fields:
       item2:
@@ -69,7 +68,7 @@ custom_card_security:
             - justify-self: center
             - align-self: start
           icon:
-            - color: "var(--contrast-66)"
+            - color: "var(--primary-text-color)"
         state:
           - value: "arming"
             icon: mdi:shield-refresh-outline
@@ -131,14 +130,14 @@ custom_card_security:
             - font-size: "var(--fs-400)"
             - font-family: 'Montserrat'
             - font-weight: 500
-            - color: "var(--contrast-66)"
+            - color: "var(--label-color)"
             - text-align: left
             - justify-self: start
           img_cell:
             - justify-self: center
           icon:
             - width: "var(--button-small)"
-            - color: "var(--contrast-66)"
+            - color: "var(--icon-color)"
             - padding: 0
             - margin: 0
         state:

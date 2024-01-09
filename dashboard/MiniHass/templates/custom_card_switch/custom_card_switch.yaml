@@ -29,7 +29,6 @@ custom_card_switch:
     icon:
       - justify-self: end
       - align-self: end
-      - color: "var(--color-white)"
       - width: 25px    
       - overflow: hidden
     name:
@@ -39,7 +38,6 @@ custom_card_switch:
       - font-weight: 700
       - justify-self: start
       - align-self: end
-      - color: "var(--contrast-100)"
       - overflow: visible
     label:
       - text-align: left
@@ -48,24 +46,29 @@ custom_card_switch:
       - font-weight: 500
       - justify-self: start
       - align-self: center
-      - color: "var(--contrast-100)"
+      - color: "var(--label-color)"
       - overflow: visible
     custom_fields:
       icon:
         - width: 20px
         - justify-self: start
-        - color: "var(--contrast-33)"
+        - color: "var(--icon-color)"
   state:
     - value: "off"
-      icon: mdi:toggle-switch-off-outline
+      icon: mdi:toggle-switch-off
       styles:
         icon:
-          - color: "var(--contrast-33)"
+          - color: var(--icon-color)
+    - value: "unavailable"
+      icon: mdi:toggle-switch-off
+      styles:
+        icon:
+          - color: var(--icon-color)
     - value: "on"
       icon: mdi:toggle-switch
       styles:
         card:
-          - background: "var(--gradient-purple-light)"
+          - background: "var(--gradient-orange)"
         name:
           - color: "var(--color-white)"
         label:
@@ -79,10 +82,12 @@ custom_card_switch:
     icon: >
       [[[
         if (entity.state == "on"){
-          return '<ha-icon icon="mdi:lightbulb-on"></ha-icon>';
+          return '<ha-icon icon="mdi:power-socket-eu"></ha-icon>';
         } else {
-          return '<ha-icon icon="mdi:lightbulb-off"></ha-icon>';
+          return '<ha-icon icon="mdi:power-socket-eu"></ha-icon>';
         }
       ]]]
   hold_action:
     action: more-info
+  tap_action:
+    action: toggle

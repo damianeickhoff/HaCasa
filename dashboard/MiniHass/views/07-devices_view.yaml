@@ -1,13 +1,11 @@
 title: devices
-icon: mdi:mobile
+icon: mdi:devices
 path: "devices"
 cards:
   - type: custom:button-card
     template: custom_card_navigationbar
     variables:
-      color3: var(--color-cerise)
-  - type: custom:button-card
-    template: custom_card_header_left_back
+      color3: var(--text)
   - type: custom:button-card
     name: Alle <p style="color:#7E46FF;display:inline">devices</p>
     template:
