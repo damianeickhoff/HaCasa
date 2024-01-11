@@ -29,7 +29,7 @@ custom_card_switch:
     icon:
       - justify-self: end
       - align-self: end
-      - width: 25px    
+      - width: 20px    
       - overflow: hidden
     name:
       - text-align: left
@@ -50,22 +50,22 @@ custom_card_switch:
       - overflow: visible
     custom_fields:
       icon:
-        - width: 20px
+        - width: 15px
         - justify-self: start
         - color: "var(--icon-color)"
   state:
     - value: "off"
-      icon: mdi:toggle-switch-off
+      icon: fas:toggle-off
       styles:
         icon:
           - color: var(--icon-color)
     - value: "unavailable"
-      icon: mdi:toggle-switch-off
+      icon: fas:toggle-off
       styles:
         icon:
           - color: var(--icon-color)
     - value: "on"
-      icon: mdi:toggle-switch
+      icon: fas:toggle-on
       styles:
         card:
           - background: "var(--gradient-orange)"
@@ -82,9 +82,9 @@ custom_card_switch:
     icon: >
       [[[
         if (entity.state == "on"){
-          return '<ha-icon icon="mdi:power-socket-eu"></ha-icon>';
+          return '<ha-icon icon="fas:plug"></ha-icon>';
         } else {
-          return '<ha-icon icon="mdi:power-socket-eu"></ha-icon>';
+          return '<ha-icon icon="fas:plug"></ha-icon>';
         }
       ]]]
   hold_action:

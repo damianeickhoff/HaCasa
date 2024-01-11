@@ -125,7 +125,7 @@ custom_card_weather_long:
       - grid-template-columns: 1fr min-content
     card:
       - padding: 5px 25px
-      - background: var(--gradient-blue-teal)
+      - background: var(--weather-card-gradient)
     label:
       - justify-self: start
       - align-self: end

@@ -5,7 +5,7 @@ cards:
   - type: custom:button-card
     template: custom_card_navigationbar
     variables:
-      color1: var(--text)
+      color1: 'var(--navbar-icon-color)'
   - type: vertical-stack
     cards:
     - type: conditional
@@ -62,7 +62,7 @@ cards:
           variables: 
             name: Home<br>Security
             icon: mdi:shield
-            background: "var(--gradient-red)"
+            background: "var(--gradient-orange)"
             navigation_path: '/mini-hass/home-security'
     - type: "custom:button-card"
       template:

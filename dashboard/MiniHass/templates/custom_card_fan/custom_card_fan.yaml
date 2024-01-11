@@ -3,12 +3,13 @@ custom_card_fan:
   variables:
     switch_name: 
     switch_label:
-    switch_icon: "mdi:fan"
+    switch_icon: "mdi:home"
     switch_background_on: "var(--color-yellow)"
   entity: "[[[ return entity.entity_id ]]]"
   name: "[[[ return variables.switch_name ]]]"
   label: "[[[ return variables.switch_label ]]]"
   show_name: true
+  icon: fas:fan
   show_icon: true
   show_label: true
   styles:

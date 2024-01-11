@@ -1,0 +1,12 @@
+title: Layout
+icon: mdi:page-layout-body
+path: "layout"
+type: custom:grid-layout
+layout:
+  grid-template-columns: auto 30px 25%
+  grid-template-rows: auto
+  grid-template-areas: |
+    "header header header"
+    "main . sidebar"
+    "footer footer footer"  
+cards:

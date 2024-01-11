@@ -5,4 +5,4 @@ cards:
   - type: custom:button-card
     template: custom_card_navigationbar
     variables:
-      color1: var(--text)
+      color1: var(--navbar-icon-color)
