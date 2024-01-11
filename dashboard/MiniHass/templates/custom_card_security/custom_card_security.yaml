@@ -38,8 +38,7 @@ custom_card_security:
       label: Stand by...
       styles:
         label:
-          - animation:
-            - flash 2s linear infinite
+          - animation: flash 2s linear infinite
     - value: "armed_home"
       icon: mdi:shield-outline
       label: Armed Home
@@ -75,22 +74,19 @@ custom_card_security:
             styles:
               icon:
                 - color: "var(--color-orange)"
-                - animation:
-                  - flash 2s linear infinite
+                - animation: flash 2s linear infinite
           - value: "armed_home"
             icon: mdi:shield-outline
             styles:
               icon:
                 - color: "var(--color-green)"
-                - animation:
-                  - rotate 4s linear infinite
+                - animation: rotate 4s linear infinite
           - value: "armed_away"
             icon: mdi:shield-outline
             styles:
               icon:
                 - color: "var(--color-orange)"
-                - animation:
-                  - rotate 4s linear infinite
+                - animation: rotate 4s linear infinite
           - value: "disarmed"
             icon: mdi:shield-off-outline
         extra_styles: |

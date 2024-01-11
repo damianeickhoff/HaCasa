@@ -1,6 +1,6 @@
 ---
 ####################### LIGHT MODE ####################
-MiniHass:
+Micasa:
 
   masonry-view-card-margin: 15px 15px 0px 15px
   --control-circular-slider-color: blue
@@ -16,15 +16,14 @@ MiniHass:
       contrast-100: rgba(0,0,0)
 
       # weather card
-      weather-card-gradient: linear-gradient(129deg, rgba(191,242,255,1) 0%, rgba(109,213,237,1) 100%)
+      weather-card-color: '#414E6E'
       # contrast w opacity
       opacity-contrast-0: rgba(128, 128, 128,.07)
       opacity-contrast-100: rgba(0,0,0,.3)
 
       # main interface colors
-      color-green: "#587C69"
+      color-green: '#587C69'
       color-yellow: rgb(253 204 18)
-      color-blue: rgba(159,204,250,1)
       color-cerise: "#e0188f"
       color-purple: '#821EFF'
       color-orange: "#F46036"
@@ -33,6 +32,14 @@ MiniHass:
       color-teal: rgba(123,232,183,1)
       color-white: rgb(255,255,255)
       color-black: "#000000"
+      color-blue: '#414E6E'
+      color-gold: '#DCBA8D'
+      color-dark-gray: '#A2A5AD'
+      color-darker-gray: '#52555D'
+      color-darkest-gray: '#44474E'
+      color-really-dark-gray: '#52555D'
+      color-light-gray-nav: '#EBEBEB'
+      color-light-gray-card: '#FAFAFA'
 
       gradient-yellow: linear-gradient(30deg, rgb(253 204 18) 0%, rgb(253 238 70) 100%)
       gradient-green: linear-gradient(120deg, rgba(120,210,155,1), rgba(205,240,200,1))
@@ -62,7 +69,7 @@ MiniHass:
       glow-color-white: 'var(--glow) var(--color-white)'
 
       # background and sidebar
-      background: '#E5EFFB'
+      background: '#FFFFFF'
 
       # card
       background-neo: linear-gradient(145deg, rgba(250,250,250,.5) 25%, rgba(50,50,50,.1))
@@ -71,7 +78,7 @@ MiniHass:
       border-radius: "16px"
       box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px
       ha-card-box-shadow: "none"
-      ha-card-background: '#FFFFFF'
+      ha-card-background: '#FAFAFA'
       ha-card-border-radius: var(--border-radius)
       background-card-color: 'rgba(14,14,112, 0)'
       ha-card-border-width: "var(--border-width)"
@@ -127,13 +134,14 @@ MiniHass:
     ####################### Backend UI ####################
     ####################### MACHIATO ####################
       # Colors
-      text: "#11293C"
+      text: var(--color-darkest-gray)
+      titletext: var(--color-blue)
       subtext1: var(--text)
       subtext0: var(--text)
 
       icon-color: var(--cadet-blue)
       label-color: var(--icon-color)
-      navbar-icon-color: var(--text)
+      navbar-icon-color: var(--color-blue)
       overlay2: "#F5F8FE"
       overlay1: "#8087a2"
       overlay0: "#6e738d"
@@ -165,14 +173,14 @@ MiniHass:
       ###########################
 
       # Header
-      app-header-background-color: '#f5f8fe'
+      app-header-background-color: var(--primary-background-color)
       app-header-text-color: var(--text)
 
       # Main Interface colors
       primary-color: var(--text)
       light-primary-color: var(--primary-color)
 
-      primary-background-color: var(--base)
+      primary-background-color: '#FFFFFF'
       secondary-background-color: var(--base)
 
       # Text
@@ -213,7 +221,7 @@ MiniHass:
       label-badge-background-color: var(--surface0)
       label-badge-text-color: var(--text)
       label-badge-red: var(--red)
-      label-badge-green: var(--green)
+      label-badge-green: var(--color-gold)
       label-badge-blue: var(--blue)
       label-badge-yellow: var(--yellow)
       label-badge-gray: var(--overlay0)
@@ -225,7 +233,7 @@ MiniHass:
       paper-card-background-color: var(--card-background-color)
 
       # Switches
-      switch-checked-button-color: var(--green)
+      switch-checked-button-color: var(--color-gold)
       switch-checked-track-color: var(--surface0)
       switch-unchecked-button-color: rgb(--overlay0)
       switch-unchecked-track-color: rgb(--surface0)
@@ -272,10 +280,10 @@ MiniHass:
       # Colors
       error-color: var(--red)
       warning-color: var(--yellow)
-      success-color: var(--green)
+      success-color: var(--color-gold)
       info-color: var(--blue)
 
-      state-on-color: var(--green)
+      state-on-color: var(--color-gold)
       state-off-color: var(--red)
 
     dark:
@@ -287,7 +295,7 @@ MiniHass:
       contrast-0: var(--ha-card-background)
 
       # weather card
-      weather-card-gradient: linear-gradient(129deg, rgba(77,77,175,1) 0%, rgba(67,69,119,1) 100%)
+      weather-card-color: '#56617F'
 
       # contrast w opacity
       opacity-contrast-100: rgba(255,255,255,.3)
@@ -296,7 +304,6 @@ MiniHass:
       # colors
       color-green: '#587C69'
       color-yellow: rgb(253 204 18)
-      color-blue: rgb(159,204,250)
       color-cerise: rgb(224,24,143)
       color-purple: '#821EFF'
       color-orange: rgb(244,96,54)
@@ -305,20 +312,13 @@ MiniHass:
       color-teal: rgb(123,232,183,1)
       color-white: rgba(255,255,255)
       color-black: rgb(0,0,0)
-      gradient-yellow: linear-gradient(30deg, rgb(253 204 18) 0%, rgb(253 238 70) 100%)
-      gradient-green: linear-gradient(120deg, rgba(120,210,155,1), rgba(205,240,200,1))
-      gradient-red: linear-gradient(45deg, rgba(240,130,140,1), rgba(250,185,195,1))
-      gradient-grey-cold: linear-gradient(45deg, rgba(235,244,245,1), rgba(181,198,224,1))
-      gradient-blue: linear-gradient(45deg, rgba(9,116,241,1), rgba(159,204,250,1))
-      gradient-blue-dark: linear-gradient(45deg, rgba(251,194,235,1) 22%, rgba(166,193,238,1) 77%)
-      gradient-blue-teal: linear-gradient(90deg, rgba(36,184,238,1) 0%, rgba(87,214,215,1) 100%)
-      gradient-orange: linear-gradient(45deg, rgba(253,125,90,1), rgba(253,172,90,1))
-      gradient-teal: linear-gradient(45deg, rgba(123,232,183,1), rgba(123,232,218,1))
-      gradient-purple: linear-gradient(120deg, rgb(130,30,255), rgb(170,100,250))
-      gradient-purple-light: linear-gradient(45deg, rgba(126,70,255,1) 0%, rgba(166,131,255,1) 100%)
-      gradient-purple-teal: 'linear-gradient(45deg, var(--color-purple), var(--color-teal))'
-      gradient-teal-purple: 'linear-gradient(45deg, var(--color-teal), var(--color-purple))'
-      gradient-black: linear-gradient(45deg, rgba(13,13,15,1), rgba(19,20,23,1))
+      color-blue: '#414E6E'
+      color-gold: '#DCBA8D'
+      color-dark-gray: '#A2A5AD'
+      color-darker-gray: '#52555D'
+      color-darkest-gray: '#44474E'
+      color-light-gray-nav: '#EBEBEB'
+      color-light-gray-card: '#FAFAFA'
 
       #glow
       glow: 0px 0px 15px 1px
@@ -333,7 +333,7 @@ MiniHass:
       glow-color-white: 'var(--glow) var(--color-white)'
 
       # background and sidebar
-      background: '#121212'
+      background: '#44474E'
 
       # card
       box-shadow-neo: 5px 5px 10px rgba(0,0,0,.5), -5px -5px 10px rgba(255,255,255,.03)
@@ -343,7 +343,7 @@ MiniHass:
       box-shadow: "none"
 
       ha-card-box-shadow: "var(--box-shadow)"
-      ha-card-background: '#242424'
+      ha-card-background: '#1F1F1F'
       ha-card-border-radius: "var(--border-radius)"
       background-card-color: 'rgba(18,19,23,255)'
       ha-card-border-width: "var(--border-width)"
@@ -388,12 +388,13 @@ MiniHass:
     ####################### MACHIATO ####################
       # Colors
       text: "#ffffff"
-      subtext1: "#636774"
+      subtext1: var(--color-gold)
       subtext0: "#ffffff"
+      title-text: var(--text)
 
       icon-color: white
       label-color: white
-      navbar-icon-color: '#6FC1C6'
+      navbar-icon-color: var(--color-gold)
 
       overlay2: "#939ab7"
       overlay1: "#8087a2"
@@ -401,7 +402,7 @@ MiniHass:
 
       surface2: "#5b6078"
       surface1: "#494d64"
-      surface0: "#171A21"
+      surface0: "#151515"
 
       base: "var(--background)"
       mantle: "#1e2030"
@@ -425,14 +426,14 @@ MiniHass:
       ###########################
 
       # Header
-      app-header-background-color: var(--base)
+      app-header-background-color: var(--primary-background-color)
       app-header-text-color: var(--text)
 
       # Main Interface colors
-      primary-color: var(--blue)
+      primary-color: var(--color-gold)
       light-primary-color: var(--primary-color)
 
-      primary-background-color: var(--base)
+      primary-background-color: '#151515'
       secondary-background-color: var(--base)
 
       # Text
@@ -444,7 +445,7 @@ MiniHass:
       disabled-text-color: var(--surface0)
 
       # Sidebar
-      sidebar-background-color: var(--crust)
+      sidebar-background-color: var(--ha-card-background)
       sidebar-selected-background-color: var(--primary-background-color)
 
       sidebar-icon-color: var(--subtext0)
@@ -473,7 +474,7 @@ MiniHass:
       label-badge-background-color: var(--surface0)
       label-badge-text-color: var(--text)
       label-badge-red: var(--red)
-      label-badge-green: var(--green)
+      label-badge-green: var(--color-gold)
       label-badge-blue: var(--blue)
       label-badge-yellow: var(--yellow)
       label-badge-gray: var(--overlay0)
@@ -485,7 +486,7 @@ MiniHass:
       paper-card-background-color: var(--card-background-color)
 
       # Switches
-      switch-checked-button-color: var(--green)
+      switch-checked-button-color: var(--color-gold)
       switch-checked-track-color: var(--surface0)
       switch-unchecked-button-color: rgb(--overlay0)
       switch-unchecked-track-color: rgb(--surface0)
@@ -531,8 +532,8 @@ MiniHass:
       # Colors
       error-color: var(--red)
       warning-color: var(--yellow)
-      success-color: var(--green)
+      success-color: var(--color-gold)
       info-color: var(--blue)
 
-      state-on-color: var(--green)
+      state-on-color: var(--color-gold)
       state-off-color: var(--red)

@@ -39,11 +39,11 @@ custom_card_mediaplayer:
         - background: |
             [[[
               if (entity.attributes.media_title == undefined || entity.attributes.entity_picture == undefined){
-                return 'linear-gradient(45deg, rgba(0,0,0,.7) 30%, rgba(0,0,0,0.3) 100%), center / cover no-repeat url("/local/images/abstract-wave-gif.gif")';
+                return 'linear-gradient(45deg, rgba(0,0,0,.7) 30%, rgba(0,0,0,0.3) 100%), center / cover no-repeat url("/local/music/abstract-wave.gif")';
               } else {
-                return 'center / cover no-repeat url("' + states[entity.entity_id].attributes.entity_picture + '")';
+                return 'linear-gradient(45deg, rgba(0,0,0,.7) 30%, rgba(0,0,0,0.3) 100%), center / cover no-repeat url("' + states[entity.entity_id].attributes.entity_picture + '")';
               }
-            ]]]      
+            ]]]
   custom_fields:
     background_cover: .
     cover:
@@ -66,10 +66,15 @@ custom_card_mediaplayer:
       card:
         type: custom:button-card
         name: >
-          [[[ return states[ entity.entity_id ].attributes.media_artist
-          ]]]         
+          [[[
+            if (entity.attributes.media_artist == undefined) {
+              return "Er wordt niks afgespeeld"
+            } else {
+              return states[ entity.entity_id ].attributes.media_artist
+            }
+          ]]]
         label: |
-          [[[ return states[ entity.entity_id ].attributes.media_title ]]]  
+          [[[ return states[ entity.entity_id ].attributes.media_title ]]]
         show_icon: false
         show_label: true
         styles:

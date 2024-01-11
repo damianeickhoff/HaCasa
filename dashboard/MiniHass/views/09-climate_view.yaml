@@ -2,10 +2,17 @@ title: Climate
 icon: mdi:thermostat
 path: "climate"
 cards:
-  - type: custom:button-card
-    template: custom_card_navigationbar
-    variables:
-      color1: var(--navbar-icon-color)
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color1: 'var(--color-white)'
+          bgcolor1: 'var(--navbar-icon-color)'
+
   - type: custom:button-card
     template: custom_card_header_left_back
     name: Klimaat
@@ -52,11 +59,11 @@ cards:
               - value: auto
                 styles:
                   card:
-                    - background: var(--gradient-purple)     
+                    - background: var(--gradient-purple)
                   icon:
                     - color: white
                   name:
-                    - color: white              
+                    - color: white
           - type: custom:button-card
             template: custom_card_button
             icon: mdi:fire
@@ -66,13 +73,13 @@ cards:
               - value: heat
                 styles:
                   card:
-                    - background: var(--gradient-purple)     
+                    - background: var(--gradient-purple)
                   icon:
                     - color: white
                   name:
                     - color: white
           - type: custom:button-card
-            template: custom_card_button      
+            template: custom_card_button
             icon: mdi:power
             entity: climate.woonkamer
             name: Uit
@@ -81,7 +88,7 @@ cards:
               - value: 'off'
                 styles:
                   card:
-                    - background: var(--gradient-purple)     
+                    - background: var(--gradient-purple)
                   icon:
                     - color: white
                   name:

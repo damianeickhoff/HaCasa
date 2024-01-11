@@ -25,7 +25,7 @@ custom_card_weather_sensor:
     icon:
       - width: 100%
       - padding: 0
-      - color: var(--color-white)
+      - color: var(--color-gold)
       - opacity: 0.8
     img_cell:
       - width: 1rem
@@ -33,7 +33,7 @@ custom_card_weather_sensor:
       - padding: 0
     name:
       - font-size: 0.9rem
-      - color: var(--color-white)
+      - color: var(--color-gold)
       - justify-self: start
       - opacity: 0.8
       - font-weight: 400
@@ -55,10 +55,10 @@ custom_card_weather_sensor:
             - background: none
             - padding: 0
           name:
-            - color: var(--color-white)
             - font-size: 0.8em
             - font-family: montserrat
             - font-weight: 500
+
     label:
       card:
         type: custom:button-card
@@ -72,7 +72,6 @@ custom_card_weather_sensor:
           name:
             - padding: 0 0 0 0
             - margin: 0 0 0 0
-            - color: var(--color-white)
             - font-size: 2.5rem
             - font-family: montserrat
             - font-weight: 600
@@ -82,7 +81,6 @@ custom_card_weather_sensor:
             - align-self: center
             - padding-left: 5px
             - justify-self: start
-            - color: var(--color-white)
             - font-size: 0.9rem
           card:
             - background: none

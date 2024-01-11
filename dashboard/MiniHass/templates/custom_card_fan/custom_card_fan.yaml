@@ -1,7 +1,7 @@
 ---
 custom_card_fan:
   variables:
-    switch_name: 
+    switch_name:
     switch_label:
     switch_icon: "mdi:home"
     switch_background_on: "var(--color-yellow)"
@@ -20,23 +20,23 @@ custom_card_fan:
     card:
       - height: 80px
       - padding: 1rem
-      - background: '#6FC1C6'
+      - background: 'var(--color-blue)'
     img_cell:
       - overflow: visible
       - padding: 0 0 0 0
       - height: 40px
       - width: 40px
-      - border-radius: 50px   
+      - border-radius: 50px
     icon:
       - width: "var(--button-small)"
       - overflow: visible
       - height: 22px
-      - width: 22px      
+      - width: 22px
       - margin-right: 40px
       - padding: 10px
       - background: rgba(255, 255, 255,.3)
       - border-radius: 50px
-      - color: var(--color-white)      
+      - color: var(--color-white)
     name:
       - text-align: left
       - font-size: "var(--fs-500)"
@@ -51,6 +51,6 @@ custom_card_fan:
       styles:
         icon:
           - animation: rotating 1.8s linear infinite
-          - background: rgba(255,255,255,.3)          
+          - background: rgba(255,255,255,.3)
   hold_action:
     action: more-info

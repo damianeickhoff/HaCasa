@@ -1,6 +1,6 @@
 ---
 custom_card_navigate:
-  variables: 
+  variables:
     name:
     icon:
     background:
@@ -9,21 +9,31 @@ custom_card_navigate:
   icon: "[[[ return variables.icon ]]]"
   show_name: true
   show_icon: true
-  show_label: false
+  entity: sensor.total_lights_on_2
   show_state: false
+  show_label: true
   tap_action:
     action: navigate
     navigation_path: "[[[ return variables.navigation_path ]]]"
+  label: |
+    [[[
+      if (entity.state == 0) {
+        return ""
+      } else if (entity.state == 1) {
+        return "1 lamp aan"
+      } else {
+        return entity.state + " lampen aan"
+      }
+    ]]]
   styles: &navigate_card_styles_3
     grid:
-      - grid-template-areas: '"n" "ent1"'
+      - grid-template-areas: '"n" "ent1" "l"'
       - grid-template-rows: 1fr 1fr
       - column-gap: 10px
     card:
       - height: 100%
       - border-radius: "var(--border-radius)"
       - padding: 1rem
-      - background: "[[[ return variables.background ]]]"
       - overflow: hidden
       - aspect-ratio: 3/2
     name:
@@ -35,7 +45,6 @@ custom_card_navigate:
       - font-weight: 600
       - justify-self: start
       - align-self: start
-      - color: "var(--color-white)"
       - overflow: visible
     img_cell:
       - position: absolute
@@ -45,16 +54,45 @@ custom_card_navigate:
     icon:
       - position: absolute
       - width: 20em
-      - opacity: 20%
-      - color: "var(--color-white)"
-      - transform: rotate(-20deg)
+      - opacity: 90%
+      - color: var(--color-gold)
+    label:
+      - color: var(--color-dark-gray)
+      - justify-self: start
+      - font-size: 12px
+      - font-weight: 500
     custom_fields:
       ent1:
         - justify-self: start
         - align-self: end
+  extra_styles: |
+    :hover #icon{
+      transform: scale(1.25) !important;
+      transition: transform .3s ease-in-out;
+    }
+
+    :active #tap-highlight-color{
+      opacity: 0;
+    }
+
+    :not(:hover) #icon{
+      transform: scale(1) !important;
+      transition: transform .6s ease-in-out;
+    }
+
+    :hover #icon.ellipsis{
+      transform: rotate(-20deg) scale(1.15) !important;
+      transition: transform .3s ease-in-out;
+    }
+
+    :not(:hover) #icon.ellipsis{
+      transform: rotate(-20deg) scale(1) !important;
+      transition: transform .6s ease-in-out;
+    }
 custom_card_navigate_alarm:
   template:
     - custom_card_navigate
+  show_label: false
   custom_fields:
     ent1:
       card:
@@ -70,12 +108,18 @@ custom_card_navigate_alarm:
               card:
                 - display: none
               img_cell:
-                - background: "var(--color-white)"
+                - background: none
           - value: "on"
-            name: Alarm detected
+            name: Alarm actief
             styles:
+              name:
+                - color: var(--color-dark-gray)
+                - font-size: 12px
+                - font-weight: 500
+              card:
+                - box-shadow: none
               img_cell:
-                - background: "var(--color-red)"
+                - background: "var(--color-green)"
                 - animation:
                     - blink 1s ease infinite
         styles:
@@ -110,3 +154,27 @@ custom_card_navigate_alarm:
             - opacity: 0
             - margin: 0
             - padding: 0
+  extra_styles: |
+    :hover #icon{
+      transform: scale(1.25) !important;
+      transition: transform .3s ease-in-out;
+    }
+
+    :active #tap-highlight-color{
+      opacity: 0;
+    }
+
+    :not(:hover) #icon{
+      transform: scale(1) !important;
+      transition: transform .6s ease-in-out;
+    }
+
+    :hover #icon.ellipsis{
+      transform: rotate(-20deg) scale(1.15) !important;
+      transition: transform .3s ease-in-out;
+    }
+
+    :not(:hover) #icon.ellipsis{
+      transform: rotate(-20deg) scale(1) !important;
+      transition: transform .6s ease-in-out;
+    }

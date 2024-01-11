@@ -20,8 +20,10 @@ custom_card_section_title:
       - font-family: Montserrat
       - font-weight: 800
       - text-align: left
-      - font-size: 2rem      
+      - font-size: 2rem
       - justify-self: start
+      - color: var(--title-text)
+      - animation: slide-in 1s ease-out, opacity 1s ease-in
     label:
       - opacity: 0.5
       - font-size: "var(--fs-400)"
@@ -29,3 +31,12 @@ custom_card_section_title:
       - font-weight: 400
       - text-align: left
       - justify-self: start
+  extra_styles: |
+    @keyframes slide-in {
+      0% {transform: translateX(-2%);}
+      100% {transform: translateX(0%);}
+    }
+    @keyframes opacity {
+      0% {opacity:0;}
+      100% {opacity:1;}
+    }

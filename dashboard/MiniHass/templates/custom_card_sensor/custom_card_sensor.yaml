@@ -10,11 +10,10 @@ custom_card_sensor:
       - grid-template-rows: 1fr 1fr
       - row-gap: 8px
     card:
-      - background: var(--contrast-0)
       - padding: 18px
     icon:
       - width: 20px
-      - color: 'var(--icon-color)'
+      - color: var(--color-dark-gray)
     img_cell:
       - width: 20px
       - justify-self: start
@@ -23,7 +22,7 @@ custom_card_sensor:
       - align-self: end
       - font-size: 10px
       - font-family: montserrat
-      - color: var(--label-color)      
+      - color: var(--color-dark-gray)
       - font-weight: 500
     state:
       - overflow: visible
@@ -36,13 +35,14 @@ custom_card_sensor:
     label:
       - justify-self: start
       - font-size: 12px
-      - color: var(--label-color)
+      - color: var(--color-gold)
       - font-family: montserrat
+      - font-weight: 500
   state:
     - value: 'on'
       styles:
-        icon: 
-          - color: var(--color-purple)
+        icon:
+          - color: var(--color-gold)
 custom_card_sensor_vert:
   variables:
     background:
@@ -54,7 +54,7 @@ custom_card_sensor_vert:
     grid:
       - grid-template-areas: '"s" "l" "n"'
       - grid-template-rows: 1fr min-content
-      - row-gap: 8px  
+      - row-gap: 8px
     card:
       - padding: 18px
       - background: '[[[ return variables.background ]]]'
@@ -65,7 +65,66 @@ custom_card_sensor_vert:
     label:
       - font-size: 15px
       - font-weight: 400
-      - color: var(--color-white)      
+      - color: var(--color-white)
     name:
       - font-size: 12px
-      - color: var(--color-white)      
+      - color: var(--color-white)
+
+custom_card_sensor_long:
+  styles:
+    card:
+      - border-radius: 500px
+      - padding: 10px 25px 10px 10px
+    grid:
+      - grid-template-areas: '''i n indicator'' ''i l indicator'''
+      - grid-template-columns: min-content
+      - grid-template-rows: min-content min-content
+      - column-gap: 15px
+    icon:
+      - width: 2rem
+      - margin: 0.8rem
+      - color: var(--color-blue)
+    img_cell:
+      - justify-self: start
+      - width: 3rem
+      - background: var(--color-white)
+      - border-radius: 500px
+    name:
+      - justify-self: start
+      - align-self: end
+      - font-family: montserrat
+      - font-weight: 700
+      - font-size: 12px
+    state:
+      - justify-self: start
+      - align-self: start
+      - font-family: montserrat
+      - font-weight: 500
+      - font-size: 10px
+    label:
+      - justify-self: start
+      - align-self: start
+      - font-family: montserrat
+      - font-weight: 500
+      - font-size: 10px
+    custom_fields:
+      indicator:
+        - justify-self: end
+  custom_fields:
+    indicator:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'
+        show_icon: false
+        show_name: false
+        styles:
+          card:
+            - height: 20px
+            - width: 20px
+            - background: white
+            - border-radius: 500px
+        state:
+          - value: 'on'
+            styles:
+              card:
+                - background: var(--color-green)

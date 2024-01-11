@@ -1,6 +1,6 @@
-title: Rooms
-icon: mdi:sofa
-path: "rooms"
+title: Energy
+icon: fas:bolt
+path: "energy"
 cards:
   - type: conditional
     conditions:
@@ -10,10 +10,10 @@ cards:
         type: custom:button-card
         template: custom_card_navigationbar
         variables:
-          color2: 'var(--color-white)'
-          bgcolor2: 'var(--navbar-icon-color)'
+          color4: 'var(--color-white)'
+          bgcolor4: 'var(--navbar-icon-color)'
 
   - type: custom:button-card
-    name: Alle <p style="color:var(--color-gold);display:inline">ruimtes</p>
+    name: Energy <p style="color:var(--color-gold);display:inline">dashboard</p>
     template:
       - custom_card_section_title

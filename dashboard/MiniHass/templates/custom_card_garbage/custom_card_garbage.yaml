@@ -75,12 +75,12 @@ custom_card_garbage_collection:
             - font-weight: 500
             - text-align: left
             - justify-self: start
-            - color: var(--label-color)
+            - color: var(--color-dark-gray)
           img_cell:
             - justify-self: center
           icon:
             - width: "var(--button-small)"
-            - color: var(--icon-color)
+            - color: var(--color-dark-gray)
             - padding: 0
             - margin: 0
         state:

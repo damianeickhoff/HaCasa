@@ -2,17 +2,24 @@ title: Smarthome
 icon: mdi:home-automation
 path: "smarthome"
 cards:
-  - type: custom:button-card
-    template: custom_card_navigationbar
-    variables:
-      color1: var(--navbar-icon-color)
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color1: 'var(--color-white)'
+          bgcolor1: 'var(--navbar-icon-color)'
+
   - type: vertical-stack
     cards:
       - type: custom:button-card
         template: custom_card_header_left_back
         name: Woonkamer
       - type: custom:button-card
-        template: 
+        template:
           - custom_card_sensor_double
         variables:
           sensor1: sensor.round_temp
@@ -29,7 +36,7 @@ cards:
       - type: custom:mini-graph-card
         entities:
           - entity: sensor.woonkamer_temperatuur
-            color: '#8F60FF'
+            color: var(--color-gold)
         name: Temperatuur Binnen
         hours24: true
         show_hours: 24
@@ -42,14 +49,14 @@ cards:
             ha-card .name > span {
               opacity: 1;
               font-family: montserrat;
-              font-weight: 600
+              font-weight: 600;
             }
       - type: "custom:button-card"
         entity: fan.whisper_flex
         template:
           - custom_card_fan
         variables:
-          switch_name: Slaapkamer fan        
+          switch_name: Slaapkamer fan
       - type: "custom:button-card"
         template:
           - custom_card_section_title
@@ -79,7 +86,7 @@ cards:
               - custom_card_light
             variables:
               light_name: Staanlamp
-              light_label: Kantoor            
+              light_label: Kantoor
       - type: grid
         columns: 3
         square: false
@@ -128,7 +135,7 @@ cards:
       - type: grid
         columns: 2
         square: false
-        cards:                       
+        cards:
         - type: "custom:button-card"
           entity: switch.wc_verwarming_stopcontact_1
           template:
@@ -143,9 +150,9 @@ cards:
             - custom_card_switch
           variables:
             switch_name: Vitrinekast
-            switch_label: Woonkamer        
+            switch_label: Woonkamer
   - type: 'custom:button-card'
     color_type: blank-card
     styles:
       card:
-        - height: 50px      
+        - height: 50px

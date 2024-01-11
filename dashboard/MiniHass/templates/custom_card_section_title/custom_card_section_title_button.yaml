@@ -2,51 +2,59 @@ custom_card_section_title_button:
   styles:
     grid:
       - grid-template-areas: '"n button_1 button_2 button_3"'
-      - column-gap: 6px
     name:
       - justify-self: start
       - align-self: start
       - font-weight: 800
       - font-family: montserrat
       - font-size: 2rem
+      - color: var(--title-text)
     card:
       - background: none
+      - animation: slide-in 1s ease-out, opacity 1s ease-in
   custom_fields:
     button_1:
       card:
         type: custom:button-card
         tap_action:
           action: call-service
-          service: script.all_lights_off        
-        icon: mdi:weather-night
+          service: script.all_lights_off
+        name: Nacht
         styles: &icon_styles
           grid:
             - grid-template-areas: "'n i'"
             - grid-template-columns: min-content
           card:
             - padding: 8px
-            - background: '#D8B9FF'
-            - border-radius: 500px
-          icon:
-            - width: 20px
-            - color: '#724FD1'
+            - background: none
+            - border-radius: 0
           name:
-            - color: '#eb838d'
             - font-family: montserrat
-            - font-weight: 500
+            - font-weight: 600
+            - font-size: 12px
+            - color: var(--color-gold)
     button_2:
       card:
         type: custom:button-card
         tap_action:
           action: call-service
-          service: script.all_lights_off        
-        icon: mdi:movie
+          service: script.all_lights_off
+        name: Film
         styles: *icon_styles
     button_3:
       card:
         type: custom:button-card
         tap_action:
           action: call-service
-          service: script.all_lights_off        
-        icon: mdi:briefcase
+          service: script.all_lights_off
+        name: Werk
         styles: *icon_styles
+  extra_styles: |
+    @keyframes slide-in {
+      0% {transform: translateX(-2%);}
+      100% {transform: translateX(0%);}
+    }
+    @keyframes opacity {
+      0% {opacity:0;}
+      100% {opacity:1;}
+    }

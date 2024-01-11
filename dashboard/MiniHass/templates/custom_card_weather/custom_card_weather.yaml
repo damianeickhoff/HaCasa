@@ -66,7 +66,7 @@ custom_card_weather:
         - left: 17%
         - top: 70%
         - color: var(--color-white)
-        - background: none      
+        - background: none
   custom_fields:
     icon: |
       [[[
@@ -125,7 +125,7 @@ custom_card_weather_long:
       - grid-template-columns: 1fr min-content
     card:
       - padding: 5px 25px
-      - background: var(--weather-card-gradient)
+      - background: var(--weather-card-color)
     label:
       - justify-self: start
       - align-self: end
@@ -144,8 +144,8 @@ custom_card_weather_long:
     custom_fields:
       icon:
         - width: 8rem
-        - color: white
-        
+        - filter: brightness(0) invert(1)brightness(100%) contrast(101%)
+
   custom_fields:
     icon: |
       [[[

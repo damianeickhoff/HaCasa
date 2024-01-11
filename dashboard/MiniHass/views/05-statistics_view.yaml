@@ -1,8 +1,0 @@
-title: Statistieken
-icon: mdi:chart-arc
-path: "statistics"
-cards:
-  - type: custom:button-card
-    template: custom_card_navigationbar
-    variables:
-      color1: var(--navbar-icon-color)

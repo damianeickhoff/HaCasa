@@ -14,7 +14,6 @@ custom_card_sensor_double:
     card:
       - padding: 20px 30px
       - margin-bottom: 1rem
-      - background: var(--contrast-0)
     custom_fields:
       item1:
         - justify-self: start
@@ -32,7 +31,7 @@ custom_card_sensor_double:
             - column-gap: 1rem
           icon:
             - width: 2rem
-            - color: '[[[ return variables.color1 ]]]'
+            - color: var(--color-gold)
           img_cell:
             - width: 2rem
           state:
@@ -40,13 +39,14 @@ custom_card_sensor_double:
             - font-family: montserrat
             - font-weight: 700
             - font-size: 1.2rem
+            - color: var(--text)
           card:
             - background: none
           name:
             - font-weight: 600
             - font-family: montserrat
             - font-size: 1rem
-            - color: var(--label-color)
+            - color: var(--color-dark-gray)
     item2:
       card:
         type: custom:button-card
@@ -54,24 +54,4 @@ custom_card_sensor_double:
         icon: '[[[ return variables.icon2 ]]]'
         show_state: true
         name: '[[[ return variables.name2 ]]]'
-        styles:
-          grid:
-            - grid-template-areas: '"i s" "i n" '
-            - column-gap: 1rem
-          icon:
-            - width: 2rem
-            - color: '[[[ return variables.color2 ]]]'
-          img_cell:
-            - width: 2rem
-          state:
-            - justify-self: start
-            - font-family: montserrat
-            - font-weight: 700
-            - font-size: 1.2rem
-          card:
-            - background: none
-          name:
-            - font-weight: 600
-            - font-family: montserrat
-            - font-size: 1rem     
-            - color: var(--label-color)
+        styles: *item_styles

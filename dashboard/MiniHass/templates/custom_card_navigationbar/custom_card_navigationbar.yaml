@@ -1,97 +1,134 @@
 custom_card_navigationbar:
   variables:
-    color1: var(--icon-color)
-    color2: var(--icon-color)
-    color3: var(--icon-color)
-    color4: var(--icon-color)
+    color1: var(--color-darkest-gray)
+    color2: var(--color-darkest-gray)
+    color3: var(--color-darkest-gray)
+    color4: var(--color-darkest-gray)
+    bgcolor1: var(--color-light-gray-nav)
+    bgcolor2: var(--color-light-gray-nav)
+    bgcolor3: var(--color-light-gray-nav)
+    bgcolor4: var(--color-light-gray-nav)
   tap_action:
     action: none
   styles:
     grid:
-      - grid-template-areas: '". item_1 item_2 item_3 item_4 item_5 ."'
-      - grid-template-columns: 1fr repeat(5, min-content) 1fr
+      - grid-template-areas: '". item_1 item_2 item_3 item_4 ."'
+      - grid-template-columns: 1fr repeat(4, min-content) 1fr
       - grid-template-rows: 1fr
       - column-gap: 2.5rem
     card:
       - height: 70px
-      - width: 100vw
-      - border-radius: 20px 20px 0px 0px
-      - box-shadow: 0px 0px 12px rgba(0,0,0,.2);
-      - background: var(--contrast-0)
+      - width: 90vw
+      - border-radius: 500px
       - overflow: visible
       - position: fixed
+      - box-shadow: 0px 25px 80px rgba(0, 0, 0, 0.5);
       - margin: 0
-      - bottom: 0
-      - left: 0
+      - bottom: 10px
+      - left: 5%
       - z-index: 4
-      - padding-bottom: 70px
-      - margin-top: 150px
+      - padding-bottom: 50px
   custom_fields:
     item_1:
       card:
         type: custom:button-card
-        icon: mdi:home
+        icon: |
+          [[[
+            if (variables.bgcolor1 == 'var(--navbar-icon-color)') {
+              return 'fapro:house-fill'
+            } else {
+              return 'fapro:house'
+            }
+          ]]]
         tap_action:
           action: navigate
           navigation_path: 'home'
         styles:
+          icon:
+            - color: '[[[ return variables.color1 ]]]'
           card:
-            - height: 55px
-            - width: 55px
+            - height: 40px
+            - width: 40px
             - margin: 0
             - padding: 10
-            - background: none
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor1 ]]]'
             - align-self: start
-          icon:
-            - color: '[[[ return variables.color1 ]]]'            
     item_2:
       card:
         type: custom:button-card
-        icon: mdi:sofa
+        icon: |
+          [[[
+            if (variables.bgcolor2 == 'var(--navbar-icon-color)') {
+              return 'fapro:couch-fill'
+            } else {
+              return 'fapro:couch'
+            }
+          ]]]
         tap_action:
           action: navigate
-          navigation_path: 'rooms'        
+          navigation_path: 'rooms'
         styles:
+          icon:
+            - color: '[[[ return variables.color2 ]]]'
           card:
-            - height: 55px
-            - width: 55px
+            - height: 40px
+            - width: 40px
             - margin: 0
             - padding: 10
-            - background: none
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor2 ]]]'
             - align-self: start
-          icon:
-            - color: '[[[ return variables.color2 ]]]'            
+
     item_3:
       card:
         type: custom:button-card
-        icon: mdi:devices
+        icon: |
+          [[[
+            if (variables.bgcolor3 == 'var(--navbar-icon-color)') {
+              return 'fapro:devices-fill'
+            } else {
+              return 'fapro:devices'
+            }
+          ]]]
         tap_action:
           action: navigate
-          navigation_path: 'devices'             
+          navigation_path: 'devices'
         styles:
           card:
-            - height: 55px
-            - width: 55px
+            - height: 40px
+            - width: 40px
             - margin: 0
             - padding: 10
-            - background: none
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor3 ]]]'
             - align-self: start
           icon:
-            - color: '[[[ return variables.color3 ]]]'            
+            - color: '[[[ return variables.color3 ]]]'
+            - width: 17px
     item_4:
       card:
         type: custom:button-card
-        icon: mdi:play
+        icon: |
+          [[[
+            if (variables.bgcolor4 == 'var(--navbar-icon-color)') {
+              return 'fapro:bolt-fill'
+            } else {
+              return 'fapro:bolt'
+            }
+          ]]]
         tap_action:
           action: navigate
-          navigation_path: 'media-controls'        
+          navigation_path: 'energy'
         styles:
           card:
-            - height: 55px
-            - width: 55px
+            - height: 40px
+            - width: 40px
             - margin: 0
             - padding: 10
-            - background: none
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor4 ]]]'
             - align-self: start
           icon:
             - color: '[[[ return variables.color4 ]]]'
+            - width: 17px

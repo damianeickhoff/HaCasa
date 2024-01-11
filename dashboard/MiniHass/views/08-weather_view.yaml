@@ -2,19 +2,26 @@ title: Weather
 icon: mdi:cloud
 path: "weather"
 cards:
-  - type: custom:button-card
-    template: custom_card_navigationbar
-    variables:
-      color1: var(--navbar-icon-color)
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color1: 'var(--color-white)'
+          bgcolor1: 'var(--navbar-icon-color)'
+
   - type: vertical-stack
     cards:
       - type: custom:button-card
         template: custom_card_header_left_back
-        name: Weer                 
+        name: Weer
       - type: custom:mini-graph-card
         entities:
           - sensor.gevoelstemperatuur
-        line_color: gray
+        line_color: var(--color-gold)
         fill: false
         hours_to_show: 24
         points_per_hour: 1
@@ -25,7 +32,7 @@ cards:
           fill: false
           legend: true
           icon: false
-          name: true     
+          name: true
       - type: custom:button-card
         template:
           custom_card_weather_forecast
@@ -41,7 +48,6 @@ cards:
             template: custom_card_weather_sensor
             entity: weather.buienradar
             variables:
-                background: var(--gradient-green)
                 icon: mdi:weather-windy
                 name: Windsnelheid
                 labelname: |
@@ -51,7 +57,6 @@ cards:
             template: custom_card_weather_sensor
             entity: weather.buienradar
             variables:
-                background: var(--gradient-purple-light)
                 icon: mdi:gauge
                 name: Luchtdruk
                 labelname: |
@@ -61,7 +66,6 @@ cards:
             template: custom_card_weather_sensor
             entity: sensor.erzeijstraat_utrecht_luchtkwaliteitsindex
             variables:
-                background: var(--gradient-blue)
                 icon: mdi:air-filter
                 name: AQI
                 labelname: |
@@ -70,13 +74,12 @@ cards:
             template: custom_card_weather_sensor
             entity: sensor.straling
             variables:
-                background: var(--gradient-orange)
                 icon: mdi:weather-sunny
                 name: UV-index
                 labelname: |
-                  [[[ return states['sensor.straling'].state]]]                                              
+                  [[[ return states['sensor.straling'].state]]]
   - type: 'custom:button-card'
     color_type: blank-card
     styles:
       card:
-        - height: 50px                        
+        - height: 50px

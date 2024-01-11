@@ -1,7 +1,7 @@
 ---
 custom_card_light:
   variables:
-    light_name: 
+    light_name:
     light_label:
   entity: "[[[ return entity.entity_id ]]]"
   name: |
@@ -31,8 +31,8 @@ custom_card_light:
     icon:
       - justify-self: end
       - align-self: end
-      - color: var(--icon-color)
-      - width: 20px    
+      - color: var(--color-dark-gray)
+      - width: 20px
       - overflow: hidden
     name:
       - text-align: left
@@ -49,24 +49,24 @@ custom_card_light:
       - font-weight: 500
       - justify-self: start
       - align-self: center
-      - color: var(--label-color)
+      - color: var(--color-dark-gray)
       - overflow: visible
     custom_fields:
       icon:
         - width: 15px
         - justify-self: start
-        - color: var(--icon-color)
+        - color: var(--color-dark-gray)
   state:
     - value: "off"
       icon: fas:toggle-off
       styles:
         icon:
-          - color: var(--icon-color)
+          - color: var(--color-dark-gray)
     - value: "on"
       icon: fas:toggle-on
       styles:
         card:
-          - background: "var(--gradient-purple-light)"
+          - background: "var(--color-gold)"
         name:
           - color: "var(--color-white)"
         label:
@@ -81,7 +81,7 @@ custom_card_light:
       icon: fas:toggle-off
       styles:
         icon:
-          - color: var(--icon-color)
+          - color: var(--color-dark-gray)
   custom_fields:
     icon: >
       [[[

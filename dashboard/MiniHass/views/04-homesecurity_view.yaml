@@ -2,17 +2,24 @@ title: Home Security
 icon: mdi:shield
 path: "home-security"
 cards:
-  - type: custom:button-card
-    template: custom_card_navigationbar
-    variables:
-      color1: var(--navbar-icon-color)
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color1: 'var(--color-white)'
+          bgcolor1: 'var(--navbar-icon-color)'
+
   - type: vertical-stack
     cards:
       - type: custom:button-card
         template: custom_card_header_left_back
         name: Security
       - type: custom:button-card
-        template: 
+        template:
           - custom_card_sensor_double
         variables:
           sensor1: binary_sensor.voordeur_contact_openen
@@ -25,7 +32,7 @@ cards:
           color2: var(--color-teal)
         tap_action:
           action: navigate
-          navigation_path: 'climate'           
+          navigation_path: 'climate'
       - type: "custom:button-card"
         entity: alarm_control_panel.alarmo
         template:
@@ -38,25 +45,17 @@ cards:
         square: false
         cards:
         - type: custom:button-card
-          template: 
+          template:
             - custom_card_sensor
           entity: binary_sensor.badkamer_beweging
-          name: Voordeur
+          name: Badkamer
         - type: custom:button-card
-          template: 
+          template:
             - custom_card_sensor
           entity: binary_sensor.toilet_motion_beweging
-          name: Achterdeur
+          name: Toilet
       - type: custom:button-card
-        template: 
+        template:
           - custom_card_sensor
         entity: sensor.low_battery
         name: Sensor batterijen
-      - type: "custom:button-card"
-        entity: camera.wifi_videodeurbel
-        template:
-          - custom_card_camera
-        variables: 
-          name: Voordeur
-          background: "var(--gradient-orange)"
-          icon: <ha-icon icon="mdi:doorbell-video"></ha-icon>

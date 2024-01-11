@@ -2,10 +2,17 @@ title: Home
 path: "home"
 icon: mdi:home
 cards:
-  - type: custom:button-card
-    template: custom_card_navigationbar
-    variables:
-      color1: 'var(--navbar-icon-color)'
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 18000px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color1: 'var(--color-white)'
+          bgcolor1: 'var(--navbar-icon-color)'
+
   - type: vertical-stack
     cards:
     - type: conditional
@@ -41,9 +48,9 @@ cards:
         action: navigate
         navigation_path: 'weather'
     - type: custom:button-card
-      name: Your <p style="color:#7E46FF;display:inline">Home</p>
+      name: Your <p style="color:var(--color-gold);display:inline">Home</p>
       template:
-        - custom_card_section_title_button                
+        - custom_card_section_title_button
     - type: grid
       columns: 2
       square: false
@@ -51,18 +58,16 @@ cards:
         - type: "custom:button-card"
           template:
             - custom_card_navigate
-          variables: 
+          variables:
             name: Smart<br>Home
-            icon: mdi:home-automation
-            background: "var(--gradient-purple-light)"
+            icon: fapro:house
             navigation_path: '/mini-hass/smarthome'
         - type: "custom:button-card"
           template:
             - custom_card_navigate_alarm
-          variables: 
+          variables:
             name: Home<br>Security
-            icon: mdi:shield
-            background: "var(--gradient-orange)"
+            icon: fapro:shield
             navigation_path: '/mini-hass/home-security'
     - type: "custom:button-card"
       template:
