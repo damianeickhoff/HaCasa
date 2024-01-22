@@ -15,6 +15,9 @@ Micasa:
       contrast-66: "#444444"
       contrast-100: rgba(0,0,0)
 
+      contrast-background: '#ffffff'
+      contrast-background-invert: '#262626'
+
       # weather card
       weather-card-color: '#414E6E'
       # contrast w opacity
@@ -28,7 +31,7 @@ Micasa:
       color-purple: '#821EFF'
       color-orange: "#F46036"
       color-off-grey: "#525252"
-      color-red: "#E84941"
+      color-red: "#d87773"
       color-teal: rgba(123,232,183,1)
       color-white: rgb(255,255,255)
       color-black: "#000000"
@@ -75,10 +78,10 @@ Micasa:
       background-neo: linear-gradient(145deg, rgba(250,250,250,.5) 25%, rgba(50,50,50,.1))
       box-shadow-neo: 5px 5px 10px rgba(50,50,50,.15), -5px -5px 10px rgba(255,255,255,.5)
       border-width: "0px"
-      border-radius: "16px"
-      box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px
-      ha-card-box-shadow: "none"
-      ha-card-background: '#FAFAFA'
+      border-radius: "18px"
+      box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px
+      ha-card-box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px
+      ha-card-background: '#ffffff'
       ha-card-border-radius: var(--border-radius)
       background-card-color: 'rgba(14,14,112, 0)'
       ha-card-border-width: "var(--border-width)"
@@ -91,7 +94,7 @@ Micasa:
 
       # UI
       mdc-button-outline-color: "var(--color-orange)"
-      mdc-theme-primary: "var(--color-blue)"
+      mdc-theme-primary: var(--color-gold)
       --energy-grid-consumption-color: "var(--color-red)"
       --energy-grid-return-color: "var(--color-red)"
       --energy-solar-color: "var(--color-red)"
@@ -131,8 +134,8 @@ Micasa:
       #Buttons (responsive)
       #button-small: clamp(30px, 2vw, 50px)
 
-    ####################### Backend UI ####################
-    ####################### MACHIATO ####################
+      ####################### Backend UI ####################
+      ####################### MACHIATO ####################
       # Colors
       text: var(--color-darkest-gray)
       titletext: var(--color-blue)
@@ -141,7 +144,7 @@ Micasa:
 
       icon-color: var(--cadet-blue)
       label-color: var(--icon-color)
-      navbar-icon-color: var(--color-blue)
+      navbar-icon-color: var(--color-gold)
       overlay2: "#F5F8FE"
       overlay1: "#8087a2"
       overlay0: "#6e738d"
@@ -197,15 +200,15 @@ Micasa:
 
       sidebar-icon-color: var(--subtext0)
       sidebar-text-color: var(--subtext0)
-      sidebar-selected-icon-color: var(--color-purple)
-      sidebar-selected-text-color: var(--color-purple)
+      sidebar-selected-icon-color: var(--color-gold)
+      sidebar-selected-text-color: var(--color-gold)
 
       # Buttons
       paper-item-icon-color: var(--subtext0)
       paper-item-icon-active-color: var(--primary-color)
 
       # States and Badges
-      state-icon-color: var(--lavender)
+      state-icon-color: var(--color-darkest-gray)
       state-icon-active-color: var(--primary-color)
 
       state-icon-unavailable-color: var(--disabled-text-color)
@@ -247,7 +250,7 @@ Micasa:
       table-row-background-color: var(--primary-background-color)
       table-row-alternative-background-color: var(--secondary-background-color)
       data-table-background-color: var(--primary-background-color)
-      mdc-checkbox-unchecked-color: var(--surface0)
+      mdc-checkbox-unchecked-color: var(--color-darkest-gray)
 
       # Dropdowns
       material-background-color: var(--primary-background-color)
@@ -294,6 +297,9 @@ Micasa:
       contrast-10: rgb(17,17,17)
       contrast-0: var(--ha-card-background)
 
+      contrast-background: '#262626'
+      contrast-background-invert: '#EBEBEB'
+
       # weather card
       weather-card-color: '#56617F'
 
@@ -308,7 +314,7 @@ Micasa:
       color-purple: '#821EFF'
       color-orange: rgb(244,96,54)
       color-off-grey: rgb(82,82,82)
-      color-red: rgb(232,73,65)
+      color-red: '#d87773'
       color-teal: rgb(123,232,183,1)
       color-white: rgba(255,255,255)
       color-black: rgb(0,0,0)
@@ -317,7 +323,7 @@ Micasa:
       color-dark-gray: '#A2A5AD'
       color-darker-gray: '#52555D'
       color-darkest-gray: '#44474E'
-      color-light-gray-nav: '#EBEBEB'
+      color-light-gray-nav: 'var(--color-darkest-gray)'
       color-light-gray-card: '#FAFAFA'
 
       #glow
@@ -339,7 +345,7 @@ Micasa:
       box-shadow-neo: 5px 5px 10px rgba(0,0,0,.5), -5px -5px 10px rgba(255,255,255,.03)
 
       border-width: "0px"
-      border-radius: "16px"
+      border-radius: "18px"
       box-shadow: "none"
 
       ha-card-box-shadow: "var(--box-shadow)"
@@ -384,8 +390,8 @@ Micasa:
       #Buttons (responsive)
       #button-small: clamp(30px, 2vw, 50px)
 
-    ####################### Backend UI ####################
-    ####################### MACHIATO ####################
+      ####################### Backend UI ####################
+      ####################### MACHIATO ####################
       # Colors
       text: "#ffffff"
       subtext1: var(--color-gold)

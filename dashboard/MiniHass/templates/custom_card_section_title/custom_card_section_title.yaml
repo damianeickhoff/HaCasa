@@ -12,7 +12,7 @@ custom_card_section_title:
       - height: "auto"
       - width: "auto"
       - border-radius: "var(--border-radius)"
-      - box-shadow: "var(--border-radius)"
+      - box-shadow: none
       - background: "none"
       - margin-top: "0.4rem"
     name:

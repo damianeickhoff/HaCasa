@@ -4,6 +4,17 @@ path: "energy"
 cards:
   - type: conditional
     conditions:
+      - condition: state
+        entity: media_player.spotify_damian_eickhoff
+        state: playing
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+      type: custom:button-card
+      template: custom_card_mediaplayer_bottom
+      entity: media_player.spotify_damian_eickhoff
+  - type: conditional
+    conditions:
       - condition: screen
         media_query: '(min-width: 0px) and (max-width: 767px)'
     card:
@@ -17,3 +28,14 @@ cards:
     name: Energy <p style="color:var(--color-gold);display:inline">dashboard</p>
     template:
       - custom_card_section_title
+  - type: custom:button-card
+    template: custom_card_sensor_long
+    entity: sensor.verwarming_kantoor_opsomming_afgeleverd_cost
+    label: Kantoor
+    name: Kosten Verwarming
+    icon: fapro:flame-fill
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px

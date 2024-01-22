@@ -13,7 +13,6 @@ custom_card_sensor_double:
       - grid-template-areas: '"item1 item2"'
     card:
       - padding: 20px 30px
-      - margin-bottom: 1rem
     custom_fields:
       item1:
         - justify-self: start
@@ -30,22 +29,24 @@ custom_card_sensor_double:
             - grid-template-areas: '"i s" "i n" '
             - column-gap: 1rem
           icon:
-            - width: 2rem
+            - width: 1.5rem
             - color: var(--color-gold)
           img_cell:
-            - width: 2rem
+            - width: 1.5rem
           state:
             - justify-self: start
             - font-family: montserrat
             - font-weight: 700
-            - font-size: 1.2rem
+            - font-size: 1rem
             - color: var(--text)
           card:
             - background: none
+            - border-radius: 0
+            - box-shadow: none
           name:
             - font-weight: 600
             - font-family: montserrat
-            - font-size: 1rem
+            - font-size: 0.8rem
             - color: var(--color-dark-gray)
     item2:
       card:

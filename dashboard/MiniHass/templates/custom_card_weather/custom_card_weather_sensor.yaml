@@ -54,6 +54,7 @@ custom_card_weather_sensor:
           card:
             - background: none
             - padding: 0
+            - box-shadow: none
           name:
             - font-size: 0.8em
             - font-family: montserrat
@@ -84,3 +85,4 @@ custom_card_weather_sensor:
             - font-size: 0.9rem
           card:
             - background: none
+            - box-shadow: none

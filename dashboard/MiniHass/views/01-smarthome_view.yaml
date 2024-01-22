@@ -4,6 +4,17 @@ path: "smarthome"
 cards:
   - type: conditional
     conditions:
+      - condition: state
+        entity: media_player.spotify_damian_eickhoff
+        state: playing
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+      type: custom:button-card
+      template: custom_card_mediaplayer_bottom
+      entity: media_player.spotify_damian_eickhoff
+  - type: conditional
+    conditions:
       - condition: screen
         media_query: '(min-width: 0px) and (max-width: 767px)'
     card:
@@ -24,39 +35,21 @@ cards:
         variables:
           sensor1: sensor.round_temp
           name1: Temperatuur
-          icon1: mdi:home-thermometer-outline
+          icon1: fapro:thermometer
           color1: var(--color-purple)
           sensor2: sensor.woonkamer_luchtvochtigheid
           name2: Vocht Level
-          icon2: mdi:water-outline
+          icon2: fapro:humidity
           color2: var(--color-teal)
         tap_action:
           action: navigate
           navigation_path: 'climate'
-      - type: custom:mini-graph-card
-        entities:
-          - entity: sensor.woonkamer_temperatuur
-            color: var(--color-gold)
-        name: Temperatuur Binnen
-        hours24: true
-        show_hours: 24
-        show:
-          graph: bar
-          icon: false
-          state: false
-        card_mod:
-          style: |
-            ha-card .name > span {
-              opacity: 1;
-              font-family: montserrat;
-              font-weight: 600;
-            }
-      - type: "custom:button-card"
-        entity: fan.whisper_flex
-        template:
-          - custom_card_fan
-        variables:
-          switch_name: Slaapkamer fan
+      # - type: "custom:button-card"
+      #   entity: fan.whisper_flex
+      #   template:
+      #     - custom_card_fan
+      #   variables:
+      #     switch_name: Slaapkamer fan
       - type: "custom:button-card"
         template:
           - custom_card_section_title
@@ -91,24 +84,31 @@ cards:
         columns: 3
         square: false
         cards:
-        - type: "custom:button-card"
-          entity: light.eettafel
-          template:
-            - custom_card_light
-          variables:
-            light_label: Eettafel
-        - type: "custom:button-card"
-          entity: light.woonkamer_plafond
-          template:
-            - custom_card_light
-          variables:
-            light_label: Salontafel
+        # - type: "custom:button-card"
+        #   entity: light.eettafel
+        #   template:
+        #     - custom_card_light
+        #   variables:
+        #     light_label: Eettafel
+        # - type: "custom:button-card"
+        #   entity: light.woonkamer_plafond
+        #   template:
+        #     - custom_card_light
+        #   variables:
+        #     light_label: Salontafel
         - type: "custom:button-card"
           entity: light.sfeer_woonkamer
           template:
             - custom_card_light
           variables:
             light_label: Sfeerlamp
+      - type: "custom:button-card"
+        entity: light.hue_iris
+        template:
+          - custom_card_light
+        variables:
+          light_name: Hue Iris
+          light_label: Overloop
       - type: grid
         columns: 2
         square: false
@@ -133,26 +133,32 @@ cards:
         variables:
           section_title: Plugs
       - type: grid
-        columns: 2
+        columns: 3
         square: false
         cards:
+        # - type: "custom:button-card"
+        #   entity: switch.wc_verwarming_stopcontact_1
+        #   template:
+        #     - custom_card_switch
+        #   variables:
+        #     switch_name: Verwarming
+        #     switch_label: Toilet
+        # - type: "custom:button-card"
+        #   entity: switch.vitrinekast_stopcontact_1
+        #   template:
+        #     - custom_card_switch
+        #   variables:
+        #     switch_name: Vitrinekast
+        #     switch_label: Woonkamer
         - type: "custom:button-card"
-          entity: switch.wc_verwarming_stopcontact_1
+          entity: switch.verwarming_kantoor
           template:
             - custom_card_switch
           variables:
             switch_name: Verwarming
-            switch_label: Toilet
-            switch_background_on: "var(--gradient-orange)"
-        - type: "custom:button-card"
-          entity: switch.vitrinekast_stopcontact_1
-          template:
-            - custom_card_switch
-          variables:
-            switch_name: Vitrinekast
-            switch_label: Woonkamer
-  - type: 'custom:button-card'
+            switch_label: Kantoor
+  - type: 'custom:button-card' # adding some space between card and navbar
     color_type: blank-card
     styles:
       card:
-        - height: 50px
+        - height: 150px

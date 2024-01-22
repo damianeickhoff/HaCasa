@@ -9,7 +9,7 @@ custom_card_fan:
   name: "[[[ return variables.switch_name ]]]"
   label: "[[[ return variables.switch_label ]]]"
   show_name: true
-  icon: fas:fan
+  icon: fapro:fan
   show_icon: true
   show_label: true
   styles:
@@ -48,6 +48,7 @@ custom_card_fan:
       - color: white
   state:
     - value: 'on'
+      icon: fapro:fan-fill
       styles:
         icon:
           - animation: rotating 1.8s linear infinite

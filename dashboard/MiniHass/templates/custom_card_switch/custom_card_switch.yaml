@@ -18,8 +18,7 @@ custom_card_switch:
       - grid-template-columns: 1fr 1fr
     card:
       - height: 100%
-      - border-radius: "var(--border-radius)"
-      - padding: 0.7rem
+      - padding: 1rem
     img_cell:
       - justify-content: flex-end
       - justify-self: end
@@ -55,17 +54,17 @@ custom_card_switch:
         - color: var(--color-dark-gray)
   state:
     - value: "off"
-      icon: fas:toggle-off
+      icon: fapro:toggle-off
       styles:
         icon:
           - color: var(--color-dark-gray)
     - value: "unavailable"
-      icon: fas:toggle-off
+      icon: fapro:toggle-off
       styles:
         icon:
           - color: var(--color-dark-gray)
     - value: "on"
-      icon: fas:toggle-on
+      icon: fapro:toggle-on
       styles:
         card:
           - background: "var(--color-gold)"
@@ -82,9 +81,9 @@ custom_card_switch:
     icon: >
       [[[
         if (entity.state == "on"){
-          return '<ha-icon icon="fas:plug"></ha-icon>';
+          return '<ha-icon icon="fapro:plug"></ha-icon>';
         } else {
-          return '<ha-icon icon="fas:plug"></ha-icon>';
+          return '<ha-icon icon="fapro:plug"></ha-icon>';
         }
       ]]]
   hold_action:

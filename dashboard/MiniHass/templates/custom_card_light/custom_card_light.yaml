@@ -21,7 +21,7 @@ custom_card_light:
       - grid-template-columns: 1fr 1fr
     card:
       - height: 100%
-      - padding: 0.7rem
+      - padding: 1rem
     img_cell:
       - justify-content: flex-end
       - justify-self: end
@@ -58,12 +58,12 @@ custom_card_light:
         - color: var(--color-dark-gray)
   state:
     - value: "off"
-      icon: fas:toggle-off
+      icon: fapro:toggle-off
       styles:
         icon:
           - color: var(--color-dark-gray)
     - value: "on"
-      icon: fas:toggle-on
+      icon: fapro:toggle-on
       styles:
         card:
           - background: "var(--color-gold)"
@@ -78,7 +78,7 @@ custom_card_light:
             - color: "var(--color-white)"
     - value: "unavailable"
       name: '?'
-      icon: fas:toggle-off
+      icon: fapro:toggle-off
       styles:
         icon:
           - color: var(--color-dark-gray)
@@ -86,9 +86,9 @@ custom_card_light:
     icon: >
       [[[
         if (entity.state == "on"){
-          return '<ha-icon icon="fas:lightbulb"></ha-icon>';
+          return '<ha-icon icon="fapro:lightbulb-on"></ha-icon>';
         } else {
-          return '<ha-icon icon="far:lightbulb"></ha-icon>';
+          return '<ha-icon icon="fapro:bulb"></ha-icon>';
         }
       ]]]
   hold_action:

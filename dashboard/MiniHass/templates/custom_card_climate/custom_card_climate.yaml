@@ -1,0 +1,174 @@
+custom_card_climate:
+  show_icon: false
+  show_state: false
+  show_name: true
+  show_label: true
+  name: '[[[ return states[entity.entity_id].attributes.temperature + "°C" ]]]'
+  label: >-
+    [[[ return `<ha-icon icon="mdi:thermometer" style="width:15px; padding-right:3px; margin-top:-5px;"></ha-icon>` + states[entity.entity_id].attributes.current_temperature + "°C" ]]]
+  styles:
+    grid:
+      - grid-template-areas: |
+          'button_min n button_plus'
+          'button_min l button_plus'
+          'line line line'
+          'button_1 button_2 button_3'
+      - grid-template-columns: 1fr 1fr 1fr
+      - grid-template-rows: min-content
+    card:
+      - padding: 20px
+    label:
+      - color: var(--color-dark-gray)
+      - font-size: 12px
+      - font-weight: 500
+      - font-family: montserrat
+    name:
+      - font-weight: 700
+      - font-size: 3rem
+      - font-family: montserrat
+    custom_fields:
+      button_min:
+        - justify-self: start
+        - align-self: center
+      button_plus:
+        - justify-self: end
+        - align-self: center
+      button_1:
+        - justify-self: start
+      button_2:
+        - justify-self: center
+      button_3:
+        - justify-self: end
+      line:
+        - border-top: 1px solid var(--color-light-gray-nav)
+        - margin-top: 2rem
+        - width: 90%
+        - justify-self: center
+  custom_fields:
+    button_min:
+      card:
+        type: custom:button-card
+        icon: mdi:minus
+        styles:
+          card:
+            - background: var(--color-gold)
+            - border-radius: 12px
+            - box-shadow: none
+          icon:
+            - width: 50px
+            - height: 50px
+            - color: white
+          img_cell:
+            - width: 50px
+            - height: 50px
+        tap_action:
+          action: call-service
+          service: climate.set_temperature
+          data:
+            temperature: >-
+              [[[ return states['climate.woonkamer'].attributes.temperature - 1;
+              ]]]
+          target:
+            entity_id: climate.woonkamer
+    button_plus:
+      card:
+        type: custom:button-card
+        icon: mdi:plus
+        styles:
+          card:
+            - background: var(--color-gold)
+            - border-radius: 12px
+            - box-shadow: none
+          icon:
+            - width: 50px
+            - height: 50px
+            - color: white
+          img_cell:
+            - width: 50px
+            - height: 50px
+        tap_action:
+          action: call-service
+          service: climate.set_temperature
+          data:
+            temperature: >-
+              [[[ return states['climate.woonkamer'].attributes.temperature + 1;
+              ]]]
+          target:
+            entity_id: climate.woonkamer
+    line: ''
+    button_1:
+      card:
+        type: custom:button-card
+        icon: mdi:thermostat-auto
+        entity: '[[[ return entity.entity_id ]]]'
+        show_name: false
+        styles: &ref_0
+          card:
+            - aspect-ratio: 1/1
+            - margin-top: 2rem
+            - width: 80px
+            - background: var(--contrast-background)
+          icon:
+            - color: var(--color-dark-gray)
+        state:
+          - value: auto
+            styles:
+              card:
+                - background: var(--color-gold)
+              icon:
+                - color: white
+              name:
+                - color: white
+        tap_action:
+          action: call-service
+          service: climate.set_hvac_mode
+          target:
+            entity_id: '[[[ return entity.entity_id ]]]'
+          data:
+            hvac_mode: auto
+    button_2:
+      card:
+        type: custom:button-card
+        icon: mdi:fire
+        entity: '[[[ return entity.entity_id ]]]'
+        show_name: false
+        styles: *ref_0
+        state:
+          - value: heat
+            styles:
+              card:
+                - background: var(--color-gold)
+              icon:
+                - color: white
+              name:
+                - color: white
+        tap_action:
+          action: call-service
+          service: climate.set_hvac_mode
+          target:
+            entity_id: '[[[ return entity.entity_id ]]]'
+          data:
+            hvac_mode: heat
+    button_3:
+      card:
+        type: custom:button-card
+        icon: mdi:power
+        entity: '[[[ return entity.entity_id ]]]'
+        show_name: false
+        styles: *ref_0
+        state:
+          - value: 'off'
+            styles:
+              card:
+                - background: var(--color-gold)
+              icon:
+                - color: white
+              name:
+                - color: white
+        tap_action:
+          action: call-service
+          service: climate.set_hvac_mode
+          target:
+            entity_id: '[[[ return entity.entity_id ]]]'
+          data:
+            hvac_mode: off

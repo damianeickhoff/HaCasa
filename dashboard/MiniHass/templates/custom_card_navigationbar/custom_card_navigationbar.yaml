@@ -1,25 +1,27 @@
 custom_card_navigationbar:
   variables:
-    color1: var(--color-darkest-gray)
-    color2: var(--color-darkest-gray)
-    color3: var(--color-darkest-gray)
-    color4: var(--color-darkest-gray)
+    color1: var(--color-dark-gray)
+    color2: var(--color-dark-gray)
+    color3: var(--color-dark-gray)
+    color4: var(--color-dark-gray)
+    color5: var(--color-dark-gray)
     bgcolor1: var(--color-light-gray-nav)
     bgcolor2: var(--color-light-gray-nav)
     bgcolor3: var(--color-light-gray-nav)
     bgcolor4: var(--color-light-gray-nav)
+    bgcolor5: var(--color-light-gray-nav)
   tap_action:
     action: none
   styles:
     grid:
-      - grid-template-areas: '". item_1 item_2 item_3 item_4 ."'
-      - grid-template-columns: 1fr repeat(4, min-content) 1fr
+      - grid-template-areas: '". item_1 item_2 item_3 item_4 item_5 ."'
+      - grid-template-columns: 1fr repeat(5, min-content) 1fr
       - grid-template-rows: 1fr
-      - column-gap: 2.5rem
+      - column-gap: 1.5rem
     card:
       - height: 70px
       - width: 90vw
-      - border-radius: 500px
+      - border-radius: 40px
       - overflow: visible
       - position: fixed
       - box-shadow: 0px 25px 80px rgba(0, 0, 0, 0.5);
@@ -131,4 +133,30 @@ custom_card_navigationbar:
             - align-self: start
           icon:
             - color: '[[[ return variables.color4 ]]]'
+            - width: 17px
+    item_5:
+      card:
+        type: custom:button-card
+        icon: |
+          [[[
+            if (variables.bgcolor5 == 'var(--navbar-icon-color)') {
+              return 'fapro:family-fill'
+            } else {
+              return 'fapro:family'
+            }
+          ]]]
+        tap_action:
+          action: navigate
+          navigation_path: 'family'
+        styles:
+          card:
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor5 ]]]'
+            - align-self: start
+          icon:
+            - color: '[[[ return variables.color5 ]]]'
             - width: 17px

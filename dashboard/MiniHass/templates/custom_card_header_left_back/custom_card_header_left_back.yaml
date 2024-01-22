@@ -4,6 +4,7 @@ custom_card_header_left_back:
       - padding: 5px
       - background: none
       - margin-bottom: 10px
+      - box-shadow: none
     grid:
       - grid-template-areas: "'back n'"
       - grid-template-columns: min-content 1fr
@@ -28,6 +29,7 @@ custom_card_header_left_back:
         styles:
           card:
             - background: none
+            - box-shadow: none
           icon:
             - color: var(--color-gold)
             - width: 2rem

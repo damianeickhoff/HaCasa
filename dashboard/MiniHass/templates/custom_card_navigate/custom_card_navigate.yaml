@@ -32,7 +32,6 @@ custom_card_navigate:
       - column-gap: 10px
     card:
       - height: 100%
-      - border-radius: "var(--border-radius)"
       - padding: 1rem
       - overflow: hidden
       - aspect-ratio: 3/2
@@ -53,7 +52,7 @@ custom_card_navigate:
       - overflow: visible
     icon:
       - position: absolute
-      - width: 20em
+      - width: 15em
       - opacity: 90%
       - color: var(--color-gold)
     label:

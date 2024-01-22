@@ -12,6 +12,7 @@ custom_card_section_title_button:
     card:
       - background: none
       - animation: slide-in 1s ease-out, opacity 1s ease-in
+      - box-shadow: none
   custom_fields:
     button_1:
       card:
@@ -28,6 +29,7 @@ custom_card_section_title_button:
             - padding: 8px
             - background: none
             - border-radius: 0
+            - box-shadow: none
           name:
             - font-family: montserrat
             - font-weight: 600

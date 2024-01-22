@@ -1,0 +1,72 @@
+custom_card_room:
+  variables:
+    background_img:
+  aspect_ratio: 10/7
+  show_icon: false
+  show_state: true
+  show_label: true
+  styles:
+    card:
+      - background: '[[[ return variables.background_img ]]]'
+      - padding: 20px
+      - border-radius: 40px
+    grid:
+      - grid-template-areas: |
+          ". . s"
+          "n n nav_button"
+          "l state_circle nav_button"
+      - grid-template-rows: 1fr
+      - grid-template-columns: min-content 1fr min-content
+    name:
+      - justify-self: start
+      - align-self: end
+      - font-weight: 700
+      - font-family: montserrat
+      - font-size: 20px
+      - color: var(--color-white)
+    label:
+      - justify-self: start
+      - font-weight: 600
+      - color: var(--color-white)
+      - font-family: montserrat
+      - font-size: 12px
+    state:
+      - align-self: start
+      - background: none
+      - padding: 10px
+      - border-radius: 500px
+      - color: var(--color-white)
+      - font-weight: 600
+      - font-family: montserrat
+    custom_fields:
+      nav_button:
+        - justify-self: end
+      state_circle:
+        - justify-self: start
+        - align-self: center
+        - padding-left: 5px
+        - padding-bottom: 5px
+  custom_fields:
+    nav_button:
+      card:
+        type: custom:button-card
+        icon: mdi:chevron-right
+        styles:
+          card:
+            - background: none
+            - border-radius: 500px
+          icon:
+            - color: white
+            - width: 30px
+            - height: 30px
+          img_cell:
+            - padding: 10px
+    state_circle:
+      card:
+        type: custom:button-card
+        styles:
+          card:
+            - background: green
+            - border-radius: 500px
+            - height: 7px
+            - width: 7px

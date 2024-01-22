@@ -136,3 +136,138 @@ custom_card_mediaplayer:
           img_cell:
             - width: 30px
             - justify-self: start
+
+custom_card_mediaplayer_bottom:
+  type: custom:button-card
+  entity: media_player.spotify_damian_eickhoff
+  show_label: true
+  name: '[[[ return states[ entity.entity_id ].attributes.media_artist ]]]'
+  label: '[[[ return states[ entity.entity_id ].attributes.media_title ]]]'
+  show_state: false
+  show_entity_picture: true
+  styles:
+    grid:
+      - grid-template-areas: |
+          "i play_state button"
+          "i l button"
+          "i n button"
+          "bar bar bar"
+      - grid-template-columns: min-content
+      - grid-template-rows: min-content min-content min-content
+      - column-gap: 15px
+    icon:
+      - width: 60px
+    card:
+      - padding: 20px
+      - height: 180px
+      - width: 100vw
+      - overflow: hidden
+      - position: fixed
+      - margin: 0
+      - bottom: 0
+      - left: 0
+      - z-index: 4
+      - border-radius: 20px 20px 0px 0px
+      - box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+    img_cell:
+      - background: var(--color-light-gray-nav)
+      - border-radius: 10px
+      - width: 60px
+      - height: 60px
+      - justify-self: start
+      - align-self: start
+      - left: 20px
+    state:
+      - font-size: 10px
+      - justify-self: start
+      - align-self: start
+      - color: var(--color-dark-gray)
+      - padding-left: 25px
+      - font-family: montserrat
+    name:
+      - font-size: 11px
+      - justify-self: start
+      - align-self: start
+      - padding-left: 20px
+      - font-family: montserrat
+      - animation: my-animation 15s linear infinite
+    label:
+      - justify-self: start
+      - align-self: end
+      - font-weight: 700
+      - padding-left: 20px
+      - font-family: montserrat
+      - font-size: 13px
+    custom_fields:
+      button:
+        - justify-self: end
+        - align-self: center
+        - padding-right: 20px
+        - padding-top: 7px
+      play_state:
+        - font-size: 10px
+        - justify-self: start
+        - align-self: start
+        - color: var(--color-dark-gray)
+        - padding-left: 21px
+        - font-family: montserrat
+      bar:
+        - justify-self: start
+        - align-self: start
+        - width: 86%
+        - height: 2px
+        - background: '#cccccc'
+        - margin-left: 25px
+        - margin-top: 10px
+  # extra_styles: |
+  #   @keyframes my-animation {
+  #     from {
+  #       -moz-transform: translateX(90%);
+  #       -webkit-transform: translateX(90%);
+  #       transform: translateX(90%);
+  #     }
+  #     to {
+  #       -moz-transform: translateX(0%);
+  #       -webkit-transform: translateX(0%);
+  #       transform: translateX(0%);
+  #     }
+  custom_fields:
+    button:
+      card:
+        type: custom:button-card
+        icon: fapro:play
+        entity: '[[[ return entity.entity_id ]]]'
+        show_name: false
+        tap_action:
+          action: call-service
+          service: media_player.media_play_pause
+          target:
+            entity_id: '[[[ return entity.entity_id ]]]'
+        styles:
+          card:
+            - overflow: visible
+            - background: var(--color-darker-gray)
+            - border-radius: 10px
+          icon:
+            - width: 17px
+            - color: white
+          img_cell:
+            - padding: 10px
+            - width: 20px
+        state:
+          - value: playing
+            icon: fapro:pause
+    play_state: >
+      [[[ return states[entity.entity_id].state + " - " +
+      states[entity.entity_id].attributes.source]]]
+    bar: >
+      [[[
+        var state = states['sensor.spotify_voortgang'].state;
+
+        return `
+        <div>
+        <div style="background:var(--color-gold); height: 12px; width:${state}%"
+        </div>
+        </div
+        `
+      ]]]

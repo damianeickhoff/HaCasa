@@ -4,6 +4,17 @@ path: "weather"
 cards:
   - type: conditional
     conditions:
+      - condition: state
+        entity: media_player.spotify_damian_eickhoff
+        state: playing
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+      type: custom:button-card
+      template: custom_card_mediaplayer_bottom
+      entity: media_player.spotify_damian_eickhoff
+  - type: conditional
+    conditions:
       - condition: screen
         media_query: '(min-width: 0px) and (max-width: 767px)'
     card:
@@ -37,6 +48,7 @@ cards:
         template:
           custom_card_weather_forecast
         entity: weather.buienradar
+        name: '[[[ return states["sensor.round_temp_outside"].state + " °C"]]]'
       - type: custom:button-card
         template: custom_card_section_title
         name: Details
@@ -78,8 +90,8 @@ cards:
                 name: UV-index
                 labelname: |
                   [[[ return states['sensor.straling'].state]]]
-  - type: 'custom:button-card'
+  - type: 'custom:button-card' # adding some space between card and navbar
     color_type: blank-card
     styles:
       card:
-        - height: 50px
+        - height: 150px

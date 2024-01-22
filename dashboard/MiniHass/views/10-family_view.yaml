@@ -1,6 +1,6 @@
-title: Climate
-icon: mdi:thermostat
-path: "climate"
+title: family
+icon: mdi:person
+path: "family"
 cards:
   - type: conditional
     conditions:
@@ -21,34 +21,10 @@ cards:
         type: custom:button-card
         template: custom_card_navigationbar
         variables:
-          color1: 'var(--color-white)'
-          bgcolor1: 'var(--navbar-icon-color)'
-
-  - type: custom:button-card
-    template: custom_card_header_left_back
-    name: Klimaat
-  - type: custom:mini-graph-card
-    entities:
-      - sensor.round_temp
-    line_color: var(--color-gold)
-    fill: false
-    hours_to_show: 24
-    points_per_hour: 1
-    decimals: 0
-    hour24: true
-    line_width: 2
-    show:
-      fill: false
-      legend: false
-      icon: false
-      name: false
-      state: true
-  - type: custom:button-card
-    template: custom_card_climate
-    entity: climate.woonkamer
+          color5: 'var(--color-white)'
+          bgcolor5: 'var(--navbar-icon-color)'
   - type: 'custom:button-card' # adding some space between card and navbar
     color_type: blank-card
     styles:
       card:
         - height: 150px
-

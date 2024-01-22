@@ -19,7 +19,7 @@ custom_card_garbage_collection:
     card:
       - height: 100%
       - border-radius: "var(--border-radius)"
-      - padding: 2rem
+      - padding: 1rem
       - overflow: visible
       - justify-items: center
       - justify-content: center
@@ -68,9 +68,10 @@ custom_card_garbage_collection:
             - background: none
             - overflow: visible
             - padding: 0
+            - box-shadow: none
           label:
             - text-align: left
-            - font-size: "var(--fs-400)"
+            - font-size: 12px
             - font-family: 'Montserrat'
             - font-weight: 500
             - text-align: left
@@ -83,6 +84,7 @@ custom_card_garbage_collection:
             - color: var(--color-dark-gray)
             - padding: 0
             - margin: 0
+            - width: 20px
         state:
           - value: "off"
             label: Notification off

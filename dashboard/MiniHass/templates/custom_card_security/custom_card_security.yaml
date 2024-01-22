@@ -1,157 +1,155 @@
 ---
 custom_card_security:
-  show_name: false
-  show_icon: false
-  show_label: true
+  type: custom:button-card
   show_state: false
-  tap_action: none
+  show_icon: false
+  show_name: true
+  show_last_changed: true
+  show_label: true
   styles:
     grid:
-      - grid-template-areas: '"item1 l" "item1 item2"'
-      - grid-template-rows: min-content min-content
-      - grid-template-columns: 40% 55%
-      - column-gap: 5%
-      - row-gap: 8px
+      - grid-template-areas: |
+          "n action_card"
+          "l action_card"
+      - grid-template-rows: min-content 1fr
     card:
-      - height: 100%
-      - border-radius: "var(--border-radius)"
-      - overflow: visible
-      - justify-items: center
-      - justify-content: center
-      - padding: 1.2rem
+      - overflow: hidden
+      - padding: 20px
     label:
-      - text-align: left
-      - font-size: "var(--fs-600)"
-      - font-family: 'Montserrat'
-      - font-weight: 600
       - justify-self: start
-      - align-self: end
-      - padding-left: 3px
-    custom_fields:
-      item2:
-        - align-self: start
-        - align-content: start
-        - align-items: start
-        - background: none
+      - align-self: start
+      - font-family: montserrat
+      - font-size: 12px
+      - font-weight: 500
+      - color: var(--color-dark-gray)
+    name:
+      - justify-self: start
+      - font-size: 20px
+      - font-weight: 600
+      - font-family: montserrat
   state:
-    - value: "arming"
-      label: Stand by...
+    - value: disarmed
+      name: Uitgeschakeld
+    - value: armed_away
+      name: Ingeschakeld
+    - value: armed_home
+      name: Thuis ingeschakeld
+    - value: arming
+      name: Inschakelen
       styles:
-        label:
+        name:
           - animation: flash 2s linear infinite
-    - value: "armed_home"
-      icon: mdi:shield-outline
-      label: Armed Home
-    - value: "armed_away"
-      label: Armed Away
-    - value: "disarmed"
-      label: Disarmed
-  custom_fields:
-    item1:
-      card:
-        type: 'custom:button-card'
-        entity: "[[[ return entity.entity_id ]]]"
-        show_name: false
-        show_icon: true
-        show_label: false
-        show_state: false
-        styles:
-          card:
-            - background: none
-            - overflow: visible
-          img_cell:
-            - height: 100px
-            - width: 100px
-            - box-shadow: "var(--box-shadow-neo)"
-            - border-radius: 200px
-            - justify-self: center
-            - align-self: start
-          icon:
-            - color: "var(--primary-text-color)"
-        state:
-          - value: "arming"
-            icon: mdi:shield-refresh-outline
-            styles:
-              icon:
-                - color: "var(--color-orange)"
-                - animation: flash 2s linear infinite
-          - value: "armed_home"
-            icon: mdi:shield-outline
-            styles:
-              icon:
-                - color: "var(--color-green)"
-                - animation: rotate 4s linear infinite
-          - value: "armed_away"
-            icon: mdi:shield-outline
-            styles:
-              icon:
-                - color: "var(--color-orange)"
-                - animation: rotate 4s linear infinite
-          - value: "disarmed"
-            icon: mdi:shield-off-outline
-        extra_styles: |
-          @keyframes flash {
-            0% {opacity: 100%;}
-            50% {opacity: 0%;}
-            100% {opacity: 100%;}
-          }
-          @keyframes rotate {
-            from {transform: rotateY(-deg);}
-            to {transform: rotateY(360deg);}
-          }
-    item2:
-      card:
-        type: 'custom:button-card'
-        entity: "[[[ return entity.entity_id ]]]"
-        icon: mdi:dots-grid
-        label: Numpad
-        show_name: false
-        show_icon: true
-        show_label: true
-        show_state: false
-        tap_action:
-          action: more-info
-        styles:
-          grid:
-            - grid-template-areas: '"i l"'
-            - grid-template-rows: 1fr
-            - grid-template-columns: min-content 1fr
-            - column-gap: 8px
-          card:
-            - background: none
-            - overflow: visible
-            - padding: 0
-          label:
-            - text-align: left
-            - font-size: "var(--fs-400)"
-            - font-family: 'Montserrat'
-            - font-weight: 500
-            - color: "var(--label-color)"
-            - text-align: left
-            - justify-self: start
-          img_cell:
-            - justify-self: center
-          icon:
-            - width: "var(--button-small)"
-            - color: "var(--icon-color)"
-            - padding: 0
-            - margin: 0
-        state:
-          - value: "arming"
-            label: Activating
-          - value: "armed_home"
-            label: Deactive
-          - value: "armed_away"
-            label: Deactive
-          - value: "disarmed"
-            label: Activate
   extra_styles: |
     @keyframes flash {
       0% {opacity: 100%;}
       50% {opacity: 0%;}
       100% {opacity: 100%;}
     }
-    @keyframes rotate {
-      from {transform: rotateY(-deg);}
-      to {transform: rotateY(360deg);}
-    }
+  custom_fields:
+    action_card:
+      card:
+        type: custom:button-card
+        styles:
+          grid:
+            - grid-template-areas: '"item1" "item2" "item3"'
+            - row-gap: 10px
+          card:
+            - padding: 10px
+            - border-radius: 20px
+            - background: var(--contrast-background)
+        custom_fields:
+          item1:
+            card:
+              type: custom:button-card
+              entity: '[[[ return entity.entity_id ]]]'
+              show_name: false
+              show_state: false
+              icon: mdi:shield-home
+              styles: &icon_styles
+                icon:
+                  - width: 25px
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+              state:
+                - value: armed_home
+                  styles:
+                    card:
+                      - background: var(--navbar-icon-color)
+                    icon:
+                      - color: var(--color-white)
+                      - animation: rotate 4s linear infinite
+              extra_styles: |
+                @keyframes rotate {
+                  from {transform: rotateY(-deg);}
+                  to {transform: rotateY(360deg);}
+                }
+              tap_action:
+                action: call-service
+                service: alarm_control_panel.alarm_arm_home
+                target:
+                  entity_id: '[[[ return entity.entity_id ]]]'
+                data:
+                  code: '2704'
+          item2:
+            card:
+              type: custom:button-card
+              entity: '[[[ return entity.entity_id ]]]'
+              show_name: false
+              show_state: false
+              icon: mdi:shield-lock
+              styles: *icon_styles
+              state:
+                - value: armed_away
+                  styles:
+                    card:
+                      - background: var(--color-red)
+                    icon:
+                      - color: var(--color-white)
+                      - animation: rotate 4s linear infinite
+                - value: arming
+                  styles:
+                    icon:
+                      - animation: rotate 4s linear infinite
+                    card:
+                      - background: var(--color-orange)
+                      - animation: flash 2s linear infinite
+              extra_styles: |
+                @keyframes rotate {
+                  from {transform: rotateY(-deg);}
+                  to {transform: rotateY(360deg);}
+                }
+                @keyframes flash {
+                  0% {opacity: 100%;}
+                  50% {opacity: 0%;}
+                  100% {opacity: 100%;}
+                }
+              tap_action:
+                action: call-service
+                service: alarm_control_panel.alarm_arm_away
+                target:
+                  entity_id: '[[[ return entity.entity_id ]]]'
+                data:
+                  code: '2704'
+          item3:
+            card:
+              type: custom:button-card
+              entity: '[[[ return entity.entity_id ]]]'
+              show_name: false
+              show_state: false
+              icon: mdi:shield-off
+              styles: *icon_styles
+              state:
+                - value: disarmed
+                  styles:
+                    card:
+                      - background: var(--navbar-icon-color)
+                    icon:
+                      - color: var(--color-white)
+              tap_action:
+                action: call-service
+                service: alarm_control_panel.alarm_disarm
+                target:
+                  entity_id: '[[[ return entity.entity_id ]]]'
+                data:
+                  code: '2704'

@@ -4,6 +4,17 @@ path: "devices"
 cards:
   - type: conditional
     conditions:
+      - condition: state
+        entity: media_player.spotify_damian_eickhoff
+        state: playing
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+      type: custom:button-card
+      template: custom_card_mediaplayer_bottom
+      entity: media_player.spotify_damian_eickhoff
+  - type: conditional
+    conditions:
       - condition: screen
         media_query: '(min-width: 0px) and (max-width: 767px)'
     card:
@@ -18,24 +29,82 @@ cards:
     template:
       - custom_card_section_title
   - type: custom:button-card
-    template: custom_card_sensor_long
-    icon: fapro:heat
+    template: custom_card_device
+    icon: fapro:flame
     entity: switch.verwarming_kantoor
     name: Verwarming Kantoor
     show_state: false
     show_label: true
     label: '[[[ return states["sensor.verwarming_kantoor_stroom"].state + " kw/h"]]]'
+    state:
+      - value: 'on'
+        icon: fapro:flame-fill
+  # - type: custom:button-card
+  #   template: custom_card_device
+  #   icon: fapro:flame
+  #   entity: switch.wc_verwarming_stopcontact_1
+  #   name: Verwarming Toilet
+  #   show_label: true
+  #   label: '[[[ return states[entity.entity_id].state]]]'
+  #   state:
+  #     - value: 'on'
+  #       icon: fapro:flame-fill
+  # - type: custom:button-card
+  #   template: custom_card_device
+  #   icon: fapro:fan
+  #   entity: fan.whisper_flex
+  #   name: Slaapkamer Fan
+  #   show_label: true
+  #   label: '[[[ return states[entity.entity_id].state]]]'
+  #   state:
+  #     - value: 'on'
+  #       icon: fapro:fan-fill
+  #       styles:
+  #         icon:
+  #           - animation: rotating 1.8s linear infinite
+  #           - background: rgba(255,255,255,.3)
   - type: custom:button-card
-    template: custom_card_sensor_long
-    icon: fapro:heat
-    entity: switch.wc_verwarming_stopcontact_1
-    name: Verwarming Toilet
+    template: custom_card_device
+    icon: fapro:tv-retro
+    entity: media_player.diw7022_0036bc
+    name: TV Woonkamer
     show_label: true
-    label: '[[[ return states[entity.entity_id].state]]]'
+    label: |
+        [[[
+          if (states[entity.entity_id].attributes.app_name == 'com.kpn.tvlauncher') {
+            return 'KPN TV'
+          } else if (states[entity.entity_id].attributes.app_name == 'com.hbo.hbonow') {
+            return 'HBO'
+          } else if (states[entity.entity_id].state == 'off') {
+            return 'Uit'
+          } else {
+            return 'Onbekend'
+          }
+        ]]]
+    state:
+      - value: 'on'
+        icon: fapro:tv-retro-fill
   - type: custom:button-card
-    template: custom_card_sensor_long
-    icon: fapro:fan
-    entity: fan.whisper_flex
-    name: Slaapkamer Fan
+    template: custom_card_device
+    icon: fapro:tv-retro
+    entity: media_player.kinderkamer_tv
+    name: TV Kinderkamer
     show_label: true
-    label: '[[[ return states[entity.entity_id].state]]]'
+    label: |
+        [[[
+          if (states[entity.entity_id].attributes.app_name == 'com.kpn.tvlauncher') {
+            return 'KPN TV'
+          } else if (states[entity.entity_id].state == 'off') {
+            return 'Uit'
+          } else {
+            return 'Onbekend'
+          }
+        ]]]
+    state:
+      - value: 'on'
+        icon: fapro:tv-retro-fill
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px
