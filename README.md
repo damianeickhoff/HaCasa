@@ -1,2 +1,2 @@
 # HaCasa [WIP]
-![HaCasa](https://github.com/damianeickhoff/HaCasa/assets/12126826/8128e1a0-3136-4d09-9404-1dec713bcd95)
+![HaCasa](https://github.com/damianeickhoff/HaCasa/assets/12126826/87788117-694f-4d92-b49c-c6d137844e37)
