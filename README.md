@@ -1,2 +1,2 @@
 # HaCasa [WIP]
-![phonemockup](https://github.com/damianeickhoff/homeassistant/assets/12126826/66e22ccd-bd45-4250-b4e1-9c3941bf47fd)
+![HaCasa](https://github.com/damianeickhoff/HaCasa/assets/12126826/8128e1a0-3136-4d09-9404-1dec713bcd95)
