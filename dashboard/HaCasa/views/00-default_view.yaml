@@ -67,7 +67,7 @@ cards:
         action: navigate
         navigation_path: 'weather'
     - type: custom:button-card
-      name: Your <p style="color:var(--color-gold);display:inline">Home</p>
+      name: Your Home
       template:
         - custom_card_section_title_button
     - type: grid

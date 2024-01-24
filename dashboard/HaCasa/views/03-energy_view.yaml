@@ -25,7 +25,7 @@ cards:
           bgcolor4: 'var(--navbar-icon-color)'
 
   - type: custom:button-card
-    name: Energy <p style="color:var(--color-gold);display:inline">dashboard</p>
+    name: Energy dashboard
     template:
       - custom_card_section_title
   - type: custom:button-card

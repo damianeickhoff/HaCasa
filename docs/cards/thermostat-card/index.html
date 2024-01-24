@@ -10,34 +10,35 @@
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Welcome to HaCasa</title>
-    <meta name="title" content="Welcome to HaCasa">
-    <meta name="description" content="Welcome to the documentation of HaCasa, a custom theme for Home Assistant. Here you can find theme files as well as custom cards.">
+    <title>Thermostat card</title>
+    <meta name="title" content="Thermostat card">
+    <meta name="description" content="The thermostat-card, used for a climate entity, displays the current temperature (if available) and the set temperature.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://github.com/damianeickhoff/HaCasa/">
+    <link rel="canonical" href="https://github.com/damianeickhoff/HaCasa/cards/thermostat-card/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://github.com/damianeickhoff/HaCasa/">
-    <meta property="og:title" content="Welcome to HaCasa">
-    <meta property="og:description" content="Welcome to the documentation of HaCasa, a custom theme for Home Assistant. Here you can find theme files as well as custom cards.">
-    <meta property="og:image" content="https://github.com/damianeickhoff/HaCasa/img/other/main.png">
+    <meta property="og:url" content="https://github.com/damianeickhoff/HaCasa/cards/thermostat-card/">
+    <meta property="og:title" content="Thermostat card">
+    <meta property="og:description" content="The thermostat-card, used for a climate entity, displays the current temperature (if available) and the set temperature.">
+    <meta property="og:image" content="https://github.com/damianeickhoff/HaCasa/img/cards/thermostat/thermostat.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://github.com/damianeickhoff/HaCasa/">
-    <meta property="twitter:title" content="Welcome to HaCasa">
-    <meta property="twitter:description" content="Welcome to the documentation of HaCasa, a custom theme for Home Assistant. Here you can find theme files as well as custom cards.">
-    <meta property="twitter:image" content="https://github.com/damianeickhoff/HaCasa/img/other/main.png">
+    <meta property="twitter:url" content="https://github.com/damianeickhoff/HaCasa/cards/thermostat-card/">
+    <meta property="twitter:title" content="Thermostat card">
+    <meta property="twitter:description" content="The thermostat-card, used for a climate entity, displays the current temperature (if available) and the set temperature.">
+    <meta property="twitter:image" content="https://github.com/damianeickhoff/HaCasa/img/cards/thermostat/thermostat.png">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="resources/css/retype.css?v=3.5.0.759425719889" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.759425719889" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=3.5.0.759425719889" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.5.0.759425719889" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.759425719889" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.759425719889" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.759425719889" defer></script>
 
     <link href="/static/custom.css" rel="stylesheet" />
 </head>
@@ -54,7 +55,7 @@
                 <!-- Logo -->
                 <div class="flex items-center justify-between h-full py-2 md:w-75">
                     <div class="flex items-center px-2 md:px-6">
-                        <a id="docs-site-logo" href="" class="flex items-center leading-snug text-2xl">
+                        <a id="docs-site-logo" href="../../" class="flex items-center leading-snug text-2xl">
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">HaCasa</span>
                         </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">Docs</span>
                     </div>
@@ -168,27 +169,36 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="welcome-to-hacasa" class="break-words">
+<doc-anchor-target id="thermostat-card" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#welcome-to-hacasa">#</doc-anchor-trigger>
-        <span>Welcome to HaCasa</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#thermostat-card">#</doc-anchor-trigger>
+        <span>Thermostat card</span>
     </h1>
 </doc-anchor-target>
-<p>Welcome to the documentation of HaCasa, a custom theme for <a href="https://home-assistant.io">Home Assistant</a>. Here you can find theme files as well as custom cards. You are free to roam around, check the code, reuse it and do basically with it what you want.</p>
-<p>You can find different types of cards here with the frontend code as well as the template code. There are some dependencies you need to make use of these cards so be sure to download those!</p>
+<p>The <code v-pre>thermostat-card</code>, used for a climate entity, displays the current temperature (if available) and the set temperature. With the buttons on the right the temperature can be set higher or lower.</p>
 <p><figure class="content-center">
-    <img src="img/other/main.png" alt="main">
-    <figcaption class="caption">main</figcaption>
+    <img src="../../img/cards/thermostat/thermostat.png" alt="Thermostat Light">
+    <figcaption class="caption">Thermostat Light</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../img/cards/thermostat/thermostat-dark.png" alt="Thermostat Dark">
+    <figcaption class="caption">Thermostat Dark</figcaption>
 </figure>
 </p>
-<doc-anchor-target id="what-do-you-get">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#what-do-you-get">#</doc-anchor-trigger>
-        <span>What do you get?</span>
-    </h2>
+<doc-anchor-target id="usage">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#usage">#</doc-anchor-trigger>
+        <span>Usage</span>
+    </h3>
 </doc-anchor-target>
-<p>HaCasa is a collection of self-designed custom cards and a matching theme. With that you can create a really nice, clean but also a simple dashboard. Most of the cards are pretty simple made, but that makes it also really easy to understand them. That comes in handy when you want to edit the card to your liking.</p>
-<p>If you created a card you want to share with the rest of the world, feel free to send me the code and I will add it to this documentation and the overall configuration.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-yaml"><code v-pre class="language-yaml">type: custom:button-card
+template: custom_card_climate
+entity: climate.hvac</code></pre>
+</doc-codeblock></div>
+<p><a href="https://github.com/damianeickhoff/HaCasa/blob/main/dashboard/HaCasa/templates/custom_card_climate/custom_card_climate.yaml" target="_blank" class="no-link inline-flex align-middle items-center font-medium cursor-pointer transition-colors duration-200 ease-out focus:outline-none bg-blue-500 hover:bg-blue-700 text-white px-4 h-10 text-sm rounded-md">
+    <span>Template</span>
+</a></p>
 
                                 
                                 <!-- Required only on API pages -->
@@ -198,13 +208,20 @@
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../cards/light-card/">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                                            <span>
+                                                <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
+                                                <span class="block mt-1">Light card</span>
+                                            </span>
+                                        </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l rounded-r-lg transition-colors duration-150 relative hover:z-5" href="getting-started/01-download/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../cards/weather-card/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Download</span>
+                                                <span class="block mt-1">Weather Card</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -248,6 +265,6 @@
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Welcome to HaCasa", isRoot: true, level: 0, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Thermostat card", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>

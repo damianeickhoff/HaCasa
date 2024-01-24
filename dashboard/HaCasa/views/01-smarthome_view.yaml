@@ -61,72 +61,57 @@ cards:
         cards:
           - type: "custom:button-card"
             entity: light.nachtlamp
+            label: Slaapkamer
             template:
               - custom_card_light
-            variables:
-              light_name: Nachtlamp
-              light_label: Slaapkamer
           - type: "custom:button-card"
             entity: light.kinderkamer
+            label: Kinderkamer
             template:
               - custom_card_light
-            variables:
-              light_name: Plafond
-              light_label: Kinderkamer
           - type: "custom:button-card"
             entity: light.kantoor
+            label: Kantoor
             template:
               - custom_card_light
-            variables:
-              light_name: Staanlamp
-              light_label: Kantoor
       - type: grid
         columns: 2
         square: false
         cards:
         - type: "custom:button-card"
           entity: light.eettafel
+          label: Eettafel WK
           template:
             - custom_card_light
-          variables:
-            light_label: Eettafel
         - type: "custom:button-card"
           entity: light.salontafel
+          label: Salontafel WK
           template:
             - custom_card_light
-          variables:
-            light_label: Salontafel
         - type: "custom:button-card"
           entity: light.sfeer_woonkamer
+          label: Sfeerlamp
           template:
             - custom_card_light
-          variables:
-            light_label: Sfeerlamp
         - type: "custom:button-card"
           entity: light.hue_iris
+          label: Overloop
           template:
             - custom_card_light
-          variables:
-            light_name: Hue Iris
-            light_label: Overloop
       - type: grid
         columns: 2
         square: false
         cards:
           - type: "custom:button-card"
             entity: light.toilet
+            label: Toilet
             template:
               - custom_card_light
-            variables:
-              light_name: Plafond
-              light_label: Toilet
           - type: "custom:button-card"
             entity: light.badkamer
+            label: Badkamer
             template:
               - custom_card_light
-            variables:
-              light_name: Plafond
-              light_label: Badkamer
       - type: "custom:button-card"
         template:
           - custom_card_section_title

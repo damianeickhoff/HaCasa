@@ -1,15 +1,11 @@
 ---
 custom_card_light:
-  variables:
-    light_name:
-    light_label:
   entity: "[[[ return entity.entity_id ]]]"
   name: |
       [[[
         var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
         return ' ' + (bri ? bri + '%': 'Uit');
       ]]]
-  label: "[[[ return variables.light_label ]]]"
   show_name: true
   show_icon: true
   show_label: true
