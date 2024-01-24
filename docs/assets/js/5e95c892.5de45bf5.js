@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkha_casa_docs=self.webpackChunkha_casa_docs||[]).push([[661],{1892:(s,a,e)=>{e.r(a),e.d(a,{default:()=>t});e(7294);var c=e(512),r=e(1944),u=e(5281),d=e(8790),h=e(6040),n=e(5893);function t(s){return(0,n.jsx)(r.FG,{className:(0,c.Z)(u.k.wrapper.docsPages),children:(0,n.jsx)(h.Z,{children:(0,d.H)(s.route.routes)})})}}}]);
