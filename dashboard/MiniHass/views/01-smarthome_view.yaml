@@ -81,34 +81,34 @@ cards:
               light_name: Staanlamp
               light_label: Kantoor
       - type: grid
-        columns: 3
+        columns: 2
         square: false
         cards:
-        # - type: "custom:button-card"
-        #   entity: light.eettafel
-        #   template:
-        #     - custom_card_light
-        #   variables:
-        #     light_label: Eettafel
-        # - type: "custom:button-card"
-        #   entity: light.woonkamer_plafond
-        #   template:
-        #     - custom_card_light
-        #   variables:
-        #     light_label: Salontafel
+        - type: "custom:button-card"
+          entity: light.eettafel
+          template:
+            - custom_card_light
+          variables:
+            light_label: Eettafel
+        - type: "custom:button-card"
+          entity: light.salontafel
+          template:
+            - custom_card_light
+          variables:
+            light_label: Salontafel
         - type: "custom:button-card"
           entity: light.sfeer_woonkamer
           template:
             - custom_card_light
           variables:
             light_label: Sfeerlamp
-      - type: "custom:button-card"
-        entity: light.hue_iris
-        template:
-          - custom_card_light
-        variables:
-          light_name: Hue Iris
-          light_label: Overloop
+        - type: "custom:button-card"
+          entity: light.hue_iris
+          template:
+            - custom_card_light
+          variables:
+            light_name: Hue Iris
+            light_label: Overloop
       - type: grid
         columns: 2
         square: false
@@ -136,27 +136,30 @@ cards:
         columns: 3
         square: false
         cards:
-        # - type: "custom:button-card"
-        #   entity: switch.wc_verwarming_stopcontact_1
-        #   template:
-        #     - custom_card_switch
-        #   variables:
-        #     switch_name: Verwarming
-        #     switch_label: Toilet
-        # - type: "custom:button-card"
-        #   entity: switch.vitrinekast_stopcontact_1
-        #   template:
-        #     - custom_card_switch
-        #   variables:
-        #     switch_name: Vitrinekast
-        #     switch_label: Woonkamer
+        - type: "custom:button-card"
+          entity: switch.wc_verwarming_stopcontact_1
+          template:
+            - custom_card_switch
+          name: Verwarming
+          label: Toilet
+          variables:
+            hc_icon:
+        - type: "custom:button-card"
+          entity: switch.vitrinekast_stopcontact_1
+          template:
+            - custom_card_switch
+          variables:
+            hc_icon:
+          name: Vitrinekast
+          label: Woonkamer
         - type: "custom:button-card"
           entity: switch.verwarming_kantoor
           template:
             - custom_card_switch
           variables:
-            switch_name: Verwarming
-            switch_label: Kantoor
+            hc_icon: mdi:play
+          name: Verwarming
+          label: Kantoor
   - type: 'custom:button-card' # adding some space between card and navbar
     color_type: blank-card
     styles:

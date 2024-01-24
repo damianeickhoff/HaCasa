@@ -1,12 +1,18 @@
 custom_card_weather_forecast:
   show_state: false
   show_icon: false
+  variables:
+    hc_enable_forecast: true
   styles:
     grid:
-      - grid-template-areas: |
-          "weather_info n"
-          "weather_states weather_states"
-      - row-gap: 4rem
+      - grid-template-areas: >
+          [[[
+            if (variables.hc_enable_forecast) {
+              return '"weather_info n" "weather_states weather_states"';
+            }
+            return 'weather_info n';
+          ]]]
+      - row-gap: 3rem
     card:
       - background: var(--color-blue)
       - padding: 15px
@@ -33,7 +39,7 @@ custom_card_weather_forecast:
         name: '[[[ return states[entity.entity_id].state ]]]'
         styles:
           grid:
-            - grid-template-areas: '''icon n'' ''icon l'''
+            - grid-template-areas: "'icon n''icon l'"
           card:
             - background: none
             - padding: 0

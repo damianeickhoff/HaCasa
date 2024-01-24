@@ -112,43 +112,82 @@ custom_card_weather:
             - color: var(--color-white)
             - overflow: visible
 
-custom_card_weather_long:
-  show_label: true
-  show_icon: false
-  label: |
-    [[[ return states[ 'sensor.round_temp_outside' ].state ]]]
+custom_card_weather_no_forecast:
   show_state: false
+  show_icon: false
   styles:
     grid:
-      - grid-template-areas: '"icon l" "icon n"'
-      - grid-template-rows: min-content min-content
-      - grid-template-columns: 1fr min-content
+      - grid-template-areas: |
+          "weather_info n"
+      - row-gap: 0.5rem
     card:
-      - padding: 5px 25px
-      - background: var(--weather-card-color)
-    label:
-      - justify-self: start
-      - align-self: end
-      - font-size: 4rem
-      - font-family: montserrat
-      - font-weight: 500
-      - color: white
+      - background: var(--color-blue)
+      - padding: 15px
     name:
-      - justify-self: end
+      - font-size: 2.5rem
+      - color: var(--color-white)
       - align-self: start
-      - font-size: 1rem
-      - margin-right: 3px
-      - font-family: montserrat
-      - opacity: 0.8
-      - color: white
+      - margin-right: 20px
+      - padding-top: 0.5rem
     custom_fields:
-      icon:
-        - width: 8rem
-        - filter: brightness(0) invert(1)brightness(100%) contrast(101%)
-
+      weather_info:
+        - justify-self: start
+        - align-self: start
+        - margin-top: '-20px'
   custom_fields:
-    icon: |
-      [[[
-          var weather = states[entity.entity_id].state;
-          return '<img src = "/local/weather-icons/' + weather + '.svg" />'
-      ]]]
+    weather_info:
+      card:
+        type: custom:button-card
+        entity: weather.buienradar
+        show_state: false
+        show_icon: false
+        show_label: true
+        label: '[[[ return states["sensor.neerslagverwachting_totaal"].state + " mm"]]]'
+        name: '[[[ return states[entity.entity_id].state ]]]'
+        styles:
+          grid:
+            - grid-template-areas: '''icon n'' ''icon l'''
+          card:
+            - background: none
+            - padding: 0
+            - height: 60px
+            - border-radius: 0
+            - overflow: visible
+            - box-shadow: none
+          name:
+            - justify-self: start
+            - align-self: end
+            - color: var(--color-white)
+            - font-family: montserrat
+            - font-weight: 600
+            - font-size: 1.1rem
+          label:
+            - justify-self: start
+            - color: var(--color-dark-gray)
+            - font-family: montserrat
+            - font-weight: 500
+            - font-size: 1rem
+          custom_fields:
+            icon:
+              - width: 7rem
+              - height: 7rem
+        custom_fields:
+          icon: |
+            [[[
+                var weather = states[entity.entity_id].state;
+                return '<img src = "/local/weather-icons/' + weather + '.svg" />'
+            ]]]
+    weather_states:
+      card:
+        type: custom:button-card
+        entity: weather.buienradar
+        show_name: false
+        show_icon: false
+        styles:
+          grid:
+            - grid-template-areas: '"item1 item2 item3 item4 item5"'
+            - grid-template-columns: 1fr 1fr 1fr 1fr 1fr
+          card:
+            - background: none
+            - box-shadow: none
+            - padding: 0
