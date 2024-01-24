@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkha_casa_docs=self.webpackChunkha_casa_docs||[]).push([[453],{8605:a=>{a.exports=JSON.parse('{"label":"hello","permalink":"/blog/tags/hello","allTagsPath":"/blog/tags","count":2,"unlisted":false}')}}]);
