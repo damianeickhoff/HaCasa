@@ -22,7 +22,7 @@ custom_card_sensor:
     state:
       - justify-self: start
       - text-align: left
-      - color: var(--color-green)
+      - color: var(--color-gold)
       - font-weight: 600
       - font-family: montserrat
       - font-size: 15px

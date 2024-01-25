@@ -2,7 +2,8 @@
 custom_card_security:
   type: custom:button-card
   show_state: false
-  show_icon: false
+  show_icon: true
+  icon: fapro:shield
   show_name: true
   show_last_changed: true
   show_label: true
@@ -22,6 +23,16 @@ custom_card_security:
       - font-size: 12px
       - font-weight: 500
       - color: var(--color-dark-gray)
+    img_cell:
+      - position: absolute
+      - top: 40%
+      - right: 40%
+      - overflow: visible
+    icon:
+      - position: absolute
+      - width: 15rem
+      - opacity: 40%
+      - color: var(--color-gold)
     name:
       - justify-self: start
       - font-size: 20px
@@ -65,12 +76,13 @@ custom_card_security:
               show_name: false
               show_state: false
               icon: mdi:shield-home
-              styles: &icon_styles
+              styles:
                 icon:
                   - width: 25px
                 card:
                   - padding: 10px
                   - border-radius: 500px
+                  - box-shadow: none
               state:
                 - value: armed_home
                   styles:
@@ -98,12 +110,19 @@ custom_card_security:
               show_name: false
               show_state: false
               icon: mdi:shield-lock
-              styles: *icon_styles
+              styles:
+                icon:
+                  - width: 25px
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+                  - box-shadow: none
               state:
                 - value: armed_away
                   styles:
                     card:
                       - background: var(--color-red)
+                      - box-shadow: none
                     icon:
                       - color: var(--color-white)
                       - animation: rotate 4s linear infinite
@@ -114,6 +133,7 @@ custom_card_security:
                     card:
                       - background: var(--color-orange)
                       - animation: flash 2s linear infinite
+                      - box-shadow: none
               extra_styles: |
                 @keyframes rotate {
                   from {transform: rotateY(-deg);}
@@ -138,12 +158,19 @@ custom_card_security:
               show_name: false
               show_state: false
               icon: mdi:shield-off
-              styles: *icon_styles
+              styles:
+                icon:
+                  - width: 25px
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+                  - box-shadow: none
               state:
                 - value: disarmed
                   styles:
                     card:
                       - background: var(--navbar-icon-color)
+                      - box-shadow: none
                     icon:
                       - color: var(--color-white)
               tap_action:

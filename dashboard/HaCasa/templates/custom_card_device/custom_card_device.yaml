@@ -49,13 +49,12 @@ custom_card_device:
           card:
             - height: 20px
             - width: 20px
-            - background: white
             - border-radius: 500px
         state:
           - value: 'on'
             styles:
               card:
-                - background: var(--color-green)
+                - background: var(--color-gold)
           - value: 'off'
             styles:
               card:
