@@ -41,9 +41,8 @@ cards:
         type: custom:button-card
         template: custom_card_greeting
         entity: person.damian
-        name: |
-          [[[ return states['sensor.greeting_sensor'].state + ', <p style=";display:inline;font-weight:800">Damian!</p>']]]
-        label: What are you up to?
+        name: "[[[ return states['sensor.greeting_sensor'].state + ', Damian!']]]"
+        label: "What are you up to?"
     - type: conditional
       conditions:
         - condition: user
@@ -53,9 +52,8 @@ cards:
         type: custom:button-card
         template: custom_card_greeting
         entity: person.soraya
-        name: |
-          [[[ return states['sensor.greeting_sensor'].state + ', <p style="color:#2F486F;display:inline;font-weight:700">Soraya!</p>']]]
-        label: What are you up to?
+        name: "[[[ return states['sensor.greeting_sensor'].state + ', Soraya!']]]"
+        label: "What are you up to?"
     - type: custom:button-card
       template: custom_card_sensor_triple
     - type: custom:button-card
@@ -77,23 +75,27 @@ cards:
         - type: "custom:button-card"
           template:
             - custom_card_navigate
+          name: Smart<br>Home
+          entity: sensor.total_lights_on_2
           variables:
-            name: Smart<br>Home
-            icon: fapro:house
-            navigation_path: '/mini-hass/smarthome'
+            hc_label_name: 'Lights On: '
+          icon: fapro:house
+          tap_action:
+            action: navigate
+            navigation_path: 'smarthome'
         - type: "custom:button-card"
           template:
             - custom_card_navigate_alarm
-          variables:
-            name: Home<br>Security
-            icon: fapro:shield
-            navigation_path: '/mini-hass/home-security'
+          name: Home<br>Security
+          icon: fapro:shield
+          tap_action:
+            action: navigate
+            navigation_path: 'home-security'
     - type: "custom:button-card"
       template:
         - custom_card_garbage_collection
+      label: "[[[ return 'Days till pickup ' + states['sensor.avri_eerst_volgende'].attributes.Upcoming_waste_types ]]]"
       variables:
-        label: |
-          [[[ return 'Dagen tot ophalen <br> ' + states['sensor.avri_eerst_volgende'].attributes.Upcoming_waste_types ]]]
         counter: >
           [[[ return states['sensor.avri_days_till_next_pickup'].state ]]]
       entity: input_boolean.toggle_button_notify_garbage

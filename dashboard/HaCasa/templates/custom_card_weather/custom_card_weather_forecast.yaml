@@ -14,7 +14,7 @@ custom_card_weather_forecast:
           ]]]
       - row-gap: 3rem
     card:
-      - background: var(--color-blue)
+      - background: var(--color-dark-blue)
       - padding: 15px
     name:
       - font-size: 2.5rem
@@ -93,7 +93,7 @@ custom_card_weather_forecast:
                 [[[ return
                 states[entity.entity_id].attributes.forecast[0].temperature +
                 " °C" ]]]
-              name: '[[[ return states["sensor.weather_forcast_1"].state ]]]'
+              name: '[[[ return states["sensor.weather_forecast_1"].state ]]]'
               show_label: true
               show_icon: false
               styles: &item_styles
@@ -134,7 +134,7 @@ custom_card_weather_forecast:
                 [[[ return
                 states[entity.entity_id].attributes.forecast[1].temperature + "
                 °C" ]]]
-              name: '[[[ return states["sensor.weather_forcast_2"].state ]]]'
+              name: '[[[ return states["sensor.weather_forecast_2"].state ]]]'
               show_label: true
               show_icon: false
               custom_fields:
@@ -152,7 +152,7 @@ custom_card_weather_forecast:
                 [[[ return
                 states[entity.entity_id].attributes.forecast[2].temperature + "
                 °C" ]]]
-              name: '[[[ return states["sensor.weather_forcast_3"].state ]]]'
+              name: '[[[ return states["sensor.weather_forecast_3"].state ]]]'
               show_label: true
               show_icon: false
               custom_fields:
@@ -170,7 +170,7 @@ custom_card_weather_forecast:
                 [[[ return
                 states[entity.entity_id].attributes.forecast[3].temperature + "
                 °C" ]]]
-              name: '[[[ return states["sensor.weather_forcast_4"].state ]]]'
+              name: '[[[ return states["sensor.weather_forecast_4"].state ]]]'
               show_label: true
               show_icon: false
               custom_fields:
@@ -188,7 +188,7 @@ custom_card_weather_forecast:
                 [[[ return
                 states[entity.entity_id].attributes.forecast[4].temperature + "
                 °C" ]]]
-              name: '[[[ return states["sensor.weather_forcast_5"].state ]]]'
+              name: '[[[ return states["sensor.weather_forecast_5"].state ]]]'
               show_label: true
               show_icon: false
               custom_fields:

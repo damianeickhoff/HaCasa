@@ -1,72 +1,92 @@
 custom_card_room:
   variables:
-    background_img:
-  aspect_ratio: 10/7
-  show_icon: false
+    hc_entity_1:
+    hc_entity_2:
+    hc_entity_3:
   show_state: true
-  show_label: true
   styles:
-    card:
-      - background: '[[[ return variables.background_img ]]]'
-      - padding: 20px
-      - border-radius: 40px
     grid:
       - grid-template-areas: |
-          ". . s"
-          "n n nav_button"
-          "l state_circle nav_button"
-      - grid-template-rows: 1fr
+          'i s i1'
+          '. . i2'
+          'n n i3'
+      - grid-template-rows: 1fr 1fr 1fr
       - grid-template-columns: min-content 1fr min-content
+      - justify-items: center
+    icon:
+      - width: 15px
+    img_cell:
+      - justify-self: start
+      - width: auto
+      - padding: 0
+      - margin: 0
     name:
       - justify-self: start
-      - align-self: end
-      - font-weight: 700
-      - font-family: montserrat
-      - font-size: 20px
-      - color: var(--color-white)
-    label:
-      - justify-self: start
+      - font-size: 1.2rem
       - font-weight: 600
-      - color: var(--color-white)
       - font-family: montserrat
-      - font-size: 12px
     state:
-      - align-self: start
-      - background: none
-      - padding: 10px
-      - border-radius: 500px
-      - color: var(--color-white)
-      - font-weight: 600
+      - justify-self: start
+      - font-size: 12px
       - font-family: montserrat
-    custom_fields:
-      nav_button:
-        - justify-self: end
-      state_circle:
-        - justify-self: start
-        - align-self: center
-        - padding-left: 5px
-        - padding-bottom: 5px
+      - font-weight: 500
+    card:
+      - padding: 15px
   custom_fields:
-    nav_button:
+    i1:
       card:
         type: custom:button-card
-        icon: mdi:chevron-right
-        styles:
+        entity: '[[[ return variables.hc_entity_1]]]'
+        show_name: false
+        styles: &item_style
+          grid:
+            - grid-template-areas: '"i"'
+            - row-gap: 1px
           card:
-            - background: none
-            - border-radius: 500px
+            - box-shadow: none
+            - border-radius: 0
           icon:
-            - color: white
-            - width: 30px
-            - height: 30px
+            - width: 12px
+            - margin-top: '-5px'
+            - color: var(--color-darkest-gray)
           img_cell:
-            - padding: 10px
-    state_circle:
+            - width: 12px
+            - height: 12px
+            - padding: 7px
+            - overflow: visible
+            - border-radius: 8px
+            - background: var(--color-light-gray-card)
+        state:
+          - value: 'on'
+            styles:
+              img_cell:
+                - background: var(--color-gold)
+              icon:
+                - color: white
+    i2:
       card:
         type: custom:button-card
-        styles:
-          card:
-            - background: green
-            - border-radius: 500px
-            - height: 7px
-            - width: 7px
+        entity: '[[[ return variables.hc_entity_2]]]'
+        show_name: false
+        styles: *item_style
+        state:
+          - value: 'on'
+            styles:
+              img_cell:
+                - background: var(--color-gold)
+              icon:
+                - color: white
+
+    i3:
+      card:
+        type: custom:button-card
+        entity: '[[[ return variables.hc_entity_3]]]'
+        show_name: false
+        styles: *item_style
+        state:
+          - value: 'on'
+            styles:
+              img_cell:
+                - background: var(--color-gold)
+              icon:
+                - color: white

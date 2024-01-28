@@ -1,7 +1,6 @@
 ---
 custom_card_garbage_collection:
   variables:
-    label:
     counter:
   label: "[[[ return variables.label ]]]"
   show_name: false

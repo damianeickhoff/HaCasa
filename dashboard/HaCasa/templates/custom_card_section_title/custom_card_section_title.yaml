@@ -7,6 +7,7 @@ custom_card_section_title:
   label: "[[[ return variables.section_label ]]]"
   show_icon: false
   show_state: false
+  show_label: true
   styles:
     card:
       - height: "auto"

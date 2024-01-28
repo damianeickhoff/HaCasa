@@ -1,32 +1,31 @@
 ---
 custom_card_switch:
-  variables:
-    hc_name: entity
-    hc_label: room
-    hc_icon: "mdi:power-socket-eu"
-  entity: "[[[ return entity.entity_id ]]]"
   show_name: true
   show_icon: true
   show_label: true
   styles:
     grid:
-      - grid-template-areas: '"icon i" "n n" "l l"'
+      - grid-template-areas: |
+          'i switch'
+          'n n'
+          'l l'
       - grid-template-rows: 1fr 1.5fr 1fr
       - grid-template-columns: 1fr 1fr
     card:
       - height: 100%
       - padding: 10px
     img_cell:
-      - justify-content: flex-end
-      - justify-self: end
-      - overflow: hidden
-      - width: 25px
-      - height: 25px
+      - justify-self: start
+      - align-self: start
+      - width: 20px
+      - height: 20px
+      - overflow: visible
     icon:
-      - justify-self: end
-      - align-self: end
-      - width: 25px
-      - overflow: hidden
+      - justify-self: start
+      - align-self: start
+      - width: 20px
+      - height: 20px
+      - overflow: visible
     name:
       - text-align: left
       - font-size: "var(--fs-400)"
@@ -46,24 +45,26 @@ custom_card_switch:
       - overflow: visible
       - padding-bottom: 10px
     custom_fields:
-      icon:
-        - width: 18px
-        - justify-self: start
+      switch:
+        - width: 25px
+        - justify-self: end
+        - align-self: start
         - color: var(--color-dark-gray)
+        - margin-top: -4px
   state:
     - value: "off"
-      icon: fapro:toggle-on
       styles:
         icon:
-          - color: var(--color-light-gray-nav)
-          - transform: rotate(180deg)
+          - color: var(--color-dark-gray)
+        custom_fields:
+          switch:
+            - color: var(--color-light-gray-nav)
+            - transform: rotate(180deg)
     - value: "unavailable"
-      icon: fapro:toggle-off
       styles:
         icon:
           - color: var(--color-light-gray-nav)
     - value: "on"
-      icon: fapro:toggle-on
       styles:
         card:
           - background: "var(--color-gold)"
@@ -74,12 +75,18 @@ custom_card_switch:
         icon:
           - color: "var(--color-white)"
         custom_fields:
-          icon:
+          switch:
             - color: "var(--color-white)"
   custom_fields:
-    icon: >
+    switch: |
       [[[
-          return '<ha-icon icon="fapro:plug"></ha-icon>';
+        if (entity.state == "on"){
+          return '<ha-icon icon="fapro:toggle-on"></ha-icon>';
+        } else if (entity.state == "unavailable") {
+          return '<ha-icon icon="fapro:toggle-off"></ha-icon>';
+        } else {
+          return '<ha-icon icon="fapro:toggle-on"></ha-icon>';
+        }
       ]]]
   hold_action:
     action: more-info

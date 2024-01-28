@@ -24,512 +24,80 @@ cards:
           color2: 'var(--color-white)'
           bgcolor2: 'var(--navbar-icon-color)'
   - type: custom:button-card
-    icon: mdi:play-outline
-    show_label: false
-    show_icon: false
-    aspect_ratio: 3/2
-    styles:
-      grid:
-        - grid-template-areas: |
-            'top'
-        - grid-template-columns: 1fr
-        - grid-template-rows: 1fr min-content min-content
-      card:
-        - padding: 7px
-        - border-radius: 30px
-        - background: center / cover no-repeat url(/local/bg/livingroom.jpg)
-      custom_fields:
-        top:
-          - align-self: start
-        top-cover:
-          - position: absolute
-          - height: 70px
-          - border-radius: 500px
-          - transform-origin: top left
-          - backdrop-filter: blur(6px)
-          - '-webkit-backdrop-filter': blur(6px)
-          - width: 97%
-          - top: 7px
-          - background: rgba(134, 134, 134, 0.3)
-    custom_fields:
-      top-cover: ''
-      top:
-        card:
-          type: custom:button-card
-          name: Woonkamer
-          label: 4 devices - active
-          show_label: true
-          icon: mdi:chevron-right
-          styles:
-            grid:
-              - grid-template-areas: |
-                  'n i'
-                  'l i'
-              - grid-template-rows: min-content
-            card:
-              - background: none
-              - border-radius: 500px
-              - padding: 5px 5px 5px 20px
-              - height: 70px
-            name:
-              - color: white
-              - font-family: montserrat
-              - justify-self: start
-              - align-self: end
-              - font-weight: 600
-            label:
-              - color: white
-              - font-family: montserrat
-              - justify-self: start
-              - align-self: start
-              - font-size: 12px
-            icon:
-              - width: 25px
-              - height: 25px
-              - align-self: center
-              - color: var(--color-dark-gray)
-            img_cell:
-              - width: 30px
-              - height: 30px
-              - background: '#1A1A1A'
-              - border-radius: 500px
-              - padding: 15px
-  - square: true
-    type: grid
-    cards:
-      - type: custom:button-card
-        icon: mdi:play-outline
-        show_label: false
-        show_icon: false
-        aspect_ratio: 1/1
-        styles:
-          grid:
-            - grid-template-areas: |
-                'top'
-            - grid-template-columns: 1fr
-            - grid-template-rows: 1fr min-content min-content
-          card:
-            - padding: 7px
-            - border-radius: 30px
-            - background: center / cover no-repeat url(/local/bg/kitchen.jpg)
-          custom_fields:
-            top:
-              - align-self: start
-            top-cover:
-              - position: absolute
-              - height: 66px
-              - border-radius: 500px
-              - transform-origin: top left
-              - backdrop-filter: blur(6px)
-              - '-webkit-backdrop-filter': blur(6px)
-              - width: 94%
-              - top: 7px
-              - background: rgba(134, 134, 134, 0.3)
-        custom_fields:
-          top-cover: ''
-          top:
-            card:
-              type: custom:button-card
-              name: Keuken
-              label: 0 devices
-              show_label: true
-              icon: mdi:chevron-right
-              styles:
-                grid:
-                  - grid-template-areas: |
-                      'n i'
-                      'l i'
-                  - grid-template-rows: min-content
-                card:
-                  - background: none
-                  - border-radius: 500px
-                  - padding: 5px 5px 5px 20px
-                  - height: 60px
-                name:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: end
-                  - font-weight: 600
-                  - font-size: 1rem
-                label:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: start
-                  - font-size: 0.7rem
-                icon:
-                  - width: 20px
-                  - height: 20px
-                  - align-self: center
-                  - color: var(--color-dark-gray)
-                img_cell:
-                  - width: 25px
-                  - height: 25px
-                  - background: '#1A1A1A'
-                  - border-radius: 500px
-                  - padding: 15px
-      - type: custom:button-card
-        icon: mdi:play-outline
-        show_label: false
-        show_icon: false
-        aspect_ratio: 1/1
-        styles:
-          grid:
-            - grid-template-areas: |
-                'top'
-            - grid-template-columns: 1fr
-            - grid-template-rows: 1fr min-content min-content
-          card:
-            - padding: 7px
-            - border-radius: 30px
-            - background: center / cover no-repeat url(/local/bg/toilet.jpg)
-          custom_fields:
-            top:
-              - align-self: start
-            top-cover:
-              - position: absolute
-              - height: 66px
-              - border-radius: 500px
-              - transform-origin: top left
-              - backdrop-filter: blur(6px)
-              - '-webkit-backdrop-filter': blur(6px)
-              - width: 94%
-              - top: 7px
-              - background: rgba(134, 134, 134, 0.3)
-        custom_fields:
-          top-cover: ''
-          top:
-            card:
-              type: custom:button-card
-              name: Toilet
-              label: 0 devices
-              show_label: true
-              icon: mdi:chevron-right
-              styles:
-                grid:
-                  - grid-template-areas: |
-                      'n i'
-                      'l i'
-                  - grid-template-rows: min-content
-                card:
-                  - background: none
-                  - border-radius: 500px
-                  - padding: 5px 5px 5px 20px
-                  - height: 60px
-                name:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: end
-                  - font-weight: 600
-                  - font-size: 1rem
-                label:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: start
-                  - font-size: 0.7rem
-                icon:
-                  - width: 20px
-                  - height: 20px
-                  - align-self: center
-                  - color: var(--color-dark-gray)
-                img_cell:
-                  - width: 25px
-                  - height: 25px
-                  - background: '#1A1A1A'
-                  - border-radius: 500px
-                  - padding: 15px
-      - type: custom:button-card
-        icon: mdi:play-outline
-        show_label: false
-        show_icon: false
-        aspect_ratio: 1/1
-        styles:
-          grid:
-            - grid-template-areas: |
-                'top'
-            - grid-template-columns: 1fr
-            - grid-template-rows: 1fr min-content min-content
-          card:
-            - padding: 7px
-            - border-radius: 30px
-            - background: center / cover no-repeat url(/local/bg/bedroom.jpg)
-          custom_fields:
-            top:
-              - align-self: start
-            top-cover:
-              - position: absolute
-              - height: 66px
-              - border-radius: 500px
-              - transform-origin: top left
-              - backdrop-filter: blur(6px)
-              - '-webkit-backdrop-filter': blur(6px)
-              - width: 94%
-              - top: 7px
-              - background: rgba(134, 134, 134, 0.3)
-        custom_fields:
-          top-cover: ''
-          top:
-            card:
-              type: custom:button-card
-              name: Bedroom
-              label: 0 devices
-              show_label: true
-              icon: mdi:chevron-right
-              styles:
-                grid:
-                  - grid-template-areas: |
-                      'n i'
-                      'l i'
-                  - grid-template-rows: min-content
-                card:
-                  - background: none
-                  - border-radius: 500px
-                  - padding: 5px 5px 5px 20px
-                  - height: 60px
-                name:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: end
-                  - font-weight: 600
-                  - font-size: 1rem
-                label:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: start
-                  - font-size: 0.7rem
-                icon:
-                  - width: 20px
-                  - height: 20px
-                  - align-self: center
-                  - color: var(--color-dark-gray)
-                img_cell:
-                  - width: 25px
-                  - height: 25px
-                  - background: '#1A1A1A'
-                  - border-radius: 500px
-                  - padding: 15px
-      - type: custom:button-card
-        icon: mdi:play-outline
-        show_label: false
-        show_icon: false
-        aspect_ratio: 1/1
-        styles:
-          grid:
-            - grid-template-areas: |
-                'top'
-            - grid-template-columns: 1fr
-            - grid-template-rows: 1fr min-content min-content
-          card:
-            - padding: 7px
-            - border-radius: 30px
-            - background: center / cover no-repeat url(/local/bg/kidsroom.jpg)
-          custom_fields:
-            top:
-              - align-self: start
-            top-cover:
-              - position: absolute
-              - height: 66px
-              - border-radius: 500px
-              - transform-origin: top left
-              - backdrop-filter: blur(6px)
-              - '-webkit-backdrop-filter': blur(6px)
-              - width: 94%
-              - top: 7px
-              - background: rgba(134, 134, 134, 0.3)
-        custom_fields:
-          top-cover: ''
-          top:
-            card:
-              type: custom:button-card
-              name: Kidsroom
-              label: 0 devices
-              show_label: true
-              icon: mdi:chevron-right
-              styles:
-                grid:
-                  - grid-template-areas: |
-                      'n i'
-                      'l i'
-                  - grid-template-rows: min-content
-                card:
-                  - background: none
-                  - border-radius: 500px
-                  - padding: 5px 5px 5px 20px
-                  - height: 60px
-                name:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: end
-                  - font-weight: 600
-                  - font-size: 1rem
-                label:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: start
-                  - font-size: 0.7rem
-                icon:
-                  - width: 20px
-                  - height: 20px
-                  - align-self: center
-                  - color: var(--color-dark-gray)
-                img_cell:
-                  - width: 25px
-                  - height: 25px
-                  - background: '#1A1A1A'
-                  - border-radius: 500px
-                  - padding: 15px
-      - type: custom:button-card
-        icon: mdi:play-outline
-        show_label: false
-        show_icon: false
-        aspect_ratio: 1/1
-        styles:
-          grid:
-            - grid-template-areas: |
-                'top'
-            - grid-template-columns: 1fr
-            - grid-template-rows: 1fr min-content min-content
-          card:
-            - padding: 7px
-            - border-radius: 30px
-            - background: center / cover no-repeat url(/local/bg/bathroom.jpg)
-          custom_fields:
-            top:
-              - align-self: start
-            top-cover:
-              - position: absolute
-              - height: 66px
-              - border-radius: 500px
-              - transform-origin: top left
-              - backdrop-filter: blur(6px)
-              - '-webkit-backdrop-filter': blur(6px)
-              - width: 94%
-              - top: 7px
-              - background: rgba(134, 134, 134, 0.3)
-        custom_fields:
-          top-cover: ''
-          top:
-            card:
-              type: custom:button-card
-              name: Bathroom
-              label: 0 devices
-              show_label: true
-              icon: mdi:chevron-right
-              styles:
-                grid:
-                  - grid-template-areas: |
-                      'n i'
-                      'l i'
-                  - grid-template-rows: min-content
-                card:
-                  - background: none
-                  - border-radius: 500px
-                  - padding: 5px 5px 5px 20px
-                  - height: 60px
-                name:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: end
-                  - font-weight: 600
-                  - font-size: 1rem
-                label:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: start
-                  - font-size: 0.7rem
-                icon:
-                  - width: 20px
-                  - height: 20px
-                  - align-self: center
-                  - color: var(--color-dark-gray)
-                img_cell:
-                  - width: 25px
-                  - height: 25px
-                  - background: '#1A1A1A'
-                  - border-radius: 500px
-                  - padding: 15px
-      - type: custom:button-card
-        icon: mdi:play-outline
-        show_label: false
-        show_icon: false
-        aspect_ratio: 1/1
-        styles:
-          grid:
-            - grid-template-areas: |
-                'top'
-            - grid-template-columns: 1fr
-            - grid-template-rows: 1fr min-content min-content
-          card:
-            - padding: 7px
-            - border-radius: 30px
-            - background: center / cover no-repeat url(/local/bg/office.jpg)
-          custom_fields:
-            top:
-              - align-self: start
-            top-cover:
-              - position: absolute
-              - height: 66px
-              - border-radius: 500px
-              - transform-origin: top left
-              - backdrop-filter: blur(6px)
-              - '-webkit-backdrop-filter': blur(6px)
-              - width: 94%
-              - top: 7px
-              - background: rgba(134, 134, 134, 0.3)
-        custom_fields:
-          top-cover: ''
-          top:
-            card:
-              type: custom:button-card
-              name: Office
-              label: 0 devices
-              show_label: true
-              icon: mdi:chevron-right
-              styles:
-                grid:
-                  - grid-template-areas: |
-                      'n i'
-                      'l i'
-                  - grid-template-rows: min-content
-                card:
-                  - background: none
-                  - border-radius: 500px
-                  - padding: 5px 5px 5px 20px
-                  - height: 60px
-                name:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: end
-                  - font-weight: 600
-                  - font-size: 1rem
-                label:
-                  - color: white
-                  - font-family: montserrat
-                  - justify-self: start
-                  - align-self: start
-                  - font-size: 0.7rem
-                icon:
-                  - width: 20px
-                  - height: 20px
-                  - align-self: center
-                  - color: var(--color-dark-gray)
-                img_cell:
-                  - width: 25px
-                  - height: 25px
-                  - background: '#1A1A1A'
-                  - border-radius: 500px
-                  - padding: 15px
+    template:
+      - custom_card_section_title
+    name: Rooms
+  - type: grid
     columns: 2
+    square: false
+    cards:
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Livingroom
+        entity: sensor.woonkamer_temperatuur
+        variables:
+          hc_entity_1: light.woonkamer
+          hc_entity_2: media_player.woonkamer_tv
+          hc_entity_3: sensor.woonkamer_luchtvochtigheid
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Kitchen
+        variables:
+          hc_entity_1: binary_sensor.achterdeur
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Toilet
+        variables:
+          hc_entity_1: light.toilet
+          hc_entity_2: binary_sensor.toilet_motion_beweging
+          hc_entity_3: switch.wc_verwarming_stopcontact_1
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Hallway
+        variables:
+          hc_entity_1: binary_sensor.voordeur
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Bedroom
+        variables:
+          hc_entity_1: light.nachtlamp
+          hc_entity_2: fan.whisper_flex
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Kidsroom
+        variables:
+          hc_entity_1: media_player.kinderkamer_tv
+          hc_entity_2: light.kinderkamer
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Bathroom
+        entity: sensor.badkamer_beweging_temperatuur_apparaat
+        variables:
+          hc_entity_1: light.badkamer
+          hc_entity_2: binary_sensor.badkamer_beweging
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Upstairs Hallway
+        entity: sensor.overloop_motion_sensor_temperatuur_apparaat
+        variables:
+          hc_entity_1: light.hue_iris
+          hc_entity_2: binary_sensor.overloop_beweging
+      - type: 'custom:button-card'
+        template:
+          - custom_card_room
+        name: Office
+        variables:
+          hc_entity_1: light.kantoor
+          hc_entity_2: switch.verwarming_kantoor
+          hc_entity_3: media_player.kantoor_speaker
   - type: 'custom:button-card' # adding some space between card and navbar
     color_type: blank-card
     styles:

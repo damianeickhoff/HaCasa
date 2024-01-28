@@ -1,57 +1,162 @@
----
 custom_card_fan:
-  variables:
-    switch_name:
-    switch_label:
-    switch_icon: "mdi:home"
-    switch_background_on: "var(--color-yellow)"
-  entity: "[[[ return entity.entity_id ]]]"
-  name: "[[[ return variables.switch_name ]]]"
-  label: "[[[ return variables.switch_label ]]]"
   show_name: true
-  icon: fapro:fan
   show_icon: true
   show_label: true
+  show_state: false
+  label: |
+    [[[
+      if (entity.state == 'on') {
+        return states[entity.entity_id].attributes.percentage + "%"
+      } else {
+        return 'Off'
+      }
+    ]]]
   styles:
     grid:
-      - grid-template-areas: '"n i" "n i"'
-      - grid-template-rows: 1fr 1fr
-      - grid-template-columns: 1fr
+      - grid-template-areas: |
+          'i switch'
+          'n n'
+          'l l'
+          'slider osc_icon'
+      - grid-template-rows: 3rem 1fr min-content min-content
+      - grid-template-columns: 1fr min-content
+      - row-gap: 3px
     card:
-      - height: 80px
-      - padding: 1rem
-      - background: 'var(--color-blue)'
-    img_cell:
-      - overflow: visible
-      - padding: 0 0 0 0
-      - height: 40px
-      - width: 40px
-      - border-radius: 50px
-    icon:
-      - width: "var(--button-small)"
-      - overflow: visible
-      - height: 22px
-      - width: 22px
-      - margin-right: 40px
       - padding: 10px
-      - background: rgba(255, 255, 255,.3)
-      - border-radius: 50px
-      - color: var(--color-white)
+    img_cell:
+      - justify-self: start
+      - align-self: start
+      - width: 20px
+      - height: 20px
+      - overflow: visible
+    icon:
+      - justify-self: start
+      - align-self: start
+      - width: 20px
+      - height: 20px
+      - overflow: visible
     name:
       - text-align: left
-      - font-size: "var(--fs-500)"
+      - font-size: var(--fs-400)
       - font-family: Montserrat
-      - font-weight: 600
+      - font-weight: 700
+      - justify-self: start
+      - align-self: end
+      - overflow: visible
+      - font-size: 1.2rem
+    label:
+      - text-align: left
+      - font-size: var(--fs-300)
+      - font-family: Montserrat
+      - font-weight: 500
       - justify-self: start
       - align-self: center
+      - color: var(--color-dark-gray)
       - overflow: visible
-      - color: white
+      - padding-bottom: 10px
+    custom_fields:
+      switch:
+        - width: 25px
+        - justify-self: end
+        - align-self: start
+        - color: var(--color-dark-gray)
+        - margin-top: -4px
+      osc_icon:
+        - justify-self: end
   state:
+    - value: 'off'
+      icon: fapro:fan
+      styles:
+        custom_fields:
+          switch:
+            - color: var(--color-light-gray-nav)
+            - transform: rotate(180deg)
     - value: 'on'
       icon: fapro:fan-fill
       styles:
+        card:
+          - background: var(--color-blue)
+        name:
+          - color: var(--color-white)
+        label:
+          - color: var(--color-white)
         icon:
-          - animation: rotating 1.8s linear infinite
-          - background: rgba(255,255,255,.3)
+          - color: var(--color-white)
+        custom_fields:
+          switch:
+            - color: var(--color-white)
+      custom_fields:
+        slider:
+          card:
+            type: custom:my-slider-v2
+            entity: '[[[ return entity.entity_id ]]]'
+            styles:
+              card:
+                - height: 30px
+              container:
+                - border-radius: 8px
+              progress:
+                - height: 100%
+                - background: white
+              track:
+                - background: '#eeeeee'
+              thumb:
+                - height: 30%
+                - background: var(--color-blue)
+                - position: absolute
+                - right: 7px
+                - top: 11px
+                - width: 3px
+                - border-radius: 500px
+        osc_icon:
+          card:
+            type: custom:button-card
+            icon: |
+              [[[
+                if (entity.attributes.oscillating == 'false') {
+                  return 'mdi:arrow-oscillating-off'
+                } else {
+                  return 'mdi:arrow-oscillating'
+                }
+              ]]]
+            styles:
+              card:
+                - width: 40px
+                - border-radius: 8px
+                - height: 30px
+                - margin-left: 10px
+                - background: white
+              icon:
+                - width: 20px
+                - color: var(--color-blue)
+            tap_action:
+              action: call-service
+              service: fan.oscillate
+              service_data:
+                entity_id: '[[[ return entity.entity_id ]]]'
+                oscillating: |
+                  [[[
+                    if (entity.attributes.oscillating == 'false') {
+                      return 'true'
+                    } else {
+                      return 'false'
+                    }
+                  ]]]
+    - value: unavailable
+      name: 'Unavailable'
+      styles:
+        icon:
+          - color: var(--color-dark-gray)
+  custom_fields:
+    switch: |
+      [[[
+        if (entity.state == "on"){
+          return '<ha-icon icon="fapro:toggle-on"></ha-icon>';
+        } else if (entity.state == "unavailable") {
+          return '<ha-icon icon="fapro:toggle-off"></ha-icon>';
+        } else {
+          return '<ha-icon icon="fapro:toggle-on"></ha-icon>';
+        }
+      ]]]
   hold_action:
     action: more-info

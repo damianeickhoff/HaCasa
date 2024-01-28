@@ -35,41 +35,15 @@ HaCasa:
       color-teal: rgba(123,232,183,1)
       color-white: rgb(255,255,255)
       color-black: "#000000"
-      color-blue: '#414E6E'
-      color-gold: '#DCBA8D'
+      color-dark-blue: '#414E6E'
+      color-blue: '#8DAFDC'
+      color-gold: '#C4AA87'
       color-dark-gray: '#A2A5AD'
       color-darker-gray: '#52555D'
       color-darkest-gray: '#44474E'
       color-really-dark-gray: '#52555D'
       color-light-gray-nav: '#EBEBEB'
       color-light-gray-card: '#FAFAFA'
-
-      gradient-yellow: linear-gradient(30deg, rgb(253 204 18) 0%, rgb(253 238 70) 100%)
-      gradient-green: linear-gradient(120deg, rgba(120,210,155,1), rgba(205,240,200,1))
-      gradient-blue-dark: linear-gradient(45deg, rgba(251,194,235,1) 22%, rgba(166,193,238,1) 77%)
-      gradient-red: linear-gradient(45deg, rgba(240,130,140,1), rgba(250,185,195,1))
-      gradient-grey-cold: linear-gradient(90deg, rgba(235,244,245,1), rgba(181,198,224,1))
-      gradient-blue: linear-gradient(45deg, rgba(9,116,241,1), rgba(159,204,250,1))
-      gradient-blue-teal: linear-gradient(90deg, rgba(36,184,238,1) 0%, rgba(87,214,215,1) 100%)
-      gradient-orange: linear-gradient(45deg, rgba(253,125,90,1), rgba(253,172,90,1))
-      gradient-teal: linear-gradient(45deg, rgba(123,232,183,1), rgba(123,232,218,1))
-      gradient-purple: linear-gradient(120deg, rgb(130,30,255), rgb(170,100,250))
-      gradient-purple-light: linear-gradient(45deg, rgba(126,70,255,1) 0%, rgba(166,131,255,1) 100%)
-      gradient-purple-teal: 'linear-gradient(45deg, var(--color-purple), var(--color-teal))'
-      gradient-teal-purple: 'linear-gradient(45deg, var(--color-teal), var(--color-purple))'
-      gradient-black: linear-gradient(45deg, rgba(13,13,15,1), rgba(19,20,23,1))
-
-      #glow
-      glow: 0px 0px 0px 0px
-      glow-color-green: 'var(--glow) var(--color-green)'
-      glow-color-yellow: 'var(--glow) var(--color-yellow)'
-      glow-color-dark-blue: 'var(--glow) var(--color-dark-blue)'
-      glow-color-light-blue: 'var(--glow) var(--color-light-blue)'
-      glow-color-cerise: 'var(--glow) var(--color-cerise)'
-      glow-color-violet: 'var(--glow) var(--color-violet)'
-      glow-color-orange: 'var(--glow) var(--color-orange)'
-      glow-color-red: 'var(--glow) var(--color-red)'
-      glow-color-white: 'var(--glow) var(--color-white)'
 
       # background and sidebar
       background: '#FFFFFF'
@@ -318,8 +292,9 @@ HaCasa:
       color-teal: rgb(123,232,183,1)
       color-white: rgba(255,255,255)
       color-black: rgb(0,0,0)
-      color-blue: '#414E6E'
-      color-gold: '#DCBA8D'
+      color-dark-blue: '#414E6E'
+      color-blue: '#8DAFDC'
+      color-gold: '#C4AA87'
       color-dark-gray: '#A2A5AD'
       color-darker-gray: '#52555D'
       color-darkest-gray: '#44474E'

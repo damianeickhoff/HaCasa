@@ -28,7 +28,7 @@ cards:
     cards:
       - type: custom:button-card
         template: custom_card_header_left_back
-        name: Woonkamer
+        name: Smarthome
       - type: custom:button-card
         template:
           - custom_card_sensor_double
@@ -44,12 +44,19 @@ cards:
         tap_action:
           action: navigate
           navigation_path: 'climate'
-      # - type: "custom:button-card"
-      #   entity: fan.whisper_flex
-      #   template:
-      #     - custom_card_fan
-      #   variables:
-      #     switch_name: Slaapkamer fan
+      - type: custom:button-card
+        template:
+          - custom_card_mediaplayer_music
+        entity: media_player.spotify_damian_eickhoff
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Fan
+      - type: "custom:button-card"
+        entity: fan.whisper_flex
+        template:
+          - custom_card_fan
       - type: "custom:button-card"
         template:
           - custom_card_section_title
@@ -127,22 +134,19 @@ cards:
             - custom_card_switch
           name: Verwarming
           label: Toilet
-          variables:
-            hc_icon:
+          icon: fapro:plug
         - type: "custom:button-card"
           entity: switch.vitrinekast_stopcontact_1
           template:
             - custom_card_switch
-          variables:
-            hc_icon:
+          icon: fapro:plug
           name: Vitrinekast
           label: Woonkamer
         - type: "custom:button-card"
           entity: switch.verwarming_kantoor
           template:
             - custom_card_switch
-          variables:
-            hc_icon: mdi:play
+          icon: fapro:plug
           name: Verwarming
           label: Kantoor
   - type: 'custom:button-card' # adding some space between card and navbar

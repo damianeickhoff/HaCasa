@@ -19,8 +19,7 @@ custom_card_header_left_back:
     back:
       card:
         type: custom:button-card
-        icon: fas:circle-left
-        name: Terug
+        icon: fapro:back
         show_icon: true
         show_name: false
         tap_action:
