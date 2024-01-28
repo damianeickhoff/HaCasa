@@ -1,4 +1,5 @@
-# HaCasa [WIP]
+![HaCasa_Logo_Black](https://github.com/damianeickhoff/HaCasa/assets/12126826/98b09ede-051b-4fa9-9f02-0258478a7761)
+
 ![HaCasa](https://github.com/damianeickhoff/HaCasa/assets/12126826/87788117-694f-4d92-b49c-c6d137844e37)
 # What is HaCasa?
 HaCasa is a collection of custom cards and a matching theme for Home Assistant. With that you can create a really nice, clean but also a simple dashboard. Most of the cards are pretty simple made, but that makes it also really easy to understand them. That comes in handy when you want to edit the card to your liking.
