@@ -1,7 +1,8 @@
-![HaCasa_Logo_Black](https://github.com/damianeickhoff/HaCasa/assets/12126826/98b09ede-051b-4fa9-9f02-0258478a7761)
-
-![HaCasa](https://github.com/damianeickhoff/HaCasa/assets/12126826/87788117-694f-4d92-b49c-c6d137844e37)
+![HaCasa Cover](https://github.com/damianeickhoff/HaCasa/assets/12126826/f7ce9c21-2e7f-48b0-b9de-5d06ed59190b)
 # What is HaCasa?
-HaCasa is a collection of custom cards and a matching theme for Home Assistant. With that you can create a really nice, clean but also a simple dashboard. Most of the cards are pretty simple made, but that makes it also really easy to understand them. That comes in handy when you want to edit the card to your liking.
 
-You can find more information in the [docs](https://damianeickhoff.github.io). Be aware! This whole project is still a work in progress. The documentation is far from complete but we will be updating this very frequently.
+HaCasa is a modern yet simple dashboard design for HomeAssistant, created by [Damian Eickhoff](https://github.com/damianeickhoff) and [Fredrik Persson](https://github.com/fredrikpersson92), who also created [MiniHass MKII](https://github.com/fredrikpersson92/minihass).
+
+We tend to make our cards and the design as simple as possible, so everyone can understand the designs and make them their own.
+
+**HaCasa is still highly in development but feel free to creates issues, questions or ideas and don't forget to check out our [documentation](https://damianeickhoff.github.io/HaCasa) to see how you can implement our cards.**
