@@ -4,17 +4,6 @@ path: "smarthome"
 cards:
   - type: conditional
     conditions:
-      - condition: state
-        entity: media_player.spotify_damian_eickhoff
-        state: playing
-      - condition: screen
-        media_query: '(min-width: 0px) and (max-width: 767px)'
-    card:
-      type: custom:button-card
-      template: custom_card_mediaplayer_bottom
-      entity: media_player.spotify_damian_eickhoff
-  - type: conditional
-    conditions:
       - condition: screen
         media_query: '(min-width: 0px) and (max-width: 767px)'
     card:
@@ -34,11 +23,11 @@ cards:
           - custom_card_sensor_double
         variables:
           sensor1: sensor.round_temp
-          name1: Temperatuur
+          name1: Temperature
           icon1: fapro:thermometer
           color1: var(--color-purple)
           sensor2: sensor.woonkamer_luchtvochtigheid
-          name2: Vocht Level
+          name2: Humidity
           icon2: fapro:humidity
           color2: var(--color-teal)
         tap_action:
@@ -61,24 +50,24 @@ cards:
         template:
           - custom_card_section_title
         variables:
-          section_title: Verlichting
+          section_title: Lights
       - type: grid
         columns: 3
         square: false
         cards:
           - type: "custom:button-card"
             entity: light.nachtlamp
-            label: Slaapkamer
+            label: Bedroom
             template:
               - custom_card_light
           - type: "custom:button-card"
             entity: light.kinderkamer
-            label: Kinderkamer
+            label: Kidsroom
             template:
               - custom_card_light
           - type: "custom:button-card"
             entity: light.kantoor
-            label: Kantoor
+            label: Office
             template:
               - custom_card_light
       - type: grid
@@ -87,22 +76,22 @@ cards:
         cards:
         - type: "custom:button-card"
           entity: light.eettafel
-          label: Eettafel WK
+          label: Diningroom
           template:
             - custom_card_light
         - type: "custom:button-card"
           entity: light.salontafel
-          label: Salontafel WK
+          label: Coffee Table
           template:
             - custom_card_light
         - type: "custom:button-card"
           entity: light.sfeer_woonkamer
-          label: Sfeerlamp
+          label: Mood light
           template:
             - custom_card_light
         - type: "custom:button-card"
           entity: light.hue_iris
-          label: Overloop
+          label: Upstairs
           template:
             - custom_card_light
       - type: grid
@@ -116,7 +105,7 @@ cards:
               - custom_card_light
           - type: "custom:button-card"
             entity: light.badkamer
-            label: Badkamer
+            label: Bathroom
             template:
               - custom_card_light
       - type: "custom:button-card"
@@ -132,7 +121,7 @@ cards:
           entity: switch.wc_verwarming_stopcontact_1
           template:
             - custom_card_switch
-          name: Verwarming
+          name: Heater
           label: Toilet
           icon: fapro:plug
         - type: "custom:button-card"
@@ -140,15 +129,15 @@ cards:
           template:
             - custom_card_switch
           icon: fapro:plug
-          name: Vitrinekast
-          label: Woonkamer
+          name: Cabinet
+          label: Livingroom
         - type: "custom:button-card"
           entity: switch.verwarming_kantoor
           template:
             - custom_card_switch
           icon: fapro:plug
-          name: Verwarming
-          label: Kantoor
+          name: Heater
+          label: Office
   - type: 'custom:button-card' # adding some space between card and navbar
     color_type: blank-card
     styles:

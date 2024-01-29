@@ -90,9 +90,7 @@ custom_card_weather_forecast:
               type: custom:button-card
               entity: '[[[ return entity.entity_id ]]]'
               label: >-
-                [[[ return
-                states[entity.entity_id].attributes.forecast[0].temperature +
-                " °C" ]]]
+                [[[ return states[entity.entity_id].attributes.forecast[0].temperature + "<span style>°C</span>" ]]]
               name: '[[[ return states["sensor.weather_forecast_1"].state ]]]'
               show_label: true
               show_icon: false

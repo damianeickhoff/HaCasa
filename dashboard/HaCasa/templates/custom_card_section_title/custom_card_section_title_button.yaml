@@ -1,4 +1,11 @@
 custom_card_section_title_button:
+  variables:
+    hc_btn_1:
+    hc_name_btn_1:
+    hc_btn_2:
+    hc_name_btn_2:
+    hc_btn_3:
+    hc_name_btn_3:
   styles:
     grid:
       - grid-template-areas: '"n button_1 button_2 button_3"'
@@ -17,11 +24,10 @@ custom_card_section_title_button:
     button_1:
       card:
         type: custom:button-card
-        tap_action:
-          action: call-service
-          service: script.all_lights_off
-        name: Nacht
-        styles: &icon_styles
+        name: '[[[ return variables.hc_name_btn_1 ]]]'
+        entity: '[[[ return variables.hc_btn_1 ]]]'
+        show_icon: false
+        styles: &card_styles
           grid:
             - grid-template-areas: "'n i'"
             - grid-template-columns: min-content
@@ -32,25 +38,37 @@ custom_card_section_title_button:
             - box-shadow: none
           name:
             - font-family: montserrat
-            - font-weight: 600
+            - font-weight: 700
             - font-size: 12px
             - color: var(--color-gold)
+        state:
+          - value: 'on'
+            styles: &state_style
+              card:
+                - background: var(--color-gold)
+                - border-radius: 5px
+              name:
+                - color: var(--color-white)
     button_2:
       card:
         type: custom:button-card
-        tap_action:
-          action: call-service
-          service: script.all_lights_off
-        name: Film
-        styles: *icon_styles
+        entity: '[[[ return variables.hc_btn_2 ]]]'
+        name: '[[[ return variables.hc_name_btn_2 ]]]'
+        show_icon: false
+        styles: *card_styles
+        state:
+          - value: 'on'
+            styles: *state_style
     button_3:
       card:
         type: custom:button-card
-        tap_action:
-          action: call-service
-          service: script.all_lights_off
-        name: Werk
-        styles: *icon_styles
+        entity: '[[[ return variables.hc_btn_3 ]]]'
+        name: '[[[ return variables.hc_name_btn_3 ]]]'
+        show_icon: false
+        styles: *card_styles
+        state:
+          - value: 'on'
+            styles: *state_style
   extra_styles: |
     @keyframes slide-in {
       0% {transform: translateX(-2%);}

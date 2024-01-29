@@ -40,13 +40,13 @@ custom_card_security:
       - font-family: montserrat
   state:
     - value: disarmed
-      name: Uitgeschakeld
+      name: Disarmed
     - value: armed_away
-      name: Ingeschakeld
+      name: Armed Away
     - value: armed_home
-      name: Thuis ingeschakeld
+      name: Armed Home
     - value: arming
-      name: Inschakelen
+      name: Arming...
       styles:
         name:
           - animation: flash 2s linear infinite
@@ -79,6 +79,7 @@ custom_card_security:
               styles:
                 icon:
                   - width: 25px
+                  - color: var(--text)
                 card:
                   - padding: 10px
                   - border-radius: 500px
@@ -113,6 +114,7 @@ custom_card_security:
               styles:
                 icon:
                   - width: 25px
+                  - color: var(--text)
                 card:
                   - padding: 10px
                   - border-radius: 500px
@@ -161,6 +163,7 @@ custom_card_security:
               styles:
                 icon:
                   - width: 25px
+                  - color: var(--text)
                 card:
                   - padding: 10px
                   - border-radius: 500px

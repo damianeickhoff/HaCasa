@@ -16,15 +16,15 @@ custom_card_garbage_collection:
       - column-gap: 5%
       - row-gap: 8px
     card:
-      - height: 100%
+      - height: auto
       - border-radius: "var(--border-radius)"
-      - padding: 1rem
+      - padding: 2rem
       - overflow: visible
       - justify-items: center
       - justify-content: center
     label:
       - text-align: left
-      - font-size: "var(--fs-500)"
+      - font-size: 1rem
       - font-family: 'Montserrat'
       - font-weight: 600
       - justify-self: start

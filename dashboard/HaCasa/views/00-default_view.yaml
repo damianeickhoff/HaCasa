@@ -66,6 +66,13 @@ cards:
         navigation_path: 'weather'
     - type: custom:button-card
       name: Your Home
+      variables:
+        hc_btn_1: input_boolean.night_scene
+        hc_name_btn_1: Night
+        hc_btn_2: input_boolean.movie_scene
+        hc_name_btn_2: Movie
+        hc_btn_3: input_boolean.office_scene
+        hc_name_btn_3: Office
       template:
         - custom_card_section_title_button
     - type: grid
@@ -94,7 +101,7 @@ cards:
     - type: "custom:button-card"
       template:
         - custom_card_garbage_collection
-      label: "[[[ return 'Days till pickup ' + states['sensor.avri_eerst_volgende'].attributes.Upcoming_waste_types ]]]"
+      label: "[[[ return 'Days till pickup <br>' + states['sensor.avri_eerst_volgende'].attributes.Upcoming_waste_types ]]]"
       variables:
         counter: >
           [[[ return states['sensor.avri_days_till_next_pickup'].state ]]]

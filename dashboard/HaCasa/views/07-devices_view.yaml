@@ -32,42 +32,42 @@ cards:
     template: custom_card_device
     icon: fapro:flame
     entity: switch.verwarming_kantoor
-    name: Verwarming Kantoor
+    name: Heater Office
     show_state: false
     show_label: true
     label: '[[[ return states["sensor.verwarming_kantoor_stroom"].state + " kw/h"]]]'
     state:
       - value: 'on'
         icon: fapro:flame-fill
-  # - type: custom:button-card
-  #   template: custom_card_device
-  #   icon: fapro:flame
-  #   entity: switch.wc_verwarming_stopcontact_1
-  #   name: Verwarming Toilet
-  #   show_label: true
-  #   label: '[[[ return states[entity.entity_id].state]]]'
-  #   state:
-  #     - value: 'on'
-  #       icon: fapro:flame-fill
-  # - type: custom:button-card
-  #   template: custom_card_device
-  #   icon: fapro:fan
-  #   entity: fan.whisper_flex
-  #   name: Slaapkamer Fan
-  #   show_label: true
-  #   label: '[[[ return states[entity.entity_id].state]]]'
-  #   state:
-  #     - value: 'on'
-  #       icon: fapro:fan-fill
-  #       styles:
-  #         icon:
-  #           - animation: rotating 1.8s linear infinite
-  #           - background: rgba(255,255,255,.3)
+  - type: custom:button-card
+    template: custom_card_device
+    icon: fapro:flame
+    entity: switch.wc_verwarming_stopcontact_1
+    name: Heater Toilet
+    show_label: true
+    label: '[[[ return states[entity.entity_id].state]]]'
+    state:
+      - value: 'on'
+        icon: fapro:flame-fill
+  - type: custom:button-card
+    template: custom_card_device
+    icon: fapro:fan
+    entity: fan.whisper_flex
+    name: Bedroom Fan
+    show_label: true
+    label: '[[[ return states[entity.entity_id].state]]]'
+    state:
+      - value: 'on'
+        icon: fapro:fan-fill
+        styles:
+          icon:
+            - animation: rotating 1.8s linear infinite
+            - background: rgba(255,255,255,.3)
   - type: custom:button-card
     template: custom_card_device
     icon: fapro:tv-retro
     entity: media_player.diw7022_0036bc
-    name: TV Woonkamer
+    name: TV Livingroom
     show_label: true
     label: |
         [[[
@@ -76,7 +76,7 @@ cards:
           } else if (states[entity.entity_id].attributes.app_name == 'com.hbo.hbonow') {
             return 'HBO'
           } else if (states[entity.entity_id].state == 'off') {
-            return 'Uit'
+            return 'Off'
           } else {
             return 'Onbekend'
           }
@@ -88,14 +88,14 @@ cards:
     template: custom_card_device
     icon: fapro:tv-retro
     entity: media_player.kinderkamer_tv
-    name: TV Kinderkamer
+    name: TV Kidsroom
     show_label: true
     label: |
         [[[
           if (states[entity.entity_id].attributes.app_name == 'com.kpn.tvlauncher') {
             return 'KPN TV'
           } else if (states[entity.entity_id].state == 'off') {
-            return 'Uit'
+            return 'Off'
           } else {
             return 'Onbekend'
           }

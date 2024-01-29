@@ -43,23 +43,11 @@ cards:
       - type: 'custom:button-card'
         template:
           - custom_card_room
-        name: Kitchen
-        variables:
-          hc_entity_1: binary_sensor.achterdeur
-      - type: 'custom:button-card'
-        template:
-          - custom_card_room
         name: Toilet
         variables:
           hc_entity_1: light.toilet
           hc_entity_2: binary_sensor.toilet_motion_beweging
           hc_entity_3: switch.wc_verwarming_stopcontact_1
-      - type: 'custom:button-card'
-        template:
-          - custom_card_room
-        name: Hallway
-        variables:
-          hc_entity_1: binary_sensor.voordeur
       - type: 'custom:button-card'
         template:
           - custom_card_room

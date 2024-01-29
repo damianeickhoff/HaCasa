@@ -34,11 +34,11 @@ cards:
           - custom_card_sensor_double
         variables:
           sensor1: binary_sensor.voordeur
-          name1: Voordeur
+          name1: Frontdoor
           icon1: fapro:door-closed
           color1: var(--color-purple)
           sensor2: binary_sensor.achterdeur
-          name2: Achterdeur
+          name2: Backdoor
           icon2: fapro:door-closed
           color2: var(--color-teal)
         tap_action:
@@ -60,7 +60,7 @@ cards:
           template:
             - custom_card_sensor
           entity: binary_sensor.badkamer_beweging
-          name: Badkamer
+          name: Bathroom
         - type: custom:button-card
           template:
             - custom_card_sensor
@@ -70,13 +70,13 @@ cards:
           template:
             - custom_card_sensor
           entity: binary_sensor.overloop_beweging
-          name: Overloop
+          name: Upstairs
         - type: custom:button-card
           icon: fapro:battery-full
           template:
             - custom_card_sensor
           entity: sensor.low_battery
-          name: Sensor batterijen
+          name: Batterys
   - type: 'custom:button-card' # adding some space between card and navbar
     color_type: blank-card
     styles:
