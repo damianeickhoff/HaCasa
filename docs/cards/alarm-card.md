@@ -9,3 +9,5 @@ There is a small spinning icon animation when the alarm is enabled.
 
 ![Alarm Light](/img/cards/alarm/alarm.png)
 ![Alarm Dark](/img/cards/alarm/alarm-dark.png)
+
+## Template

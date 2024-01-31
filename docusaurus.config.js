@@ -43,6 +43,8 @@ const config = {
           routeBasePath: '/',
           sidebarPath: './sidebars.js',
           breadcrumbs: false,
+          editUrl:
+            "https://github.com/damianeickhoff/HaCasa/tree/main/"
         },
         blog: false,
         theme: {
@@ -59,7 +61,7 @@ const config = {
       navbar: {
         title: '',
         logo: {
-          alt: '',
+          alt: 'HaCasa-Logo',
           src: 'img/other/HaCasa_Logo_color.png',
         },
         items: [

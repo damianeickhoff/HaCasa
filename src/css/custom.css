@@ -70,7 +70,9 @@ html[data-theme="dark"] {
 
 /* make first part of text on doc page bigger */
 .markdown > header + p,
-.markdown > header + p + p {
+.markdown > header + p + p,
+.markdown > header + p + p + p,
+.markdown > header + p + p + p + p {
   font-size: 1.25rem;
 }
 
@@ -331,6 +333,7 @@ a {
   font-size: 12px;
   font-weight: 500;
   padding: 5px;
+  vertical-align: middle;
 }
 
 .badge-warning {
@@ -340,6 +343,7 @@ a {
   height: 20px;
   font-size: 12px;
   padding: 5px;
+  vertical-align: middle;
 }
 
 li > a.menu__link {
