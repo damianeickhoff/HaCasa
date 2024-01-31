@@ -26,3 +26,6 @@ secrets.yaml
 zigbee.db
 zigbee.db-shm
 zigbee.db-wal
+/build
+.docusaurus/
+/node_modules

@@ -1,0 +1,347 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #C4AA87;
+  --ifm-color-primary-dark: #C4AA87;
+  --ifm-color-primary-darker: #C4AA87;
+  --ifm-color-primary-darkest: #C4AA87;
+  --ifm-color-primary-light: #C4AA87;
+  --ifm-color-primary-lighter: #C4AA87;
+  --ifm-color-primary-lightest: #C4AA87;
+  --ifm-link-hover-color: #C4AA87;
+  --ifm-code-font-size: 95%;
+  --ifm-menu-link-padding-vertical: 0.5rem;
+  --ifm-menu-link-padding-horizontal: 0.75rem;
+  --ifm-alert-padding-horizontal: 2rem;
+  --ifm-alert-padding-vertical: 1.5rem;
+  --ifm-table-stripe-background: #0000;
+  --docusaurus-highlighted-code-line-bg: rgb(208, 219, 255);
+  --ifm-hover-overlay: transparent;
+  --ifm-menu-color-background-active: #f9f2e9;
+  --ifm-menu-color: #141414;
+  --ifm-code-background: #f2f6fd;
+  --custom-menu-link-item-color-hover: #445c786f;
+  --ifm-toc-border-color: #f3f3f3;
+  --custom-border-color: #f3f3f3;
+  --ifm-font-color-base: #222d3a;
+  --navbar-icon-link-c: #92a0b3;
+  --ifm-link-color: var(--ifm-color-primary-lighter);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+html[data-theme="dark"] {
+  --ifm-color-primary: #C4AA87;
+  --ifm-color-primary-dark: #C4AA87;
+  --ifm-color-primary-darker: #C4AA87;
+  --ifm-color-primary-darkest: #C4AA87;
+  --ifm-color-primary-light: #C4AA87;
+  --ifm-color-primary-lighter: #C4AA87;
+  --ifm-color-primary-lightest: #C4AA87;
+  --ifm-table-stripe-background: #0000;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-menu-color-background-active: #4e4232;
+  --custom-menu-link-item-color: #ffffff;
+  --ifm-background-color: #151515;
+  --ifm-navbar-background-color: var(--ifm-background-color);
+  --ifm-navbar-search-input-background-color: rgb(33, 37, 44);
+  --ifm-font-color-base: #ced6e0;
+  --ifm-menu-color: inherit;
+  --ifm-hover-overlay: transparent;
+  --ifm-toc-border-color: #2f2f2f;
+  --custom-border-color: #2f2f2f;
+  --ifm-color-warning-lightest: var(--ifm-color-warning-darkest);
+  --custom-menu-link-item-color-hover: #888888;
+  --custom-menu-link-item-color: #c8c8c8;
+  --ifm-heading-color: #f1f1f1;
+  --ifm-color-info-contrast-background: #000d24;
+  --ifm-color-info-dark: #C4AA87;
+  --ifm-color-warning-contrast-background: #240b00;
+  --ifm-color-warning-dark: #ff7336;
+  --ifm-color-warning-darkest: #3d1200;
+  --ifm-color-info-darkest: #00163d;
+  --ifm-color-info-lightest: #00163d;
+}
+
+
+/* make first part of text on doc page bigger */
+.markdown > header + p,
+.markdown > header + p + p {
+  font-size: 1.25rem;
+}
+
+/* Table CSS */
+table {
+  border-color: inherit;
+  text-indent: 0;
+  border-radius: 8px;
+  border-style: hidden;
+  box-shadow: inset 0 0 0 1px var(--ifm-table-border-color);
+  display: table;
+}
+
+table thead tr {
+  border: none;
+  text-align: left;
+}
+
+/* Image CSS */
+
+
+nav img {
+  box-shadow: none;
+  border: none;
+}
+
+/* Tabs CSS */
+.tabs {
+  margin-left: -3px;
+}
+
+.tabs__item {
+  border: 1px solid #0000;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  padding: 0.25rem 0.6rem;
+}
+
+.tabs__item:hover {
+  background-color: transparent;
+  color: var(--ifm-color-gray-600);
+  transition: 0.3s;
+}
+
+.tabs .tabs__item--active {
+  border-color: var(--ifm-color-gray-600);
+  color: inherit;
+  font-weight: inherit;
+  transition: none;
+}
+
+#__docusaurus .menu {
+  padding: 30px 25px;
+}
+
+#__docusaurus ul a:hover {
+  color: var(--custom-menu-link-item-color);
+}
+
+#__docusaurus ul a::after {
+  background-size: 20px;
+}
+
+#__docusaurus ul .theme-doc-sidebar-item-category-level-1 > div > a.menu__link {
+  color: var(--ifm-menu-color);
+}
+
+#__docusaurus .menu__link {
+  font-size: 13px;
+  color: var(--custom-menu-link-item-color);
+}
+
+#__docusaurus .menu__link:hover {
+  color: var(--custom-menu-link-item-color-hover);
+  text-decoration: none;
+}
+
+#__docusaurus .menu__link--active {
+  color: var(--ifm-color-primary-light);
+}
+
+#__docusaurus .menu__link--active:hover {
+  color: var(--ifm-color-primary-light);
+}
+
+.navbar {
+  box-shadow: none;
+  border-bottom: 1px solid var(--custom-border-color);
+  height: 3.75rem;
+}
+
+.markdown a {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Ad Moniton CSS */
+.theme-admonition [class^="admonitionHeading_"] {
+  text-transform: capitalize;
+  font-size: 1.08rem;
+
+}
+
+/* hide icon on ad monition */
+#__docusaurus .admonitionIcon_node_modules-\@docusaurus-theme-classic-lib-theme-Admonition-Layout-styles-module {
+	display: none;
+}
+
+.admonitionIcon_Rf37 {
+  display: none;
+}
+
+.admonitionIcon_Rf37 svg {
+  display: none;
+}
+
+.alert svg {
+  display: none;
+}
+
+.theme-admonition [class^=admonitionHeading_] {
+  margin-left: -6px;
+}
+
+.theme-admonition [class^=admonitionHeading_] svg {
+  display: none;
+}
+
+.alert--warning a {
+    color: var(--ifm-color-warning-dark);
+}
+
+.alert--danger a {
+  color: var(--ifm-color-danger-darker)
+}
+
+.alert--warning code {
+  background-color: var(--ifm-color-warning-lightest);
+}
+
+.alert--info code {
+  background-color: var(--ifm-color-info-lightest);
+}
+
+/* DocPage size */
+[class*="docItemContainer_"] {
+  max-width: 55rem;
+}
+
+/* Code CSS */
+code {
+  padding: 6px;
+  border: none;
+}
+
+pre code {
+  background-color: var(--ifm-code-background);
+  padding: 0.815em;
+  white-space: pre-wrap;
+}
+
+/* lineheight for text */
+p {
+  line-height: 200%;
+}
+
+strong {
+  color: #44474E;
+}
+/* padding for doc */
+.padding-top--md {
+  padding-top: 5rem !important;
+}
+
+/* profile pictures CSS */
+img[src*="#contrprofimg"] {
+  width: 150px;
+  height: 150px;
+  border-radius: 10%;
+}
+
+.col--3 {
+  padding-left: 10%;
+}
+
+.table-of-contents__left-border {
+  border-left: 1px solid var(--custom-border-color);
+}
+
+.docSidebarContainer_node_modules-\@docusaurus-theme-classic-lib-theme-DocRoot-Layout-Sidebar-styles-module {
+  border-right: 1px solid var(--custom-border-color);
+}
+
+
+.navbar__items--right {
+  border-left: 1px solid var(--custom-border-color);
+  color: #92a0b3;
+}
+
+/* Custom CSS for text by parameters under modules */
+.Parameter__Paragraph li {
+  list-style-type: none;
+  margin-top: -1em;
+}
+
+.template-button {
+  background-color: #C4AA87;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 12px
+}
+
+
+a:link {
+  text-decoration: none;
+}
+
+a::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  border-radius: 4px;
+  background-color: #C4AA87;
+  bottom: 0;
+  left: 0;
+  transform-origin: right;
+  transform: scaleX(0);
+  transition: transform .3s ease-in-out;
+}
+a:hover::before {
+  transform-origin: left;
+  transform: scaleX(1);
+}
+a {
+  position: relative;
+}
+
+.template-button:hover {
+  background-color: #1f1f1f;
+}
+
+/* badges */
+
+.badge-danger {
+  background-color: #FFEDED;
+  color: #DA4343;
+  border-radius: 5px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px;
+}
+
+.badge-warning {
+  background-color: #FFF2E1;
+  color: #A06B24;
+  border-radius: 5px;
+  height: 20px;
+  font-size: 12px;
+  padding: 5px;
+}
+
+li > a.menu__link {
+  justify-content: flex-start;
+}
