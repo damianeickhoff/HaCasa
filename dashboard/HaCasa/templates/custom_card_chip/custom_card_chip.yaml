@@ -1,0 +1,30 @@
+custom_card_chip:
+  show_name: false
+  show_state: true
+  show_label: false
+  styles:
+    grid:
+      - grid-template-areas: |
+          'i s'
+      - grid-template-columns: min-content min-content
+      - grid-template-rows: 1fr
+      - column-gap: 0.3rem
+    icon:
+      - width: 18px
+    img_cell:
+      - width: 18px
+      - justify-self: start
+    state:
+      - font-family: montserrat
+      - font-weight: 600
+      - font-size: 10px
+    card:
+      - border-radius: 12px
+      - width: auto
+      - height: auto
+      - border-radius: 8px
+      - padding: 10px
+      - margin-bottom: 10px
+  state:
+    - value: 'on'
+      icon: fapro:door-open

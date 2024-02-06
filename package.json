@@ -18,10 +18,10 @@
     "@docusaurus/preset-classic": "3.1.0",
     "@iconify/react": "^4.1.1",
     "@mdx-js/react": "^3.0.0",
-    "@saucelabs/theme-github-codeblock": "^0.2.3",
     "clsx": "^2.0.0",
     "docusaurus-plugin-sass": "^0.2.5",
     "prism-react-renderer": "^2.3.0",
+    "raw-loader": "^4.0.2",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "sass": "^1.70.0"

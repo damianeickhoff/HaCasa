@@ -1,0 +1,42 @@
+custom_card_camera:
+  show_state: true
+  show_label: true
+  label: Live
+  icon: mdi:record
+  show_icon: true
+  styles:
+    grid:
+      - grid-template-areas: |
+          's i l'
+          'n n n'
+          'camera camera camera'
+      - grid-template-rows: min-content min-content min-content
+      - row-gap: 3px
+    card:
+      - padding: 20px
+    name:
+      - justify-self: start
+      - font-family: montserrat
+      - padding-bottom: 20px
+      - font-size: 12px
+      - font-weight: 500px
+      - color: var(--color-dark-gray)
+    label:
+      - font-family: montserrat
+      - font-weight: 500
+    icon:
+      - width: 15px
+      - color: var(--color-red)
+    state:
+      - justify-self: start
+      - font-family: montserrat
+      - font-size: 1.5rem
+      - font-weight: 600
+  custom_fields:
+    camera:
+      card:
+        show_state: false
+        show_name: false
+        camera_view: auto
+        type: picture-entity
+        entity: camera.wifi_videodeurbel

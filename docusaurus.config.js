@@ -57,6 +57,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+
       // Replace with your project's social card
       navbar: {
         title: '',
@@ -74,10 +75,19 @@ const config = {
           {to: 'https://github.com/damianeickhoff/HaCasa/issues', label: 'Issues', position: 'left'},
           {
             href: 'https://github.com/damianeickhoff/HaCasa',
-            label: 'GitHub',
             position: 'right',
+            className: "header-github-link",
+            "aria-label": "GitHub repository",
           },
         ],
+      },
+      announcementBar: {
+        id: 'project_development',
+        content:
+          'This project and the documentation are still in development.',
+        backgroundColor: '#C4AA87',
+        textColor: '#fff',
+        isCloseable: true,
       },
       prism: {
         theme: prismThemes.github,

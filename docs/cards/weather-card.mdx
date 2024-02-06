@@ -3,7 +3,7 @@ icon: cloud
 hide_table_of_contents: true
 title: Weather Card
 ---
-<!-- markdownlint-disable MD033 -->
+
 The weather card shows you the current outside temperature with a matching image depending on the weather state. Those images are all animated and are included in this theme. They are made by [Bas Milius](https://bas.dev/work/meteocons).
 
 The card also shows the rain anticipation but later on it will be customizable.
@@ -32,4 +32,10 @@ tap_action:
   navigation_path: 'weather'
 ```
 
-<a href="https://github.com/damianeickhoff/HaCasa/blob/main/dashboard/HaCasa/templates/custom_card_weather/custom_card_weather_forecast.yaml" class="template-button" target="_blank">Template</a>
+import CodeBlock from '@theme/CodeBlock';
+import MyComponentSource from '!!raw-loader!/dashboard/HaCasa/templates/custom_card_weather/custom_card_weather_forecast.yaml';
+
+<details>
+  <summary>Template</summary>
+  <CodeBlock language="yaml" title="/dashboard/HaCasa/templates/custom_card_weather/custom_card_weather_forecast.yaml">{MyComponentSource}</CodeBlock>
+</details>

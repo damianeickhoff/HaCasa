@@ -2,7 +2,7 @@
 hide_table_of_contents: true
 title: Fan Card
 ---
-<!-- markdownlint-disable MD033 -->
+
 The `Fan Card` is a modified `light card` turning on and off your `fan entity`. It also provides a toggle for turning on and off the oscillation of the fan.
 
 ![Fan Light](/img/cards/fan/fan.png)
@@ -18,4 +18,10 @@ template:
   - custom_card_fan
 ```
 
-<a href="https://github.com/damianeickhoff/HaCasa/blob/main/dashboard/HaCasa/templates/custom_card_fan/custom_card_fan.yaml" class="template-button" target="_blank" >Template</a>
+import CodeBlock from '@theme/CodeBlock';
+import MyComponentSource from '!!raw-loader!/dashboard/HaCasa/templates/custom_card_fan/custom_card_fan.yaml';
+
+<details>
+  <summary>Template</summary>
+  <CodeBlock language="yaml" title="/dashboard/HaCasa/templates/custom_card_fan/custom_card_fan.yaml">{MyComponentSource}</CodeBlock>
+</details>
