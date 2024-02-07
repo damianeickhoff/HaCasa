@@ -209,7 +209,7 @@ nav img {
 
 /* hide icon on ad monition */
 #__docusaurus .admonitionIcon_node_modules-\@docusaurus-theme-classic-lib-theme-Admonition-Layout-styles-module svg {
-  width: 20px
+  width: 20px !important;
 }
 
 .alert {
@@ -229,7 +229,7 @@ img {
 }
 
 .alert--danger a {
-  color: var(--ifm-color-danger-darker)
+  color: var(--ifm-color-danger-darker);
 }
 
 .alert--warning code {
