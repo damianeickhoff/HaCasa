@@ -12,6 +12,20 @@ Its important that you put multiple chips inside a `horizontal-stack`.
 ![chip Light](/img/cards/chip/chip.png)
 ![Chip Dark](/img/cards/chip/chip-dark.png)
 
+## Usage
+
+```yaml title="📄 /templates/custom_card_chip/custom_card_chip.yaml"
+type: horizontal-stack
+cards:
+  - type: custom:button-card
+    template: custom_card_chip
+    entity: binary_sensor.frontdoor
+  - type: custom:button-card
+    template: custom_card_chip
+    entity: sensor.total_lights_on
+    icon: mdi:lightbulb
+```
+
 import CodeBlock from '@theme/CodeBlock';
 import MyComponentSource from '!!raw-loader!/dashboard/HaCasa/templates/custom_card_chip/custom_card_chip.yaml';
 

@@ -43,6 +43,7 @@ const config = {
           routeBasePath: '/',
           sidebarPath: './sidebars.js',
           breadcrumbs: false,
+          sidebarCollapsed: false,
           editUrl:
             "https://github.com/damianeickhoff/HaCasa/tree/main/"
         },
@@ -59,20 +60,23 @@ const config = {
     ({
 
       // Replace with your project's social card
+      image: 'img/other/hacasa_cover.jpg',
       navbar: {
         title: '',
         logo: {
           alt: 'HaCasa-Logo',
-          src: 'img/other/HaCasa_Logo_Color.png',
+          src: 'img/other/HaCasa_Logo_color.png',
+          srcDark: 'img/other/HaCasa_Logo_White.png',
+          style: {"padding-left": '15px',"height":'20px',"display":'flex',"margin-top":'5%'},
         },
         items: [
           {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Documentation',
+
           },
-          {to: 'https://github.com/damianeickhoff/HaCasa/issues', label: 'Issues', position: 'left'},
           {
             href: 'https://github.com/damianeickhoff/HaCasa',
             position: 'right',
