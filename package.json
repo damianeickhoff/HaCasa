@@ -22,8 +22,6 @@
     "docusaurus-plugin-sass": "^0.2.5",
     "prism-react-renderer": "^2.3.0",
     "raw-loader": "^4.0.2",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
     "react-github-btn": "^1.4.0",
     "sass": "^1.70.0"
   },

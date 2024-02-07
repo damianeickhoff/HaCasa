@@ -8,6 +8,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;1,200;1,300;1,400;1,500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600&display=swap');
+
 /* You can override the default Infima variables here. */
 :root {
   --ifm-color-primary: #C4AA87;
@@ -70,28 +71,22 @@ html[data-theme="dark"] {
   --ifm-color-warning-darkest: #3d1200;
   --ifm-color-info-darkest: #00163d;
   --ifm-color-info-lightest: #00163d;
-  --ifm-code-border-radius: 0px;
   --ifm-code-background: rgb(153 161 179/0.1);
 
   code {
     color: #ffffff;
   }
+
   pre code {
     background-color: #111112;
     border: none;
     white-space: pre-wrap;
   }
 
-  .codeBlockContainer_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Container-styles-module {
-    border: none;
-    box-shadow: none !important;
-  }
-
-  .codeBlockTitle_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Content-styles-module {
-    border-bottom: none !important;
-    font-size: 0.9rem !important;
-    font-weight: 400 !important;
-    color: #ffffff
+  details {
+    border: none !important;
+    background: #1a1b1f !important;
+    --docusaurus-details-decoration-color: #C4AA87 !important;
   }
 }
 
@@ -107,6 +102,7 @@ h5,
 h6 {
   font-family: inter;
 }
+
 /* Table CSS */
 table {
   border-color: inherit;
@@ -124,6 +120,10 @@ table thead tr {
 
 /* Image CSS */
 
+.codeBlockContainer_Ckt0 {
+  box-shadow: none;
+  border: red;
+}
 
 nav img {
   box-shadow: none;
@@ -168,7 +168,7 @@ nav img {
   background-size: 20px;
 }
 
-#__docusaurus ul .theme-doc-sidebar-item-category-level-1 > div > a.menu__link {
+#__docusaurus ul .theme-doc-sidebar-item-category-level-1>div>a.menu__link {
   color: var(--ifm-menu-color);
 }
 
@@ -208,12 +208,14 @@ nav img {
 }
 
 /* hide icon on ad monition */
-#__docusaurus .admonitionIcon_node_modules-\@docusaurus-theme-classic-lib-theme-Admonition-Layout-styles-module svg {
-  width: 20px !important;
-}
+
 
 .alert {
   box-shadow: none;
+}
+
+.theme-admonition [class^="admonitionHeading_"] svg {
+  font-size: 13px;
 }
 
 img {
@@ -225,7 +227,7 @@ img {
 }
 
 .alert--warning a {
-    color: var(--ifm-color-warning-dark);
+  color: var(--ifm-color-warning-dark);
 }
 
 .alert--danger a {
@@ -260,28 +262,12 @@ code {
 
 pre code {
   background-color: white;
-  border: none;
+  border: red;
   white-space: pre-wrap;
   border-radius: 0px;
   font-family: 'Source Code Pro', monospace !important;
 }
 
-.codeBlockContainer_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Container-styles-module {
-  border: solid #dedede 1px;
-  box-shadow: none !important;
-  border-radius: 8px !important;
-}
-
-.codeBlockTitle_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Content-styles-module {
-  border-bottom: none !important;
-  font-size: 0.9rem !important;
-  font-weight: 400 !important;
-  color: #919191
-}
-
-.codeBlockTitle_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Content-styles-module + .codeBlockContent_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Content-styles-module .codeBlock_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Content-styles-module {
-  border-radius: 0px 0px 8px 8px;
-}
 /* lineheight for text */
 p {
   line-height: 150%;
@@ -290,15 +276,11 @@ p {
 strong {
   color: #44474E;
 }
+
 /* padding for doc */
 .padding-top--md {
   padding-top: 5rem !important;
 }
-
-.docSidebarContainer_node_modules-\@docusaurus-theme-classic-lib-theme-DocRoot-Layout-Sidebar-styles-module {
-  border-right: 1px solid var(--custom-border-color);
-}
-
 
 .navbar__items--right {
   border-left: 1px solid var(--custom-border-color);
@@ -310,21 +292,6 @@ strong {
   list-style-type: none;
   margin-top: -1em;
 }
-
-.template-button {
-  background-color: #C4AA87;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 12px
-}
-
 
 p a:link {
   text-decoration: none;
@@ -343,10 +310,12 @@ p a::before {
   transform: scaleX(0);
   transition: transform .3s ease-in-out;
 }
+
 p a:hover::before {
   transform-origin: left;
   transform: scaleX(1);
 }
+
 p a {
   position: relative;
 }
@@ -388,7 +357,7 @@ h3 {
   vertical-align: middle;
 }
 
-li > a.menu__link {
+li>a.menu__link {
   justify-content: flex-start;
 }
 
@@ -397,8 +366,7 @@ li > a.menu__link {
 }
 
 .header-github-link:before {
-  background: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E")
-    no-repeat;
+  background: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E") no-repeat;
   content: "";
   display: flex;
   height: 24px;
@@ -412,7 +380,7 @@ li > a.menu__link {
   --docusaurus-announcement-bar-height: 50px !important;
 }
 
-div[class^="announcementBar"][role="banner"]{
+div[class^="announcementBar"][role="banner"] {
   font-weight: 600;
   font-family: "inter", sans-serif;
 }
@@ -422,22 +390,15 @@ div[class^="announcementBar"][role="banner"]{
   opacity: 100;
 }
 
-.details_node_modules-\@docusaurus-theme-classic-lib-theme-Details-styles-module {
-  background: none;
-  border: 1px solid #dedede !important;
-  color: #919191;
+
+details {
+  border: solid #dedede 1px !important;
+  background: none !important;
+  --docusaurus-details-decoration-color: #C4AA87 !important;
+}
+
+details summary {
   font-weight: 500;
-  --docusaurus-details-decoration-color: none !important;
-
-}
-
-.details_node_modules-\@docusaurus-theme-common-lib-components-Details-styles-module > summary::before {
-  left: 100% !important;
-  border-color: transparent transparent transparent #C4AA87 !important;
-}
-
-.details_node_modules-\@docusaurus-theme-common-lib-components-Details-styles-module > summary {
-  padding-left: 0 !important;
 }
 
 a.social-count {

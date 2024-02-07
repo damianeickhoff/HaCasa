@@ -65,7 +65,7 @@ const config = {
         title: '',
         logo: {
           alt: 'HaCasa-Logo',
-          src: 'img/other/HaCasa_Logo_color.png',
+          src: 'img/other/HaCasa_Logo_Color.png',
           srcDark: 'img/other/HaCasa_Logo_White.png',
           style: {"padding-left": '15px',"height":'20px',"display":'flex',"margin-top":'5%'},
         },
