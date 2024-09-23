@@ -4,7 +4,15 @@ HaCasa:
 
   masonry-view-card-margin: 15px 15px 0px 15px
   --control-circular-slider-color: blue
-
+  card-mod-theme: HaCasa
+  card-mod-root: |
+    .header{
+        display: none;
+    }
+    #view {
+        padding: 0 !important;
+        height: 100vh !important;
+    }
   modes:
     light:
       # contrast
