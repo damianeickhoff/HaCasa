@@ -36,6 +36,8 @@ lovelace:
       type: "module"
     - url: "/hacsfiles/kiosk-mode/kiosk-mode.js"
       type: module
+    - url: "https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900"
+      type: css
   dashboards:
     hacasa-dashboard:
       mode: "yaml"
@@ -45,23 +47,7 @@ lovelace:
       filename: "dashboard/HaCasa/main.yaml"
 ```
 
-Save the file, then head back to your Home Assistant UI. 
-From there, select `Settings > Dashboards` and click on the three vertical dots in the upper right corner. Select `Resources`, then click `Add Resource` in the bottom right. 
-
-> If you don't see the three vertical dots, make sure you have `Advanced Mode` toggled on.  
-
-> Enabled `Advanced Mode` by heading to your user profile (last entry in the sidebar), from here check under `User Profile` that `Advanced Mode` is toggled on. 
-
-Add the following for `URL`:
-````
-https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900
-````
-and select `Stylesheet`. Then click `Create` to finish of setting up this resource.
-
-
-
-
-Now, restart Home Assistant and boom💥, you should be done.
+Save the file, restart Home Assistant and boom💥, you should be done.
 Also, don't forget to change the theme to HaCasa in your HA Profile. You can do that [here](https://my.home-assistant.io/redirect/profile).
 
 Now, when everything is done, you should see a demo page with a few cards as example. Check out our cards and make it your own.
