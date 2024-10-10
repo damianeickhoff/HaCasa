@@ -37,7 +37,7 @@ lovelace:
     - url: "/hacsfiles/kiosk-mode/kiosk-mode.js"
       type: module
   dashboards:
-    HaCasa:
+    hacasa-dashboard:
       mode: "yaml"
       title: HaCasa
       icon: mdi:script
