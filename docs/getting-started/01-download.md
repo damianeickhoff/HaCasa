@@ -39,4 +39,6 @@ These are all Lovelace Resources and can be downloaded through HACS or manually,
 
 Download the `Source code (zip)` from the latest [release](https://github.com/damianeickhoff/HaCasa/releases). Unpack the zip file and open the unpacked folder. Copy the `dashboard` and the `custom_icons` folder to the root of your HA configuration (this is where your `configuration.yaml` lives) and copy the HaCasa folder from within the `theme folder` into your own `theme folder`. Which is also in the root.
 
+After that, make sure to download the weather icons from [Bas Milius](https://bas.dev/work/meteocons) and place them in your `www > weather-icons` folder (create it if needed).
+
 When you have successfully completed these tasks, you can move on to [configuration](02-configuration.md).
