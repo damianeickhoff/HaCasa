@@ -9,6 +9,9 @@ image/
 lsiopy/
 tts/
 www/
+HaCasa_Logo
+Docs/build
+Docs/node_modules
 .bash_history
 .HA_VERSION
 automations.yaml
