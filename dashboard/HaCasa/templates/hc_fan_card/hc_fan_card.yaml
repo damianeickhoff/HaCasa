@@ -1,0 +1,165 @@
+hc_fan_card:
+  icon: mdi:fan-off
+  label: |
+    [[[
+      if (entity.state == 'on') {
+        return states[entity.entity_id].attributes.percentage + "%"
+      } else {
+        return 'Off'
+      }
+    ]]]
+  show_name: true
+  show_icon: true
+  show_label: true
+  show_state: false
+  styles:
+    grid:
+      - grid-template-areas: |
+          'n i'
+          'l i'
+          'slider osc_icon'
+      - grid-template-rows: min-content min-content 1fr
+    card:
+      - padding: 10px
+    name:
+      - text-align: left
+      - font-size: var(--fs-400)
+      - font-family: Montserrat
+      - font-weight: 700
+      - justify-self: start
+      - align-self: end
+      - font-size: 1rem
+    label:
+      - text-align: left
+      - font-size: var(--fs-300)
+      - font-family: Montserrat
+      - font-weight: 500
+      - justify-self: start
+      - align-self: center
+      - opacity: 0.7
+      - padding-bottom: 10px
+    icon:
+      - width: 50%
+      - color: white
+    img_cell:
+      - background: var(--color-light-blue)
+      - padding: 6px
+      - border-radius: 50%
+      - width: 25px
+      - height: 25px
+      - align-self: start
+      - margin-bottom: 10px
+  state:
+    - value: "on"
+      icon: mdi:fan
+      styles:
+        card:
+          - background: var(--color-blue)
+        name:
+          - color: white
+        label:
+          - color: white
+        state:
+          - color: white
+    - value: "off"
+      styles:
+        icon:
+          - color: var(--icon-color-default)
+        img_cell:
+          - background: var(--background-icon-color-default)
+    - value: "unavailable"
+      styles:
+        icon:
+          - color: var(--icon-color-default)
+        img_cell:
+          - background: var(--background-icon-color-default)
+      label: Unavailable
+      icon: mdi:fan-question        
+  custom_fields:
+    slider:
+      card:
+        type: custom:my-slider-v2
+        entity: "[[[ return entity.entity_id ]]]"
+        styles:
+          card:
+            - height: 30px
+            - box-shadow: none
+            - padding: 0
+          progress:
+            - height: 100%
+            - background: |
+                  [[[
+                    if (states[entity.entity_id].state === 'off') {
+                      return 'transparent';
+                    } else {
+                      return 'white';
+                    }
+                  ]]]
+            - border-radius: 12px 12px 12px 12px
+          track:
+            - background: |
+                [[[
+                  if (states[entity.entity_id].state === 'on') {
+                    return 'var(--color-light-blue)';
+                  } else {
+                    return 'var(--slider-color)';
+                  }
+                ]]]
+            - border-radius: 12px
+          thumb:
+            - height: 30%
+            - background: |
+                    [[[
+                      if (states[entity.entity_id].state === 'off') {
+                        return 'transparent';
+                      } else {
+                        return 'var(--color-blue)';
+                      }
+                    ]]]
+            - position: absolute
+            - right: 7px
+            - top: 11px
+            - width: 3px
+    osc_icon:
+      card:
+        type: custom:button-card
+        icon: |
+          [[[
+            if (entity.attributes.oscillating == 'false') {
+              return 'mdi:arrow-oscillating-off'
+            } else {
+              return 'mdi:arrow-oscillating'
+            }
+          ]]]
+        styles:
+          card:
+            - width: 40px
+            - border-radius: 8px
+            - height: 30px
+            - margin-left: 10px
+            - background: white
+          icon:
+            - width: 20px
+            - color: |
+                [[[
+                  if (states[entity.entity_id].state === 'on') {
+                    return 'var(--color-blue)'
+                  } else {
+                    return ''
+                  }
+                ]]]
+        tap_action:
+          action: call-service
+          service: fan.oscillate
+          service_data:
+            entity_id: '[[[ return entity.entity_id ]]]'
+            oscillating: |
+              [[[
+                if (entity.attributes.oscillating == 'false') {
+                  return 'true'
+                } else {
+                  return 'false'
+                }
+              ]]]            
+  hold_action:
+    action: more-info

@@ -1,0 +1,59 @@
+hc_action_card_security:
+  template: hc_action_card
+  entity: "[[[ return entity.entity_id ]]]"
+  styles:
+    img_cell:
+      - background: var(--color-blue)
+    icon:
+      - color: white
+  state:
+    - value: arming
+      state_display: Arming...
+      styles:
+        icon:
+          - animation: flash 2s linear infinite
+    - value: armed_away
+      styles:
+        card:
+          - background: var(--color-blue)
+        name:
+          - color: white
+        state:
+          - color: white
+        label:
+          - color: white
+        icon:
+          - color: white
+          - animation: rotate 7s linear infinite
+        img_cell:
+          - background: rgba(255,255,255, 0.2)
+    - value: armed_home
+      styles:
+        card:
+          - background: var(--color-green)
+        name:
+          - color: white
+        state:
+          - color: white
+        label:
+          - color: white
+        icon:
+          - color: white
+          - animation: rotate 7s linear infinite
+        img_cell:
+          - background: rgba(255,255,255, 0.2)
+  extra_styles: |
+    @keyframes rotate {
+      from {transform: rotateY(-deg);}
+      to {transform: rotateY(360deg);}
+    }
+    @keyframes flash {
+      0% {opacity: 100%;}
+      50% {opacity: 0%;}
+      100% {opacity: 100%;}
+    }
+  hold_action:
+    action: navigate
+    navigation_path: security
+  tap_action:
+    action: more-info

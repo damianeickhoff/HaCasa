@@ -1,0 +1,167 @@
+hc_weather_card:
+  show_state: false
+  show_name: false
+  show_label: false
+  show_icon: false
+  styles:
+    grid:
+      - grid-template-areas: |
+          'weather grid'
+      - grid-template-rows: min-content
+      - grid-template-columns: 70% 28%
+      - column-gap: 7px
+    card:
+      - padding: 8px
+      - background: |
+            [[[
+                var weather = states[entity.entity_id].state;
+                
+                return 'var(--' + weather + '-gradient)'
+            ]]]
+    custom_fields:
+      grid:
+        - height: 100%
+  custom_fields:
+    weather:
+      card:
+        type: custom:button-card
+        entity: weather.buienradar
+        show_state: true
+        show_name: true
+        show_label: true
+        show_icon: false
+        label: |
+          [[[
+            return states[entity.entity_id].attributes.temperature + "°"
+          ]]]
+        name: |
+          [[[
+            return "Tomorrow will be " + states['sensor.condition_1d'].state
+          ]]]
+        styles:
+          grid:
+            - grid-template-areas: |
+                "l"
+                "s"
+                "n"
+            - grid-template-rows: min-content
+          card:
+            - backdrop-filter: blur(5px)
+            - background: rgba(255, 255, 255, 0.1)
+            - padding-left: 10%
+            - padding-top: 20px
+            - padding-bottom: 30px
+            - border-radius: 11px
+            - height: 20vh
+          label:
+            - font-size: 4rem
+            - font-weight: 500
+            - align-self: start
+            - justify-self: start
+            - color: black
+          state:
+            - font-size: 2rem
+            - font-weight: 400
+            - justify-self: start
+            - align-self: start
+            - color: black
+          name:
+            - font-size: 1rem
+            - color: black
+            - justify-self: start
+            - font-weight: 500
+            - opacity: 0.5
+          custom_fields:
+            icon:
+              - width: 120%
+              - position: absolute
+              - right: -50%
+              - top: "-80%"
+              - z-index: -1
+        custom_fields:
+          icon: |
+            [[[
+                var weather = states[entity.entity_id].state;
+                return '<img src = "/local/weather-icons/' + weather + '.svg" />'
+            ]]]
+    grid:
+      card:
+        type: grid
+        columns: 1
+        square: false
+        cards:
+          - type: custom:button-card
+            icon: mdi:weather-windy
+            show_label: true
+            name: Wind
+            entity: sensor.wind_speed
+            label: "[[[ return states['sensor.wind_speed'].state + ' km/h']]]"
+            styles: &item_styles
+              grid:
+                - grid-template-areas: |
+                    'i n'
+                    'i l'
+                - grid-template-columns: min-content min-content
+                - grid-template-rows: 1fr 1fr
+                - column-gap: 10px
+              card:
+                - backdrop-filter: blur(20px)
+                - border-radius: 12px
+                - height: 6vh
+                - background: rgba(255, 255, 255, 0.1)
+              label:
+                - justify-self: start
+                - font-family: montserrat
+                - align-self: start
+                - font-size: 0.7rem
+                - font-weight: 500
+                - color: white
+              name:
+                - justify-self: start
+                - align-self: end
+                - font-family: montserrat
+                - font-size: 0.7rem
+                - font-weight: 500
+                - color: white
+                - opacity: 0.6   
+              icon:
+                - width: 15px
+                - color: black
+              img_cell:
+                - width: 20px
+                - height: 20px
+                - justify-self: start
+                - background: rgba(255, 255, 255, 0.1)
+                - border-radius: 50%
+                - padding: 5px
+                - margin-left: 5px
+          - type: custom:button-card
+            name: Rain
+            icon: mdi:water
+            show_label: true
+            entity: sensor.precipitation_forecast_average
+            label: "[[[ return states['sensor.precipitation_forecast_average'].state + ' mm' ]]]"
+            styles: *item_styles
+          - type: custom:button-card
+            show_label: true
+            name: Air Q
+            entity: sensor.burgemeester_stolklaan_air_quality_index
+            label: |
+              [[[
+                if (states["sensor.burgemeester_stolklaan_air_quality_index"].state < 51){
+                  return "Good";
+                }
+                else {
+                  return "Moderate";
+                }
+              ]]]
+            icon: |
+                [[[
+                  if (states["sensor.burgemeester_stolklaan_air_quality_index"].state < 51){
+                    return 'mdi:emoticon-happy';
+                  }
+                  else {
+                    return 'mdi:emoticon-neutral';
+                  }
+                ]]]
+            styles: *item_styles

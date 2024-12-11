@@ -1,0 +1,74 @@
+hc_device_card:
+  icon: mdi:power-plug-off
+  show_label: true
+  label: "[[[ return states[entity.entity_id].state ]]]"
+  styles:
+    grid:
+      - grid-template-areas: |
+          'i n'
+          'i l'
+      - grid-template-columns: min-content min-content
+      - grid-template-rows: min-content min-content
+      - column-gap: 10px
+    card:
+      - padding: 7px
+      - border-radius: 28px
+    name:
+      - text-align: left
+      - font-size: var(--fs-400)
+      - font-family: Montserrat
+      - font-weight: 700
+      - justify-self: start
+      - align-self: end
+      - font-size: 0.9rem
+    label:
+      - text-align: left
+      - font-size: var(--fs-300)
+      - font-family: Montserrat
+      - font-weight: 500
+      - justify-self: start
+      - align-self: start
+      - opacity: 0.7
+    icon:
+      - width: 50%
+      - color: white
+    img_cell:
+      - background: rgba(255,255,255, 0.2)
+      - padding: 6px
+      - border-radius: 50%
+      - width: 25px
+      - height: 25px
+      - align-self: start
+  state:
+    - value: "on"
+      icon: mdi:power-plug
+      styles:
+        card:
+          - background: var(--color-green)         
+        name:
+          - color: white
+        label:
+          - color: white
+        state:
+          - color: white
+        icon:
+          - color: white
+    - value: "off"
+      styles:
+        icon:
+          - color: var(--icon-color-default)
+        img_cell:
+          - background: var(--background-icon-color-default)
+    - value: unavailable
+      styles:
+        name:
+          - text-decoration: line-through
+        icon:
+          - color: var(--icon-color-default)
+        img_cell:
+          - background: var(--background-icon-color-default)
+        card:
+          - opacity: 0.6
+          - pointer-events: none
+      label: Onbekend
+      icon: mdi:power-plug-outline

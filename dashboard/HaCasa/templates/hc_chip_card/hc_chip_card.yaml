@@ -1,0 +1,73 @@
+hc_chip_card:
+  show_name: false
+  show_state: true
+  show_label: true
+  show_last_changed: true
+  label: test
+  styles:
+    grid:
+      - grid-template-areas: |
+          'i s'
+          'i l'
+      - grid-template-columns: min-content min-content
+      - grid-template-rows: min-content min-content
+      - column-gap: 7px
+    icon:
+      - width: 18px
+      - justify-self: start
+    img_cell:
+      - width: 20px
+      - height: 20px
+      - justify-self: start
+      - padding: 5px
+      - background: var(--background-icon-color-default)
+      - border-radius: 50%
+    state:
+      - font-family: montserrat
+      - font-weight: 600
+      - font-size: 0.8rem
+      - margin-right: 10px
+      - align-self: end
+      - justify-self: start
+    label:
+      - font-family: montserrat
+      - font-weight: 600
+      - font-size: 0.6rem
+      - margin-right: 10px
+      - justify-self: start
+      - align-self: start
+      - opacity: 0.8
+    card:
+      - width: auto
+      - height: auto
+      - border-radius: 60px
+      - padding: 5px
+      - flex: 0
+  state:
+    - value: "on"
+      icon: mdi:door-open
+      styles:
+        icon:
+          - color: var(--icon-color)
+
+hc_chip_menu:
+  icon: mdi:menu
+  styles:
+    icon:
+      - width: 20px
+      - justify-self: center
+    img_cell:
+      - width: 20px
+      - height: 20px
+      - justify-self: center
+      - padding: 5px
+      - border-radius: 50%
+    card:
+      - width: auto
+      - height: auto
+      - border-radius: 60px
+      - padding: 5px
+      - flex: 0
+  tap_action:
+    action: navigate
+    navigation_path: /config/dashboard

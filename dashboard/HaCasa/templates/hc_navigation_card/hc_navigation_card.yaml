@@ -1,0 +1,45 @@
+hc_navigation_card:
+  variables:
+    icon_color:
+    path:
+  styles:
+    card:
+      - padding: 10px 25px 10px 10px
+    grid:
+      - grid-template-areas: "'i n arrow' 'i l arrow'"
+      - grid-template-columns: min-content 1fr min-content
+      - column-gap: 15px
+    icon:
+      - width: 2rem
+      - margin: 0.8rem
+      - color: '[[[ return variables.icon_color ]]]'
+    img_cell:
+      - justify-self: center
+      - width: 3rem
+    name:
+      - justify-self: start
+      - align-self: center
+      - font-family: montserrat
+      - font-weight: 600
+      - font-size: 1rem
+    custom_fields:
+      arrow:
+        - justify-self: end
+  tap_action:
+    action: navigate
+    navigation_path: '[[[ return variables.path ]]]'
+  custom_fields:
+    arrow:
+      card:
+        type: custom:button-card
+        show_icon: true
+        icon: mdi:chevron-double-right
+        show_name: false
+        styles:
+          card:
+            - background: none
+            - box-shadow: none
+            - width: 4rem
+        tap_action:
+          action: navigate
+          navigation_path: '[[[ return variables.path ]]]'

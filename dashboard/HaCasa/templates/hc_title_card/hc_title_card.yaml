@@ -1,0 +1,160 @@
+hc_title_card:
+  show_label: true
+  styles:
+    card:
+      - background: none
+      - animation: slide-in 1s ease-out, opacity 1s ease-in
+      - box-shadow: none
+      - padding: 0px
+      - padding-top: 10px
+      - padding-left: 10px
+      - border-radius: 0px
+    name:
+      - justify-self: start
+      - font-family: montserrat
+      - font-weight: 700
+      - font-size: 2rem
+    label:
+      - justify-self: start
+      - font-family: montserrat
+      - font-size: 1rem
+      - font-weight: 500
+      - color: var(--color-dark-gray)
+  extra_styles: |
+    @keyframes slide-in {
+      0% {transform: translateX(-2%);}
+      100% {transform: translateX(0%);}
+    }
+    @keyframes opacity {
+      0% {opacity:0;}
+      100% {opacity:1;}
+    }
+hc_title_card_welcome:
+  template: hc_title_card
+  entity: person.damian_eickhoff
+  show_entity_picture: true
+  styles:
+    grid:
+      - grid-template-areas: |
+          'n i'
+          'l i'
+      - grid-template-rows: min-content min-content 1fr
+    icon:
+      - width: 100%
+    entity_picture:
+      - width: 160%
+      - height: 160%
+      - border-radius: 50%
+    img_cell:
+      - background: var(--color-purple)
+      - border-radius: 50%
+      - width: 30px
+      - height: 30px
+      - padding: 10px
+    card:
+      - box-shadow: none
+      - background: none
+      - padding: 0
+    name:
+      - font-family: montserrat
+      - font-weight: 600        
+  tap_action:
+    action: navigate
+    navigation_path: /profile
+hc_title_card_beta:
+  show_entity_picture: true
+  show_label: true
+  name: "[[[ return states['sensor.greeting'].state ]]]"
+  label: "[[[ return states['sensor.facts'].state ]]]"
+  styles:
+    card:
+      - padding: 0px
+      - background: none
+      - box-shadow: none
+      - border-radius: 0
+    grid:
+      - grid-template-areas: |
+          'i n weather'
+          'i l weather'
+      - grid-template-rows: min-content min-content
+      - grid-template-columns: min-content min-content 1fr
+      - column-gap: 10px
+    img_cell:
+      - border-radius: 50%
+      - width: 30px
+      - height: 30px
+      - padding: 10px
+    entity_picture:
+      - width: 40px
+      - height: 40px
+      - border-radius: 50%
+    icon:
+      - width: 100%
+    name:
+      - justify-self: start
+      - align-self: end
+      - font-weight: 500
+      - font-size: 1.2rem
+      - font-family: montserrat
+    label:
+      - justify-self: start
+      - align-self: start
+      - font-size: 0.9rem
+      - opacity: 0.5
+      - overflow: visible
+      - font-family: montserrat
+    custom_fields:
+      weather:
+        - justify-self: end
+  tap_action:
+    action: navigate
+    navigation_path: /profile        
+  custom_fields:
+    weather:
+      card:
+        type: custom:button-card
+        entity: weather.buienradar
+        show_name: false
+        show_state: true
+        name: Today Weather
+        show_icon: false
+        show_label: true
+        label: "[[[ return states['sensor.outside_temperature'].state + '℃']]]"
+        styles:
+          grid:
+            - grid-template-areas: |
+                'icon l'
+                's s'
+            - grid-template-rows: min-content min-content
+            - grid-template-columns: 1fr 1fr
+            - column-gap: 10px
+          card:
+            - background: none
+            - box-shadow: none
+            - border-radius: 0px
+          label:
+            - font-size: 1.2rem
+            - font-weight: 500
+            - justify-self: end
+            - align-self: start
+            - font-family: montserrat
+            - padding-left: 15px
+          state:
+            - font-size: 0.9rem
+            - opacity: 0.5
+            - justify-self: end
+            - align-self: start
+            - font-family: montserrat
+          custom_fields:
+            icon:
+              - width: 40px
+              - position: absolute
+              - bottom: 13%
+              - align-self: end
+              - justify-self: center
+        custom_fields:
+          icon: |
+            [[[
+                var weather = states['weather.buienradar'].state;
+                return '<img src = "/local/weather-icons/' + 'partlycloudy' + '.svg" />'
+            ]]]

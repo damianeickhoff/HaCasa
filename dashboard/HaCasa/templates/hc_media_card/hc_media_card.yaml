@@ -1,0 +1,206 @@
+hc_media_card:
+  show_icon: false
+  show_label: false
+  show_state: false
+  show_name: false
+  styles:
+    grid:
+      - grid-template-areas: |
+          'artistinfo . .'
+          'bar bar bar'
+          'progress progress progress'
+          'buttons buttons buttons'
+      - grid-template-rows: 1fr 1fr 1fr min-content`
+      - row-gap: 35px
+    img_cell:
+      - transform: scale()
+      - z-index: 0
+      - position: relative
+    custom_fields:
+      artistinfo:
+        - align-self: start
+        - margin-left: 3%
+      background_cover:
+        - transform: scale(1.3)
+        - position: absolute
+        - width: 120%
+        - opacity: 80%
+        - height: 100%
+        - background: |
+            [[[
+              if (entity.attributes.entity_picture == undefined){
+                return 'center / cover no-repeat url("/local/music/abstract-wave.gif")'
+              } else {
+                return 'center / cover no-repeat url("' + states[entity.entity_id].attributes.entity_picture + '")';
+              }
+            ]]]
+      progress:
+        - background-color: rgba(0,0,0,0.4)
+        - position: absolute
+        - top: unset
+        - bottom: 28%
+        - left: 10%
+        - height: 0.2rem
+        - border-radius: 50px
+        - width: 80%
+        - backdrop-filter: blur(2px)
+      bar:
+        - background-color: white
+        - position: absolute
+        - bottom: 28%
+        - left: 10%
+        - width: 80%
+        - top: unset
+        - border-radius: 50px
+        - height: 0.2rem
+        - z-index: 1
+        - transition: 1s ease-out                    
+  custom_fields:
+    background_cover: ""
+    artistinfo:
+      card:
+        type: custom:button-card
+        icon: mdi:spotify
+        show_label: true
+        name: >-
+          [[[ return
+          states[entity.entity_id].attributes.media_title
+          ]]]
+        label: >-
+          [[[ return
+          states[entity.entity_id].attributes.media_artist
+          ]]]
+        styles:
+          grid:
+            - grid-template-areas: |
+                'i l'
+                'i n'
+            - grid-template-columns: min-content min-content
+            - grid-template-rows: min-content min-content
+          icon:
+            - width: 30px
+            - color: var(--color-green)
+          card:
+            - max-width: 80%
+            - width: auto
+            - padding: 5px
+            - border-radius: 50px
+            - background: white
+            - backdrop-filter: blur(5px)
+          label:
+            - font-size: 0.9rem
+            - margin-right: 20px
+            - padding-left: 5px
+            - align-self: end
+            - color: black                  
+            - justify-self: start
+            - font-weight: 500
+            - letter-spacing: .8px
+          name:
+            - font-size: 0.8rem
+            - margin-right: 20px
+            - padding-left: 5px
+            - align-self: start
+            - justify-self: start
+            - color: black                   
+            - opacity: 0.8
+            - font-weight: 300
+            - letter-spacing: .8px
+    buttons:
+      card:
+        type: custom:button-card
+        styles:
+          grid:
+            - grid-template-areas: |
+                'prev play_pause next'
+            - grid-template-columns: 1fr 1fr min-content
+          card:
+            - background: none
+            - box-shadow: none
+            - padding-left: 25%
+            - padding-right: 25%
+            - margin-bottom: -5%
+        custom_fields:
+          prev:
+            card:
+              type: custom:button-card
+              icon: mdi:skip-previous
+              styles:
+                icon:
+                  - width: 50%
+                  - color: black                     
+                card:
+                  - background: white
+                  - backdrop-filter: blur(5px)
+                  - border-radius: 50px
+                  - width: 40px
+                  - height: 40px
+                  - box-shadow: none
+          play_pause:
+            card:
+              type: custom:button-card
+              icon: mdi:pause
+              show_name: false
+              styles:
+                icon:
+                  - width: 50%
+                  - color: black                    
+                card:
+                  - background: white
+                  - backdrop-filter: blur(5px)
+                  - border-radius: 50px
+                  - width: 40px
+                  - height: 40px
+                  - box-shadow: none
+              state:
+                - value: playing
+                  icon: mdi:play
+          next:
+            card:
+              type: custom:button-card
+              icon: mdi:skip-next
+              styles:
+                icon:
+                  - width: 50%
+                  - color: black                    
+                card:
+                  - background: white
+                  - backdrop-filter: blur(5px)
+                  - border-radius: 50px
+                  - width: 40px
+                  - height: 40px
+                  - box-shadow: none
+    bar: |
+      [[[
+        if (entity.attributes.media_position !== undefined) {
+        setTimeout(() => {
+          let elt = this.shadowRoot,
+              card = elt.getElementById('card'),
+              container = elt.getElementById('container'),
+              bar = elt.getElementById('bar');
+          if (elt && card && container && bar) {
+              card.insertBefore(bar, container);
+                function update() {
+                  let mediaPositionUpdatedAt = entity.attributes.media_position_updated_at,
+                      mediaPosition = entity.attributes.media_position,
+                      mediaDuration = entity.attributes.media_duration,
+                      mediaContentType = entity.attributes.media_content_type;
+                  let percentage = entity.state === 'paused'
+                    ? (mediaPosition / mediaDuration * 80)
+                    : entity.state === 'playing'
+                      ? (((Date.now() / 800) - (new Date(mediaPositionUpdatedAt).getTime() / 800) + mediaPosition) / mediaDuration * 80)
+                      : 0;
+                  bar.style.width = percentage.toFixed(1) + '%';
+                  requestAnimationFrame(update);
+                }
+                requestAnimationFrame(update);
+          }
+        }, 0);
+        return ' ';}
+      ]]]
+    progress: |
+      [[[
+        if (entity.attributes.media_position !== undefined) {
+        return ' ';}
+      ]]]                
+
