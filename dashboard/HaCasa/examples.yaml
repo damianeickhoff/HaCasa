@@ -1,0 +1,126 @@
+# This is a example document for the current cards available
+
+##########
+# Action #
+##########
+  - type: custom:button-card
+    template: hc_action_card
+    entity: < LIGHT GROUP >
+    state_display: | # STATE_DISPLAY CAN BE REMOVED OR CHANGED TO DESIRE, MAYBE IMPLEMENT IT IN CARD ITSELF
+          [[[
+            if (states["<LIGHT SENSOR FOR ON>"].state > 0){
+              return "Aan - " + states['LIGHT SENSOR FOR ON'].state;
+            }
+            else {
+              return "";
+            }
+          ]]]
+    variables:
+      hc_color: var(--color-orange)
+      hc_state_value_on: 'on'
+      hc_icon_on: mdi:lightbulb-on
+      hc_icon_off: mdi:lightbulb-off
+
+
+#########
+# ACTION SECURITY #
+#########
+  - type: custom:button-card
+    template: hc_action_card_security
+    entity: <ALARM ENTITY>
+
+#########
+# Button #
+#########
+
+# NOTE, NOT SURE WHAT TO DO WITH THIS CARD!
+  - type: custom:button-card
+    template: hc_button_card
+    entity: <SENSOR OR ENTITY>
+
+
+##########
+# Camera #
+##########
+  - type: custom:button-card
+    template: hc_camera_card
+    entity: <CAMERA ENTITY>
+
+##########
+# Chip #
+##########
+  - type: custom:button-card
+    template: hc_chip_card
+    entity: <SENSOR OR ENTITY>
+
+##########
+# Chip menu #
+############
+  - type: custom:button-card
+    template: hc_chip_menu
+
+##########
+# device #
+##########
+  - type: custom:button-card
+    template: hc_device_card
+    entity: <USE FOR SWITCH, MAYBE OTHER THNGS WILL WORK TOO>
+
+##########
+# Fan #
+##########
+  - type: custom:button-card
+    template: hc_fan_card
+    entity: <FAN ENTITY>
+
+##########
+# Graph #
+##########
+  - type: custom:button-card
+    template: hc_graph_card
+    variables:
+      color: <OWN COLOR OR VAR COLOR FROM THEME>
+    entity: <SENSOR>
+
+##########
+# Light #
+##########
+  - type: custom:button-card
+    template: hc_light_card
+    entity: <LIGHT ENTITY>
+
+##########
+# Media #
+##########
+  - type: custom:button-card
+    template: hc_media_card
+    entity: <YOUR MEDIA PLAYER ENTITY>
+
+##########
+# Sensor #
+##########
+  - type: custom:button-card
+    template: hc_sensor_card
+    entity: <SENSOR ENTITY>
+
+
+##########
+# Thermostat #
+##########
+  - type: custom:button-card
+    template: hc_thermostat_card
+    entity: <CLIMATE ENTITY>
+
+##########
+# Title #
+##########
+  - type: custom:button-card
+    template: hc_title_card
+    name: <TITLE>
+    label: <SUB TITLE>
+
+##########
+# Weather #
+##########
+
+# THIS ONE NEEDS MORE WORK, COMING SOON BUT BE FREE TO CHECK IT OUT YOURSELF
