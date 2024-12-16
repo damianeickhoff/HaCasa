@@ -1,0 +1,122 @@
+hc_header_card:
+  variables:
+    entity1:
+    entity2:
+  show_name: false
+  show_icon: false
+  show_label: false
+  show_state: false
+  styles:
+    grid:
+      - grid-template-areas: |
+          "item1 item2 item3"
+      - grid-template-columns: 1fr min-content min-content
+      - column-gap: 8px
+    card:
+      - height: 100%
+      - border-radius: var(--border-radius)
+      - box-shadow: var(--border-radius)
+      - background: none
+      - overflow: visible
+      - margin: 0
+      - padding: 0
+    custom_fields:
+      item1:
+        - justify-self: start
+      item2:
+        - justify-self: end
+      item3:
+        - justify-self: end
+  custom_fields:
+    item1:
+      card:
+        type: custom:button-card
+        icon: mdi:menu
+        styles:
+          card:
+            - height: 35px
+            - width: 35px
+            - margin: 0
+            - padding: 0
+            - border-radius: 50px
+            - justify-self: end
+          img_cell:
+            - height: 100%
+          icon:
+            - width: 50%
+        tap_action:
+          action: navigate
+          navigation_path: /config/dashboard    
+    item2:
+      card:
+        type: custom:button-card
+        entity: "[[[ return variables.entity1 ]]]"
+        show_name: false
+        show_icon: true
+        show_label: false
+        show_state: false
+        tap_action:
+          action: more-info
+        styles:
+          card:
+            - height: 35px
+            - width: 35px
+            - margin: 0
+            - padding: 0
+            - border-radius: 50px
+            - justify-self: end
+          img_cell:
+            - height: 100%
+          icon:
+            - width: 50%
+        state:
+          - value: arming
+            icon: mdi:shield-refresh-outline
+            styles:
+              card:
+                - animation:
+                    - flash 2s linear infinite
+          - value: armed_home
+            icon: mdi:shield-outline
+            styles:
+              icon:
+                - color: var(--color-green)
+          - value: armed_away
+            icon: mdi:shield-lock
+            styles:
+              icon:
+                - color: var(--color-blue)
+          - value: disarmed
+            icon: mdi:shield-off-outline
+        extra_styles: |
+          @keyframes flash {
+            0% {opacity: 100%;}
+            50% {opacity: 0%;}
+            100% {opacity: 100%;}
+          }
+          @keyframes rotate {
+            from {transform: rotateY(-deg);}
+            to {transform: rotateY(360deg);}
+          }
+    item3:
+      card:
+        type: custom:button-card
+        entity: "[[[ return variables.entity2 ]]]"
+        icon: "[[[ return variables.icon2 ]]]"
+        show_name: false
+        show_icon: true
+        show_label: false
+        show_state: false
+        styles:
+          card:
+            - height: 35px
+            - width: 35px
+            - margin: 0
+            - padding: 0
+            - border-radius: 50px
+            - justify-self: end
+          img_cell:
+            - height: 100%
+          icon:
+            - width: 50%
+            - color: var(--color-purple)

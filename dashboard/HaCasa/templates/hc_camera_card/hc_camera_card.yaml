@@ -24,11 +24,10 @@ hc_camera_card:
       - font-weight: 500
     icon:
       - width: 50%
-      - color: white
     img_cell:
       - width: 25px
       - height: 25px
-      - background: var(--color-blue)
+      - background: var(--background-icon-color-default)
       - padding: 5px
       - border-radius: 50%
     name:

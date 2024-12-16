@@ -1,4 +1,6 @@
 ---
+# NEEDS MORE CLEANUP!
+
 ####################### LIGHT MODE ####################
 HaCasa_Rebrand:
   masonry-view-card-margin: 15px 15px 0px 15px
@@ -244,14 +246,6 @@ HaCasa_Rebrand:
 
       # Switches
       switch-checked-button-color: var(--color-purple)
-      switch-checked-track-color: var(--color-purple)
-      switch-unchecked-button-color: rgb(--overlay0)
-      switch-unchecked-track-color: rgb(--surface0)
-      # Toggles
-      paper-toggle-button-checked-button-color: var(--switch-checked-button-color)
-      paper-toggle-button-checked-bar-color: var(--switch-checked-track-color)
-      paper-toggle-button-unchecked-button-color: var(--switch-unchecked-button-color)
-      paper-toggle-button-unchecked-bar-color: var(--switch-unchecked-track-color)
 
       # Table
       table-row-background-color: var(--primary-background-color)
@@ -500,21 +494,12 @@ HaCasa_Rebrand:
       label-badge-gray: var(--overlay0)
 
       # Cards
-
       paper-dialog-background-color: var(--overlay0)
       paper-listbox-background-color: var(--overlay0)
       paper-card-background-color: var(--card-background-color)
 
       # Switches
       switch-checked-button-color: var(--color-purple)
-      switch-checked-track-color: var(--surface0)
-      switch-unchecked-button-color: rgb(--overlay0)
-      switch-unchecked-track-color: rgb(--surface0)
-      # Toggles
-      paper-toggle-button-checked-button-color: var(--switch-checked-button-color)
-      paper-toggle-button-checked-bar-color: var(--switch-checked-track-color)
-      paper-toggle-button-unchecked-button-color: var(--switch-unchecked-button-color)
-      paper-toggle-button-unchecked-bar-color: var(--switch-unchecked-track-color)
 
       # Table
       table-row-background-color: var(--primary-background-color)
