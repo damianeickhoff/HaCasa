@@ -15,40 +15,43 @@ hc_fan_card:
   styles:
     grid:
       - grid-template-areas: |
-          'n i'
-          'l i'
-          'slider osc_icon'
+          'n osc_icon i'
+          'l osc_icon i'
+          'slider slider slider'
       - grid-template-rows: min-content min-content 1fr
+      - column-gap: 5px
     card:
       - padding: 10px
     name:
       - text-align: left
-      - font-size: var(--fs-400)
       - font-family: Montserrat
       - font-weight: 700
       - justify-self: start
-      - align-self: end
+      - align-self: star
       - font-size: 1rem
     label:
       - text-align: left
-      - font-size: var(--fs-300)
+      - font-size: 0.8rem
       - font-family: Montserrat
       - font-weight: 500
       - justify-self: start
-      - align-self: center
+      - align-self: start
       - opacity: 0.7
-      - padding-bottom: 10px
+      - margin-bottom: 15px
     icon:
-      - width: 50%
+      - width: 60%
       - color: white
     img_cell:
-      - background: var(--color-light-blue)
-      - padding: 6px
+      - background: rgba(255,255,255, 0.2)
+      - padding: 5px
       - border-radius: 50%
       - width: 25px
       - height: 25px
       - align-self: start
-      - margin-bottom: 10px
+    custom_fields:
+      osc_icon:
+        - justify-self: start
+        - align-self: start
   state:
     - value: "on"
       icon: mdi:fan
@@ -61,20 +64,34 @@ hc_fan_card:
           - color: white
         state:
           - color: white
+        icon:
+          - animation-name: spin;
+          - animation-duration: 5000ms;
+          - animation-iteration-count: infinite;
+          - animation-timing-function: linear;        
     - value: "off"
       styles:
         icon:
           - color: var(--icon-color-default)
         img_cell:
           - background: var(--background-icon-color-default)
-    - value: "unavailable"
+    - value: unavailable
       styles:
         icon:
           - color: var(--icon-color-default)
         img_cell:
           - background: var(--background-icon-color-default)
       label: Unavailable
-      icon: mdi:fan-question        
+      icon: mdi:fan-question
+  extra_styles: |
+    @keyframes spin {
+      from {
+          transform:rotate(0deg);
+      }
+      to {
+          transform:rotate(360deg);
+      }
+    }     
   custom_fields:
     slider:
       card:
@@ -88,13 +105,13 @@ hc_fan_card:
           progress:
             - height: 100%
             - background: |
-                  [[[
-                    if (states[entity.entity_id].state === 'off') {
-                      return 'transparent';
-                    } else {
-                      return 'white';
-                    }
-                  ]]]
+                [[[
+                  if (states[entity.entity_id].state === 'off') {
+                    return 'transparent';
+                  } else {
+                    return 'white';
+                  }
+                ]]]
             - border-radius: 12px 12px 12px 12px
           track:
             - background: |
@@ -109,13 +126,13 @@ hc_fan_card:
           thumb:
             - height: 30%
             - background: |
-                    [[[
-                      if (states[entity.entity_id].state === 'off') {
-                        return 'transparent';
-                      } else {
-                        return 'var(--color-blue)';
-                      }
-                    ]]]
+                [[[
+                  if (states[entity.entity_id].state === 'off') {
+                    return 'transparent';
+                  } else {
+                    return 'var(--color-blue)';
+                  }
+                ]]]
             - position: absolute
             - right: 7px
             - top: 11px
@@ -133,26 +150,38 @@ hc_fan_card:
           ]]]
         styles:
           card:
-            - width: 40px
-            - border-radius: 8px
-            - height: 30px
-            - margin-left: 10px
-            - background: white
+            - width: 35px
+            - height: 35px
+            - margin: 0
+            - padding: 0
+            - box-shadow: none
+            - background: none
           icon:
-            - width: 20px
+            - width: 50%
             - color: |
-                [[[
-                  if (states[entity.entity_id].state === 'on') {
-                    return 'var(--color-blue)'
-                  } else {
-                    return ''
-                  }
-                ]]]
+                  [[[
+                    if (entity.attributes.oscillating == 'false') {
+                      return ''
+                    } else {
+                      return 'white'
+                    }
+                  ]]]
+          img_cell:
+            - background: |
+                  [[[
+                    if (entity.attributes.oscillating == 'false') {
+                      return 'var(--background-icon-color-default)'
+                    } else {
+                      return 'rgba(255,255,255, 0.2)'
+                    }
+                  ]]]
+            - border-radius: 50px
+            - height: 100%
         tap_action:
           action: call-service
           service: fan.oscillate
           service_data:
-            entity_id: '[[[ return entity.entity_id ]]]'
+            entity_id: "[[[ return entity.entity_id ]]]"
             oscillating: |
               [[[
                 if (entity.attributes.oscillating == 'false') {
