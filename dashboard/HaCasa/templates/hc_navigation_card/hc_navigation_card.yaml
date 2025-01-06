@@ -1,45 +1,109 @@
 hc_navigation_card:
+  show_name: true
+  show_icon: false
+  show_state: false
+  show_label: true
+  entity: "[[[ return entity.entity_id ]]]"
   variables:
-    icon_color:
-    path:
+    hc_label_prefix: ""
+    hc_color: ""
+    hc_state_value: ""
+  label: |
+    [[[ return variables.hc_label_prefix + states[entity.entity_id].state ]]]
   styles:
-    card:
-      - padding: 10px 25px 10px 10px
     grid:
-      - grid-template-areas: "'i n arrow' 'i l arrow'"
-      - grid-template-columns: min-content 1fr min-content
-      - column-gap: 15px
+      - grid-template-areas: |
+          "n i" 
+          "l l"
+      - grid-template-rows: 1fr 1fr
+      - column-gap: 10px
+    card:
+      - height: 100%
+      - padding: 1rem
+      - overflow: hidden
+      - aspect-ratio: 2/1
+    name:
+      - text-align: left
+      - font-size: 1.3rem
+      - font-family: Montserrat
+      - font-weight: 800
+      - justify-self: start
+      - align-self: start
+      - overflow: visible
+    img_cell:
+      - overflow: visible
     icon:
       - width: 2rem
-      - margin: 0.8rem
-      - color: '[[[ return variables.icon_color ]]]'
-    img_cell:
-      - justify-self: center
-      - width: 3rem
-    name:
+      - opacity: 0.6
+      - color: "[[[ return variables.hc_color ]]]"
+    label:
+      - opacity: 0.6
       - justify-self: start
-      - align-self: center
-      - font-family: montserrat
-      - font-weight: 600
-      - font-size: 1rem
-    custom_fields:
-      arrow:
-        - justify-self: end
-  tap_action:
-    action: navigate
-    navigation_path: '[[[ return variables.path ]]]'
-  custom_fields:
-    arrow:
-      card:
-        type: custom:button-card
-        show_icon: true
-        icon: mdi:chevron-double-right
-        show_name: false
-        styles:
-          card:
-            - background: none
-            - box-shadow: none
-            - width: 4rem
-        tap_action:
-          action: navigate
-          navigation_path: '[[[ return variables.path ]]]'
+      - align-self: end
+      - font-family: Montserrat
+      - font-size: 12px
+      - font-weight: 500    
+
+hc_navigation_card_security:
+  template: hc_navigation_card
+  state:
+    - value: arming
+      state_display: Arming...
+      icon: mdi:shield-refresh-outline
+      styles:
+        icon:
+          - animation: flash 2s linear infinite
+          - color: var(--color-orange)
+    - value: armed_home
+      icon: mdi:shield-home
+      label: Armed Home
+      styles:
+        card:
+          - background: var(--color-blue)
+        icon:
+          - color: white
+        name:
+          - color: white
+        label:
+          - color: white      
+    - value: armed_away
+      icon: mdi:shield-lock
+      label: Armed Away
+      styles:
+        card:
+          - background: var(--color-blue)
+        icon:
+          - color: white
+        name:
+          - color: white
+        label:
+          - color: white
+    - value: disarmed
+      icon: mdi:shield-off-outline
+      label: Disarmed
+    - value: triggered
+      label: Triggered!
+      icon: mdi:shield-alert
+      styles:
+        card:
+          - background: var(--color-red)
+        name:
+          - color: white
+        state:
+          - color: white
+        label:
+          - color: white
+        icon:
+          - color: white
+          - animation: flash 2s linear infinite     
+
+  extra_styles: |
+    @keyframes rotate {
+      from {transform: rotateY(-deg);}
+      to {transform: rotateY(360deg);}
+    }
+    @keyframes flash {
+      0% {opacity: 100%;}
+      50% {opacity: 0%;}
+      100% {opacity: 100%;}
+    }

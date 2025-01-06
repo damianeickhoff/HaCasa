@@ -3,7 +3,9 @@ hc_chip_card:
   show_state: true
   show_label: true
   show_last_changed: true
-  label: test
+  variables:
+    hc_icon:
+  icon: "[[[ return variables.hc_icon ]]]"
   styles:
     grid:
       - grid-template-areas: |
@@ -44,29 +46,29 @@ hc_chip_card:
       - padding: 5px
   state:
     - value: "on"
-      icon: mdi:door-open
       styles:
         icon:
           - color: var(--icon-color)
 
-hc_chip_back:
-  icon: mdi:arrow-left-bold
+hc_chip_menu:
+  icon: mdi:menu
   styles:
     icon:
-      - width: 50%
+      - width: 20px
       - justify-self: center
     img_cell:
-      - width: 100%
+      - width: 20px
+      - height: 20px
       - justify-self: center
       - padding: 5px
       - border-radius: 50%
     card:
-      - width: 35px
-      - height: 35px
+      - width: auto
+      - height: auto
       - border-radius: 60px
       - padding: 5px
       - margin-right: 0
       - flex: 0
   tap_action:
     action: navigate
-    navigation_path: /home
+    navigation_path: /config/dashboard

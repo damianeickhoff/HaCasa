@@ -1,5 +1,8 @@
 hc_light_card:
   icon: mdi:lightbulb
+  variables:
+    hc_enable_slider: false
+    hc_card_color: var(--color-orange)
   label: |
     [[[
       var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
@@ -12,15 +15,18 @@ hc_light_card:
   styles:
     grid:
       - grid-template-areas: |
-          'n i'
-          'l i'
-          'slider slider'
+            [[[
+              if (variables.hc_enable_slider) {
+                  return '"n i" "l i" "slider slider"';
+              }
+                return '". i" "n n" "l l"';
+            ]]]
       - grid-template-rows: min-content min-content 1fr
     card:
       - padding: 10px
     name:
       - text-align: left
-      - font-size: var(--fs-400)
+      - font-size: 1rem
       - font-family: Montserrat
       - font-weight: 700
       - justify-self: start
@@ -28,30 +34,45 @@ hc_light_card:
       - font-size: 1rem
     label:
       - text-align: left
-      - font-size: var(--fs-300)
+      - font-size: 0.8rem
       - font-family: Montserrat
       - font-weight: 500
       - justify-self: start
       - align-self: center
       - opacity: 0.7
-      - padding-bottom: 10px
+      - padding-bottom: |
+          [[[
+            if (variables.hc_enable_slider) {
+                return '10px';
+            }
+              return '0';
+          ]]]
     icon:
-      - width: 50%
+      - width: 60%
       - color: white
     img_cell:
-      - background: rgba(255,255,255, 0.2)
+      - background: var(--opacity-contrast-100)
       - padding: 6px
       - border-radius: 50%
       - width: 25px
       - height: 25px
       - align-self: start
       - margin-bottom: 10px
+    custom_fields:
+      slider:
+        - display: >
+            [[[
+              if (variables.hc_enable_slider) {
+                  return "block";
+              }
+              return "none";
+            ]]]      
   state:
     - value: "on"
       icon: mdi:lightbulb-on
       styles:
         card:
-          - background: var(--color-orange)
+          - background: "[[[ return variables.hc_card_color ]]]"
         name:
           - color: white
         label:
@@ -87,35 +108,41 @@ hc_light_card:
             - height: 30px
             - box-shadow: none
             - padding: 0
+            - touch-action: pan-y
+            - background: "[[[ return variables.hc_card_color ]]]"
           progress:
             - height: 100%
+            - touch-action: pan-y
             - background: |
                   [[[
                     if (states[entity.entity_id].state === 'off') {
-                      return 'var(--color-orange)';
+                      return variables.hc_card_color;
                     } else {
                       return 'white';
                     }
                   ]]]
             - border-radius: 12px 12px 12px 12px
           track:
+            - touch-action: pan-y
             - background: |
                 [[[
                   if (states[entity.entity_id].state === 'on') {
-                    return '#FDB569';
+                    return 'var(--opacity-contrast-100)';
                   } else {
                     return 'var(--slider-color)';
                   }
                 ]]]
+            
             - border-radius: 12px
           thumb:
+            - touch-action: pan-y
             - height: 30%
             - background: |
                     [[[
                       if (states[entity.entity_id].state === 'off') {
                         return 'white';
                       } else {
-                        return 'var(--color-orange)';
+                        return variables.hc_card_color;
                       }
                     ]]]
             - position: absolute

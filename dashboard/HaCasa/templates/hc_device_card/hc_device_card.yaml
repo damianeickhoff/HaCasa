@@ -1,30 +1,25 @@
 hc_device_card:
   variables:
-    power_entity: "[[[ return states[entity.entity_id].state ]]]"
-  icon: mdi:power-plug-off
-  show_state: false
-  label: "[[[ return variables.power_entity ]]]"
-  show_label: true
+    hc_icon:
+  show_state: true
   styles:
     grid:
       - grid-template-areas: |
           'n i'
-          'l .'
           's .'
       - grid-template-rows: min-content min-content 1fr
     card:
       - padding: 10px
     name:
       - text-align: left
-      - font-size: var(--fs-400)
       - font-family: Montserrat
       - font-weight: 700
       - justify-self: start
       - align-self: end
       - font-size: 1rem
-    label:
+    state:
       - text-align: left
-      - font-size: var(--fs-300)
+      - font-size: 0.8rem
       - font-family: Montserrat
       - font-weight: 500
       - justify-self: start
@@ -34,7 +29,7 @@ hc_device_card:
       - width: 60%
       - color: white
     img_cell:
-      - background: rgba(255,255,255, 0.2)
+      - background: var(--opacity-contrast-100)
       - padding: 6px
       - border-radius: 50%
       - width: 25px
@@ -43,7 +38,6 @@ hc_device_card:
       - margin-bottom: 10px
   state:
     - value: "on"
-      icon: mdi:power-plug
       styles:
         card:
           - background: var(--color-green)
@@ -70,5 +64,3 @@ hc_device_card:
         card:
           - opacity: 0.6
           - pointer-events: none
-      label: Onbekend
-      icon: mdi:power-plug-off-outline

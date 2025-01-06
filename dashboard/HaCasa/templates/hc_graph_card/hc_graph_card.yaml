@@ -1,10 +1,12 @@
 hc_graph_card:
   variables:
-    color:
+    hc_color: var(--color-red)
+  show_state: true
   styles:
     grid:
       - grid-template-areas: |
           'n i'
+          's i'
           'graph graph'
       - grid-template-rows: min-content min-content
     card:
@@ -14,7 +16,13 @@ hc_graph_card:
       - margin-left: 10px
       - font-family: montserrat
       - font-weight: 700
-      - font-size: 0.8rem
+      - font-size: 1rem
+    state:
+      - justify-self: start
+      - margin-left: 10px
+      - font-family: montserrat
+      - font-weight: 500
+      - font-size: 0.8rem      
     icon:
       - width: 50%
       - color: white
@@ -25,7 +33,7 @@ hc_graph_card:
       - height: 25px
       - padding: 5px
       - margin-right: 10px
-      - background: '[[[ return variables.color ]]]'
+      - background: '[[[ return variables.hc_color ]]]'
       - border-radius: 50%
   custom_fields:
     graph:
@@ -40,7 +48,7 @@ hc_graph_card:
           icon: false
           state: false
         line_width: 2
-        line_color: '[[[ return variables.color ]]]'
+        line_color: '[[[ return variables.hc_color ]]]'
         card_mod:
           style: |
             ha-card {

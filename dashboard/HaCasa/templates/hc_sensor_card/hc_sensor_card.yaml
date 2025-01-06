@@ -3,11 +3,13 @@ hc_sensor_card:
   show_icon: true
   show_state: true
   show_last_changed: true
+  variables:
+    hc_card_color: var(--color-blue)
   state:
     - value: "on"
       styles:
         card:
-          - background: var(--color-blue)
+          - background: "[[[ return variables.hc_card_color ]]]"
         name:
           - color: white
         state:
@@ -15,7 +17,7 @@ hc_sensor_card:
         icon:
           - color: white
         img_cell:
-          - background: rgba(255,255,255,0.2)
+          - background: var(--opacity-contrast-100)
         label:
           - color: white
     - value: "off"
@@ -51,7 +53,7 @@ hc_sensor_card:
       - font-family: montserrat
     name:
       - text-align: left
-      - font-size: var(--fs-400)
+      - font-size: 1rem
       - font-family: Montserrat
       - font-weight: 500
       - justify-self: start

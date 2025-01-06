@@ -1,5 +1,6 @@
 hc_fan_card:
-  icon: mdi:fan-off
+  variables:
+    hc_enable_osc_btn: 
   label: |
     [[[
       if (entity.state == 'on') {
@@ -42,7 +43,7 @@ hc_fan_card:
       - width: 60%
       - color: white
     img_cell:
-      - background: rgba(255,255,255, 0.2)
+      - background: var(--opacity-contrast-100)
       - padding: 5px
       - border-radius: 50%
       - width: 25px
@@ -50,11 +51,17 @@ hc_fan_card:
       - align-self: start
     custom_fields:
       osc_icon:
+        - display: >
+            [[[
+              if (variables.hc_enable_osc_btn) {
+                  return "block";
+              }
+              return "none";
+            ]]]
         - justify-self: start
         - align-self: start
   state:
     - value: "on"
-      icon: mdi:fan
       styles:
         card:
           - background: var(--color-blue)
@@ -172,7 +179,7 @@ hc_fan_card:
                     if (entity.attributes.oscillating == 'false') {
                       return 'var(--background-icon-color-default)'
                     } else {
-                      return 'rgba(255,255,255, 0.2)'
+                      return 'var(--opacity-contrast-100)'
                     }
                   ]]]
             - border-radius: 50px

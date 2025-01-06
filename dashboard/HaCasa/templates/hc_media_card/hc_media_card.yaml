@@ -1,27 +1,77 @@
 hc_media_card:
-  show_icon: false
-  show_label: false
-  show_state: false
+  show_entity_picture: true
+  show_label: true
+  show_state: true
   show_name: false
+  variables:
+    hc_show_background_art: true
+    hc_background_color: var(--color-purple)
+  state_display: >
+    [[[ return states[entity.entity_id].attributes.media_artist ||
+    'idle' ]]] 
+  label: >
+    [[[ return states[entity.entity_id].attributes.media_title ||
+    'Nothing is playing']]]
   styles:
     grid:
       - grid-template-areas: |
-          'artistinfo . .'
-          'bar bar bar'
-          'progress progress progress'
-          'buttons buttons buttons'
-      - grid-template-rows: 1fr 1fr 1fr min-content`
-      - row-gap: 35px
+          'i l l l'
+          'i s s s'
+          'i prev play next'
+      - grid-template-columns: repeat(4, 1fr)
+      - grid-template-rows: 1fr 1fr min-content
+    card:
+      - padding: 10px
+      - background: |
+              [[[
+                if (variables.hc_show_background_art) {
+                    return "var(--opacity-contrast-0)";
+                }
+                return variables.hc_background_color;
+              ]]]
+      - padding-right: 15px
+    icon:
+      - justify-self: start
+      - width: 40%
+      - z-index: 1
+      - border-radius: 10px
+      - transform: scale(1.5)
+      - color: white
+    entity_picture:
+      - width: 80%
     img_cell:
-      - transform: scale()
-      - z-index: 0
-      - position: relative
+      - justify-self: start
+      - width: 110px
+      - z-index: 1
+      - border-radius: 10px
+      - height: 110px
+      - margin-right: 15px
+    label:
+      - justify-self: center
+      - z-index: 1
+      - color: white
+      - align-self: center
+      - font-family: montserrat
+      - font-weight: 800
+      - font-size: 1.2rem
+    state:
+      - justify-self: center
+      - font-family: montserrat
+      - font-size: 1rem
+      - color: white
+      - z-index: 1
+      - align-self: start
     custom_fields:
-      artistinfo:
-        - align-self: start
-        - margin-left: 3%
       background_cover:
+        - display: >
+            [[[
+              if (variables.hc_show_background_art) {
+                  return "block";
+              }
+              return "none";
+            ]]]
         - transform: scale(1.3)
+        - filter: blur(5px) opacity(0.2)
         - position: absolute
         - width: 120%
         - opacity: 80%
@@ -29,178 +79,85 @@ hc_media_card:
         - background: |
             [[[
               if (entity.attributes.entity_picture == undefined){
-                return 'center / cover no-repeat url("/local/music/abstract-wave.gif")'
+                return 'center / cover no-repeat url("/local/img/idle-music.gif")'
               } else {
                 return 'center / cover no-repeat url("' + states[entity.entity_id].attributes.entity_picture + '")';
               }
-            ]]]
-      progress:
-        - background-color: rgba(0,0,0,0.4)
-        - position: absolute
-        - top: unset
-        - bottom: 28%
-        - left: 10%
-        - height: 0.2rem
-        - border-radius: 50px
-        - width: 80%
-        - backdrop-filter: blur(2px)
-      bar:
-        - background-color: white
-        - position: absolute
-        - bottom: 28%
-        - left: 10%
-        - width: 80%
-        - top: unset
-        - border-radius: 50px
-        - height: 0.2rem
-        - z-index: 1
-        - transition: 1s ease-out                    
+            ]]]         
   custom_fields:
     background_cover: ""
-    artistinfo:
+    play:
       card:
         type: custom:button-card
-        icon: mdi:spotify
-        show_label: true
-        name: >-
-          [[[ return
-          states[entity.entity_id].attributes.media_title
-          ]]]
-        label: >-
-          [[[ return
-          states[entity.entity_id].attributes.media_artist
-          ]]]
+        icon: mdi:play
+        entity: "[[[ return entity.entity_id ]]]"
+        show_name: false
         styles:
-          grid:
-            - grid-template-areas: |
-                'i l'
-                'i n'
-            - grid-template-columns: min-content min-content
-            - grid-template-rows: min-content min-content
           icon:
-            - width: 30px
-            - color: var(--color-green)
-          card:
-            - max-width: 80%
-            - width: auto
-            - padding: 5px
+            - width: 50%
+            - color: var(--color-darkest-gray)
+          img_cell:
+            - width: 40px
+            - height: 40px
             - border-radius: 50px
             - background: white
-            - backdrop-filter: blur(5px)
-          label:
-            - font-size: 0.9rem
-            - margin-right: 20px
-            - padding-left: 5px
-            - align-self: end
-            - color: black                  
-            - justify-self: start
-            - font-weight: 500
-            - letter-spacing: .8px
-          name:
-            - font-size: 0.8rem
-            - margin-right: 20px
-            - padding-left: 5px
-            - align-self: start
-            - justify-self: start
-            - color: black                   
-            - opacity: 0.8
-            - font-weight: 300
-            - letter-spacing: .8px
-    buttons:
-      card:
-        type: custom:button-card
-        styles:
-          grid:
-            - grid-template-areas: |
-                'prev play_pause next'
-            - grid-template-columns: 1fr 1fr min-content
           card:
             - background: none
             - box-shadow: none
-            - padding-left: 25%
-            - padding-right: 25%
-            - margin-bottom: -5%
-        custom_fields:
-          prev:
-            card:
-              type: custom:button-card
-              icon: mdi:skip-previous
-              styles:
-                icon:
-                  - width: 50%
-                  - color: black                     
-                card:
-                  - background: white
-                  - backdrop-filter: blur(5px)
-                  - border-radius: 50px
-                  - width: 40px
-                  - height: 40px
-                  - box-shadow: none
-          play_pause:
-            card:
-              type: custom:button-card
-              icon: mdi:pause
-              show_name: false
-              styles:
-                icon:
-                  - width: 50%
-                  - color: black                    
-                card:
-                  - background: white
-                  - backdrop-filter: blur(5px)
-                  - border-radius: 50px
-                  - width: 40px
-                  - height: 40px
-                  - box-shadow: none
-              state:
-                - value: playing
-                  icon: mdi:play
-          next:
-            card:
-              type: custom:button-card
-              icon: mdi:skip-next
-              styles:
-                icon:
-                  - width: 50%
-                  - color: black                    
-                card:
-                  - background: white
-                  - backdrop-filter: blur(5px)
-                  - border-radius: 50px
-                  - width: 40px
-                  - height: 40px
-                  - box-shadow: none
-    bar: |
-      [[[
-        if (entity.attributes.media_position !== undefined) {
-        setTimeout(() => {
-          let elt = this.shadowRoot,
-              card = elt.getElementById('card'),
-              container = elt.getElementById('container'),
-              bar = elt.getElementById('bar');
-          if (elt && card && container && bar) {
-              card.insertBefore(bar, container);
-                function update() {
-                  let mediaPositionUpdatedAt = entity.attributes.media_position_updated_at,
-                      mediaPosition = entity.attributes.media_position,
-                      mediaDuration = entity.attributes.media_duration,
-                      mediaContentType = entity.attributes.media_content_type;
-                  let percentage = entity.state === 'paused'
-                    ? (mediaPosition / mediaDuration * 80)
-                    : entity.state === 'playing'
-                      ? (((Date.now() / 800) - (new Date(mediaPositionUpdatedAt).getTime() / 800) + mediaPosition) / mediaDuration * 80)
-                      : 0;
-                  bar.style.width = percentage.toFixed(1) + '%';
-                  requestAnimationFrame(update);
-                }
-                requestAnimationFrame(update);
-          }
-        }, 0);
-        return ' ';}
-      ]]]
-    progress: |
-      [[[
-        if (entity.attributes.media_position !== undefined) {
-        return ' ';}
-      ]]]                
-
+            - "--mdc-ripple-color": transparent
+        state:
+          - value: playing
+            icon: mdi:pause
+        tap_action:
+          action: perform-action
+          perform_action: media_player.media_play_pause
+          target:
+            entity_id: "[[[ return entity.entity_id ]]]"
+    next:
+      card:
+        type: custom:button-card
+        icon: mdi:skip-next
+        entity: "[[[ return entity.entity_id ]]]"
+        show_name: false
+        styles:
+          icon:
+            - width: 50%
+            - color: var(--color-darkest-gray)
+          img_cell:
+            - width: 40px
+            - height: 40px
+            - border-radius: 50px
+            - background: white
+          card:
+            - background: none
+            - box-shadow: none
+            - "--mdc-ripple-color": transparent
+        tap_action:
+          action: perform-action
+          perform_action: media_player.media_next_track
+          target:
+            entity_id: "[[[ return entity.entity_id ]]]"
+    prev:
+      card:
+        type: custom:button-card
+        icon: mdi:skip-previous
+        entity: "[[[ return entity.entity_id ]]]"
+        show_name: false
+        styles:
+          icon:
+            - width: 50%
+            - color: var(--color-darkest-gray)
+          img_cell:
+            - width: 40px
+            - height: 40px
+            - border-radius: 50px
+            - background: white
+          card:
+            - background: none
+            - box-shadow: none
+            - "--mdc-ripple-color": transparent
+        tap_action:
+          action: perform-action
+          perform_action: media_player.media_previous_track
+          target:
+            entity_id: "[[[ return entity.entity_id ]]]"

@@ -1,241 +1,87 @@
 hc_weather_card:
-  show_state: false
-  show_name: false
-  show_label: false
+  variables:
+    hc_card_background:
+    hc_card_text_color:
+    hc_name_entity:
+    hc_label_entity:
+    hc_outside_temperature_sensor:
+    hc_condition_sensor:
+    hc_condition_1d:
+  show_label: true
   show_icon: false
+  name: "[[[ return states[variables.hc_name_entity].state ]]]"
+  label: "[[[ return states[variables.hc_label_entity].state ]]]"
   styles:
     grid:
       - grid-template-areas: |
-          'weather sensor1'
-          'weather sensor2'
-          'weather sensor3'
-      - grid-template-rows: auto auto auto
-      - grid-template-columns: 3fr 1.5fr
-      - column-gap: 7px
-      - row-gap: 5px
+          'n'
+          'l'
+          'weather'
+      - grid-template-columns: min-content
+      - grid-template-rows: min-content 40px 40px
     card:
-      - padding: 8px
-      - background: var(--color-blue)
+      - background: var(--weather-card-color)
+      - padding: 25px
+    name:
+      - color: var(--weather-card-text-color)
+      - justify-self: start
+      - font-family: montserrat
+      - font-weight: 700
+      - font-size: 2rem
+      - z-index: 1
+    label:
+      - color: var(--weather-card-text-color)
+      - justify-self: start
+      - z-index: 1
+      - font-family: montserrat      
+      - font-size: 1rem
+    custom_fields:
+      icon:
+        - width: 150px
+        - height: 150px
+        - right: 0
+        - top: -15%
+        - position: absolute
+        - overflow: visible
   custom_fields:
     weather:
       card:
         type: custom:button-card
-        entity: weather.buienradar
-        show_state: true
+        show_label: true
+        entity: "[[[ return entity.entity_id ]]]"
         show_name: true
-        show_label: true
         show_icon: false
-        label: |
-          [[[
-            return states['weather.buienradar'].attributes.temperature + "°"
-          ]]]
-        name: |
-          [[[
-            return "Tomorrow will be " + states['sensor.condition_1d'].state
-          ]]]
+        show_state: false
+        name: >-
+          [[[ return 'It is ' + states[variables.hc_outside_temperature_sensor].state + '˚and ' + states[variables.hc_condition_sensor].state ]]]
+        label: "[[[ return 'Tomorrow will be ' + states[variables.hc_condition_1d].state ]]]"
         styles:
           grid:
             - grid-template-areas: |
-                "l"
-                "s"
-                "n"
-            - grid-template-rows: min-content
+                'n'
+                'l'
+            - grid-template-rows: min-content min-content
+            - grid-template-columns: min-content
           card:
-            - backdrop-filter: blur(5px)
-            - background: rgba(255, 255, 255, 0.1)
-            - padding-left: 10%
-            - padding-top: 20px
-            - padding-bottom: 30px
-            - border-radius: 11px
-            - height: 160px
-          label:
-            - font-size: 4rem
-            - font-weight: 500
-            - align-self: start
-            - justify-self: start
-            - color: black
-          state:
-            - font-size: 2rem
-            - font-weight: 400
-            - justify-self: start
-            - align-self: end
-            - color: black
+            - background: none
+            - box-shadow: none
+            - border-radius: none
+            - overflow: visible            
           name:
+            - justify-self: start
+            - overflow: visible
+            - font-family: montserrat    
+            - opacity: 0.8
             - font-size: 1rem
-            - color: black
-            - justify-self: start
-            - font-weight: 500
-            - align-self: start
-            - opacity: 0.5
-          custom_fields:
-            icon:
-              - width: 120%
-              - position: absolute
-              - right: "-50%"
-              - top: "-80%"
-              - z-index: -1
-        custom_fields:
-          icon: |
-            [[[
-                var weather = states['weather.buienradar'].state;
-                return '<img src = "/local/weather-icons/' + weather + '.svg" />'
-            ]]]
-    sensor1:
-      card:
-        type: custom:button-card
-        icon: mdi:weather-windy
-        show_label: true
-        name: Wind
-        entity: sensor.wind_speed
-        label: "[[[ return states['sensor.wind_speed'].state + ' km/h']]]"
-        styles:
-          grid:
-            - grid-template-areas: |
-                'i n'
-                'i l'
-            - grid-template-columns: min-content min-content
-            - grid-template-rows: 1fr 1fr
-            - column-gap: 10px
-          card:
-            - backdrop-filter: blur(20px)
-            - border-radius: 12px
-            - height: 46px
-            - background: rgba(255, 255, 255, 0.1)
+            - color: var(--weather-card-text-color)
           label:
             - justify-self: start
-            - font-family: montserrat
-            - align-self: start
-            - font-size: 0.7rem
-            - font-weight: 500
-            - color: white
-          name:
-            - justify-self: start
-            - align-self: end
-            - font-family: montserrat
-            - font-size: 0.7rem
-            - font-weight: 500
-            - color: white
-            - opacity: 0.6
-          icon:
-            - width: 15px
-            - color: black
-          img_cell:
-            - width: 20px
-            - height: 20px
-            - justify-self: start
-            - background: rgba(255, 255, 255, 0.1)
-            - border-radius: 50%
-            - padding: 5px
-            - margin-left: 5px
-    sensor2:
-      card:
-        type: custom:button-card
-        name: Rain
-        icon: mdi:water
-        show_label: true
-        entity: sensor.precipitation_forecast_average
-        label: >-
-          [[[ return states['sensor.precipitation_forecast_average'].state + ' mm'
-          ]]]
-        styles:
-          grid:
-            - grid-template-areas: |
-                'i n'
-                'i l'
-            - grid-template-columns: min-content min-content
-            - grid-template-rows: 1fr 1fr
-            - column-gap: 10px
-          card:
-            - backdrop-filter: blur(20px)
-            - border-radius: 12px
-            - height: 46px
-            - background: rgba(255, 255, 255, 0.1)
-          label:
-            - justify-self: start
-            - font-family: montserrat
-            - align-self: start
-            - font-size: 0.7rem
-            - font-weight: 500
-            - color: white
-          name:
-            - justify-self: start
-            - align-self: end
-            - font-family: montserrat
-            - font-size: 0.7rem
-            - font-weight: 500
-            - color: white
-            - opacity: 0.6
-          icon:
-            - width: 15px
-            - color: black
-          img_cell:
-            - width: 20px
-            - height: 20px
-            - justify-self: start
-            - background: rgba(255, 255, 255, 0.1)
-            - border-radius: 50%
-            - padding: 5px
-            - margin-left: 5px
-    sensor3:
-      card:
-        type: custom:button-card
-        show_label: true
-        name: Air Q
-        entity: sensor.burgemeester_stolklaan_air_quality_index
-        label: |
-          [[[
-            if (states["sensor.burgemeester_stolklaan_air_quality_index"].state < 51){
-              return "Good";
-            }
-            else {
-              return "Moderate";
-            }
-          ]]]
-        icon: |
-          [[[
-            if (states["sensor.burgemeester_stolklaan_air_quality_index"].state < 51){
-              return 'mdi:emoticon-happy';
-            }
-            else {
-              return 'mdi:emoticon-neutral';
-            }
-          ]]]
-        styles:
-          grid:
-            - grid-template-areas: |
-                'i n'
-                'i l'
-            - grid-template-columns: min-content min-content
-            - grid-template-rows: 1fr 1fr
-            - column-gap: 10px
-          card:
-            - backdrop-filter: blur(20px)
-            - border-radius: 12px
-            - height: 46px
-            - background: rgba(255, 255, 255, 0.1)
-          label:
-            - justify-self: start
-            - font-family: montserrat
-            - align-self: start
-            - font-size: 0.7rem
-            - font-weight: 500
-            - color: white
-          name:
-            - justify-self: start
-            - align-self: end
-            - font-family: montserrat
-            - font-size: 0.7rem
-            - font-weight: 500
-            - color: white
-            - opacity: 0.6
-          icon:
-            - width: 15px
-            - color: black
-          img_cell:
-            - width: 20px
-            - height: 20px
-            - justify-self: start
-            - background: rgba(255, 255, 255, 0.1)
-            - border-radius: 50%
-            - padding: 5px
-            - margin-left: 5px
+            - font-size: 1rem
+            - font-family: montserrat    
+            - opacity: 0.8
+            - color: var(--weather-card-text-color)         
+    icon: |
+      [[[
+          var weather = states[variables.hc_condition_sensor].state;
+          return '<img src = "/local/weather-icons/' + weather + '.svg" />'
+      ]]]

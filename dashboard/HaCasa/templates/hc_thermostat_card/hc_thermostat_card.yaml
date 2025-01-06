@@ -2,12 +2,12 @@
     variables:
       show_window_state: false
       window_open_boolean: null
-      show_mode_state: false
+      show_mode_state: true
     show_label: true
     show_state: true
     state_display: |
       [[[
-        var state = "Currently " + states[entity.entity_id].attributes.current_temperature +'<p style="font-size:10px;display:inline;vertical-align:text-top">°C</p>'
+        var state = "Currently " + states[entity.entity_id].attributes.current_temperature +'<p style="font-size:10px;display:inline;vertical-align:text-top">°</p>'
         
         if (variables.show_mode_state == true & states[entity.entity_id].state === "heat") {
           state = state + ' - ' + "<ha-icon icon='mdi:fire' style='color: red; width: 14px; height: 14px'></ha-icon>"             
@@ -23,7 +23,7 @@
       ]]]
     label: |
       [[[
-        return states[entity.entity_id].attributes.temperature + '<sup style="font-size: 40px;">°C</sup>'
+        return states[entity.entity_id].attributes.temperature + '<sup style="font-size: 40px;">°</sup>'
       ]]]
     show_icon: false
     styles:
