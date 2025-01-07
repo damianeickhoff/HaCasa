@@ -6,7 +6,7 @@ hc_light_card:
   label: |
     [[[
       var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
-      return ' ' + (bri ? bri + '%': 'Uit');
+      return ' ' + (bri ? bri + '%': 'Off');
     ]]]
   show_name: true
   show_icon: true
