@@ -4,9 +4,7 @@ hc_weather_card:
     hc_card_text_color:
     hc_name_entity:
     hc_label_entity:
-    hc_outside_temperature_sensor:
-    hc_condition_sensor:
-    hc_condition_1d:
+    hc_secondary_info:
   show_label: true
   show_icon: false
   name: "[[[ return states[variables.hc_name_entity].state ]]]"
@@ -53,8 +51,8 @@ hc_weather_card:
         show_icon: false
         show_state: false
         name: >-
-          [[[ return 'It is ' + states[variables.hc_outside_temperature_sensor].state + '˚and ' + states[variables.hc_condition_sensor].state ]]]
-        label: "[[[ return 'Tomorrow will be ' + states[variables.hc_condition_1d].state ]]]"
+          [[[ return 'It is ' + Math.round(states[entity.entity_id].attributes.temperature) + '˚ and ' + states[entity.entity_id].state ]]]
+        label: "[[[ return variables.hc_secondary_info ]]]"
         styles:
           grid:
             - grid-template-areas: |
@@ -82,6 +80,6 @@ hc_weather_card:
             - color: var(--weather-card-text-color)         
     icon: |
       [[[
-          var weather = states[variables.hc_condition_sensor].state;
+          var weather = states[entity.entity_id].state;
           return '<img src = "/local/weather-icons/' + weather + '.svg" />'
       ]]]
