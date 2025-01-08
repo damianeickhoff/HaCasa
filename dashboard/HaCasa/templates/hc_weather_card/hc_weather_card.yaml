@@ -1,14 +1,14 @@
 hc_weather_card:
   variables:
-    hc_card_background:
-    hc_card_text_color:
-    hc_name_entity:
-    hc_label_entity:
+    hc_card_background: var(--cloudy) #used for fallback, if condition is not set in theme
+    hc_card_text_color: var(--cloudy-text) #used for fallback, if condition is not set in theme
+    hc_title_entity:
+    hc_subtitle_entity:
     hc_secondary_info:
   show_label: true
   show_icon: false
-  name: "[[[ return states[variables.hc_name_entity].state ]]]"
-  label: "[[[ return states[variables.hc_label_entity].state ]]]"
+  name: "[[[ return variables.hc_title_entity ]]]"
+  label: "[[[ return variables.hc_subtitle_entity ]]]"
   styles:
     grid:
       - grid-template-areas: |
@@ -18,20 +18,52 @@ hc_weather_card:
       - grid-template-columns: min-content
       - grid-template-rows: min-content 40px 40px
     card:
-      - background: var(--weather-card-color)
+      - background: |
+          [[[ 
+            var cond = states[entity.entity_id].state
+
+            switch (cond) {
+              case 'rainy':
+                return 'var(--rainy)';
+              case 'sunny':
+                return 'var(--sunny)';
+              case 'cloudy':
+                return 'var(--cloudy)';
+              case 'pouring':
+                return 'var(--pouring)';
+              default:
+                return variables.hc_card_background;
+            }
+          ]]]
       - padding: 25px
     name:
-      - color: var(--weather-card-text-color)
+      - color: &textcolor |
+          [[[ 
+            var cond = states[entity.entity_id].state
+
+            switch (cond) {
+              case 'rainy':
+                return 'var(--rainy-text)';
+              case 'sunny':
+                return 'var(--sunny-text)';
+              case 'cloudy':
+                return 'var(--cloudy-text)';
+              case 'pouring':
+                return 'var(--pouring-text)';
+              default:
+                return variables.hc_card_text_color;
+            }
+          ]]]
       - justify-self: start
       - font-family: montserrat
       - font-weight: 700
       - font-size: 2rem
       - z-index: 1
     label:
-      - color: var(--weather-card-text-color)
+      - color: *textcolor
       - justify-self: start
       - z-index: 1
-      - font-family: montserrat      
+      - font-family: montserrat
       - font-size: 1rem
     custom_fields:
       icon:
@@ -64,20 +96,20 @@ hc_weather_card:
             - background: none
             - box-shadow: none
             - border-radius: none
-            - overflow: visible            
+            - overflow: visible
           name:
             - justify-self: start
             - overflow: visible
-            - font-family: montserrat    
+            - font-family: montserrat
             - opacity: 0.8
             - font-size: 1rem
-            - color: var(--weather-card-text-color)
+            - color: *textcolor
           label:
             - justify-self: start
             - font-size: 1rem
-            - font-family: montserrat    
+            - font-family: montserrat
             - opacity: 0.8
-            - color: var(--weather-card-text-color)         
+            - color: *textcolor
     icon: |
       [[[
           var weather = states[entity.entity_id].state;
