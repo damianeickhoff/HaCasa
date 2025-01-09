@@ -19,7 +19,7 @@ hc_header_card:
       - box-shadow: var(--border-radius)
       - background: none
       - overflow: visible
-      - margin: 0
+      - margin: 0 0 20px 0
       - padding: 0
     custom_fields:
       menu:
@@ -35,8 +35,8 @@ hc_header_card:
         icon: mdi:menu
         styles:
           card:
-            - height: 35px
-            - width: 35px
+            - height: 40px
+            - width: 40px
             - margin: 0
             - padding: 0
             - border-radius: 50px
@@ -60,17 +60,16 @@ hc_header_card:
           action: more-info
         styles: &icon_style
           card:
-            - height: 35px
-            - width: 35px
+            - height: 40px
+            - width: 40px
             - margin: 0
-            - padding: 0
+            - padding: 6px
             - border-radius: 50px
             - justify-self: end
           name:
             - font-family: montserrat
             - font-size: 1rem
             - font-weight: 500
-            - color: white
           img_cell:
             - height: 100%
           icon:
@@ -91,3 +90,5 @@ hc_header_card:
             styles:
               card:
                 - background-color: var(--color-green)
+              name:
+                - color: white

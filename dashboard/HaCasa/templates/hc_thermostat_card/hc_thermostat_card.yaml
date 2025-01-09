@@ -3,6 +3,9 @@
       show_window_state: false
       window_open_boolean: null
       show_mode_state: true
+      show_graph: false
+      graph_entity:
+      graph_color: var(--color-red)
     show_label: true
     show_state: true
     state_display: |
@@ -32,9 +35,11 @@
             'l buttons'
             'n buttons'
             's buttons'
-        - grid-template-rows: min-content min-content min-content
+            'graph graph'
+        - grid-template-rows: min-content min-content min-content min-content
       card:
         - padding: 20px
+        - pointer-events: none 
       name:
         - justify-self: start
         - align-self: end
@@ -51,6 +56,25 @@
         - opacity: 0.8
         - font-size: 12px
         - font-family: montserrat
+      custom_fields:
+        graph:
+          - display: |
+              [[[
+                if (variables.show_graph) {
+                  return 'block';
+                }
+                else {
+                  return 'none';
+                }
+
+              
+              ]]]
+          - position: absolute
+          - left: 0
+          - bottom: 0
+          - width: 100%
+          - z-index: 1
+    tap_action: none
     custom_fields:
       buttons:
         card:
@@ -61,28 +85,25 @@
                   'item_1'
                   'item_2'
               - row-gap: 3rem
-              - column-gap: 1rem
             card:
               - padding: 10px
-              - background: none
-              - box-shadow: none
+              - border-radius: 50px
+              - background-color: var(--contrast-10)
+              - z-index: 2
           custom_fields:
             item_1:
               card:
                 type: custom:button-card
                 icon: mdi:chevron-up
-                styles:
+                styles: &icon_style
                   icon:
-                    - width: 40px
+                    - width: 25px
                   card:
+                    - padding: 10px
+                    - border-radius: 500px
                     - box-shadow: none
+                    - pointer-events: auto
                     - background: none
-                  img_cell:
-                    - width: 40px
-                    - height: 40px
-                    - background: rgba(var(--contrast-100),0.05)
-                    - padding: 5px
-                    - border-radius: 50px
                 tap_action:
                   action: call-service
                   service: climate.set_temperature
@@ -102,19 +123,7 @@
               card:
                 type: custom:button-card
                 icon: mdi:chevron-down
-                styles:
-                  icon:
-                    - width: 40px
-                  card:
-                    - box-shadow: none
-                    - background: none
-                  img_cell:
-                    - width: 40px
-                    - height: 40px
-                    - background: rgba(var(--contrast-100),0.05)
-                    - padding: 5px
-                    - border-radius: 50px
-                    - justify-self: end
+                styles: *icon_style
                 tap_action:
                   action: call-service
                   service: climate.set_temperature
@@ -130,3 +139,24 @@
                   service: climate.turn_off
                   target:
                     entity_id: '[[[ return entity.entity_id ]]]'
+      graph:
+        card:
+          type: custom:mini-graph-card
+          entities:
+            - entity: "[[[ return variables.graph_entity ]]]"
+              show_fill: true
+              show_line: false
+          show:
+            name: false
+            icon: false
+            state: false
+          line_width: 2
+          line_color: "[[[ return variables.graph_color ]]]"
+          card_mod:
+            style: |
+              ha-card {
+                background: none;
+                box-shadow: none;
+                --ha-card-border-width: 0;
+                z-index: 1
+              }                    

@@ -1,0 +1,67 @@
+hc_appliance_card:
+  icon: mdi:washing-machine
+  entity: input_select.wasmachine_status
+  show_label: true
+  show_state: true
+  show_name: true
+  show_last_changed: true
+  label: 10 minutes to go
+  name: >-
+    [[[ return 'Current Usage: ' + states['sensor.wasmachine_current'].state + 'A
+    -' + ' Usage this week: ' +
+    states['sensor.wasmachine_power_usage_weekly'].state ]]]
+  styles:
+    card:
+      - padding: 30px
+    grid:
+      - grid-template-areas: |
+          's i'
+          'l i'
+          'n n'
+      - grid-template-rows: min-content min-content
+    icon:
+      - width: 60%
+      - color: white
+      - justify-self: end
+    img_cell:
+      - width: 80px
+      - height: 80px
+      - border-radius: 50px
+      - background: var(--color-blue)
+      - justify-self: end
+      - margin-bottom: 20px
+    state:
+      - justify-self: start
+      - align-self: end
+      - font-size: 3rem
+      - font-family: montserrat
+      - font-weight: 600
+    label:
+      - justify-self: start
+      - align-self: start
+      - font-size: 1rem
+      - opacity: 0.6
+      - font-family: montserrat
+      - font-weight: 600
+      - margin-bottom: 20px
+    name:
+      - justify-self: start
+      - font-size: 0.8rem
+      - opacity: 0.6
+      - font-family: montserrat
+      - font-weight: 500
+  state:
+    - value: Klaar
+      icon: mdi:washing-machine-off
+    - value: Bezig
+      styles:
+        icon:
+          - animation: tilt-n-move-shaking 0.50s infinite
+  extra_styles: |
+    @keyframes tilt-n-move-shaking {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(5px, 5px) rotate(5deg); }
+      50% { transform: translate(0, 0) rotate(0eg); }
+      75% { transform: translate(-5px, 5px) rotate(-5deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }

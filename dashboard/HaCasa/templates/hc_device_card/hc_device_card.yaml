@@ -5,8 +5,9 @@ hc_device_card:
   styles:
     grid:
       - grid-template-areas: |
-          'n i'
-          's .'
+          '. i'
+          'n n'
+          's s'
       - grid-template-rows: min-content min-content 1fr
     card:
       - padding: 10px
