@@ -93,15 +93,16 @@ hc_title_card_backbtn:
   styles:
     card:
       - background: none
-      - margin-bottom: 10px
+      - margin-bottom: 20px
+      - padding: 0
       - box-shadow: none
       - overflow: visible
       - "--mdc-ripple-color": transparent
     icon:
       - width: 50%
     img_cell:
-      - width: 35px
-      - height: 35px
+      - width: 40px
+      - height: 40px
       - background: var(--ha-card-background)
       - border-radius: 50% 
       - box-shadow: var(--ha-card-box-shadow)

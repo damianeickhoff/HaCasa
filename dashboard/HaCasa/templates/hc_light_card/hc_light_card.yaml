@@ -31,7 +31,6 @@ hc_light_card:
       - font-weight: 700
       - justify-self: start
       - align-self: end
-      - font-size: 1rem
     label:
       - text-align: left
       - font-size: 0.8rem

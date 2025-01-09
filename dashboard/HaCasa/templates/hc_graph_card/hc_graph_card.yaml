@@ -35,6 +35,8 @@ hc_graph_card:
       - margin-right: 10px
       - background: '[[[ return variables.hc_color ]]]'
       - border-radius: 50%
+    custom_fields:
+      graph:
   custom_fields:
     graph:
       card:

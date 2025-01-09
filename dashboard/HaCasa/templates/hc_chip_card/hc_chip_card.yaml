@@ -15,13 +15,12 @@ hc_chip_card:
       - grid-template-rows: min-content min-content
       - column-gap: 7px
     icon:
-      - width: 18px
-      - justify-self: start
+      - width: 80%
     img_cell:
-      - width: 18px
-      - height: 18px
+      - width: 25px
+      - height: 25px
       - justify-self: start
-      - padding: 5px
+      - padding: 6px
       - background: var(--background-icon-color-default)
       - border-radius: 50%
     state:
@@ -41,7 +40,6 @@ hc_chip_card:
       - opacity: 0.8
     card:
       - width: auto
-      - height: auto
       - border-radius: 50px
       - padding: 5px
   state:

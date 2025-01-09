@@ -1,0 +1,27 @@
+hc_sensor_card_minimal:
+  variables:
+    color: 
+  show_label: true
+  show_state: true
+  styles:
+    card:
+      - padding: 10px
+    icon:
+      - color: white
+      - width: 50%
+    img_cell:
+      - background: '[[[ return "rgba(" + variables.color + ")" ]]]'
+      - border-radius: 50%
+      - width: 25px
+      - height: 25px
+      - margin-bottom: 5px
+      - padding: 6px
+    name:
+      - font-size: 1rem
+      - font-family: montserrat
+      - font-weight: 600
+    state:
+      - font-size: 0.8rem
+      - font-family: montserrat
+      - font-weight: 400
+      - opacity: 0.6
