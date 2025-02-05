@@ -31,15 +31,6 @@ the background in custom CSS file due bug https://github.com/facebook/docusaurus
   overflow-wrap: normal;
 }
 
-.codeLineNumber::before {
-  content: counter(line-count);
-  opacity: 0.4;
-}
-
-:global(.theme-code-block-highlighted-line) .codeLineNumber::before {
-  opacity: 0.8;
-}
-
 .codeLineContent {
   padding-right: var(--ifm-pre-padding);
 }

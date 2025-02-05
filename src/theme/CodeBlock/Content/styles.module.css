@@ -3,7 +3,7 @@
   /* rtl:ignore */
   direction: ltr;
   border-radius: inherit;
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .codeBlockTitle {
@@ -17,13 +17,16 @@
 }
 
 .codeBlock {
-  --ifm-pre-background: var(--hc-codeblock-background);
+  --ifm-pre-background: var(--prism-background-color);
   margin: 0;
-  padding: 20px;
+  padding: 10px;
+  background-color: var(--hc-codeblock-background) !important;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 pre code {
   background-color: var(--hc-codeblock-background);
+  opacity: 1;
   border-radius: 0px 0px 2px 2px;
 }
 
