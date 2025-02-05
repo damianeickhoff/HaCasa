@@ -1,0 +1,48 @@
+---
+hide_table_of_contents: true
+title: Weather Card
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import MyComponentSource from '!!raw-loader!/dashboard/HaCasa/templates/hc_weather_card.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+:::warning Warning
+This card is still in development and might not work as expected. Any feedback is welcome in the Discord server or Github.
+:::
+
+The `hc_weather_card` is a somewhat multifunctional weather card. In the example beneath it shows a nice greeting, tells you some facts, shows the conditions and what the weather will be tomorrow.
+
+Those sensors are just examples, you can use any sensor you want. The sensors I used, are custom sensors which I cannot share. But there are a lot of guides online to create your own custom sensors.
+
+
+![weather Card Light](/img/cards/hc_weather_card/weathercard_light.png#light-mode-only)![weather Card Dark](/img/cards/hc_weather_card/weathercard_dark.png#dark-mode-only)
+
+<Tabs>
+  <TabItem value="usage" label="Usage" default>
+    ```yaml
+    type: custom:button-card
+    template: hc_weather_card
+    entity: <your weather entity>
+    variables:
+        hc_name_entity: <sensor for greeting>
+        hc_label_entity: <sensor for facts>
+    ```
+  </TabItem>
+  <TabItem value="template" label="Template">
+
+    <CodeBlock language="yaml">{MyComponentSource}</CodeBlock>
+
+</TabItem>
+</Tabs>
+
+## Variables
+
+| Variable | Default | Required | Description|
+|----------|---------|----------|------------|
+| card_background | var(--weather-card-color) | No | The color of the card |
+| card_text_color | var(--weather-card-text-color) | No | The color of the text |
+| name_entity | / | **Yes** | A entity for the greeting (first line of text) |
+| label_entity | / | **Yes** | A entity for the facs  (second line of text) |
+| secondary_info | / | No | A entity for the secondary info (last line of text) |

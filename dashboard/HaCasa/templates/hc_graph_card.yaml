@@ -1,0 +1,59 @@
+hc_graph_card:
+  variables:
+    color: var(--color-red)
+  show_state: true
+  styles:
+    grid:
+      - grid-template-areas: |
+          'n i'
+          's i'
+          'graph graph'
+      - grid-template-rows: min-content min-content
+    card:
+      - padding-bottom: 0px
+    name:
+      - justify-self: start
+      - margin-left: 10px
+      - font-family: montserrat
+      - font-weight: 700
+      - font-size: 1rem
+    state:
+      - justify-self: start
+      - margin-left: 10px
+      - font-family: montserrat
+      - font-weight: 500
+      - font-size: 0.8rem
+      - opacity: 0.8   
+    icon:
+      - width: 50%
+      - color: white
+    img_cell:
+      - justify-self: end
+      - align-self: start
+      - width: 25px
+      - height: 25px
+      - padding: 5px
+      - margin-right: 10px
+      - background: '[[[ return variables.color ]]]'
+      - border-radius: 50%
+  custom_fields:
+    graph:
+      card:
+        type: custom:mini-graph-card
+        entities:
+          - entity: '[[[ return entity.entity_id ]]]'
+            show_fill: true
+            show_line: false
+        show:
+          name: false
+          icon: false
+          state: false
+        line_width: 2
+        line_color: '[[[ return variables.color ]]]'
+        card_mod:
+          style: |
+            ha-card {
+              background: none;
+              box-shadow: none;
+              --ha-card-border-width: 0;
+            }

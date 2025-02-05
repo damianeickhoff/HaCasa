@@ -1,0 +1,43 @@
+---
+hide_table_of_contents: true
+title: Title card
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import MyComponentSource from '!!raw-loader!/dashboard/HaCasa/templates/hc_title_card.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+The `hc_title_card` is a card that shows a title, subtitle and has the option to add 3 buttons for example scenes. The card used the default name and label parameter and variables for the extra 3 buttons.
+
+![title Card Light](/img/cards/hc_title_card/titlecard_light.png#light-mode-only)![title Card Dark](/img/cards/hc_title_card/titlecard_dark.png#dark-mode-only)
+
+<Tabs>
+  <TabItem value="usage" label="Usage" default>
+    ```yaml
+    type: custom:button-card
+    template: hc_title_card
+    name: <title>
+    label: <subtitle>
+    variables:
+        entity1: <entity>
+        entity1_name: <entity name>
+    ```
+  </TabItem>
+  <TabItem value="template" label="Template">
+
+    <CodeBlock language="yaml">{MyComponentSource}</CodeBlock>
+
+</TabItem>
+</Tabs>
+
+## Variables
+
+| Variable | Default | Required | Description|
+|----------|---------|----------|------------|
+| entity1 | / | No | The entity to call when the first button is pressed |
+| entity2 | / | No | The entity to call when the second button is pressed |
+| entity3 | / | No | The entity to call when the third button is pressed |
+| entity1_name | / | No | The name of the first button |
+| entity2_name | / | No | The name of the second button |
+| entity3_name | / | No | The name of the third button |

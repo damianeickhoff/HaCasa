@@ -1,0 +1,34 @@
+---
+hide_table_of_contents: true
+title: Sensor Card
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import MyComponentSource from '!!raw-loader!/dashboard/HaCasa/templates/hc_sensor_card.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+The `hc_sensor_card` is used to view the state of a sensor or binary sensor. It's configured to show the state of the sensor and the last updated time.
+
+![sensor Card Light](/img/cards/hc_sensor_card/sensorcard_light.png#light-mode-only)![sensor Card Dark](/img/cards/hc_sensor_card/sensorcard_dark.png#dark-mode-only)
+
+<Tabs>
+  <TabItem value="usage" label="Usage" default>
+    ```yaml
+    type: custom:button-card
+    template: hc_sensor_card
+    entity: <sensor or binary sensor>
+    ```
+  </TabItem>
+  <TabItem value="template" label="Template">
+
+    <CodeBlock language="yaml">{MyComponentSource}</CodeBlock>
+
+</TabItem>
+</Tabs>
+
+## Variables
+
+| Variable | Default | Required | Description|
+|----------|---------|----------|------------|
+| card_color | var(--color-blue) | No | Color for the card when state is on |

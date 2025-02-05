@@ -3,21 +3,28 @@
   /* rtl:ignore */
   direction: ltr;
   border-radius: inherit;
-}
-
-.codeBlockTitle {
-  font-size: var(--ifm-code-font-size);
-  font-weight: 500;
-  padding: 0.75rem var(--ifm-pre-padding);
-  border-top-left-radius: inherit;
-  border-top-right-radius: inherit;
   opacity: 0.9;
 }
 
+.codeBlockTitle {
+  border-bottom: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0.55rem var(--ifm-pre-padding);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  background-color: var(--hc-codeblock-background);
+}
+
 .codeBlock {
-  --ifm-pre-background: var(--prism-background-color);
+  --ifm-pre-background: var(--hc-codeblock-background);
   margin: 0;
-  padding: 0;
+  padding: 20px;
+}
+
+pre code {
+  background-color: var(--hc-codeblock-background);
+  border-radius: 0px 0px 2px 2px;
 }
 
 .codeBlockTitle + .codeBlockContent .codeBlock {
@@ -29,9 +36,6 @@
   padding: 0;
 }
 
-.codeBlockTitle svg {
-  font-size: 20px;
-}
 .codeBlockLines {
   font: inherit;
   /* rtl:ignore */
@@ -63,7 +67,7 @@
 .buttonGroup button {
   display: flex;
   align-items: center;
-  background: var(--prism-background-color);
+  background: transparent;
   color: var(--prism-color);
   border: 1px solid var(--ifm-color-emphasis-300);
   border-radius: var(--ifm-global-radius);

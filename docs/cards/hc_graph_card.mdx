@@ -1,0 +1,36 @@
+---
+hide_table_of_contents: true
+title: Graph Card
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import MyComponentSource from '!!raw-loader!/dashboard/HaCasa/templates/hc_graph_card.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+The `hc_graph_card` is used for showing a graph of a sensor. It also shows the current state.
+
+![graph Card Light](/img/cards/hc_graph_card/graphcard_light.png#light-mode-only)![graph Card Dark](/img/cards/hc_graph_card/graphcard_dark.png#dark-mode-only)
+
+<Tabs>
+  <TabItem value="usage" label="Usage" default>
+    ```yaml
+    type: custom:button-card
+    template: hc_graph_card
+    entity: <sensor entity>
+    variables:
+        color: <desired color>
+    ```
+  </TabItem>
+  <TabItem value="template" label="Template">
+
+    <CodeBlock language="yaml">{MyComponentSource}</CodeBlock>
+
+</TabItem>
+</Tabs>
+
+## Variables
+
+| Variable | Default | Required | Description|
+|----------|---------|----------|------------|
+| color | var(--color-red) | No | The color will be used for both the graph and the icon. |
