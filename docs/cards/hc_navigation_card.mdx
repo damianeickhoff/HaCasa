@@ -26,8 +26,8 @@ This card is also used for the security card. Use the tabs beneath to switch bet
         entity: <entity for label>
         icon: <icon>
         variables: 
-            hc_label_prefix: 'On - ' # Prefix can by anything but the state of the entity will be added after it.
-            hc_color: var(--color-gold) # color of the card when the state underneath is met (in this case, higher then 0)
+            label_prefix: 'On - ' # Prefix can by anything but the state of the entity will be added after it.
+            color: var(--color-gold) # color of the card when the state underneath is met (in this case, higher then 0)
         state:
             - value: 0 # Can also be 'on'
               operator: '>' # if value above is 'on', remove this line
@@ -57,7 +57,7 @@ This card is also used for the security card. Use the tabs beneath to switch bet
           name: <title of the card>
           entity: <security entity>
           variables: 
-            hc_color: var(--color-blue) # color of the card when the alarm is not off
+            color: var(--color-blue) # color of the card when the alarm is not off
           tap_action:
             action: navigate
             navigation_path: <navigation path>
