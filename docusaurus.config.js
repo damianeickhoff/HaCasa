@@ -4,6 +4,24 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
+// This probably only makes sense for the alpha/beta/rc phase, temporary
+function getNextVersionName() {
+  return 'Canary';
+  /*
+  const expectedPrefix = '2.0.0-rc.';
+
+  const lastReleasedVersion = versions[0];
+  if (!lastReleasedVersion || !lastReleasedVersion.includes(expectedPrefix)) {
+    throw new Error(
+      'this code is only meant to be used during the 2.0 alpha/beta/rc phase.',
+    );
+  }
+  const version = parseInt(lastReleasedVersion.replace(expectedPrefix, ''), 10);
+  return `${expectedPrefix}${version + 1}`;
+
+   */
+}
+
 import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
@@ -69,14 +87,7 @@ const config = {
           srcDark: 'img/other/HaCasa_Logo_White.png',
           style: {"padding-left": '15px',"height":'20px',"display":'flex',"margin-top":'5%'},
         },
-        items: [
-          {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Documentation',
-
-          },
+        items: [       
           {
             href: 'https://github.com/damianeickhoff/HaCasa',
             position: 'right',

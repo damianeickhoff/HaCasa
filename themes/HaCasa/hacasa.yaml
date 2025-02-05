@@ -1,19 +1,49 @@
 ---
-####################### LIGHT MODE ####################
-HaCasa:
+# NEEDS MORE CLEANUP!
 
+####################### LIGHT MODE ####################
+HaCasa_Rebrand:
   masonry-view-card-margin: 15px 15px 0px 15px
   --control-circular-slider-color: blue
+  card-mod-theme: HaCasa
+  card-mod-root: |
+    @media (orientation: portrait) {
+      .header{
+          display: none;
+      }
+      #view {
+          padding: 0 !important;
+          height: 100vh !important;
+      }
+    }
+    
+  border-radius: "18px"
+  color-yellow: '#f7b908'
+  color-grey: '#717BBC'
+  color-blue: '#518cfc'
+  color-light-blue: '#627afd'
+  color-dark-blue: '#5a7da5'
+  color-dark-grayblue: '#697996'
+  color-light-grayblue: '#c3ccdb'
+  color-pink: '#FD6F8E'
+  color-red: '#f97168'
+  color-purple: '#af60fc'
+  color-light-red: '#f7e0df'
+  color-orange: '#fca242'
+  color-light-orange: '#faebe3'
+  color-green: '#49ba80'
+  color-light-green: '#c8ebd9'
+  color-gold: '#C4AA87' 
 
   modes:
     light:
       # contrast
-      contrast-0: rgba(255,255,255)
+      contrast-0: 255,255,255
       contrast-10: "#F2F2F2"
       contrast-20: "#e5e5e5"
       contrast-33: "#888888"
       contrast-66: "#444444"
-      contrast-100: rgba(0,0,0)
+      contrast-100: 0,0,0
 
       contrast-background: '#ffffff'
       contrast-background-invert: '#262626'
@@ -25,18 +55,6 @@ HaCasa:
       opacity-contrast-100: rgba(0,0,0,.3)
 
       # main interface colors
-      color-green: '#587C69'
-      color-yellow: rgb(253 204 18)
-      color-cerise: "#e0188f"
-      color-purple: '#821EFF'
-      color-orange: "#F46036"
-      color-off-grey: "#525252"
-      color-red: "#d87773"
-      color-teal: rgba(123,232,183,1)
-      color-white: rgb(255,255,255)
-      color-black: "#000000"
-      color-dark-blue: '#414E6E'
-      color-blue: '#8DAFDC'
       color-gold: '#C4AA87'
       color-dark-gray: '#A2A5AD'
       color-darker-gray: '#52555D'
@@ -45,14 +63,26 @@ HaCasa:
       color-light-gray-nav: '#EBEBEB'
       color-light-gray-card: '#FAFAFA'
 
+      # Light Slider Color
+      slider-color: '#EEEEEE'
+
+      # Dynamic Weather Colors Background
+      rainy: '#736f90'
+      sunny: "#FFEBC8"
+      cloudy: '#c0e1ed'
+      pouring: '#736f90'
+
+      # Dynamic Weather Colors Text
+      rainy-text: '#393748'
+      sunny-text: "#FFEBC8"
+      cloudy-text: '#285d70'
+      pouring-text: '#393748'
+
       # background and sidebar
-      background: '#FFFFFF'
+      background: '#ffffff'
 
       # card
-      background-neo: linear-gradient(145deg, rgba(250,250,250,.5) 25%, rgba(50,50,50,.1))
-      box-shadow-neo: 5px 5px 10px rgba(50,50,50,.15), -5px -5px 10px rgba(255,255,255,.5)
       border-width: "0px"
-      border-radius: "18px"
       box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px
       ha-card-box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px
       ha-card-background: '#ffffff'
@@ -60,15 +90,9 @@ HaCasa:
       background-card-color: 'rgba(14,14,112, 0)'
       ha-card-border-width: "var(--border-width)"
 
-      # Slider
-
-      slider-bar-color: '#7ED8FC'
-      slider-color: '#4200AA'
-      slider-secondary-color: "var(--color-orange)"
-
       # UI
-      mdc-button-outline-color: "var(--color-orange)"
-      mdc-theme-primary: var(--color-gold)
+      mdc-button-outline-color: "red"
+      mdc-theme-primary: var(--color-purple)
       --energy-grid-consumption-color: "var(--color-red)"
       --energy-grid-return-color: "var(--color-red)"
       --energy-solar-color: "var(--color-red)"
@@ -116,9 +140,17 @@ HaCasa:
       subtext1: var(--text)
       subtext0: var(--text)
 
-      icon-color: var(--cadet-blue)
+      icon-color-default: "#494949"
+      background-icon-color-default: "#EFEFEF"
+      icon-color-light: var(--color-orange)
+      background-icon-color-light: var(--color-orange)
+      icon-color-climate: var(--color-red)
+      background-icon-color-climate: var(--color-red)
+      icon-color-security: var(--color-blue)
+      background-icon-color-security: '#ccd2f8'
+      icon-color-switch: var(--color-purple)   
       label-color: var(--icon-color)
-      navbar-icon-color: var(--color-gold)
+      navbar-icon-color: var(--color-purple)
       overlay2: "#F5F8FE"
       overlay1: "#8087a2"
       overlay0: "#6e738d"
@@ -154,18 +186,21 @@ HaCasa:
       app-header-text-color: var(--text)
 
       # Main Interface colors
-      primary-color: var(--text)
+      primary-color: var(--color-purple)
       light-primary-color: var(--primary-color)
 
-      primary-background-color: '#FFFFFF'
+      navbar: '#ffffff'
+      navbar-boxshadow: '0px 25px 80px rgba(0, 0, 0, 0.2)'
+
+      primary-background-color: '#ffffff'
       secondary-background-color: var(--base)
 
       # Text
       primary-text-color: var(--text)
       secondary-text-color: var(--subtext1)
-      text-primary-color: var(--text)
+      text-primary-color: white
       divider-color: var(--base)
-      accent-color: var(--sky)
+      accent-color: var(--color-purple)
       disabled-text-color: var(--surface0)
 
       # Sidebar
@@ -174,8 +209,8 @@ HaCasa:
 
       sidebar-icon-color: var(--subtext0)
       sidebar-text-color: var(--subtext0)
-      sidebar-selected-icon-color: var(--color-gold)
-      sidebar-selected-text-color: var(--color-gold)
+      sidebar-selected-icon-color: var(--color-purple)
+      sidebar-selected-text-color: var(--color-purple)
 
       # Buttons
       paper-item-icon-color: var(--subtext0)
@@ -198,7 +233,7 @@ HaCasa:
       label-badge-background-color: var(--surface0)
       label-badge-text-color: var(--text)
       label-badge-red: var(--red)
-      label-badge-green: var(--color-gold)
+      label-badge-green: var(--color-purple)
       label-badge-blue: var(--blue)
       label-badge-yellow: var(--yellow)
       label-badge-gray: var(--overlay0)
@@ -210,15 +245,7 @@ HaCasa:
       paper-card-background-color: var(--card-background-color)
 
       # Switches
-      switch-checked-button-color: var(--color-gold)
-      switch-checked-track-color: var(--surface0)
-      switch-unchecked-button-color: rgb(--overlay0)
-      switch-unchecked-track-color: rgb(--surface0)
-      # Toggles
-      paper-toggle-button-checked-button-color: var(--switch-checked-button-color)
-      paper-toggle-button-checked-bar-color: var(--switch-checked-track-color)
-      paper-toggle-button-unchecked-button-color: var(--switch-unchecked-button-color)
-      paper-toggle-button-unchecked-bar-color: var(--switch-unchecked-track-color)
+      switch-checked-button-color: var(--color-purple)
 
       # Table
       table-row-background-color: var(--primary-background-color)
@@ -242,6 +269,7 @@ HaCasa:
       mdc-select-dropdown-icon-color: var(--secondary-text-color)
       mdc-select-hover-line-color: var(--accent-color)
       mdc-theme-on-secondary: var(--color-white)
+      mdc-theme-on-primary: var(--color-white)
 
       # Input
       input-fill-color: var(--secondary-background-color)
@@ -257,19 +285,19 @@ HaCasa:
       # Colors
       error-color: var(--red)
       warning-color: var(--yellow)
-      success-color: var(--color-gold)
+      success-color: var(--color-purple)
       info-color: var(--blue)
 
-      state-on-color: var(--color-gold)
+      state-on-color: var(--color-purple)
       state-off-color: var(--red)
 
     dark:
-      contrast-100: rgb(255,255,255)
+      contrast-100: 255,255,255
       contrast-66: rgb(136,136,136)
       contrast-33: rgb(68,68,68)
       contrast-20: rgb(30,30,30)
       contrast-10: rgb(17,17,17)
-      contrast-0: var(--ha-card-background)
+      contrast-0: 0,0,0
 
       contrast-background: '#262626'
       contrast-background-invert: '#EBEBEB'
@@ -282,24 +310,26 @@ HaCasa:
       opacity-contrast-0: rgba(0,0,0,.3)
 
       # colors
-      color-green: '#587C69'
-      color-yellow: rgb(253 204 18)
-      color-cerise: rgb(224,24,143)
-      color-purple: '#821EFF'
-      color-orange: rgb(244,96,54)
-      color-off-grey: rgb(82,82,82)
-      color-red: '#d87773'
-      color-teal: rgb(123,232,183,1)
-      color-white: rgba(255,255,255)
-      color-black: rgb(0,0,0)
-      color-dark-blue: '#414E6E'
-      color-blue: '#8DAFDC'
-      color-gold: '#C4AA87'
       color-dark-gray: '#A2A5AD'
       color-darker-gray: '#52555D'
       color-darkest-gray: '#44474E'
       color-light-gray-nav: 'var(--color-darkest-gray)'
       color-light-gray-card: '#FAFAFA'
+
+      # Light Slider Color
+      slider-color: 'var(--background-icon-color-default)'
+
+      # Dynamic Weather Colors Background
+      rainy: '#736f90'
+      sunny: "#FFEBC8"
+      cloudy: '#c0e1ed'
+      pouring: '#736f90'
+
+      # Dynamic Weather Colors Text
+      rainy-text: '#393748'
+      sunny-text: "#FFEBC8"
+      cloudy-text: '#285d70'
+      pouring-text: '#393748'
 
       #glow
       glow: 0px 0px 15px 1px
@@ -314,25 +344,19 @@ HaCasa:
       glow-color-white: 'var(--glow) var(--color-white)'
 
       # background and sidebar
-      background: '#44474E'
+      background: '#121212'
 
       # card
       box-shadow-neo: 5px 5px 10px rgba(0,0,0,.5), -5px -5px 10px rgba(255,255,255,.03)
 
       border-width: "0px"
-      border-radius: "18px"
       box-shadow: "none"
 
       ha-card-box-shadow: "var(--box-shadow)"
-      ha-card-background: '#1F1F1F'
+      ha-card-background: '#1d1d1d'
       ha-card-border-radius: "var(--border-radius)"
       background-card-color: 'rgba(18,19,23,255)'
       ha-card-border-width: "var(--border-width)"
-
-      # slider
-      slider-bar-color: '#7ED8FC'
-      slider-color: '#4200AA'
-      slider-secondary-color: "var(--color-orange)"
 
       # media player
       mini-media-player-accent-color: "var(--color-white)"
@@ -369,13 +393,20 @@ HaCasa:
       ####################### MACHIATO ####################
       # Colors
       text: "#ffffff"
-      subtext1: var(--color-gold)
+      subtext1: '#e0e0e0'
       subtext0: "#ffffff"
       title-text: var(--text)
 
-      icon-color: white
+      icon-color-default: white
+      background-icon-color-default: "#2F2F2F"
+      icon-color-light: white
+      background-icon-color-light: var(--color-orange)
+      icon-color-climate: white
+      background-icon-color-climate: var(--color-red)
+      icon-color-security: white
+      background-icon-color-security: 'var(--color-blue)'
       label-color: white
-      navbar-icon-color: var(--color-gold)
+      navbar-icon-color: var(--color-purple)
 
       overlay2: "#939ab7"
       overlay1: "#8087a2"
@@ -383,7 +414,7 @@ HaCasa:
 
       surface2: "#5b6078"
       surface1: "#494d64"
-      surface0: "#151515"
+      surface0: "#121212"
 
       base: "var(--background)"
       mantle: "#1e2030"
@@ -411,18 +442,20 @@ HaCasa:
       app-header-text-color: var(--text)
 
       # Main Interface colors
-      primary-color: var(--color-gold)
+      primary-color: var(--color-purple)
       light-primary-color: var(--primary-color)
 
-      primary-background-color: '#151515'
+      primary-background-color: '#121212'
       secondary-background-color: var(--base)
+
+      navbar: 'rgba(32, 32, 32,0.8)'
 
       # Text
       primary-text-color: var(--text)
       secondary-text-color: var(--subtext1)
       text-primary-color: var(--text)
       divider-color: var(--base)
-      accent-color: var(--sky)
+      accent-color: var(--color-purple)
       disabled-text-color: var(--surface0)
 
       # Sidebar
@@ -455,27 +488,18 @@ HaCasa:
       label-badge-background-color: var(--surface0)
       label-badge-text-color: var(--text)
       label-badge-red: var(--red)
-      label-badge-green: var(--color-gold)
+      label-badge-green: var(--color-purple)
       label-badge-blue: var(--blue)
       label-badge-yellow: var(--yellow)
       label-badge-gray: var(--overlay0)
 
       # Cards
-
       paper-dialog-background-color: var(--overlay0)
       paper-listbox-background-color: var(--overlay0)
       paper-card-background-color: var(--card-background-color)
 
       # Switches
-      switch-checked-button-color: var(--color-gold)
-      switch-checked-track-color: var(--surface0)
-      switch-unchecked-button-color: rgb(--overlay0)
-      switch-unchecked-track-color: rgb(--surface0)
-      # Toggles
-      paper-toggle-button-checked-button-color: var(--switch-checked-button-color)
-      paper-toggle-button-checked-bar-color: var(--switch-checked-track-color)
-      paper-toggle-button-unchecked-button-color: var(--switch-unchecked-button-color)
-      paper-toggle-button-unchecked-bar-color: var(--switch-unchecked-track-color)
+      switch-checked-button-color: var(--color-purple)
 
       # Table
       table-row-background-color: var(--primary-background-color)
@@ -513,8 +537,8 @@ HaCasa:
       # Colors
       error-color: var(--red)
       warning-color: var(--yellow)
-      success-color: var(--color-gold)
+      success-color: var(--color-purple)
       info-color: var(--blue)
 
-      state-on-color: var(--color-gold)
+      state-on-color: var(--color-purple)
       state-off-color: var(--red)

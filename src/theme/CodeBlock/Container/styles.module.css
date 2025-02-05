@@ -1,13 +1,8 @@
 .codeBlockContainer {
-  background: var(--prism-background-color);
   color: var(--prism-color);
   margin-bottom: var(--ifm-leading);
   box-shadow: none;
   border-radius: var(--ifm-code-border-radius);
-  border: solid #dedede 1px;
-}
-
-[data-theme="dark"] .codeBlockContainer {
   border: none;
-  border-radius: var(--ifm-code-border-radius);
+  opacity: 100%;
 }

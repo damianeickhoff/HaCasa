@@ -14,7 +14,6 @@ import CopyButton from '@theme/CodeBlock/CopyButton';
 import WordWrapButton from '@theme/CodeBlock/WordWrapButton';
 import Container from '@theme/CodeBlock/Container';
 import styles from './styles.module.css';
-import { Icon } from '@iconify/react';
 // Prism languages are always lowercase
 // We want to fail-safe and allow both "php" and "PHP"
 // See https://github.com/facebook/docusaurus/issues/9012
@@ -57,7 +56,7 @@ export default function CodeBlockString({
           !blockClassName.includes(`language-${language}`) &&
           `language-${language}`,
       )}>
-      {title && <div className={styles.codeBlockTitle}><Icon icon="mingcute:document-fill" inline="true" />{title}</div>}
+      {title && <div className={styles.codeBlockTitle}>{title}</div>}
       <div className={styles.codeBlockContent}>
         <Highlight theme={prismTheme} code={code} language={language ?? 'text'}>
           {({className, style, tokens, getLineProps, getTokenProps}) => (

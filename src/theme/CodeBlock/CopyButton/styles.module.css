@@ -11,13 +11,13 @@
 .copyButtonIcon,
 .copyButtonSuccessIcon {
   position: absolute;
-  top: 0;
-  left: 0;
   fill: currentColor;
   opacity: inherit;
   width: inherit;
   height: inherit;
   transition: all var(--ifm-transition-fast) ease;
+  left: auto;
+  right: 0;
 }
 
 .copyButtonSuccessIcon {
@@ -25,7 +25,7 @@
   left: 50%;
   transform: translate(-50%, -50%) scale(0.33);
   opacity: 0;
-  color: #C4AA87;
+  color: #00d600;
 }
 
 .copyButtonCopied .copyButtonIcon {
@@ -37,4 +37,5 @@
   transform: translate(-50%, -50%) scale(1);
   opacity: 1;
   transition-delay: 0.075s;
+  color: #007EC6;
 }

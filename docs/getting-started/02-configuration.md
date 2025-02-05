@@ -12,15 +12,12 @@ Now that you've downloaded and uploaded all the necessarry files, we need to cha
 To load the theme file, you will need to add this line to your `configuration.yaml`
 
 ```yaml
+# Load frontend themes from the themes folder
 frontend:
   themes: !include_dir_merge_named themes
 ```
 
-This is needed to load custom themes (like HaCasa's).
-
-## UI Mode <span class="badge-warning">Not Supported</span>
-
-Home Assistant does not allow you to `!include` folders and files in the UI-Mode. Therefore it can not be used with the template structure HaCasa uses. You can technically add the templates manually to the raw config, but this is not recommended and thus we can not support that way of using HaCasa. Also, only do this if you want to feel miserable 🥲.
+This is needed to load custom themes in HomeAssistant (like HaCasa's).
 
 ## Resources and YAML mode
 
@@ -28,21 +25,23 @@ To use HaCasa, we need to add resources and add a YAML-Mode dashboard. That mean
 
 ```yaml
 lovelace:
-  mode: "storage"
+  mode: "yaml"
   resources:
     - url: "/hacsfiles/button-card/button-card.js"
       type: "module"
     - url: "/hacsfiles/my-cards/my-cards.js"
       type: "module"
-    - url: "/hacsfiles/kiosk-mode/kiosk-mode.js"
-      type: module
+    - url: "/hacsfiles/lovelace-card-mod/card-mod.js"
+      type: module   
+    - url: "/hacsfiles/mini-graph-card/mini-graph-card-bundle.js"
+      type: module     
     - url: "https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900"
       type: css
   dashboards:
     hacasa-dashboard:
       mode: "yaml"
       title: HaCasa
-      icon: mdi:script
+      icon: mdi:home
       show_in_sidebar: true
       filename: "dashboard/HaCasa/main.yaml"
 ```
@@ -50,4 +49,31 @@ lovelace:
 Save the file, restart Home Assistant and boom💥, you should be done.
 Also, don't forget to change the theme to HaCasa in your HA Profile. You can do that [here](https://my.home-assistant.io/redirect/profile).
 
-Now, when everything is done, you should see a demo page with a few cards as example. Check out our cards and make it your own.
+To actually enjoy the new dashboard, you will need to create at least one view. You can do this in the folder `dashboard/HaCasa/views`. For example, we can create a file called `00-default_view.yaml`. This file will be the first page, because it will be loaded first (because of the `00`).
+
+When you created the file, you can add this to the content:
+
+```yaml
+title: Home
+path: "home"
+cards:
+  - type: vertical-stack
+    cards:
+    - type: custom:button-card
+      template: hc_header_card
+      variables:
+        hc_security_entity: <your alarm entity>
+        hc_person_entity: <your person entity>
+    - type: custom:button-card
+      template: hc_glance_card
+      variables:
+          hc_entity1: <your first entity>
+          hc_entity2: <your second entity>
+          hc_entity3: <your third entity>
+```
+
+Now when you go to your HomeAssistant webpage, you should see a new dashboard called HaCasa. If you open that dashboard, you would see a header card and a glance card.
+
+![alt text](/img/other/example_view.png#light-mode-only)
+
+If everything works as espected, you are ready to configure your dashboard 🥳! You can find our other cards in the cards section in the menu on the left!
