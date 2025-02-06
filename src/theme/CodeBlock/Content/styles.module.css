@@ -22,12 +22,13 @@
   padding: 10px;
   background-color: var(--hc-codeblock-background) !important;
   font-family: 'JetBrains Mono', monospace;
+  border-radius: 0 0 16px 16px;
 }
 
 pre code {
   background-color: var(--hc-codeblock-background);
   opacity: 1;
-  border-radius: 0px 0px 2px 2px;
+  border-radius: 50px 50px 50px 50px;
 }
 
 .codeBlockTitle + .codeBlockContent .codeBlock {

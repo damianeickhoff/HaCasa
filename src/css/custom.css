@@ -14,10 +14,10 @@
    --ifm-color-primary: #C4AA87;
    --ifm-color-primary-dark: #C4AA87;
    --ifm-color-primary-darker: #C4AA87;
-   --ifm-color-primary-darkest: #C4AA87;
+   --ifm-color-primary-darkest: #754c16;
    --ifm-color-primary-light: #C4AA87;
-   --ifm-color-primary-lighter: #C4AA87;
-   --ifm-color-primary-lightest: #C4AA87;
+   --ifm-color-primary-lighter: #794f18;
+   --ifm-color-primary-lightest: #f9f2e9;
    --ifm-link-hover-color: #C4AA87;
    --ifm-code-font-size: .813rem;
    --ifm-menu-link-padding-vertical: 0.5rem;
@@ -51,14 +51,14 @@
    --ifm-color-info-contrast-background: #eef2fc;
    --ifm-color-info-dark: #5985d6;
    --ifm-color-warning-contrast-background: #fff8e2;
-   --ifm-color-warning-dark: #ffc409;
+   --ifm-color-warning-dark: #ca9a00;
    --hc-tabs-tab-active-background: #f7f9fe;
    --hc-tabs-tab-background: #e9edf3;
    --hc-tabs-background: #f7f9fe;
    --hc-tabs-tab-color: #23272F;
    --prism-background-color: #f7f9fe;
-   --hc-active-menu-item-color: #794f18;
- 
+   --hc-code-color: var(--ifm-color-primary-lighter);
+   --hc-code-background: var(--ifm-color-primary-lightest);
  }
  
  html[data-theme="light"] img[src$='#dark-mode-only'] {
@@ -70,10 +70,10 @@
    --ifm-color-primary: #C4AA87;
    --ifm-color-primary-dark: #C4AA87;
    --ifm-color-primary-darker: #C4AA87;
-   --ifm-color-primary-darkest: #C4AA87;
+   --ifm-color-primary-darkest: #4e4232;
    --ifm-color-primary-light: #C4AA87;
-   --ifm-color-primary-lighter: #C4AA87;
-   --ifm-color-primary-lightest: #C4AA87;
+   --ifm-color-primary-lighter: #f7c787;
+   --ifm-color-primary-lightest: #f7c787;
    --ifm-table-stripe-background: #0000;
    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
    --ifm-menu-color-background-active: #4e4232;
@@ -114,8 +114,8 @@
    --ifm-alert-padding-vertical: 1.5rem;
    --hc-codeblock-background: rgb(10, 10, 10);
    --prism-background-color:rgb(10, 10, 10);
-   --hc-active-menu-item-color: #b38d5c;
-   
+   --hc-code-color: var(--ifm-color-primary-lightest);
+   --hc-code-background: var(--ifm-color-primary-darkest);
  }
  
  html[data-theme="dark"] img[src$='#light-mode-only'] {
@@ -167,7 +167,7 @@
  /* Tabs CSS */
  .tabs-container {
    border: none;
-   border-radius: 20px;
+   border-radius: 16px 16px 16px 16px;
    background-color: var(--hc-tabs-background);
  }
  
@@ -232,12 +232,12 @@
  
  #__docusaurus .menu__link--active {
    font-weight: 500;
-   color: var(--hc-active-menu-item-color);
+   color: var(--ifm-color-primary-lighter);
  }
  
  #__docusaurus .menu__link--active:hover {
   font-weight: 500;
-  color: var(--hc-active-menu-item-color);
+  color: var(--ifm-color-primary-lighter);
 }
  .navbar {
    box-shadow: none;
@@ -417,8 +417,8 @@
  }
 
  code {
-  background: #f9f2e9;
-  color: #754c16;
+  background: var(--hc-code-background);
+  color: var(--hc-code-color);
   font-weight: 700;
   padding: 5px;
   border: none;

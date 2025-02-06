@@ -87,3 +87,36 @@ hc_title_card:
       0% {opacity:0;}
       100% {opacity:1;}
     }
+
+hc_title_card_backbtn:
+  icon: mdi:arrow-left-bold
+  styles:
+    card:
+      - background: none
+      - margin-bottom: 20px
+      - padding: 0
+      - box-shadow: none
+      - overflow: visible
+      - "--mdc-ripple-color": transparent
+    icon:
+      - width: 50%
+    img_cell:
+      - width: 40px
+      - height: 40px
+      - background: var(--ha-card-background)
+      - border-radius: 50% 
+      - box-shadow: var(--ha-card-box-shadow)
+      - overflow: visible
+    grid:
+      - grid-template-areas: "'i n'"
+      - grid-template-columns: min-content 1fr
+    name:
+      - justify-self: center
+      - font-weight: 700
+      - font-family: montserrat
+      - font-size: 1.5rem
+      - margin-left: -2.5rem
+      - color: var(--title-text)
+  tap_action:
+    action: navigate
+    navigation_path: /home          

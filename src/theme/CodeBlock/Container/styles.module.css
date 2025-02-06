@@ -2,6 +2,6 @@
   color: var(--prism-color);
   margin-bottom: var(--ifm-leading);
   box-shadow: none;
-  border-radius: var(--ifm-code-border-radius);
+  border-radius: 0;
   border: none;
 }

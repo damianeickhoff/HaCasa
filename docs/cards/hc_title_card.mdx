@@ -1,6 +1,6 @@
 ---
 hide_table_of_contents: true
-title: Title card
+title: Title card / back button
 ---
 
 import CodeBlock from '@theme/CodeBlock';
@@ -9,11 +9,19 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 The `hc_title_card` is a card that shows a title, subtitle and has the option to add 3 buttons for example scenes. The card used the default name and label parameter and variables for the extra 3 buttons.
+The `hc_title_card_backbtn` is a card that shows a title and a back button. The card used the default name parameter.
 
-![title Card Light](/img/cards/hc_title_card/titlecard_light.png#light-mode-only)![title Card Dark](/img/cards/hc_title_card/titlecard_dark.png#dark-mode-only)
+## Title Card
+![title Card Light](/img/cards/hc_title_card/titlecard_light.png#light-mode-only)![title Card Dark](/img/cards/hc_title_card/titlecard_dark.png#dark-mode-only)  
+
+## Back Button Card
+![title Card Back Button Light](/img/cards/hc_title_card/titlecard_backbtn_light.png#light-mode-only)![title Card Back Button Dark](/img/cards/hc_title_card/titlecard_backbtn_dark.png#dark-mode-only)
+
+
+## Usage
 
 <Tabs>
-  <TabItem value="usage" label="Usage" default>
+  <TabItem value="usage title" label="Usage Title" default>
     ```yaml
     type: custom:button-card
     template: hc_title_card
@@ -24,6 +32,13 @@ The `hc_title_card` is a card that shows a title, subtitle and has the option to
         entity1_name: <entity name>
     ```
   </TabItem>
+  <TabItem value="usage back button" label="Usage Back Button" default>
+    ```yaml
+    type: custom:button-card
+    template: hc_title_card_backbtn
+    name: The Climate
+    ```
+  </TabItem>  
   <TabItem value="template" label="Template">
 
     <CodeBlock language="yaml">{MyComponentSource}</CodeBlock>
