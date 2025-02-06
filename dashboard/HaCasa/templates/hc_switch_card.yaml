@@ -1,4 +1,4 @@
-hc_device_card:
+hc_switch_card:
   variables:
     power_entity:
     power_unit: w
