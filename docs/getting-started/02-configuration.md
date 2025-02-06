@@ -62,14 +62,14 @@ cards:
     - type: custom:button-card
       template: hc_header_card
       variables:
-        hc_security_entity: <your alarm entity>
-        hc_person_entity: <your person entity>
+        security_entity: <your alarm entity>
+        person_entity: <your person entity>
     - type: custom:button-card
       template: hc_glance_card
       variables:
-          hc_entity1: <your first entity>
-          hc_entity2: <your second entity>
-          hc_entity3: <your third entity>
+          entity1: <your first entity>
+          entity2: <your second entity>
+          entity3: <your third entity>
 ```
 
 Now when you go to your HomeAssistant webpage, you should see a new dashboard called HaCasa. If you open that dashboard, you would see a header card and a glance card.
