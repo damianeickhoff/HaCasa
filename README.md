@@ -15,6 +15,13 @@
 
 ![header img](https://github.com/user-attachments/assets/874685cd-32d9-4952-9a46-6cd5345e0113)
 
+## Upgrading from the old version
+
+Because of the rework, a lot has changed like variables and template names. That makes it difficult to just copy paste the new templates. So, to use the new version, you **need to remove the old templates** and change your dashboards.
+You can just download the [latest release here](https://github.com/damianeickhoff/HaCasa/releases/latest) and go to the [documentation page](http://localhost:3000/HaCasa/cards/hc_climate_card) for the card usages.
+
+This will be a one time thing. Newer versions won't have this issue.
+
 ## What is HaCasa?
 
 HaCasa is a modern yet simple dashboard design for HomeAssistant.
