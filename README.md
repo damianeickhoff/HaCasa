@@ -5,6 +5,8 @@
 
 
 > [!important]
+> **Looking for help**
+> 
 > I’ve been working on HaCasa for a while now and I’m excited about the potential it has to enhance the user experience.
 > However, I know that great things are rarely built alone, and I’m looking for passionate individuals who’d like to collaborate
 > on refining the design and making it even more user-friendly and implementable in Home Assistant.
