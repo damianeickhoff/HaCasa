@@ -45,17 +45,20 @@
         - align-self: end
         - font-family: montserrat
         - font-weight: 500
+        - z-index: 2
       label:
         - font-size: 5em
         - justify-self: start
         - align-self: start
         - font-weight: 700
         - font-family: montserrat
+        - z-index: 2
       state:
         - justify-self: start
         - opacity: 0.8
         - font-size: 12px
         - font-family: montserrat
+        - z-index: 2
       custom_fields:
         graph:
           - display: |
@@ -159,4 +162,4 @@
                 box-shadow: none;
                 --ha-card-border-width: 0;
                 z-index: 1
-              }                    
+              }

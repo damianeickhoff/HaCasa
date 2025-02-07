@@ -22,7 +22,7 @@
   padding: 10px;
   background-color: var(--hc-codeblock-background) !important;
   font-family: 'JetBrains Mono', monospace;
-  border-radius: 0 0 16px 16px;
+  border-radius: 16px 16px 16px 16px;
 }
 
 pre code {

@@ -14,6 +14,13 @@ You should have [Home Assistant](https://www.home-assistant.io/) running and hav
 You **CAN'T** use this theme without a Lovelace YAML Dashboard. Editing in the raw config is not going to do it and we don't recommend / support it so don't even bother.
 :::
 
+## Upgrading from the old version
+
+Because of the rework, a lot has changed like variables and template names. That makes it difficult to just copy paste the new templates. So, to use the new version, you **need to remove the old templates** and change your dashboards.
+You can just download the [latest release here](https://github.com/damianeickhoff/HaCasa/releases/latest) and go to the [documentation page](../cards/hc_climate_card.mdx) for the card usages.
+
+This will be a one time thing. Newer versions won't have this issue.
+
 ## HACS Download <span class="badge-info">Coming Soon</span>
 
 HaCasa is not available through [HACS](https://hacs.xyz) yet, but we still recommend installing HACS. There are some integrations that HaCasa depends on which you can easily install through HACS. Manual installation is also possible, but you should check the docs for that in the specific repository of that card.
@@ -34,10 +41,11 @@ You can skip the recommended ones, but this will ruin the layout and you will ne
 - [My Cards](https://github.com/AnthonMS/my-cards) - by AnthonMS
 - [Card Mod](https://github.com/thomasloven/lovelace-card-mod) - by Thomas Lovén
 - [Mini Graph Card](https://github.com/kalkih/mini-graph-card) - by Karl Kihlström
+- [Font Awesome](https://github.com/thomasloven/hass-fontawesome) - by Thomas Lovén
 
 ### Recommended
 
-- [Font Awesome](https://github.com/thomasloven/hass-fontawesome) - by Thomas Lovén
+- [Bubble Card](https://github.com/Clooos/Bubble-Card) - by Clooos. You can use it as alternative for navigation cards or different views.
 
 These are all Lovelace Resources and can be downloaded through HACS or manually, but again, check their documentations.
 

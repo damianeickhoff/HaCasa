@@ -3,7 +3,7 @@ hc_switch_card:
     power_entity:
     power_unit: w
     graph_color: white
-    show_graph: true
+    show_graph: false
     show_graph_line: true
     show_graph_fill: false
   show_state: true
