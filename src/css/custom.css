@@ -11,14 +11,10 @@
  
  /* You can override the default Infima variables here. */
  html[data-theme="light"] {
-   --ifm-color-primary: #C4AA87;
-   --ifm-color-primary-dark: #C4AA87;
-   --ifm-color-primary-darker: #C4AA87;
-   --ifm-color-primary-darkest: #754c16;
-   --ifm-color-primary-light: #C4AA87;
-   --ifm-color-primary-lighter: #794f18;
-   --ifm-color-primary-lightest: #f9f2e9;
-   --ifm-link-hover-color: #C4AA87;
+   --ifm-color-primary: #87a4c4;
+   --ifm-color-primary-lighter: #1367b6;
+   --ifm-color-primary-lightest: #e2effd;
+   --ifm-link-hover-color: #3b84c9;
    --ifm-code-font-size: .813rem;
    --ifm-menu-link-padding-vertical: 0.5rem;
    --ifm-menu-link-padding-horizontal: 0.75rem;
@@ -29,7 +25,7 @@
    --ifm-h2-font-size: 2rem;
    --docusaurus-highlighted-code-line-bg: white;
    --ifm-hover-overlay: transparent;
-   --ifm-menu-color-background-active: #f9f2e9;
+   --ifm-menu-color-background-active: var(--ifm-color-primary-lightest);
    --ifm-menu-color: #141414;
    --ifm-code-background: #f9f2e9;
    --hc-code-color: #8f6f46;
@@ -67,16 +63,13 @@
  
  /* For readability concerns, you should choose a lighter palette in dark mode. */
  html[data-theme="dark"] {
-   --ifm-color-primary: #C4AA87;
-   --ifm-color-primary-dark: #C4AA87;
-   --ifm-color-primary-darker: #C4AA87;
-   --ifm-color-primary-darkest: #4e4232;
-   --ifm-color-primary-light: #C4AA87;
-   --ifm-color-primary-lighter: #f7c787;
-   --ifm-color-primary-lightest: #f7c787;
+  --ifm-color-primary: #87a4c4;
+  --ifm-color-primary-lighter: #c2e1ff;
+  --ifm-color-primary-lightest: #e2effd;
+  --ifm-link-hover-color: #3b84c9;
    --ifm-table-stripe-background: #0000;
    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-   --ifm-menu-color-background-active: #4e4232;
+   --ifm-menu-color-background-active: #1258a3;
    --custom-menu-link-item-color: #ffffff;
    --ifm-background-color: #121212;
    --ifm-navbar-background-color: var(--ifm-background-color);
@@ -227,7 +220,7 @@
  
  #__docusaurus .menu__link:hover {
    text-decoration: none;
-   color: rgb(90, 90, 90);
+   color: var(--ifm-link-hover-color);
  }
  
  #__docusaurus .menu__link--active {

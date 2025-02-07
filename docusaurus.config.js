@@ -105,8 +105,9 @@ const config = {
         isCloseable: true,
       },
       prism: {
-        theme: prismThemes.github,
-        darkTheme: prismThemes.dracula,
+        theme: prismThemes.oneLight,
+        darkTheme: prismThemes.synthwave84,
+        additionalLanguages: ['yaml', 'json'],
       },
     }),
 };
