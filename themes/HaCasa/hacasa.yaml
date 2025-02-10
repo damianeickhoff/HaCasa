@@ -111,7 +111,6 @@ HaCasa:
       primary-text-color: var(--text)
       secondary-text-color: var(--subtext1)
       text-primary-color: white
-      divider-color: var(--base)
       accent-color: var(--color-orange)
 
       # Sidebar
@@ -281,7 +280,6 @@ HaCasa:
       primary-text-color: var(--text)
       secondary-text-color: var(--subtext1)
       text-primary-color: var(--text)
-      divider-color: var(--base)
       accent-color: var(--color-orange)
 
       # Sidebar
