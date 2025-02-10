@@ -1,28 +1,16 @@
- hc_climate_card:
+hc_climate_card:
     variables:
       show_window_state: false
       window_open_boolean: null
       show_mode_state: true
-      show_graph: false
-      graph_entity:
-      graph_color: var(--color-red)
+      show_graph: true
+      graph_entity: sensor.master_bedroom_ac_room_temperature
+      graph_color: var(--color-blue)
     show_label: true
     show_state: true
     state_display: |
-      [[[
-        var state = "Currently " + states[entity.entity_id].attributes.current_temperature +'<p style="font-size:10px;display:inline;vertical-align:text-top">°</p>'
-        
-        if (variables.show_mode_state == true & states[entity.entity_id].state === "heat") {
-          state = state + ' - ' + "<ha-icon icon='mdi:fire' style='color: red; width: 14px; height: 14px'></ha-icon>"             
-        } else if (variables.show_mode_state == true & states[entity.entity_id].state === "off") {
-           state = state + ' - ' + "<ha-icon icon='mdi:power-off' style='width: 14px; height: 14px'></ha-icon>"
-        }
-        if (variables.show_window_state == true & variables.window_open_boolean == true) {
-          state = state + ' - ' + "<ha-icon icon='mdi:window-open-variant' style='width: 14px; height: 14px'></ha-icon>"             
-        } else if (variables.show_window_state == true & variables.window_open_boolean == false){
-           state = state + ' - ' + "<ha-icon icon='mdi:window-closed-variant' style='width: 14px; height: 14px'></ha-icon>"
-        }
-        return state     
+      [[[ 
+        var state = "Currently " + states[entity.entity_id].attributes.current_temperature + '<p style="font-size:10px;display:inline;vertical-align:text-top"> °C</p>';
       ]]]
     label: |
       [[[
@@ -32,14 +20,15 @@
     styles:
       grid:
         - grid-template-areas: |
-            'l buttons'
-            'n buttons'
-            's buttons'
-            'graph graph'
+            'l mode_buttons buttons'
+            'n mode_buttons buttons'
+            's mode_buttons buttons'
+            'graph graph graph'
+        - grid-template-columns: 1fr auto auto
         - grid-template-rows: min-content min-content min-content min-content
       card:
         - padding: 20px
-        - pointer-events: none 
+        - pointer-events: none
       name:
         - justify-self: start
         - align-self: end
@@ -69,8 +58,6 @@
                 else {
                   return 'none';
                 }
-
-              
               ]]]
           - position: absolute
           - left: 0
@@ -79,6 +66,104 @@
           - z-index: 1
     tap_action: none
     custom_fields:
+      mode_buttons:
+        card:
+          type: custom:button-card
+          styles:
+            grid:
+              - grid-template-areas: |
+                  'heat'
+                  'cool'
+                  'fan'
+              - row-gap: 0.1rem
+            card:
+              - padding: 10px
+              - border-radius: 45px
+              - background-color: var(--background)
+              - z-index: 2
+              - height: 165px
+              - width: 125px 
+              - position: absolute
+              - right: -65px
+              - bottom: -82px
+          custom_fields:
+            heat:
+              card:
+                type: custom:button-card
+                icon: mdi:fire
+                styles: &mode_icon_style
+                  icon:
+                    - width: 25px
+                    - height: 25px
+                    - color: |
+                        [[[
+                          return states[entity.entity_id].state === 'heat' ? 'var(--color-red)' : 'gray';
+                        ]]]
+                    - position: relative
+                    - right: 25px
+                  card:
+                    - padding: 10px
+                    - border-radius: 500px
+                    - background: none
+                    - box-shadow: none
+                    - pointer-events: auto
+                tap_action:
+                  action: call-service
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: "heat"
+                  target:
+                    entity_id: '[[[ return entity.entity_id ]]]'
+            cool:
+              card:
+                type: custom:button-card
+                icon: mdi:snowflake
+                styles:
+                  icon:
+                    - width: 25px
+                    - height: 25px
+                    - color: |
+                        [[[ return states[entity.entity_id].state === 'cool' ? 'var(--color-blue)' : 'gray'; ]]]
+                    - position: relative
+                    - right: 25px
+                  card:
+                    - padding: 10px
+                    - border-radius: 500px
+                    - background: none
+                    - box-shadow: none
+                    - pointer-events: auto
+                tap_action:
+                  action: call-service
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: "cool"
+                  target:
+                    entity_id: '[[[ return entity.entity_id ]]]'
+            fan:
+              card:
+                type: custom:button-card
+                icon: mdi:fan
+                styles:
+                  icon:
+                    - width: 25px
+                    - height: 25px
+                    - color: |
+                        [[[ return states[entity.entity_id].state === 'fan_only' ? 'var(--color-green)' : 'gray'; ]]]
+                    - position: relative
+                    - right: 25px
+                  card:
+                    - padding: 10px
+                    - border-radius: 500px
+                    - background: none
+                    - box-shadow: none
+                    - pointer-events: auto
+                tap_action:
+                  action: call-service
+                  service: climate.set_hvac_mode
+                  data:
+                    hvac_mode: "fan_only"
+                  target:
+                    entity_id: '[[[ return entity.entity_id ]]]'
       buttons:
         card:
           type: custom:button-card
@@ -87,12 +172,12 @@
               - grid-template-areas: |
                   'item_1'
                   'item_2'
-              - row-gap: 3rem
+              - row-gap: 3.8rem
             card:
               - padding: 10px
               - border-radius: 50px
               - background-color: var(--contrast-10)
-              - z-index: 2
+              - z-index: 3
           custom_fields:
             item_1:
               card:
@@ -153,6 +238,7 @@
             name: false
             icon: false
             state: false
+            fill: fade
           line_width: 2
           line_color: "[[[ return variables.graph_color ]]]"
           card_mod:
