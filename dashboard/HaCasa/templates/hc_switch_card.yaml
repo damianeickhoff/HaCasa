@@ -6,6 +6,7 @@ hc_switch_card:
     show_graph: false
     show_graph_line: true
     show_graph_fill: false
+    card_color: var(--color-green)
   show_state: true
   styles:
     grid:
@@ -63,7 +64,7 @@ hc_switch_card:
     - value: "on"
       styles:
         card:
-          - background: var(--color-green)
+          - background: '[[[ return variables.card_color ]]]' #var(--color-green)
         name:
           - color: white
         label:
