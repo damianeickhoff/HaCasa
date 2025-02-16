@@ -1,0 +1,113 @@
+title: Livingroom
+icon: mdi:home-automation
+path: "livingroom"
+cards:
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color2: 'var(--color-white)'
+          bgcolor2: 'var(--navbar-icon-color)'
+
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: hc_title_card_backbtn
+        name: Livingroom
+      - type: custom:button-card
+        template: hc_glance_card
+        variables:
+          entity1: sensor.house_temperature
+          entity1_icon: fapro:thermometer
+          entity1_name: Temperature
+          entity1_icon_color: var(--color-orange)
+          entity2: sensor.zhimi_v7_b6a4_pm25_density
+          entity2_icon: mdi:air-filter
+          entity2_name: Air quality
+          entity2_icon_color: var(--color-orange)
+          entity3: sensor.zhimi_v7_b6a4_relative_humidity
+          entity3_icon: fapro:humidity
+          entity3_name: Humidity
+          entity3_icon_color: var(--color-orange)
+      - type: custom:button-card
+        template: hc_media_card
+        entity: media_player.livingroom_tv2
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Air
+      - type: grid
+        columns: 1
+        square: false
+        cards:      
+        - type: custom:button-card
+          template: hc_climate_card
+          entity: climate.living_room_ac
+          variables:
+            graph_entity: sensor.zhimi_v7_b6a4_indoor_temperature
+            show_graph: true
+            graph_color: var(--color-blue)
+            show_mode_state: false
+        - type: custom:button-card
+          template: hc_fan_card
+          entity: fan.zhimi_v7_b6a4_air_purifier
+          variables:
+              enable_osc_btn: false 
+      - type: "custom:button-card"
+        template:
+        - custom_card_section_title
+        variables:
+          section_title: Blinds
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+        - type: "custom:button-card"
+          template: hc_blind_card
+          entity: cover.living_room_blind_cover_2
+          name: Window
+          variables:
+            position_sensor: sensor.blind_position_livingroom
+        - type: "custom:button-card"
+          template: hc_blind_card
+          entity: cover.balcony_blind_cover
+          name: Balcony
+          variables:
+            position_sensor: sensor.blind_position_balcony
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Devices
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: switch.living_roomr_speakers
+          variables:
+            power_entity: sensor.living_roomr_speakers_current_power
+            show_graph: true
+            graph_color: black
+            name_entity: TV<br>Speakers
+        - type: custom:button-card
+          template: hc_sensor_card
+          entity: binary_sensor.entrance_door_sensor_opening
+          variables:
+            name_entity: Entrance door
+        - type: custom:button-card
+          template: hc_sensor_card
+          entity: binary_sensor.balcony_door_sensor_opening_2  
+          variables:
+            name_entity: Balcony door
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px

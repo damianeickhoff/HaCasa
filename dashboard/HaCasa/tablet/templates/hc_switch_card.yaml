@@ -1,0 +1,133 @@
+hc_switch_card:
+  variables:
+    name_entity:
+    power_entity:
+    power_unit: W
+    graph_color:
+    show_graph:
+    show_graph_line: true
+    show_graph_fill: true
+  show_state: true
+  name: "[[[ return variables.name_entity ]]]"
+  styles:
+    grid:
+      - grid-template-areas: |
+          'n i'
+          's s'
+          '. .'
+          'graph graph'
+      - grid-template-rows: min-content min-content min-content 1fr
+    card:
+      - padding: 10px
+    name:
+      - text-align: left
+      - font-family: Montserrat
+      - font-weight: 700
+      - justify-self: start
+      - align-self: end
+      - font-size: 1rem
+      - padding-bottom: 6px
+      - z-index: 2
+    state:
+      - text-align: left
+      - font-size: 0.8rem
+      - font-family: Montserrat
+      - font-weight: 500
+      - justify-self: start
+      - align-self: center
+      - opacity: 0.7
+      - padding-bottom: 16px
+      - z-index: 2
+    icon:
+      - width: 60%
+      - color: white
+      - z-index: 2
+    img_cell:
+      - background: var(--opacity-contrast-100)
+      - padding: 6px
+      - border-radius: 50%
+      - width: 25px
+      - height: 25px
+      - align-self: start
+      - margin-bottom: 10px
+      - z-index: 2
+    custom_fields:
+      graph:
+        - display: |
+            [[[
+              if (variables.show_graph) {
+                return 'block';
+              }
+              else {
+                return 'none';
+              }            
+            ]]]
+        - position: absolute
+        - left: 0
+        - bottom: 0
+        - width: 100%
+        - z-index: 1      
+  state:
+    - value: "on"
+      styles:
+        card:
+          - background: var(--color-green)
+        name:
+          - color: white
+        label:
+          - color: white
+        state:
+          - color: white
+      state_display: |
+        [[[
+          if (entity.state === "on" && variables.power_entity !== null) {
+            return states[entity.entity_id].state + " - " + states[variables.power_entity].state + variables.power_unit;
+          } else {
+            return states[entity.entity_id].state;
+          }
+        ]]]
+    - value: "off"
+      styles:
+        icon:
+          - color: var(--icon-color-default)
+        img_cell:
+          - background: var(--background-icon-color-default)
+    - value: unavailable
+      styles:
+        name:
+          - text-decoration: line-through
+        icon:
+          - color: var(--icon-color-default)
+        img_cell:
+          - background: var(--background-icon-color-default)
+        card:
+          - opacity: 0.6
+          - pointer-events: none
+  custom_fields:
+    graph:
+      card:
+        type: custom:mini-graph-card
+        entities:
+          - entity: "[[[ return variables.power_entity ]]]"
+            show_fill: "[[[ return variables.show_graph_fill ]]]"
+            show_line: "[[[ return variables.show_graph_line ]]]"
+        show:
+          name: false
+          icon: false
+          state: false
+          fill: fade
+          points: false
+          labels: false
+        line_width: 2
+        line_color: var(--color-darker-gray)
+        animate: true
+        hours_to_show: 120
+        points_per_hour: 0.1
+        card_mod:
+          style: |
+            ha-card {
+              background: none;
+              box-shadow: none;
+              --ha-card-border-width: 0;
+              z-index: 1
+            }                    

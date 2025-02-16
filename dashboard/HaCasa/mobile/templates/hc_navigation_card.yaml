@@ -1,0 +1,110 @@
+hc_navigation_card:
+  show_name: true
+  show_icon: true
+  show_state: false
+  show_label: true
+  variables:
+    label_prefix: ""
+    icon_color: var(--color-orange)
+    color: ""
+    state_value: ""
+  label: |
+    [[[ return variables.label_prefix + states[entity.entity_id].state ]]]
+  styles:
+    grid:
+      - grid-template-areas: |
+          "n n" 
+          "l l"
+      - grid-template-rows: 1fr 1fr
+    card:
+      - padding: 20px
+      - height: 130px
+    name:
+      - text-align: left
+      - font-size: 1.3rem
+      - font-family: Montserrat
+      - font-weight: 800
+      - justify-self: start
+      - align-self: start
+    label:
+      - opacity: 0.6
+      - justify-self: start
+      - align-self: end
+      - font-family: Montserrat
+      - font-size: 0.8rem
+      - font-weight: 500 
+    img_cell:
+      - position: absolute
+      - top: 20%
+      - left: 40%
+      - overflow: visible
+    icon:
+      - position: absolute
+      - width: 15em
+      - opacity: 90%
+      - color: "[[[ return variables.icon_color ]]]"
+
+hc_navigation_card_security:
+  template: hc_navigation_card
+  state:
+    - value: arming
+      label: Arming...
+      icon: fapro:shield
+      styles:
+        icon:
+          - color: var(--color-orange)
+          - animation: flash 5s infinite
+        label:
+          - animation: flash 5s infinite
+    - value: armed_home
+      label: Armed Home
+      icon: fapro:shield-check
+      styles:
+        icon:
+          - color: white
+        card:
+          - background: var(--color-blue)
+        name:
+          - color: white
+        label:
+          - color: white
+    - value: armed_away
+      label: Armed Away
+      icon: fapro:shield-keyhole
+      styles:
+        card:
+          - background: var(--color-blue)
+        name:
+          - color: white
+        label:
+          - color: white
+        icon:
+          - color: white          
+    - value: disarmed
+      label: Disarmed
+      icon: fapro:shield
+      styles:
+        icon:
+          - color: var(--color-blue)
+    - value: triggered
+      label: Triggered!
+      icon: fapro:shield-exclamation
+      styles:
+        icon:
+          - color: white
+          - animation: flash 2s infinite
+        card:
+          - background: var(--color-red)
+        name:
+          - color: white
+        state:
+          - color: white
+        label:
+          - color: white
+          
+  extra_styles: |
+    @keyframes flash {
+      0% {opacity: 100%;}
+      50% {opacity: 0%;}
+      100% {opacity: 100%;}
+    }

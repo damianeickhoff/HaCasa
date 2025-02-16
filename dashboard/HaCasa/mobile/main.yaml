@@ -1,0 +1,13 @@
+title: Home mobile
+button_card_templates: !include_dir_merge_named "/config/dashboard/HaCasa/mobile/templates/"
+
+views: !include_dir_list "/config/dashboard/HaCasa/mobile/views/"
+
+kiosk_mode:
+  non_admin_settings:
+    hide_header: true
+    hide_sidebat: true
+    ignore_entity_settings: true
+  mobile_settings:
+    hide_header: true
+    hide_sidebat: true

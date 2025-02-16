@@ -1,0 +1,99 @@
+title: Kitchen
+icon: mdi:home-automation
+path: "kitchen"
+cards:
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color4: 'var(--color-white)'
+          bgcolor4: 'var(--navbar-icon-color)'
+
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: hc_title_card_backbtn
+        name: Kitchen
+      - type: custom:button-card
+        template: hc_glance_card
+        variables:
+          entity1: sensor.house_temperature
+          entity1_icon: fapro:thermometer
+          entity1_name: Temperature
+          entity1_icon_color: var(--color-orange)
+          entity2: sensor.zhimi_v7_b6a4_relative_humidity
+          entity2_icon: fapro:humidity
+          entity2_name: Humidity
+          entity2_icon_color: var(--color-orange)
+      - type: custom:button-card
+        template: hc_media_card
+        entity: media_player.plex_plex_for_android_tv_tv
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Lights
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+          - type: custom:button-card
+            template: hc_light_card
+            entity: light.kitchen_counter_light
+            variables:
+              enable_slider: false
+              name: Countertop
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Laundry
+      - type: grid
+        columns: 2
+        square: false
+        cards:      
+        - type: custom:button-card
+          template: hc_graph_card
+          entity: sensor.maquina_de_lavar_e_secar_energy_consumption_total
+          name: Energy
+          label: Total consumption
+          variables:
+            color: var(--color-orange)
+        - type: custom:button-card
+          template: hc_graph_card
+          entity: sensor.maquina_de_lavar_e_secar_water_efficiency_total
+          name: Water
+          label: Total consumption
+          variables:
+            color: var(--color-blue)
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: switch.maquina_de_lavar_e_secar_washer_dryer
+          name: On / Off
+          label: Washer / Dryer
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: switch.maquina_de_lavar_e_secar_pause
+          name: Pause
+          label: Washer / Dryer
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: sensor.maquina_de_lavar_e_secar_phase
+          name: Phase
+          label: Washer / Dryer
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: sensor.maquina_de_lavar_e_secar_program
+          name: Program
+          label: Washer / Dryer
+
+      
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px

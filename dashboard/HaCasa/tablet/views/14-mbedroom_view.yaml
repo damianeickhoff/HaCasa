@@ -1,0 +1,93 @@
+title: Master bedroom
+icon: mdi:home-automation
+path: "mbedroom"
+cards:
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color5: 'var(--color-white)'
+          bgcolor5: 'var(--navbar-icon-color)'
+
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: hc_title_card_backbtn
+        name: Master bedroom
+      - type: custom:button-card
+        template: hc_glance_card
+        variables:
+          entity1: sensor.master_bedroom_ac_room_temperature
+          entity1_icon: fapro:thermometer
+          entity1_name: Temperature
+          entity1_icon_color: var(--color-orange)
+          entity2: sensor.zhimi_v7_b6a4_relative_humidity
+          entity2_icon: fapro:humidity
+          entity2_name: Humidity
+          entity2_icon_color: var(--color-orange)
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Air
+      - type: grid
+        columns: 1
+        square: false
+        cards:      
+        - type: custom:button-card
+          template: hc_climate_card
+          entity: climate.master_bedroom_ac
+          variables:
+            graph_entity: sensor.master_bedroom_ac_room_temperature
+            show_graph: true
+            graph_color: var(--color-blue)
+            show_mode_state: false 
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Lights
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+          - type: custom:button-card
+            template: hc_light_card
+            entity: light.master_bedroom_candle_light
+            variables:
+              enable_slider: true
+              name: Candle light
+      - type: "custom:button-card"
+        template:
+        - custom_card_section_title
+        variables:
+          section_title: Blinds
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+        - type: "custom:button-card"
+          template: hc_blind_card
+          entity: cover.master_bedroom_blind_cover
+          name: Window
+          variables:
+            position_sensor: sensor.blind_position_masterbedroom
+      - type: "custom:button-card"
+        template:
+        - custom_card_section_title
+        variables:
+          section_title: Remotes
+      - type: custom:button-card
+        icon: fapro:battery-full
+        template: hc_sensor_card
+        entity: sensor.tradfri_remote_control_bateria
+        name: IKEA bedroom On/Off
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px

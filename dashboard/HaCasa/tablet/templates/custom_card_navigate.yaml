@@ -1,0 +1,73 @@
+---
+custom_card_navigate:
+  show_name: true
+  show_icon: true
+  show_state: false
+  show_label: true
+  variables:
+    hc_label_name: test
+  label: |
+    [[[ return variables.hc_label_name + states[entity.entity_id].state ]]]
+  styles: &navigate_card_styles_3
+    grid:
+      - grid-template-areas: '"n" "ent1" "l"'
+      - grid-template-rows: 1fr 1fr
+      - column-gap: 10px
+    card:
+      - height: 100%
+      - padding: 1rem
+      - overflow: hidden
+      - aspect-ratio: 3/2
+    name:
+      - position: absolute
+      - top: 1rem
+      - text-align: left
+      - font-size: "var(--fs-500)"
+      - font-family: Montserrat
+      - font-weight: 600
+      - justify-self: start
+      - align-self: start
+      - overflow: visible
+    img_cell:
+      - position: absolute
+      - top: 20%
+      - left: 40%
+      - overflow: visible
+    icon:
+      - position: absolute
+      - width: 15em
+      - opacity: 90%
+      - color: var(--color-orange)
+    label:
+      - color: var(--color-dark-gray)
+      - justify-self: start
+      - font-size: 12px
+      - font-weight: 500
+    custom_fields:
+      ent1:
+        - justify-self: start
+        - align-self: end
+  extra_styles: |
+    :hover #icon{
+      transform: scale(1.25) !important;
+      transition: transform .3s ease-in-out;
+    }
+
+    :active #tap-highlight-color{
+      opacity: 0;
+    }
+
+    :not(:hover) #icon{
+      transform: scale(1) !important;
+      transition: transform .6s ease-in-out;
+    }
+
+    :hover #icon.ellipsis{
+      transform: rotate(-20deg) scale(1.15) !important;
+      transition: transform .3s ease-in-out;
+    }
+
+    :not(:hover) #icon.ellipsis{
+      transform: rotate(-20deg) scale(1) !important;
+      transition: transform .6s ease-in-out;
+    }

@@ -1,0 +1,27 @@
+custom_card_user:
+  show_entity_picture: true
+  show_label: false
+  show_name: false
+  styles:
+    card:
+      - padding: 7px
+      - background: none
+      - animation: slide-in 1s ease-out, opacity 1s ease-in
+      - box-shadow: none
+    grid:
+      - grid-template-areas: '"i" "i"'
+      - grid-template-rows: min-content min-content
+      - grid-template-columns: min-content
+    entity_picture:
+      - width: 40px
+      - height: 40px
+      - border-radius: 12px
+  extra_styles: |
+    @keyframes slide-in {
+      0% {transform: translateX(-2%);}
+      100% {transform: translateX(0%);}
+    }
+    @keyframes opacity {
+      0% {opacity:0;}
+      100% {opacity:1;}
+    }

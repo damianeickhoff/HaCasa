@@ -1,0 +1,162 @@
+hc_light_card:
+  icon: mdi:lightbulb
+  variables:
+    enable_slider:
+    card_color: >
+      [[[
+        if (states[entity.entity_id].state === 'on' && states[entity.entity_id].attributes.rgb_color) {
+          var rgb = states[entity.entity_id].attributes.rgb_color;
+          return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+        } else {
+          return 'var(--color-orange)';
+        }
+      ]]]
+    name:
+  label: |
+    [[[
+      var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
+      return ' ' + (bri ? bri + '%': 'Off');
+    ]]]
+  show_name: true
+  show_icon: true
+  show_label: true
+  show_state: false
+  name: "[[[ return variables.name ]]]" 
+  styles:
+    grid:
+      - grid-template-areas: |
+            [[[
+              if (variables.enable_slider) {
+                  return '"n i" "l i" "slider slider"';
+              }
+                return '"n i" "l i" ". ."';
+            ]]]
+      - grid-template-rows: min-content min-content 1fr
+    card:
+      - padding: 10px
+    name:
+      - text-align: left
+      - font-size: 1rem
+      - font-family: Montserrat
+      - font-weight: 700
+      - justify-self: start
+      - align-self: end
+    label:
+      - text-align: left
+      - font-size: 0.8rem
+      - font-family: Montserrat
+      - font-weight: 500
+      - justify-self: start
+      - align-self: center
+      - opacity: 0.7
+      - padding-bottom: |
+          [[[
+            if (variables.enable_slider) {
+                return '10px';
+            }
+              return '45px';
+          ]]]
+    icon:
+      - width: 60%
+      - color: white
+    img_cell:
+      - background: var(--opacity-contrast-100)
+      - padding: 6px
+      - border-radius: 50%
+      - width: 25px
+      - height: 25px
+      - align-self: start
+      - margin-bottom: 10px
+    custom_fields:
+      slider:
+        - display: >
+            [[[
+              if (variables.enable_slider) {
+                  return "block";
+              }
+              return "none";
+            ]]]      
+  state:
+    - value: "on"
+      icon: mdi:lightbulb-on
+      styles:
+        card:
+          - background: "[[[ return variables.card_color ]]]"
+        name:
+          - color: white
+        label:
+          - color: white
+        state:
+          - color: white
+    - value: "off"
+      styles:
+        icon:
+          - color: var(--icon-color-default)
+        img_cell:
+          - background: var(--background-icon-color-default)
+    - value: "unavailable"
+      styles:
+        name:
+          - text-decoration: line-through
+        icon:
+          - color: var(--icon-color-default)
+        img_cell:
+          - background: var(--background-icon-color-default)
+        card:
+          - opacity: 0.6
+          - pointer-events: none
+      label: Unknown
+      icon: mdi:lightbulb-question         
+  custom_fields:
+    slider:
+      card:
+        type: custom:my-slider-v2
+        entity: "[[[ return entity.entity_id ]]]"
+        styles:
+          card:
+            - height: 30px
+            - box-shadow: none
+            - padding: 0
+            - touch-action: pan-y
+            - background: "[[[ return variables.card_color ]]]"
+          progress:
+            - height: 100%
+            - touch-action: pan-y
+            - background: |
+                  [[[
+                    if (states[entity.entity_id].state === 'off') {
+                      return variables.card_color;
+                    } else {
+                      return 'white';
+                    }
+                  ]]]
+            - border-radius: 12px 12px 12px 12px
+          track:
+            - touch-action: pan-y
+            - background: |
+                [[[
+                  if (states[entity.entity_id].state === 'on') {
+                    return 'var(--opacity-contrast-100)';
+                  } else {
+                    return 'var(--slider-color)';
+                  }
+                ]]]
+            
+            - border-radius: 12px
+          thumb:
+            - touch-action: pan-y
+            - height: 30%
+            - background: |
+                    [[[
+                      if (states[entity.entity_id].state === 'off') {
+                        return 'white';
+                      } else {
+                        return variables.card_color;
+                      }
+                    ]]]
+            - position: absolute
+            - right: 7px
+            - top: 11px
+            - width: 3px
+  hold_action:
+    action: more-info

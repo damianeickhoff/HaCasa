@@ -1,0 +1,61 @@
+custom_card_device:
+  styles:
+    card:
+      - padding: 10px 25px 10px 10px
+    grid:
+      - grid-template-areas: '''i n indicator'' ''i l indicator'''
+      - grid-template-columns: min-content
+      - grid-template-rows: min-content min-content
+      - column-gap: 15px
+    icon:
+      - width: 2rem
+      - margin: 0.8rem
+      - color: var(--color-darkest-gray)
+    img_cell:
+      - justify-self: start
+      - width: 3rem
+      - background: var(--color-light-gray-card)
+      - border-radius: 12px
+    name:
+      - justify-self: start
+      - align-self: end
+      - font-family: montserrat
+      - font-weight: 700
+      - font-size: 12px
+    state:
+      - justify-self: start
+      - align-self: start
+      - font-family: montserrat
+      - font-weight: 600
+      - font-size: 10px
+    label:
+      - justify-self: start
+      - align-self: start
+      - font-family: montserrat
+      - font-weight: 600
+      - font-size: 10px
+      - color: var(--color-dark-gray)
+    custom_fields:
+      indicator:
+        - justify-self: end
+  custom_fields:
+    indicator:
+      card:
+        type: custom:button-card
+        entity: '[[[ return entity.entity_id ]]]'
+        show_icon: false
+        show_name: false
+        styles:
+          card:
+            - height: 20px
+            - width: 20px
+            - border-radius: 500px
+        state:
+          - value: 'on'
+            styles:
+              card:
+                - background: var(--color-gold)
+          - value: 'off'
+            styles:
+              card:
+                - background: var(--color-light-gray-nav)
