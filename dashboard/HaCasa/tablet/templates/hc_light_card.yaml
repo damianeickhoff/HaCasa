@@ -118,7 +118,15 @@ hc_light_card:
             - box-shadow: none
             - padding: 0
             - touch-action: pan-y
-            - background: "[[[ return variables.card_color ]]]"
+            - background: |                   
+                  [[[
+                    if (states[entity.entity_id].state === 'off') {
+                      return 'var(--background)';
+                    } else {
+                      return variables.card_color;
+                    }
+                  ]]]
+            - border-radius: 10px
           progress:
             - height: 100%
             - touch-action: pan-y
@@ -130,7 +138,7 @@ hc_light_card:
                       return 'white';
                     }
                   ]]]
-            - border-radius: 12px 12px 12px 12px
+            - border-radius: 10px
           track:
             - touch-action: pan-y
             - background: |
@@ -142,7 +150,7 @@ hc_light_card:
                   }
                 ]]]
             
-            - border-radius: 12px
+            - border-radius: 10px
           thumb:
             - touch-action: pan-y
             - height: 30%
