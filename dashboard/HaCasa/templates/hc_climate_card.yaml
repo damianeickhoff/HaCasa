@@ -3,30 +3,76 @@
       show_window_state: false
       window_open_boolean: null
       show_mode_state: true
+      show_valve_status: true
+      show_valve_status_second_line: false
       show_graph: false
-      graph_entity:
+      entity_room_temp: null
       graph_color: var(--color-red)
     show_label: true
     show_state: true
     state_display: |
       [[[
-        var state = "Currently " + states[entity.entity_id].attributes.current_temperature +'<p style="font-size:10px;display:inline;vertical-align:text-top">°</p>'
+        var separator = " - "
+        var grad_icon = "<p style='font-size:10px;display:inline;vertical-align:text-top'>°</p>"
+
+        if(entity === undefined) {
+          return "Undefined"
+        }
         
-        if (variables.show_mode_state == true & states[entity.entity_id].state === "heat") {
-          state = state + ' - ' + "<ha-icon icon='mdi:fire' style='color: red; width: 14px; height: 14px'></ha-icon>"             
-        } else if (variables.show_mode_state == true & states[entity.entity_id].state === "off") {
-           state = state + ' - ' + "<ha-icon icon='mdi:power-off' style='width: 14px; height: 14px'></ha-icon>"
+        var state = "Currently " + states[entity.entity_id].attributes.current_temperature + grad_icon
+
+        if(variables.entity_room_temp != null & variables.show_valve_status_second_line == false) {
+          state = state + separator + "Room " + states[variables.entity_room_temp].state + grad_icon
         }
-        if (variables.show_window_state == true & variables.window_open_boolean == true) {
-          state = state + ' - ' + "<ha-icon icon='mdi:window-open-variant' style='width: 14px; height: 14px'></ha-icon>"             
-        } else if (variables.show_window_state == true & variables.window_open_boolean == false){
-           state = state + ' - ' + "<ha-icon icon='mdi:window-closed-variant' style='width: 14px; height: 14px'></ha-icon>"
+
+        if(variables.entity_room_temp != null & variables.show_valve_status_second_line == true) {
+          state = state + "<br\>Room " + states[variables.entity_room_temp].state + grad_icon
         }
-        return state     
+
+        return state
       ]]]
     label: |
       [[[
+        if(entity === undefined) {
+          return "Undefined"
+        }
         return states[entity.entity_id].attributes.temperature + '<sup style="font-size: 40px;">°</sup>'
+      ]]]
+    name: |
+      [[[
+        var separator = " - "
+        var icon_size = "20px;"
+
+        if(entity === undefined) {
+          return "Undefined"
+        }
+        
+        var on_icon_red =       "<ha-icon icon='mdi:fire' style='vertical-align:text-top; color: red; width: " + icon_size + " height: " + icon_size + "'></ha-icon>"
+        var on_icon_green =     "<ha-icon icon='mdi:fire' style='color: green; width: " + icon_size + " height: " + icon_size + "'></ha-icon>"
+        var off_icon =          "<ha-icon icon='mdi:fire-off' style='color: gray; width: " + icon_size + " height: " + icon_size + "'></ha-icon>"
+        var window_open_icon =  "<ha-icon icon='mdi:window-open-variant' style='width: " + icon_size + " height: " + icon_size + "'></ha-icon>"
+        var window_close_icon = "<ha-icon icon='mdi:window-closed-variant' style='width: " + icon_size + " height: " + icon_size + "'></ha-icon>"
+
+        var name = states[entity.entity_id].attributes.friendly_name
+
+        if (variables.show_mode_state == true & states[entity.entity_id].state === "heat") {
+          if (variables.show_valve_status == true & states[entity.entity_id].attributes.hvac_action === "idle") {
+            name = name + separator + on_icon_green
+          }
+          else {
+            name = name + separator + on_icon_red
+          }
+        } else if (variables.show_mode_state == true & states[entity.entity_id].state === "off") {
+           name = name + separator + off_icon
+        }
+        
+        if (variables.show_window_state == true & variables.window_open_boolean == true) {
+          name = name + separator + window_open_icon             
+        } else if (variables.show_window_state == true & variables.window_open_boolean == false){
+           name = name + separator + window_close_icon
+        }
+
+        return name
       ]]]
     show_icon: false
     styles:
@@ -39,7 +85,7 @@
         - grid-template-rows: min-content min-content min-content min-content
       card:
         - padding: 20px
-        - pointer-events: none 
+        - pointer-events: none
       name:
         - justify-self: start
         - align-self: end
@@ -63,14 +109,12 @@
         graph:
           - display: |
               [[[
-                if (variables.show_graph) {
+                if (variables.show_graph & entity !== undefined) {
                   return 'block';
                 }
                 else {
                   return 'none';
                 }
-
-              
               ]]]
           - position: absolute
           - left: 0
@@ -98,7 +142,7 @@
               card:
                 type: custom:button-card
                 icon: mdi:chevron-up
-                styles: &icon_style
+                styles:
                   icon:
                     - width: 25px
                   card:
@@ -113,48 +157,69 @@
                   data:
                     temperature: |
                       [[[
+                        if(entity === undefined) {
+                          return "Undefined"
+                        }
                         return states[entity.entity_id].attributes.temperature + 0.5;
                       ]]]
                   target:
-                    entity_id: '[[[ return entity.entity_id ]]]'
+                    entity_id: '[[[ return entity?.entity_id ]]]'
                 hold_action:
                   action: call-service
                   service: climate.turn_on
                   target:
-                    entity_id: '[[[ return entity.entity_id ]]]'
+                    entity_id: '[[[ return entity?.entity_id ]]]'
             item_2:
               card:
                 type: custom:button-card
                 icon: mdi:chevron-down
-                styles: *icon_style
+                styles:
+                  icon:
+                    - width: 25px
+                  card:
+                    - padding: 10px
+                    - border-radius: 500px
+                    - box-shadow: none
+                    - pointer-events: auto
+                    - background: none
                 tap_action:
                   action: call-service
                   service: climate.set_temperature
                   data:
                     temperature: |
                       [[[
-                        return states[entity.entity_id].attributes.temperature - 0.5;
+                         if(entity === undefined) {
+                           return "Undefined"
+                         }
+                         return states[entity.entity_id].attributes.temperature - 0.5;
                       ]]]
                   target:
-                    entity_id: '[[[ return entity.entity_id ]]]'
+                    entity_id: '[[[ return entity?.entity_id ]]]'
                 hold_action:
                   action: call-service
                   service: climate.turn_off
                   target:
-                    entity_id: '[[[ return entity.entity_id ]]]'
+                    entity_id: '[[[ return entity?.entity_id ]]]'
       graph:
         card:
           type: custom:mini-graph-card
           entities:
-            - entity: "[[[ return variables.graph_entity ]]]"
+            - entity: '[[[ return entity?.entity_id ]]]'
               show_fill: true
               show_line: false
+              attribute: temperature
+            - entity: >-
+                [[[ return variables.entity_room_temp != null ?
+                variables.entity_room_temp : entity?.entity_id ]]]
+              show_fill: false
+              show_graph: '[[[ return variables.entity_room_temp != null]]]'
           show:
             name: false
             icon: false
             state: false
+            legend: false
           line_width: 2
-          line_color: "[[[ return variables.graph_color ]]]"
+          line_color: '[[[ return variables.graph_color ]]]'
           card_mod:
             style: |
               ha-card {
