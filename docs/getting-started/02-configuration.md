@@ -76,4 +76,4 @@ Now when you go to your HomeAssistant webpage, you should see a new dashboard ca
 
 ![alt text](/img/other/example_view.png#light-mode-only)
 
-If everything works as espected, you are ready to configure your dashboard 🥳! You can find our other cards in the cards section in the menu on the left!
+If everything works as expected, you are ready to configure your dashboard 🥳! You can find our other cards in the cards section in the menu on the left!
