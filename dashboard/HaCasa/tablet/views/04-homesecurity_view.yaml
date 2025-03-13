@@ -1,0 +1,131 @@
+title: Home Security
+icon: mdi:shield
+path: "home-security"
+cards:
+#  - type: conditional
+#    conditions:
+#      - condition: state
+#        entity: media_player.spotify_damian_eickhoff
+#        state: playing
+#      - condition: screen
+#        media_query: '(min-width: 0px) and (max-width: 767px)'
+#    card:
+#      type: custom:button-card
+#      template: custom_card_mediaplayer_bottom
+#      entity: media_player.spotify_damian_eickhoff
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color1: 'var(--color-white)'
+          bgcolor1: 'var(--navbar-icon-color)'
+
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: hc_title_card_backbtn
+        name: Security
+      - type: custom:button-card
+        template: hc_glance_card
+        variables:
+          entity1: binary_sensor.entrance_door_sensor_opening
+          entity1_icon: fapro:door-closed
+          entity1_icon_color: var(--color-orange)
+          entity1_name: Entrance
+          entity2: binary_sensor.balcony_door_sensor_opening_2
+          entity2_icon: fapro:door-closed
+          entity2_icon_color: var(--color-orange)
+          entity2_name: Balcony
+      - type: custom:button-card
+        template: hc_glance_card
+        variables:
+          entity1: binary_sensor.kitchen_water_leakage_sensor_moisture
+          entity1_icon: fapro:dewpoint
+          entity1_icon_color: var(--color-orange)
+          entity1_name: Kitchen
+          entity2: binary_sensor.laundry_water_leakage_sensor_moisture
+          entity2_icon: fapro:dewpoint
+          entity2_icon_color: var(--color-orange)
+          entity2_name: Laundry
+#      - type: custom:button-card
+#        template:
+#          - custom_card_sensor_double
+#        variables:
+#          sensor1: binary_sensor.voordeur
+#          name1: Frontdoor
+#          icon1: fapro:door-closed
+#          color1: var(--color-purple)
+#          sensor2: binary_sensor.achterdeur
+#          name2: Backdoor
+#          icon2: fapro:door-closed
+#          color2: var(--color-teal)
+#        tap_action:
+#          action: navigate
+#          navigation_path: 'climate'
+      - type: custom:button-card
+        template: hc_security_card
+        entity: alarm_control_panel.alarmo
+        variables:
+          hc_security_code: 5939
+      - type: custom:button-card
+        template: custom_card_section_title
+        name: CCTV
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+        - type: custom:button-card
+          template: custom_card_camera
+          entity: camera.entrance_camera_hd_stream
+          name: Doorway
+        - type: custom:button-card
+          template: custom_card_camera
+          entity: camera.tapo_c200_hd_stream
+          name: Kids bedroom
+        - type: custom:button-card
+          template: custom_card_camera
+          entity: camera.chuangmi_ipc019_9725_camera_control
+          name: Master bedroom
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+        - type: custom:button-card
+          icon: fapro:battery-full
+          template: hc_sensor_card
+          entity: sensor.tradfri_remote_control_bateria
+          name: IKEA bedroom On/Off
+        - type: custom:button-card
+          icon: fapro:battery-full
+          template: hc_sensor_card
+          entity: sensor.office_ikea_switch_bateria
+          name: IKEA office On/Off
+        - type: custom:button-card
+          icon: fapro:battery-full
+          template: hc_sensor_card
+          entity: sensor.entrance_door_sensor_battery
+          name: Entrance door sensor
+        - type: custom:button-card
+          icon: fapro:battery-full
+          template: hc_sensor_card
+          entity: sensor.balcony_door_sensor_battery_2
+          name: Balcony door sensor
+        - type: custom:button-card
+          icon: fapro:battery-full
+          template: hc_sensor_card
+          entity: sensor.kitchen_water_leakage_sensor_battery
+          name: Kitchen water sensor
+        - type: custom:button-card
+          icon: fapro:battery-full
+          template: hc_sensor_card
+          entity: sensor.laundry_water_leakage_sensor_battery
+          name: Laundry water sensor
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px

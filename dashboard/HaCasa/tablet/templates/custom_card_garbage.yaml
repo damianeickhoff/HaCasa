@@ -1,0 +1,93 @@
+---
+custom_card_garbage_collection:
+  variables:
+    counter:
+  label: "[[[ return variables.label ]]]"
+  show_name: false
+  show_icon: false
+  show_label: true
+  show_state: false
+  tap_action: none
+  styles:
+    grid:
+      - grid-template-areas: '"item1 l" "item1 item2"'
+      - grid-template-rows: 3fr 2fr
+      - grid-template-columns: 40% 55%
+      - column-gap: 5%
+      - row-gap: 8px
+    card:
+      - height: auto
+      - border-radius: "var(--border-radius)"
+      - padding: 2rem
+      - overflow: visible
+      - justify-items: center
+      - justify-content: center
+    label:
+      - text-align: left
+      - font-size: 1rem
+      - font-family: 'Montserrat'
+      - font-weight: 600
+      - justify-self: start
+      - align-self: end
+    custom_fields:
+      item1:
+        - text-align: center
+        - font-size: "var(--fs-xl)"
+        - font-family: Montserrat
+        - font-weight: 700
+        - justify-self: center
+        - align-self: center
+        - overflow: visible
+        - z-index: 1
+      item2:
+        - align-self: start
+        - align-content: start
+        - align-items: start
+        - background: none
+  custom_fields:
+    item1: >
+      [[[ return variables.counter ]]]
+    item2:
+      card:
+        type: 'custom:button-card'
+        entity: "[[[ return entity.entity_id ]]]"
+        show_name: false
+        show_icon: true
+        show_label: true
+        show_state: false
+        tap_action:
+          action: toggle
+        styles:
+          grid:
+            - grid-template-areas: '"i l"'
+            - grid-template-rows: 1fr
+            - grid-template-columns: min-content 1fr
+            - column-gap: 8px
+          card:
+            - background: none
+            - overflow: visible
+            - padding: 0
+            - box-shadow: none
+          label:
+            - text-align: left
+            - font-size: 12px
+            - font-family: 'Montserrat'
+            - font-weight: 500
+            - text-align: left
+            - justify-self: start
+            - color: var(--color-dark-gray)
+          img_cell:
+            - justify-self: center
+          icon:
+            - width: "var(--button-small)"
+            - color: var(--color-dark-gray)
+            - padding: 0
+            - margin: 0
+            - width: 20px
+        state:
+          - value: "off"
+            label: Notification off
+            icon: mdi:toggle-switch-off-outline
+          - value: "on"
+            label: Notification on
+            icon: mdi:toggle-switch

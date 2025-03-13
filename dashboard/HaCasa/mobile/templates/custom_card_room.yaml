@@ -1,0 +1,92 @@
+custom_card_room:
+  variables:
+    hc_entity_1:
+    hc_entity_2:
+    hc_entity_3:
+  show_state: true
+  styles:
+    grid:
+      - grid-template-areas: |
+          'i s i1'
+          '. . i2'
+          'n n i3'
+      - grid-template-rows: 1fr 1fr 1fr
+      - grid-template-columns: min-content 1fr min-content
+      - justify-items: center
+    icon:
+      - width: 15px
+    img_cell:
+      - justify-self: start
+      - width: auto
+      - padding: 0
+      - margin: 0
+    name:
+      - justify-self: start
+      - font-size: 1.2rem
+      - font-weight: 600
+      - font-family: montserrat
+    state:
+      - justify-self: start
+      - font-size: 12px
+      - font-family: montserrat
+      - font-weight: 500
+    card:
+      - padding: 15px
+  custom_fields:
+    i1:
+      card:
+        type: custom:button-card
+        entity: '[[[ return variables.hc_entity_1]]]'
+        show_name: false
+        styles: &item_style
+          grid:
+            - grid-template-areas: '"i"'
+            - row-gap: 1px
+          card:
+            - box-shadow: none
+            - border-radius: 0
+          icon:
+            - width: 12px
+            - margin-top: '-5px'
+            - color: var(--color-darkest-gray)
+          img_cell:
+            - width: 12px
+            - height: 12px
+            - padding: 7px
+            - overflow: visible
+            - border-radius: 8px
+            - background: var(--color-light-gray-card)
+        state:
+          - value: 'on'
+            styles:
+              img_cell:
+                - background: var(--color-gold)
+              icon:
+                - color: white
+    i2:
+      card:
+        type: custom:button-card
+        entity: '[[[ return variables.hc_entity_2]]]'
+        show_name: false
+        styles: *item_style
+        state:
+          - value: 'on'
+            styles:
+              img_cell:
+                - background: var(--color-gold)
+              icon:
+                - color: white
+
+    i3:
+      card:
+        type: custom:button-card
+        entity: '[[[ return variables.hc_entity_3]]]'
+        show_name: false
+        styles: *item_style
+        state:
+          - value: 'on'
+            styles:
+              img_cell:
+                - background: var(--color-gold)
+              icon:
+                - color: white

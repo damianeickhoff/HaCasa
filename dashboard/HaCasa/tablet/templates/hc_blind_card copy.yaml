@@ -1,0 +1,232 @@
+hc_blind_card:
+  variables:
+    enable_slider: true
+    show_graph: true
+    position_sensor: sensor.blind_position_office
+  show_label: true
+  show_state: true
+  label: |
+    [[[
+      return states[entity.entity_id].attributes.current_position + '<sup style="font-size: 40px;">%</sup>';
+    ]]]
+  show_icon: false
+  styles:
+    grid:
+      - grid-template-areas: |
+            [[[
+              if (variables.enable_slider) {
+                  return '"l slider buttons" "n slider buttons" "s slider buttons" "graph graph graph"';
+              }
+                return '"l . buttons" "n . buttons" "s . buttons" "graph graph graph';
+            ]]]
+      - grid-template-columns: 1fr auto auto
+      - grid-template-rows: min-content auto min-content min-content
+      - column-gap: 10px
+    card:
+      - padding: 20px
+      - border-radius: 20px
+      - background-color: var(--card-background-color)
+    name:
+      - justify-self: start
+      - align-self: end
+      - font-family: Montserrat
+      - font-weight: 500
+      - z-index: 2
+    label:
+      - font-size: 5em
+      - justify-self: start
+      - align-self: start
+      - font-weight: 700
+      - font-family: Montserrat
+      - z-index: 2
+    state:
+      - justify-self: start
+      - opacity: 0.8
+      - font-size: 12px
+      - font-family: montserrat
+      - z-index: 2
+    custom_fields:
+      slider:
+        - display: >
+            [[[
+              if (states['input_boolean.cover_slider'].state == 'on') {
+                  return "block";
+              }
+              return "none";
+            ]]]   
+        - z-index: 5
+      graph:
+        - display: |
+            [[[
+              if (variables.show_graph) {
+                return 'block';
+              }
+              else {
+                return 'none';
+              }
+            ]]]
+        - position: absolute
+        - left: 0
+        - bottom: 0
+        - width: 100%
+        - z-index: 1
+  custom_fields:   
+    buttons:
+      card:
+        type: custom:button-card
+        styles:
+          grid:
+            - grid-template-areas: |
+                "up"
+                "middle"
+                "down"
+            - row-gap: 0.3rem
+          card:
+            - padding: 10px
+            - border-radius: 50px
+            - background-color: var(--contrast-10)
+            - z-index: 3
+        custom_fields:
+          up:
+            card:
+              type: custom:button-card
+              icon: mdi:chevron-up
+              styles: &icon_style
+                icon:
+                  - width: 25px
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+                  - box-shadow: none
+                  - pointer-events: auto
+                  - background: none
+              tap_action:
+                action: call-service
+                service: cover.open_cover
+                target:
+                  entity_id: '[[[ return entity.entity_id ]]]'
+          middle:
+            card:
+              type: custom:button-card
+              icon: mdi:menu
+              styles:
+                icon: 
+                  - color: var(--color-blue)
+                  - width: 25px
+                card:
+                    - padding: 10px
+                    - border-radius: 500px
+                    - box-shadow: none
+                    - pointer-events: auto
+                    - background: none
+              tap_action:
+                action: call-service
+                service: input_boolean.toggle
+                initial: off
+                target:
+                  entity_id: input_boolean.cover_slider
+          down:
+            card:
+              type: custom:button-card
+              icon: mdi:chevron-down
+              styles: *icon_style
+              tap_action:
+                action: call-service
+                service: cover.close_cover
+                target:
+                  entity_id: '[[[ return entity.entity_id ]]]'
+    slider:
+      card:
+        type: conditional
+        conditions:
+          - condition: state
+            entity: input_boolean.cover_slider
+            state: "on"
+        card:
+          type: custom:my-slider-v2
+          entity: "[[[ return entity.entity_id ]]]"
+          mode: "position"
+          showMin: true
+          aligh-self: start
+          z-index: 4
+          styles:
+            card:
+              - height: 160px
+              - width: 50px
+              - box-shadow: none
+              - border-radius: 12px
+              - background-color: var(--contrast-10)
+              - background: |                   
+                    [[[
+                      if (states[entity.entity_id].state === 'off') {
+                        return 'var(--background)';
+                      } else {
+                        return 'var(--card-background-color)';
+                      }
+                    ]]]
+              - border-radius: 12px
+            progress:
+              - height: 100%
+              - background: |
+                    [[[
+                      if (states[entity.entity_id].state === 'off') {
+                        return 'white';
+                      } else {
+                        return 'var(--color-blue)';
+                      }
+                    ]]]
+              - border-radius: 12px
+            track:
+              - background: |
+                  [[[
+                    if (states[entity.entity_id].state === 'on') {
+                      return 'var(--opacity-contrast-100)';
+                    } else {
+                      return 'var(--slider-color)';
+                    }
+                  ]]]
+              
+              - border-radius: 12px
+            thumb:
+              - height: 5px
+              - width: 30px
+              - background: |
+                      [[[
+                        if (states[entity.entity_id].state === 'off') {
+                          return 'black';
+                        } else {
+                          return 'white';
+                        }
+                      ]]]
+              - position: absolute
+              - bottom: 15px
+              - left: 10px
+              - border-radius: 50px
+    graph:
+      card:
+        type: custom:mini-graph-card
+        entities:
+          - entity: "[[[ return variables.position_sensor ]]]"
+            show_fill: true
+            show_line: false
+        show:
+          name: false
+          icon: false
+          state: false
+          fill: fade
+          points: false
+          labels: false
+        line_width: 2
+        line_color: "[[[ return variables.graph_color ]]]"
+        update_interval: 1
+        animate: true
+        z-index: 1
+        action: none
+        card_mod:
+          style: |
+            ha-card {
+              background: none;
+              box-shadow: none;
+              --ha-card-border-width: 0;
+              z-index: 1
+            }
