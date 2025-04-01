@@ -2,7 +2,7 @@
 [![Discord](https://img.shields.io/discord/1256323927152660521?style=for-the-badge&logo=discord&logoColor=white&labelColor=%23a3aaf8&label=Chat%20on%20Discord&color=%235966f2)](https://discord.com/invite/9uMs9zCT7d)
 ![GitHub Release](https://img.shields.io/github/v/release/damianeickhoff/HaCasa?display_name=release&style=for-the-badge&label=Latest%20release&color=%239aaed4)
 ![GitHub Repo stars](https://img.shields.io/github/stars/damianeickhoff/hacasa?style=for-the-badge&logo=github&label=Github%20Stars&labelColor=%23d4b392&color=%23f9f2e9)
-
+[![Ko-fi](https://img.shields.io/badge/support_me_on_ko--fi-F16061?style=for-the-badge&logo=kofi&logoColor=f5f5f5)](https://ko-fi.com/damianeickhoff)
 > [!important]
 > **Looking for help**
 > 
@@ -13,8 +13,6 @@
 > Whether you’re a designer, a developer, or just someone with a keen eye for detail, your input could make a huge difference.
 > Join our [Discord Server](https://discord.com/invite/9uMs9zCT7d) to discuss this further.
 >
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/damianeickhoff)
 
 ![header img](https://github.com/user-attachments/assets/874685cd-32d9-4952-9a46-6cd5345e0113)
 
