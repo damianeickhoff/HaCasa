@@ -1,0 +1,99 @@
+hc_graph_card:
+  variables:
+    color:
+  show_state: true
+  show_graph: true
+  show_label: true
+  styles:
+    grid:
+      - grid-template-areas: |
+          'n i'
+          'l i'
+          's i'
+          'graph graph'
+      - grid-template-rows: min-content min-content min-content min-content
+      - grid-template-columns: 1fr auto
+    card:
+      - padding-bottom: 0px
+    name:
+      - justify-self: start
+      - margin-left: 10px
+      - font-family: montserrat
+      - font-weight: 700
+      - font-size: 1rem
+      - z-index: 2
+      - padding-bottom: 5px
+    label:
+      - font-size: 0.8em
+      - justify-self: start
+      - margin-left: 10px
+      - font-weight: 700
+      - font-family: montserrat
+      - opacity: 0.8 
+      - z-index: 2
+      - padding-bottom: 10px
+    state:
+      - justify-self: start
+      - margin-left: 10px
+      - font-family: montserrat
+      - font-weight: 500
+      - font-size: 0.8rem
+      - opacity: 0.8   
+      - z-index: 2
+    icon:
+      - width: 50%
+      - color: white
+    img_cell:
+      - justify-self: end
+      - align-self: start
+      - width: 25px
+      - height: 25px
+      - padding: 5px
+      - margin-right: 10px
+      - background: '[[[ return variables.color ]]]'
+      - border-radius: 50%
+    custom_fields:
+      - graph:
+        - display: |
+            [[[
+              if (variables.show_graph) {
+                return 'block';
+              }
+              else {
+                return 'none';
+              }            
+            ]]]
+        - position: absolute
+        - left: 0
+        - bottom: 0
+        - width: 100%
+        - z-index: 1
+  custom_fields:
+    graph:
+      card:
+        type: custom:mini-graph-card
+        entities:
+          - entity: '[[[ return entity.entity_id ]]]'
+            show_fill: true
+            show_line: true
+        show:
+          name: false
+          icon: false
+          state: false
+          fill: fade
+          points: false
+          legend: false
+          indicator: false
+        line_width: 2
+        line_color: '[[[ return variables.color ]]]'
+        animate: true
+        hours_to_show: 120
+        points_per_hour: 0.1
+        card_mod:
+          style: |
+            ha-card {
+              background: none;
+              box-shadow: none;
+              --ha-card-border-width: 0;
+              z-index: 1
+            }           

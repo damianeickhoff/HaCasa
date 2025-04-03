@@ -1,0 +1,109 @@
+title: Office
+icon: mdi:home-automation
+path: "office"
+cards:
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color3: 'var(--color-white)'
+          bgcolor3: 'var(--navbar-icon-color)'
+
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: hc_title_card_backbtn
+        name: Office
+      - type: custom:button-card
+        template: hc_glance_card
+        variables:
+          entity1: sensor.office_ac_room_temperature
+          entity1_icon: fapro:thermometer
+          entity1_name: Temperature
+          entity1_icon_color: var(--color-orange)
+          entity2: sensor.zhimi_v7_b6a4_relative_humidity
+          entity2_icon: fapro:humidity
+          entity2_name: Humidity
+          entity2_icon_color: var(--color-orange)
+      - type: custom:button-card
+        template: hc_media_card
+        entity: media_player.plex_plexamp_ipad
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Air
+      - type: grid
+        columns: 1
+        square: false
+        cards:     
+        - type: custom:button-card
+          template: hc_climate_card
+          entity: climate.office_ac
+          variables:
+            graph_entity: sensor.office_ac_room_temperature
+            show_graph: true
+            graph_color: var(--color-blue)
+            show_mode_state: false 
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Lights
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:button-card
+            template: hc_light_card
+            entity: light.office_light
+            variables:
+              enable_slider: true
+              name: Main light
+          - type: custom:button-card
+            template: hc_light_card
+            entity: light.tiago_desk
+            variables:
+              enable_slider: true
+              name: Tiago's desk
+      - type: "custom:button-card"
+        template:
+        - custom_card_section_title
+        variables:
+          section_title: Blinds
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+        - type: "custom:button-card"
+          template: hc_blind_card
+          entity: cover.office_blind_cover
+          name: Window
+          variables:
+            position_sensor: sensor.blind_position_office
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Plugs
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: switch.3d_printer
+          variables:
+            power_entity: sensor.3d_printer_current_power
+            show_graph: true
+            graph_color: black
+            name_entity: 3D Printer
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px

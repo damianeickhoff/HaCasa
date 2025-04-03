@@ -1,0 +1,128 @@
+hc_glance_card:
+  variables:
+    entity1:
+    entity2:
+    entity3:
+    entity1_icon:
+    entity2_icon:
+    entity3_icon:
+    entity1_icon_color:
+    entity2_icon_color:
+    entity3_icon_color:
+    entity1_name:
+    entity2_name:
+    entity3_name:
+  styles:
+      grid:
+          - grid-template-areas: |
+              [[[
+                if (variables.entity1 && variables.entity2 && variables.entity3) {
+                    return '"item1 item2 item3"';
+                }
+                else if (variables.entity1 && variables.entity2) {
+                  return '"item1 item3 item2"';
+                }
+                else {
+                  return '"item2 item1 item3"';
+                }
+              ]]] 
+          - grid-template-columns: 1fr 1fr 1fr
+      card:
+          - padding: 18px
+      custom_fields:
+          item1:
+              - justify-self: |
+                  [[[
+                    if (variables.entity1 && variables.entity2 && variables.entity3) {
+                        return 'start';
+                    }
+                    else if (variables.entity1 && variables.entity2){
+                      return 'start';
+                    }
+                    else {
+                      return 'center' 
+                    }
+                  ]]]
+          item2:
+              - justify-self:  |
+                  [[[
+                    if (variables.entity1 && variables.entity2 && variables.entity3) {
+                        return 'center';
+                    }
+                    else if (variables.entity1 && variables.entity2){
+                      return 'end';
+                    }
+                    else {
+                      return 'start' 
+                    }
+                  ]]]
+          item3:
+              - justify-self:  |
+                  [[[
+                    if (variables.entity1 && variables.entity2 && variables.entity3) {
+                        return 'end';
+                    }
+                    else if (variables.entity1 && variables.entity2){
+                      return 'center';
+                    }
+                    else {
+                      return 'end' 
+                    }
+                  ]]]
+  custom_fields:
+      item1:
+          card:
+              type: custom:button-card
+              show_state: true
+              icon: "[[[ return variables.entity1_icon]]]"
+              entity: "[[[ return variables.entity1 ]]]"
+              name: "[[[ return variables.entity1_name ]]]" 
+              styles: &styles
+                  card:
+                      - border-radius: 0px
+                      - box-shadow: none
+                      - padding-right: 5px
+                  grid:
+                      - grid-template-areas: '"i n" "i s"'
+                      - grid-template-columns: min-content 
+                      - column-gap: 10px
+                  icon:
+                      - width: 20px
+                      - color: "[[[ return variables.entity1_icon_color ]]]"
+                  img_cell:
+                      - width: 20px
+                  name:
+                      - justify-self: start
+                      - font-size: 10px
+                      - font-family: montserrat
+                      - font-weight: 500
+                      - color: var(--color-dark-gray)
+                  state:
+                      - justify-self: start
+                      - font-size: 14px
+                      - font-weight: 600
+                      - font-family: montserrat
+      item2:
+          card:
+              type: custom:button-card
+              icon: "[[[ return variables.entity2_icon]]]"
+              entity: "[[[ return variables.entity2 ]]]"
+              name: "[[[ return variables.entity2_name ]]]" 
+              show_state: true
+              styles: 
+                <<: *styles
+                icon:
+                  - color: "[[[ return variables.entity2_icon_color]]]"
+                  - width: 20px
+      item3:
+          card:
+              type: custom:button-card
+              entity: "[[[ return variables.entity3 ]]]"
+              icon: "[[[ return variables.entity3_icon]]]"
+              name: "[[[ return variables.entity3_name ]]]" 
+              show_state: true
+              styles: 
+                <<: *styles
+                icon:
+                  - color: "[[[ return variables.entity3_icon_color]]]"
+                  - width: 20px

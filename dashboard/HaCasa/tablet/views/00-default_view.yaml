@@ -1,0 +1,109 @@
+title: Home
+path: "home"
+icon: mdi:home
+
+type: custom:layout-card
+layout_type: grid
+layout_options:
+  grid-template-areas: |
+    "greetings menu user"
+  grid-template-columns: 25% 50% 25%
+  grid-template-rows: 10% 40% 50%
+cards:
+  - type: vertical-stack
+    cards:
+      - type: conditional
+        conditions:
+          - condition: user
+            users:
+              - 79a5f81fbcf34661837f143bcb0b8372
+        card:
+          type: custom:button-card
+          template: custom_card_greeting
+          entity: person.tiago_2
+          name: "[[[ return states['sensor.welcome_time_of_day'].state + ' Tiago!']]]"
+          label: "[[[ return states['sensor.random_good_day'].state + '']]]"
+      - type: conditional
+        conditions:
+          - condition: user
+            users:
+              - c5f311c706ae415b8590648ccb121883
+        card:
+          type: custom:button-card
+          template: custom_card_greeting
+          entity: person.ipad
+          name: "[[[ return states['sensor.welcome_time_of_day'].state + ' Ana & Tiago!']]]"
+          label: "[[[ return states['sensor.random_good_day'].state + '']]]"
+      - type: conditional
+        conditions:
+          - condition: user
+            users:
+              - 5cbc0d4029044f6c9f146d8a41f49e6f
+        card:
+          type: custom:button-card
+          template: custom_card_greeting
+          entity: person.tiago
+          name: "[[[ return states['sensor.welcome_time_of_day'].state + ' Tiago!']]]"
+          label: "[[[ return states['sensor.random_good_day'].state + '']]]"
+      - type: conditional
+        conditions:
+          - condition: user
+            users:
+              - b9d804d0dbd74775a7dca9aa6256fcd5
+        card:
+          type: custom:button-card
+          template: custom_card_greeting
+          entity: person.ana
+          name: "[[[ return states['sensor.welcome_time_of_day'].state + ' Ana!']]]"
+          label: "[[[ return states['sensor.random_good_day'].state + '']]]"
+    
+    view_layout:
+      grid-area: greetings
+      place-self: center
+  - type: custom:button-card
+    template: custom_card_navigationbar
+    variables:
+      color1: 'var(--color-white)'
+      bgcolor1: 'var(--navbar-icon-color)'
+    view_layout:
+      grid-area: menu
+  - type: vertical-stack
+    cards:
+        - type: conditional
+          conditions:
+            - condition: user
+              users:
+                - 79a5f81fbcf34661837f143bcb0b8372
+          card:
+            type: custom:button-card
+            template: custom_card_user
+            entity: person.tiago_2
+        - type: conditional
+          conditions:
+            - condition: user
+              users:
+                - c5f311c706ae415b8590648ccb121883
+          card:
+            type: custom:button-card
+            template: custom_card_user
+            entity: person.ipad
+        - type: conditional
+          conditions:
+            - condition: user
+              users:
+                - 5cbc0d4029044f6c9f146d8a41f49e6f
+          card:
+            type: custom:button-card
+            template: custom_card_user
+            entity: person.tiago
+        - type: conditional
+          conditions:
+            - condition: user
+              users:
+                - b9d804d0dbd74775a7dca9aa6256fcd5
+          card:
+            type: custom:button-card
+            template: custom_card_user
+            entity: person.ana
+    view_layout:
+      grid-area: user

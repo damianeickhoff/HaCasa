@@ -1,0 +1,181 @@
+custom_card_navigationbar:
+  variables:
+    color1: var(--color-dark-gray)
+    color2: var(--color-dark-gray)
+    color3: var(--color-dark-gray)
+    color4: var(--color-dark-gray)
+    color5: var(--color-dark-gray)
+    color6: var(--color-dark-gray)
+    bgcolor1: var(--color-light-gray-nav)
+    bgcolor2: var(--color-light-gray-nav)
+    bgcolor3: var(--color-light-gray-nav)
+    bgcolor4: var(--color-light-gray-nav)
+    bgcolor5: var(--color-light-gray-nav)
+    bgcolor6: var(--color-light-gray-nav)
+  tap_action:
+    action: none
+  styles:
+    grid:
+      - grid-template-areas: '". item_1 item_2 item_3 item_4 item_5 item_6 ."'
+      - grid-template-columns: 1% 10% 10% 10% 10% 10%
+      - grid-template-rows: 1fr
+      - column-gap: 1.5rem
+    card:
+      - border-radius: 40px
+      - margin: 0
+      - background: none
+  custom_fields:
+    item_1:
+      card:
+        type: custom:button-card
+        icon: |
+          [[[
+            if (variables.bgcolor1 == 'var(--navbar-icon-color)') {
+              return 'fapro:house-fill'
+            } else {
+              return 'fapro:house'
+            }
+          ]]]
+        tap_action:
+          action: navigate
+          navigation_path: 'home'
+        styles:
+          icon:
+            - color: '[[[ return variables.color1 ]]]'
+          card:
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor1 ]]]'
+            - align-self: start
+    item_2:
+      card:
+        type: custom:button-card
+        icon: |
+          [[[
+            if (variables.bgcolor2 == 'var(--navbar-icon-color)') {
+              return 'fapro:couch-fill'
+            } else {
+              return 'fapro:couch'
+            }
+          ]]]
+        tap_action:
+          action: navigate
+          navigation_path: 'livingroom'
+        styles:
+          icon:
+            - color: '[[[ return variables.color2 ]]]'
+          card:
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor2 ]]]'
+            - align-self: start
+
+    item_3:
+      card:
+        type: custom:button-card
+        icon: |
+          [[[
+            if (variables.bgcolor3 == 'var(--navbar-icon-color)') {
+              return 'fapro:mouse-fill'
+            } else {
+              return 'fapro:mouse'
+            }
+          ]]]
+        tap_action:
+          action: navigate
+          navigation_path: 'office'
+        styles:
+          icon:
+            - color: '[[[ return variables.color3 ]]]'
+          card:
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor3 ]]]'
+            - align-self: start
+
+    item_4:
+      card:
+        type: custom:button-card
+        icon: |
+          [[[
+            if (variables.bgcolor4 == 'var(--navbar-icon-color)') {
+              return 'fapro:refrigerator-fill'
+            } else {
+              return 'fapro:refrigerator'
+            }
+          ]]]
+        tap_action:
+          action: navigate
+          navigation_path: 'kitchen'
+        styles:
+          icon:
+            - color: '[[[ return variables.color4 ]]]'
+          card:
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor4 ]]]'
+            - align-self: start
+    
+    item_5:
+      card:
+        type: custom:button-card
+        icon: |
+          [[[
+            if (variables.bgcolor5 == 'var(--navbar-icon-color)') {
+              return 'fapro:bed-fill'
+            } else {
+              return 'fapro:bed'
+            }
+          ]]]
+        tap_action:
+          action: navigate
+          navigation_path: 'mbedroom'
+        styles:
+          icon:
+            - color: '[[[ return variables.color5 ]]]'
+          card:
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor5 ]]]'
+            - align-self: start
+
+    item_6:
+      card:
+        type: custom:button-card
+        icon: |
+          [[[
+            if (variables.bgcolor6 == 'var(--navbar-icon-color)') {
+              return 'fapro:kbed-fill'
+            } else {
+              return 'fapro:kbed'
+            }
+          ]]]
+        tap_action:
+          action: navigate
+          navigation_path: 'kbedroom'
+        styles:
+          icon:
+            - color: '[[[ return variables.color6 ]]]'
+          card:
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10
+            - border-radius: 500px
+            - background: '[[[ return variables.bgcolor6 ]]]'
+            - align-self: start

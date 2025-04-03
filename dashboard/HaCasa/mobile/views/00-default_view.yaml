@@ -1,0 +1,165 @@
+title: Home
+path: "home"
+icon: mdi:home
+
+cards:
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color1: 'var(--color-white)'
+          bgcolor1: 'var(--navbar-icon-color)'
+  - type: vertical-stack
+    cards:
+    - type: conditional
+      conditions:
+        - condition: user
+          users:
+            - 79a5f81fbcf34661837f143bcb0b8372
+      card:
+        type: custom:button-card
+        template: custom_card_greeting
+        entity: person.tiago_2
+        name: "[[[ return states['sensor.welcome_time_of_day'].state + ' Tiago!']]]"
+        label: "[[[ return states['sensor.random_good_day'].state + '']]]"
+    - type: conditional
+      conditions:
+        - condition: user
+          users:
+            - c5f311c706ae415b8590648ccb121883
+      card:
+        type: custom:button-card
+        template: custom_card_greeting
+        entity: person.ipad
+        name: "[[[ return states['sensor.welcome_time_of_day'].state + ' Ana & Tiago!']]]"
+        label: "[[[ return states['sensor.random_good_day'].state + '']]]"
+    - type: conditional
+      conditions:
+        - condition: user
+          users:
+            - 5cbc0d4029044f6c9f146d8a41f49e6f
+      card:
+        type: custom:button-card
+        template: custom_card_greeting
+        entity: person.tiago
+        name: "[[[ return states['sensor.welcome_time_of_day'].state + ' Tiago!']]]"
+        label: "[[[ return states['sensor.random_good_day'].state + '']]]"    
+    - type: conditional
+      conditions:
+        - condition: user
+          users:
+            - b9d804d0dbd74775a7dca9aa6256fcd5
+      card:
+        type: custom:button-card
+        template: custom_card_greeting
+        entity: person.ana
+        name: "[[[ return states['sensor.welcome_time_of_day'].state + ' Ana!']]]"
+        label: "[[[ return states['sensor.random_good_day'].state + '']]]"
+    - type: custom:button-card
+      template: hc_glance_card
+      variables:
+        entity1: sensor.house_temperature
+        entity1_icon: fapro:thermometer
+        entity1_name: Temperature
+        entity1_icon_color: var(--color-orange)
+        entity2: sensor.zhimi_v7_b6a4_pm25_density
+        entity2_icon: mdi:air-filter
+        entity2_name: Air quality
+        entity2_icon_color: var(--color-orange)
+        entity3: sensor.zhimi_v7_b6a4_relative_humidity
+        entity3_icon: fapro:humidity
+        entity3_name: Humidity
+        entity3_icon_color: var(--color-orange)
+    - type: custom:button-card
+      template: hc_weather_card
+      entity: weather.home_2
+      variables:
+        name_entity: weather.home_2
+        label_entity: sensor.home_condition_day_0
+#    - type: grid
+#      columns: 1
+#      square: false
+#      cards:
+#        - type: custom:week-planner-card
+#          calendars:
+#            - entity: calendar.fernaze
+#              color: var(--color-dark-blue)
+#          days: 2
+#          compact: true 
+#          noCardBackground: false   
+#          maxEvents: 4
+#          card_mod:
+#            style: |
+#              .event.past {
+#                opacity: .3;
+#              }   
+    - type: custom:button-card
+      name: Home
+      variables:
+        hc_btn_1: input_boolean.day_scene
+        hc_name_btn_1: Day
+        hc_btn_2: input_boolean.night_scene
+        hc_name_btn_2: Night
+        hc_btn_3: input_boolean.work_scene
+        hc_name_btn_3: Work
+        hc_btn_4: input_boolean.gaming_scene
+        hc_name_btn_4: Gaming
+      template:
+        - custom_card_section_title_button
+    - type: grid
+      columns: 1
+      square: false
+      cards: 
+          - type: custom:button-card
+            template: hc_security_card
+            entity: alarm_control_panel.alarmo
+            variables:
+              hc_security_code: 5939
+    - type: grid
+      columns: 2
+      square: false
+      cards:      
+        - type: custom:button-card
+          template: hc_navigation_card
+          name: Smart<br>Home
+          entity: light.all_lights
+          icon: fapro:house
+          variables: 
+            label_prefix: 'Lights - ' # Prefix can by anything but the state of the entity will be added after it.
+            color: var(--color-orange) # color of the card when the state underneath is met (in this case, higher then 0)
+          state:
+            - value: on # Can also be 'on'
+              styles:
+                card:
+                  - background: "[[[ return variables.hc_color ]]]" # Let this be
+                name:
+                  - color: white
+                label:
+                  - color: white
+                icon:
+                  - color: var(--color-orange)
+            - value: off # Can also be 'off'
+              styles:
+                icon:
+                  - color: var(--color-orange) # color of the icon when the state is met (in this case, just 0)
+          tap_action:
+            action: navigate
+            navigation_path: smarthome
+        -  type: custom:button-card
+           template: hc_navigation_card_security
+           name: Home<br>Security
+           entity: alarm_control_panel.alarmo
+           variables: 
+             color: var(--color-red) # color of the card when the alarm is not off
+           tap_action:
+             action: navigate
+             navigation_path: home-security
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px

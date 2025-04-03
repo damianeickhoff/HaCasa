@@ -1,0 +1,113 @@
+title: Smarthome
+icon: mdi:home-automation
+path: "smarthome"
+cards:
+  - type: conditional
+    conditions:
+      - condition: screen
+        media_query: '(min-width: 0px) and (max-width: 767px)'
+    card:
+        type: custom:button-card
+        template: custom_card_navigationbar
+        variables:
+          color1: 'var(--color-white)'
+          bgcolor1: 'var(--navbar-icon-color)'
+
+  - type: vertical-stack
+    cards:
+      - type: custom:button-card
+        template: hc_title_card_backbtn
+        name: Smart Home
+      - type: custom:button-card
+        template: hc_glance_card
+        variables:
+          entity1: sensor.house_temperature
+          entity1_icon: fapro:thermometer
+          entity1_name: Temperature
+          entity1_icon_color: var(--color-orange)
+          entity2: sensor.zhimi_v7_b6a4_pm25_density
+          entity2_icon: mdi:air-filter
+          entity2_name: Air quality
+          entity2_icon_color: var(--color-orange)
+          entity3: sensor.zhimi_v7_b6a4_relative_humidity
+          entity3_icon: fapro:humidity
+          entity3_name: Humidity
+          entity3_icon_color: var(--color-orange)
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: AC
+      - type: custom:button-card
+        template: hc_climate_card
+        entity: climate.living_room_ac
+        variables:
+          graph_entity: sensor.zhimi_v7_b6a4_indoor_temperature
+          show_graph: true
+          graph_color: var(--color-blue)
+          show_mode_state: false
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Lights
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: custom:button-card
+            template: hc_light_card
+            entity: light.kitchen_counter_light
+            variables:
+              enable_slider: false
+              name: Kitchen
+          - type: custom:button-card
+            template: hc_light_card
+            entity: light.office_lights
+            variables:
+              enable_slider: true
+              name: Office
+          - type: custom:button-card
+            template: hc_light_card
+            entity: light.master_bedroom_candle_light
+            variables:
+              enable_slider: true
+              name: Master bedroom
+      - type: "custom:button-card"
+        template:
+          - custom_card_section_title
+        variables:
+          section_title: Plugs
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: switch.kidsroom_candle_light
+          variables:
+            power_entity: sensor.kidsroom_candle_light_current_consumption
+            show_graph: true
+            graph_color: black
+            name_entity: KBedroom<br>Light
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: switch.living_roomr_speakers
+          variables:
+            power_entity: sensor.living_roomr_speakers_current_power
+            show_graph: true
+            graph_color: black
+            name_entity: TV<br>Speakers
+        - type: custom:button-card
+          template: hc_switch_card
+          entity: switch.3d_printer
+          variables:
+            power_entity: sensor.3d_printer_current_power
+            show_graph: true
+            graph_color: black
+            name_entity: 3D<br>Printer
+  - type: 'custom:button-card' # adding some space between card and navbar
+    color_type: blank-card
+    styles:
+      card:
+        - height: 150px
