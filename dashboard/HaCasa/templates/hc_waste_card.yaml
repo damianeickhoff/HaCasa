@@ -1,0 +1,119 @@
+hc_waste_card:
+  #########################################################################
+  # EXAMPLE
+  #- type: custom:button-card
+  #  template: hc_waste_card
+  #  variables:
+  #    static_text: "Tage bis zur Abholung vom"
+  #    trash_entities:
+  #      - days: |
+  #          [[[ return states['sensor.restmull'].state || 0 ]]]
+  #        name: Restmüll
+  #        icon: far:trash-can
+  #        color: rgba(141, 123, 123, 1)
+  #      - days: |
+  #          [[[ return states['sensor.papierbehalter'].state || 0 ]]]
+  #        name: Papiermüll
+  #        icon: far:newspaper
+  #        color: rgba(141, 174, 202, 1)
+  #      - days: |
+  #          [[[ return states['sensor.wertstofftonne'].state || 0 ]]]
+  #        name: Wertstoff
+  #        icon: fas:recycle
+  #        color: rgba(151, 207, 201, 1)
+  #########################################################################
+
+  show_icon: false
+  show_name: false
+  show_label: false
+  variables:
+    trash_entities:
+
+    z: |
+      [[[
+        const trashData = variables.trash_entities.map(entity => ({
+          days: entity.days ? parseInt(entity.days, 10) : 0,
+          name: entity.name || "some Waste",
+          icon: entity.icon || "mdi:magnify",
+          color: entity.color || "rgba (141, 174, 202, 1)",
+        }));
+
+        // Sort array based on the left days: variable.days
+        trashData.sort((a, b) => a.days - b.days);
+
+        return JSON.stringify(trashData); // Als String zurückgeben
+      ]]]
+  styles:
+    grid:
+      - grid-template-areas: |
+          "first second third"
+      - grid-template-columns: 1fr 1fr 1fr
+    card:
+      - padding: 15px
+    custom_fields:
+      first:
+        - justify-self: start
+      second:
+        - justify-self: center
+      third:
+        - justify-self: end
+  custom_fields:
+    first:
+      card:
+        type: custom:button-card
+        template: trash-item
+        variables: |
+          [[[ return JSON.parse(variables.z)[0] || {}; ]]]
+    second:
+      card:
+        type: custom:button-card
+        template: trash-item
+        variables: |
+          [[[ return JSON.parse(variables.z)[1] || {}; ]]]
+    third:
+      card:
+        type: custom:button-card
+        template: trash-item
+        variables: |
+          [[[ return JSON.parse(variables.z)[2] || {}; ]]]
+
+trash-item:
+  icon: '[[[ return variables.icon || "mdi:alert-circle"; ]]]'
+  name: '[[[ return variables.name || "Unknown"; ]]]'
+  show_label: true
+  label: |
+    [[[ 
+      if (!variables.days) return 'n/a';
+      if (variables.days === 0) return "Today";
+      if (variables.days === 1) return "Tomorrow";
+      return variables.days + " days"
+    ]]]
+  styles:
+    grid:
+      - grid-template-areas: |
+          'i n'
+          'i l'
+      - grid-template-columns: min-content
+      - column-gap: 10px
+    icon:
+      - width: 20px
+      - color: |-
+          [[[ 
+            return variables.color
+          ]]]
+    card:
+      - border-radius: 0px
+      - box-shadow: none
+      - padding-right: 5px
+    img_cell:
+      - width: 20px
+    name:
+      - justify-self: start
+      - font-size: 10px
+      - font-family: montserrat
+      - font-weight: 500
+      - color: var(--color-dark-gray)
+    label:
+      - justify-self: start
+      - font-size: 10px
+      - font-weight: 700
