@@ -47,7 +47,7 @@ hc_weather_card:
               'hail': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
             };
             if 
-              (weather in gradientMap) return 'center / cover no-repeat url(/local/weather/bg-' + weather + '.svg), ' + gradientMap[weather]
+              (weather in gradientMap) return 'center / cover no-repeat url(/local/images/weather/bg-' + weather + '.svg), ' + gradientMap[weather]
             else
               return variables.var_card_color;            
           ]]]
@@ -100,7 +100,7 @@ hc_weather_card:
           </style>`
         if (!entity || !entity.state) return 'fas:question';
         const weather = entity.state.toLowerCase();
-        return style + '<img src = "/local/weather/' + weather + '.svg" class="center"/> ' || 'fas:question'
+        return style + '<img src = "/local/images/weather/' + weather + '.svg" class="center"/> ' || 'fas:question'
       ]]]
     f:
       card:
@@ -149,10 +149,11 @@ hc_weather_card:
                       "precip precip"
                   - grid-template-rows: min-content
                 card:
-                  - 
+                  - font-family: montserrat
                   - border-style: none
                   - background: none
                   - padding: 0
+                  - overflow: visible
                   - box-shadow: none
                 name:
                   - font-weight: 800
@@ -161,10 +162,15 @@ hc_weather_card:
                   - color: white
                 custom_fields:
                   icon:
-                    - width: 25px
+                    - width: 20px
+                    - height: auto
+                    - overflow: visible
                     - justify-self: center
-                    - margin-top: -5px
                     - margin-bottom: -5px
+                    - color: white
+                    - margin-right: 7px
+                  img_cell:
+                    - overflow: visible
                   precip:
                     - font-weight: 400
                     - opacity: 0.9
@@ -185,7 +191,7 @@ hc_weather_card:
                 icon: |
                   [[[
                     const weather = states[entity.entity_id].attributes.forecast[1].condition;
-                    return '<img src = "/local/weather-icons/' + weather + '.svg" class="color-white-svg" />'
+                    return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
                   ]]]
                 temp: |
                   [[[ 
@@ -220,7 +226,7 @@ hc_weather_card:
                 icon: |
                   [[[
                     const weather = states[entity.entity_id].attributes.forecast[2].condition;
-                    return '<img src = "/local/weather-icons/' + weather + '.svg" class="color-white-svg" />'
+                    return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
                   ]]]
                 temp: |
                   [[[ 
@@ -255,7 +261,7 @@ hc_weather_card:
                 icon: |
                   [[[
                     const weather = states[entity.entity_id].attributes.forecast[3].condition;
-                    return '<img src = "/local/weather-icons/' + weather + '.svg" class="color-white-svg" />'
+                    return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
                   ]]]
                 temp: |
                   [[[ 
@@ -287,7 +293,7 @@ hc_weather_card:
             - justify-self: start
             - font-size: 14px
             - font-weight: 500
-            - 
+            - font-family: montserrat
             - color: white
     label_right:
       card:
@@ -307,5 +313,5 @@ hc_weather_card:
             - justify-self: end
             - font-size: 14px
             - font-weight: 500
-            - 
+            - font-family: montserrat
             - color: white

@@ -2,6 +2,7 @@
 title: Theme design
 layout: page
 parent: Development
+nav_order: 0
 ---
 
 # Theme Design

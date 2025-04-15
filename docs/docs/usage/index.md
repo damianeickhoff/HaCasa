@@ -10,4 +10,5 @@ We made HaCasa easy to use but you need to know a few basics.
 
 It is depending on two things, namely using a theme and make extensive use of the template function from the custom_component button-card made by RomRaider. The design system consists of graphical buttons, that are changed depending on their use.
 
-WORK IN PROGRESS
+{: .warning }
+The current images aren't up to date, with exception for the [Navigation Bar Card](../usage/cards/hc_navigationbar_card.md), [Weather Card](../usage/cards/hc_weather_card.md) and the [Scene Card](../usage/cards/hc_scene_card.md). This will be fixed soon!
