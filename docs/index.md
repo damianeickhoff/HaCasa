@@ -7,7 +7,6 @@ nav_order: 0
 # Welcome to the HaCasa Documentation 💜
 
 [![Ko-fi](https://img.shields.io/badge/support_me_on_ko--fi-F16061?style=for-the-badge&logo=kofi&logoColor=f5f5f5)](https://ko-fi.com/damianeickhoff)
-
 [![Discord](https://img.shields.io/discord/1256323927152660521?style=for-the-badge&logo=discord&logoColor=white&labelColor=%23a3aaf8&label=Chat%20on%20Discord&color=%235966f2)](https://discord.com/invite/9uMs9zCT7d)
 ![GitHub Release](https://img.shields.io/github/v/release/damianeickhoff/HaCasa?display_name=release&style=for-the-badge&label=Latest%20release&color=%239aaed4)
 ![GitHub Repo stars](https://img.shields.io/github/stars/damianeickhoff/hacasa?style=for-the-badge&logo=github&label=Github%20Stars&labelColor=%23d4b392&color=%23f9f2e9)

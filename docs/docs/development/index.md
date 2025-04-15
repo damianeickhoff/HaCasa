@@ -5,19 +5,10 @@ layout: page
 
 # Development
 
-You can contribute to HaCasa by helping and developing a card. But, before you can do that, its important to know what the base rules are.
+HaCasa is designed with an open and flexible structure, enabling seamless adaptation and development to suit your needs.
 {: .fs-6 .fw-300 }
 
-## Theme
+To get started, explore our custom-cards page to understand the internal system that HaCasa utilizes. Additionally, you can check out the template files we use to customize and build upon.
+We understand that development can be a challenging process, but we deeply value every contribution to HaCasa. If you’ve created something remarkable, consider sharing it with the community. We are always eager to assist and incorporate your contributions into the main repository.
 
-Consistency is key and thus is it important to make use of the same style as all the other cards. Same borders, colors, fonts and layout. You can always start with the `base` template and modify it to your needs. But, to make it easier, I've provided a bunch of font styling and colors to use and play with.
-
-## Colors
-
-| Color value    | Font color utility   | Background color utility |
-|:---------------|:---------------------|:-------------------------|
-| <span class="d-inline-block p-2 mr-1 v-align-middle bg-purple-000"></span> `purple-000` | `.text-purple-000` | `.bg-purple-000` |
-| <span class="d-inline-block p-2 mr-1 v-align-middle bg-purple-100"></span> `purple-100` | `.text-purple-100` | `.bg-purple-100` |
-| <span class="d-inline-block p-2 mr-1 v-align-middle bg-purple-200"></span> `purple-200` | `.text-purple-200` | `.bg-purple-200` |
-| <span class="d-inline-block p-2 mr-1 v-align-middle bg-purple-300"></span> `purple-300` | `.text-purple-300` | `.bg-purple-300` |
-
+We are currently working on a streamlined process that will allow you to submit a pull request (PR) to our GitHub repository and upload your custom card. Stay tuned for an announcement once this feature is ready.
