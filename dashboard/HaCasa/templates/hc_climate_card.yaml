@@ -1,165 +1,145 @@
- hc_climate_card:
-    variables:
-      show_window_state: false
-      window_open_boolean: null
-      show_mode_state: true
-      show_graph: false
-      graph_entity:
-      graph_color: var(--color-red)
-    show_label: true
-    show_state: true
-    state_display: |
-      [[[
-        var state = "Currently " + states[entity.entity_id].attributes.current_temperature +'<p style="font-size:10px;display:inline;vertical-align:text-top">°</p>'
-        
-        if (variables.show_mode_state == true & states[entity.entity_id].state === "heat") {
-          state = state + ' - ' + "<ha-icon icon='mdi:fire' style='color: red; width: 14px; height: 14px'></ha-icon>"             
-        } else if (variables.show_mode_state == true & states[entity.entity_id].state === "off") {
-           state = state + ' - ' + "<ha-icon icon='mdi:power-off' style='width: 14px; height: 14px'></ha-icon>"
-        }
-        if (variables.show_window_state == true & variables.window_open_boolean == true) {
-          state = state + ' - ' + "<ha-icon icon='mdi:window-open-variant' style='width: 14px; height: 14px'></ha-icon>"             
-        } else if (variables.show_window_state == true & variables.window_open_boolean == false){
-           state = state + ' - ' + "<ha-icon icon='mdi:window-closed-variant' style='width: 14px; height: 14px'></ha-icon>"
-        }
-        return state     
-      ]]]
-    label: |
-      [[[
-        return states[entity.entity_id].attributes.temperature + '<sup style="font-size: 40px;">°</sup>'
-      ]]]
-    show_icon: false
-    styles:
-      grid:
-        - grid-template-areas: |
-            'l buttons'
-            'n buttons'
-            's buttons'
-            'graph graph'
-        - grid-template-rows: min-content min-content min-content min-content
-      card:
-        - padding: 20px
-        - pointer-events: none 
-      name:
-        - justify-self: start
-        - align-self: end
-        - font-family: montserrat
-        - font-weight: 500
-        - z-index: 2
-      label:
-        - font-size: 5em
-        - justify-self: start
-        - align-self: start
-        - font-weight: 700
-        - font-family: montserrat
-        - z-index: 2
-      state:
-        - justify-self: start
-        - opacity: 0.8
-        - font-size: 12px
-        - font-family: montserrat
-        - z-index: 2
-      custom_fields:
-        graph:
-          - display: |
-              [[[
-                if (variables.show_graph) {
-                  return 'block';
-                }
-                else {
-                  return 'none';
-                }
+hc_climate_card:
+  variables:
+    show_graph: true
+    graph_entity:
+    graph_color: var(--color-red)
+    current_temp_label: "Current Temperature: "
+  show_label: true
+  show_state: true
+  tap_action:
+    action: more-info
 
-              
-              ]]]
-          - position: absolute
-          - left: 0
-          - bottom: 0
-          - width: 100%
-          - z-index: 1
-    tap_action: none
+  state_display: |
+    [[[ 
+      return variables.current_temp_label + states[entity.entity_id].attributes.current_temperature + "°";
+    ]]]
+  label: |
+    [[[ return states[entity.entity_id].attributes.current_temperature + '<sup style="font-size: 40px;">°</sup>' ]]]
+  show_icon: false
+  styles:
+    grid:
+      - grid-template-areas: |
+          'l buttons'
+          'n buttons'
+          's buttons'
+          'graph graph'
+      - grid-template-rows: repeat(4, min-content)
+    card:
+      - padding: 20px
+    name:
+      - justify-self: start
+      - align-self: end
+      - font-weight: 600
+      - font-size: 14px
+      - z-index: 2
+      - margin-bottom: -7px
+      - pointer-events: none
+    label:
+      - font-size: 70px
+      - justify-self: start
+      - align-self: start
+      - font-weight: 700
+      - z-index: 2
+    state:
+      - justify-self: start
+      - color: var(--subtext-color)
+      - font-size: 12px
+      - margin-top: 4px
+      - font-weight: 500
+      - z-index: 2
     custom_fields:
-      buttons:
-        card:
-          type: custom:button-card
-          styles:
-            grid:
-              - grid-template-areas: |
-                  'item_1'
-                  'item_2'
-              - row-gap: 3rem
-            card:
-              - padding: 10px
-              - border-radius: 50px
-              - background-color: var(--contrast-10)
-              - z-index: 2
-          custom_fields:
-            item_1:
-              card:
-                type: custom:button-card
-                icon: mdi:chevron-up
-                styles: &icon_style
-                  icon:
-                    - width: 25px
-                  card:
-                    - padding: 10px
-                    - border-radius: 500px
-                    - box-shadow: none
-                    - pointer-events: auto
-                    - background: none
-                tap_action:
-                  action: call-service
-                  service: climate.set_temperature
-                  data:
-                    temperature: |
-                      [[[
-                        return states[entity.entity_id].attributes.temperature + 0.5;
-                      ]]]
-                  target:
-                    entity_id: '[[[ return entity.entity_id ]]]'
-                hold_action:
-                  action: call-service
-                  service: climate.turn_on
-                  target:
-                    entity_id: '[[[ return entity.entity_id ]]]'
-            item_2:
-              card:
-                type: custom:button-card
-                icon: mdi:chevron-down
-                styles: *icon_style
-                tap_action:
-                  action: call-service
-                  service: climate.set_temperature
-                  data:
-                    temperature: |
-                      [[[
-                        return states[entity.entity_id].attributes.temperature - 0.5;
-                      ]]]
-                  target:
-                    entity_id: '[[[ return entity.entity_id ]]]'
-                hold_action:
-                  action: call-service
-                  service: climate.turn_off
-                  target:
-                    entity_id: '[[[ return entity.entity_id ]]]'
       graph:
-        card:
-          type: custom:mini-graph-card
-          entities:
-            - entity: "[[[ return variables.graph_entity ]]]"
-              show_fill: true
-              show_line: false
-          show:
-            name: false
-            icon: false
-            state: false
-          line_width: 2
-          line_color: "[[[ return variables.graph_color ]]]"
-          card_mod:
-            style: |
-              ha-card {
-                background: none;
-                box-shadow: none;
-                --ha-card-border-width: 0;
-                z-index: 1
-              }
+        - display: |
+            [[[ return variables.show_graph ? 'block' : 'none' ]]]
+        - position: absolute
+        - left: 0
+        - bottom: -1px
+        - width: 100%
+        - z-index: 1
+  
+
+  custom_fields:
+    buttons:
+      card:
+        type: custom:button-card
+        styles:
+          grid:
+            - grid-template-areas: |
+                'item_1'
+                'item_2'
+                'item_3'
+            - row-gap: 1.20
+          card:
+            - padding: 10px
+            - border-radius: 50px
+            - box-shadow: none
+            - background-color: var(--button-card-background)
+            - z-index: 3
+          custom_fields:
+            item_2:
+              - opacity: 0.7
+        custom_fields:
+          item_1:
+            card:
+              type: custom:button-card
+              icon: mdi:chevron-up
+              styles: &icon_style
+                icon:
+                  - width: 25px
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+                  - box-shadow: none
+                  - background: none
+              tap_action:
+                action: call-service
+                service: climate.set_temperature
+                data:
+                  temperature: |
+                    [[[ return states[entity.entity_id].attributes.temperature + 0.5 ]]]
+                target:
+                  entity_id: "[[[ return entity.entity_id ]]]"
+              show: |
+                [[[ return states[entity.entity_id].attributes.hvac_mode === 'heat' ]]]
+          item_2: "[[[ return states[entity.entity_id].attributes.temperature + '°' ]]]"
+          item_3:
+            card:
+              type: custom:button-card
+              icon: mdi:chevron-down
+              styles: *icon_style
+              tap_action:
+                action: call-service
+                service: climate.set_temperature
+                data:
+                  temperature: |
+                    [[[ return states[entity.entity_id].attributes.temperature - 0.5 ]]]
+                target:
+                  entity_id: "[[[ return entity.entity_id ]]]"
+              show: |
+                [[[ return states[entity.entity_id].attributes.hvac_mode === 'heat' ]]]
+    graph:
+      card:
+        type: custom:mini-graph-card
+        entities:
+          - entity: "[[[ return variables.graph_entity ]]]"
+            show_fill: true
+            show_line: false
+        show:
+          name: false
+          icon: false
+          state: false
+          points: false
+          labels: false
+        height: 100
+        line_width: 2
+        line_color: "[[[ return variables.graph_color ]]]"
+        card_mod:
+          style: |
+            ha-card {
+              background: none;
+              box-shadow: none;
+              --ha-card-border-width: 0;
+              z-index: 1;
+            }
+        tap_action:
+          action: more-info

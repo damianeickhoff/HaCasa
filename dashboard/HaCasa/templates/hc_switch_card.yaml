@@ -16,31 +16,29 @@ hc_switch_card:
           'graph graph'
       - grid-template-rows: min-content min-content 1fr
     card:
-      - padding: 10px
+      - padding: 12px
+      - height: 100px
     name:
       - text-align: left
-      - font-family: Montserrat
       - font-weight: 700
       - justify-self: start
       - align-self: end
-      - font-size: 1rem
+      - font-size: 14px
     state:
       - text-align: left
-      - font-size: 0.8rem
-      - font-family: Montserrat
+      - font-size: 10px
       - font-weight: 500
       - justify-self: start
       - align-self: center
-      - opacity: 0.7
+      - color: var(--subtext-color)
     icon:
-      - width: 60%
+      - width: 50%
       - color: white
     img_cell:
       - background: var(--opacity-contrast-100)
-      - padding: 6px
       - border-radius: 50%
-      - width: 25px
-      - height: 25px
+      - width: 35px
+      - height: 35px
       - align-self: start
       - margin-bottom: 10px
     custom_fields:
@@ -56,14 +54,15 @@ hc_switch_card:
             ]]]
         - position: absolute
         - left: 0
-        - bottom: 0
+        - bottom: -1px
         - width: 100%
-        - z-index: 1      
+        - z-index: 1
+        - pointer-events: none
   state:
     - value: "on"
       styles:
         card:
-          - background: var(--color-green)
+          - background: var(--primary-color)
         name:
           - color: white
         label:
@@ -103,12 +102,21 @@ hc_switch_card:
           - entity: "[[[ return variables.power_entity ]]]"
             show_fill: "[[[ return variables.show_graph_fill ]]]"
             show_line: "[[[ return variables.show_graph_line ]]]"
+        animate: true 
         show:
           name: false
           icon: false
           state: false
-        line_width: 2
-        line_color: "[[[ return variables.graph_color ]]]"
+        line_width: 1
+        line_color: |
+            [[[
+              if (entity.state === "on" && variables.power_entity !== null) {
+                return variables.graph_color;
+              } else {
+                return 'var(--primary-color)';
+              }
+            ]]]   
+        hours_to_show: 24
         card_mod:
           style: |
             ha-card {

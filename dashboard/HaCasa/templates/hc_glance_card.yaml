@@ -3,12 +3,15 @@ hc_glance_card:
     entity1:
     entity2:
     entity3:
+    entity1_name:
+    entity2_name:
+    entity3_name:
     entity1_icon:
     entity2_icon:
     entity3_icon:
-    entity1_icon_color:
-    entity2_icon_color:
-    entity3_icon_color:
+    entity1_icon_color: var(--icon-color)
+    entity2_icon_color: var(--icon-color)
+    entity3_icon_color: var(--icon-color)
   styles:
       grid:
           - grid-template-areas: |
@@ -71,6 +74,7 @@ hc_glance_card:
           card:
               type: custom:button-card
               show_state: true
+              name: "[[[ return variables.entity1_name]]]"
               icon: "[[[ return variables.entity1_icon]]]"
               entity: "[[[ return variables.entity1 ]]]"
               styles: &styles
@@ -78,8 +82,9 @@ hc_glance_card:
                       - border-radius: 0px
                       - box-shadow: none
                       - padding-right: 5px
+                      - background: none
                   grid:
-                      - grid-template-areas: '"i n" "i s"'
+                      - grid-template-areas: '"i s" "i n"'
                       - grid-template-columns: min-content 
                       - column-gap: 10px
                   icon:
@@ -89,30 +94,30 @@ hc_glance_card:
                       - width: 20px
                   name:
                       - justify-self: start
-                      - font-size: 10px
-                      - font-family: montserrat
-                      - font-weight: 500
-                      - color: var(--color-dark-gray)
+                      - font-size: 12px
+                      - font-weight: 600
+                      - color: var(--subtext-color)
                   state:
                       - justify-self: start
                       - font-size: 14px
                       - font-weight: 600
-                      - font-family: montserrat
       item2:
           card:
               type: custom:button-card
               icon: "[[[ return variables.entity2_icon]]]"
+              name: "[[[ return variables.entity2_name]]]"
               entity: "[[[ return variables.entity2 ]]]"
               show_state: true
               styles: 
                 <<: *styles
                 icon:
                   - color: "[[[ return variables.entity2_icon_color]]]"
-                  - width: 20px
+                  - width: 20px                
       item3:
           card:
               type: custom:button-card
               entity: "[[[ return variables.entity3 ]]]"
+              name: "[[[ return variables.entity3_name]]]"
               icon: "[[[ return variables.entity3_icon]]]"
               show_state: true
               styles: 

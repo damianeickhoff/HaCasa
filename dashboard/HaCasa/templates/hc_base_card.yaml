@@ -1,0 +1,89 @@
+hc_base_card:
+  variables:
+    enable_slider: false
+    card_color: var(--primary-color)
+    custom_label: ''
+  label: |
+    [[[
+      if (states[entity.entity_id].attributes.brightness) {
+        var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
+        return variables.custom_label + (bri ? bri + '%': 'Off');
+      }
+      else {
+        return variables.custom_label + states[entity.entity_id].state;
+      }
+    ]]]
+  show_name: true
+  show_icon: true
+  show_label: true
+  show_state: false
+  styles:
+    grid:
+      - grid-template-areas: |
+            ". i" "n n" "l l"
+      - grid-template-rows: min-content min-content 1fr
+    card:
+      - padding: 12px
+      - height: 100px
+    name:
+      - text-align: left
+      - font-size: var(--font-size-primary)
+      - font-weight: var(--font-weight-primary)
+      - justify-self: start
+      - align-self: end
+    label:
+      - text-align: left
+      - font-size: var(--font-size-secondary)
+      - font-weight: var(--font-weight-secondary)
+      - justify-self: start
+      - align-self: center
+      - color: var(--subtext-color)
+      - padding-bottom: |
+          [[[
+            if (variables.enable_slider && states[entity.entity_id].attributes.brightness) {
+                return '10px';
+            }
+              return '0';
+          ]]]
+    icon:
+      - width: 50%
+      - color: var(--icon-color)
+    img_cell:
+      - background: var(--opacity-contrast-100)
+      - border-radius: 50%
+      - width: 35px
+      - height: 35px
+      - align-self: start
+      - margin-bottom: 10px
+      - justify-self: end
+  state:
+    - value: "on"
+      styles:
+        card:
+          - background: "[[[ return variables.card_color ]]]"
+        name:
+          - color: white
+        label:
+          - color: white
+        state:
+          - color: white
+        icon:
+          - color: white
+    - value: "off"
+      styles:
+        icon:
+          - color: var(--icon-color)
+        img_cell:
+          - background: var(--background-icon-color-default)
+    - value: "unavailable"
+      styles:
+        name:
+          - text-decoration: line-through
+        icon:
+          - color: var(--icon-color)
+        img_cell:
+          - background: var(--background-icon-color-default)
+        card:
+          - opacity: 0.6
+          - pointer-events: none
+      label: Unknown

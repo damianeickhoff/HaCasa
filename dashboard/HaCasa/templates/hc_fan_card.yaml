@@ -1,12 +1,17 @@
 hc_fan_card:
+  icon: fapro:fan-fill
   variables:
-    enable_osc_btn: 
+    enable_slider: true
+    card_color: var(--primary-color)
+    custom_label: ''
   label: |
     [[[
-      if (entity.state == 'on') {
-        return states[entity.entity_id].attributes.percentage + "%"
-      } else {
-        return 'Off'
+      if (states[entity.entity_id].attributes.percentage && states[entity.entity_id].state === 'on') {
+        var speed = states[entity.entity_id].attributes.percentage;
+        return variables.custom_label + (speed ? speed + '%': 'Off');
+      }
+      else {
+        return variables.custom_label + states[entity.entity_id].state;
       }
     ]]]
   show_name: true
@@ -16,55 +21,61 @@ hc_fan_card:
   styles:
     grid:
       - grid-template-areas: |
-          'n osc_icon i'
-          'l osc_icon i'
-          'slider slider slider'
+            [[[
+              if (variables.enable_slider && states[entity.entity_id].state === 'on') {
+                  return '"n i" "l i" "slider slider"';
+              }
+                return '". i" "n n" "l l"';
+            ]]]
       - grid-template-rows: min-content min-content 1fr
-      - column-gap: 5px
     card:
-      - padding: 10px
+      - padding: 12px
+      - height: 100px
     name:
       - text-align: left
-      - font-family: Montserrat
+      - font-size: 14px
       - font-weight: 700
       - justify-self: start
-      - align-self: star
-      - font-size: 1rem
+      - align-self: end
     label:
       - text-align: left
-      - font-size: 0.8rem
-      - font-family: Montserrat
+      - color: var(--subtext-color)
       - font-weight: 500
+      - font-size: 12px
       - justify-self: start
-      - align-self: start
-      - opacity: 0.7
-      - margin-bottom: 15px
+      - align-self: center
+      - padding-bottom: |
+          [[[
+            if (variables.enable_slider && states[entity.entity_id].state === 'on') {
+                return '10px';
+            }
+              return '0';
+          ]]]
     icon:
-      - width: 60%
+      - width: 50%
       - color: white
     img_cell:
       - background: var(--opacity-contrast-100)
-      - padding: 5px
       - border-radius: 50%
-      - width: 25px
-      - height: 25px
+      - width: 35px
+      - height: 35px
       - align-self: start
+      - margin-bottom: 10px
     custom_fields:
-      osc_icon:
+      slider:
         - display: >
             [[[
-              if (variables.enable_osc_btn) {
+              if (variables.enable_slider && states[entity.entity_id].state === 'on') {
                   return "block";
               }
               return "none";
-            ]]]
-        - justify-self: start
-        - align-self: start
+            ]]]      
   state:
     - value: "on"
+      icon: fapro:fan-fill
       styles:
         card:
-          - background: var(--color-blue)
+          - background: "[[[ return variables.card_color ]]]"
         name:
           - color: white
         label:
@@ -72,24 +83,26 @@ hc_fan_card:
         state:
           - color: white
         icon:
-          - animation-name: spin;
-          - animation-duration: 5000ms;
-          - animation-iteration-count: infinite;
-          - animation-timing-function: linear;        
+          - animation: spin 3s linear infinite;
     - value: "off"
       styles:
         icon:
-          - color: var(--icon-color-default)
+          - color: var(--icon-color)
         img_cell:
           - background: var(--background-icon-color-default)
-    - value: unavailable
+    - value: "unavailable"
       styles:
+        name:
+          - text-decoration: line-through
         icon:
-          - color: var(--icon-color-default)
+          - color: var(--icon-color)
         img_cell:
           - background: var(--background-icon-color-default)
-      label: Unavailable
-      icon: mdi:fan-question
+        card:
+          - opacity: 0.6
+          - pointer-events: none
+      label: Unknown
+      icon: fapro:fan
   extra_styles: |
     @keyframes spin {
       from {
@@ -98,7 +111,7 @@ hc_fan_card:
       to {
           transform:rotate(360deg);
       }
-    }     
+    }           
   custom_fields:
     slider:
       card:
@@ -109,93 +122,54 @@ hc_fan_card:
             - height: 30px
             - box-shadow: none
             - padding: 0
+            - touch-action: pan-y
+            - background: |                   
+                  [[[
+                    if (states[entity.entity_id].state === 'off') {
+                      return 'var(--background)';
+                    } else {
+                      return variables.card_color;
+                    }
+                  ]]]
+            - border-radius: 10px
           progress:
             - height: 100%
+            - touch-action: pan-y
             - background: |
-                [[[
-                  if (states[entity.entity_id].state === 'off') {
-                    return 'transparent';
-                  } else {
-                    return 'white';
-                  }
-                ]]]
-            - border-radius: 12px 12px 12px 12px
+                  [[[
+                    if (states[entity.entity_id].state === 'off') {
+                      return variables.card_color;
+                    } else {
+                      return 'white';
+                    }
+                  ]]]
+            - border-radius: 10px
           track:
+            - touch-action: pan-y
             - background: |
                 [[[
                   if (states[entity.entity_id].state === 'on') {
-                    return 'var(--color-light-blue)';
+                    return 'var(--opacity-contrast-100)';
                   } else {
                     return 'var(--slider-color)';
                   }
                 ]]]
-            - border-radius: 12px
+            
+            - border-radius: 10px
           thumb:
+            - touch-action: pan-y
             - height: 30%
             - background: |
-                [[[
-                  if (states[entity.entity_id].state === 'off') {
-                    return 'transparent';
-                  } else {
-                    return 'var(--color-blue)';
-                  }
-                ]]]
+                    [[[
+                      if (states[entity.entity_id].state === 'off') {
+                        return 'white';
+                      } else {
+                        return variables.card_color;
+                      }
+                    ]]]
             - position: absolute
             - right: 7px
             - top: 11px
             - width: 3px
-    osc_icon:
-      card:
-        type: custom:button-card
-        icon: |
-          [[[
-            if (entity.attributes.oscillating == 'false') {
-              return 'mdi:arrow-oscillating-off'
-            } else {
-              return 'mdi:arrow-oscillating'
-            }
-          ]]]
-        styles:
-          card:
-            - width: 35px
-            - height: 35px
-            - margin: 0
-            - padding: 0
-            - box-shadow: none
-            - background: none
-          icon:
-            - width: 50%
-            - color: |
-                  [[[
-                    if (entity.attributes.oscillating == 'false') {
-                      return ''
-                    } else {
-                      return 'white'
-                    }
-                  ]]]
-          img_cell:
-            - background: |
-                  [[[
-                    if (entity.attributes.oscillating == 'false') {
-                      return 'var(--background-icon-color-default)'
-                    } else {
-                      return 'var(--opacity-contrast-100)'
-                    }
-                  ]]]
-            - border-radius: 50px
-            - height: 100%
-        tap_action:
-          action: call-service
-          service: fan.oscillate
-          service_data:
-            entity_id: "[[[ return entity.entity_id ]]]"
-            oscillating: |
-              [[[
-                if (entity.attributes.oscillating == 'false') {
-                  return 'true'
-                } else {
-                  return 'false'
-                }
-              ]]]            
   hold_action:
     action: more-info

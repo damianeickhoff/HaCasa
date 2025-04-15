@@ -1,67 +1,40 @@
 hc_light_card:
-  icon: mdi:lightbulb
+  icon: fapro:lightbulb-on-fill
+  template: hc_base_card
   variables:
     enable_slider: false
-    card_color: var(--color-orange)
   label: |
     [[[
-      var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
-      return ' ' + (bri ? bri + '%': 'Off');
+      if (states[entity.entity_id].attributes.brightness) {
+        var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
+        return variables.custom_label + (bri ? bri + '%': 'Off');
+      }
+      else {
+        return variables.custom_label + states[entity.entity_id].state;
+      }
     ]]]
-  show_name: true
-  show_icon: true
-  show_label: true
-  show_state: false
   styles:
     grid:
       - grid-template-areas: |
             [[[
-              if (variables.enable_slider) {
+              if (variables.enable_slider && states[entity.entity_id].attributes.brightness) {
                   return '"n i" "l i" "slider slider"';
               }
                 return '". i" "n n" "l l"';
             ]]]
       - grid-template-rows: min-content min-content 1fr
-    card:
-      - padding: 10px
-    name:
-      - text-align: left
-      - font-size: 1rem
-      - font-family: Montserrat
-      - font-weight: 700
-      - justify-self: start
-      - align-self: end
-    label:
-      - text-align: left
-      - font-size: 0.8rem
-      - font-family: Montserrat
-      - font-weight: 500
-      - justify-self: start
-      - align-self: center
-      - opacity: 0.7
       - padding-bottom: |
           [[[
-            if (variables.enable_slider) {
+            if (variables.enable_slider && states[entity.entity_id].attributes.brightness) {
                 return '10px';
             }
               return '0';
           ]]]
-    icon:
-      - width: 60%
-      - color: white
-    img_cell:
-      - background: var(--opacity-contrast-100)
-      - padding: 6px
-      - border-radius: 50%
-      - width: 25px
-      - height: 25px
-      - align-self: start
-      - margin-bottom: 10px
     custom_fields:
       slider:
         - display: >
             [[[
-              if (variables.enable_slider) {
+              if (variables.enable_slider && states[entity.entity_id].attributes.brightness) {
                   return "block";
               }
               return "none";
@@ -81,7 +54,7 @@ hc_light_card:
     - value: "off"
       styles:
         icon:
-          - color: var(--icon-color-default)
+          - color: var(--icon-color)
         img_cell:
           - background: var(--background-icon-color-default)
     - value: "unavailable"
@@ -89,7 +62,7 @@ hc_light_card:
         name:
           - text-decoration: line-through
         icon:
-          - color: var(--icon-color-default)
+          - color: var(--icon-color)
         img_cell:
           - background: var(--background-icon-color-default)
         card:
@@ -102,6 +75,7 @@ hc_light_card:
       card:
         type: custom:my-slider-v2
         entity: "[[[ return entity.entity_id ]]]"
+        mode: brightness
         styles:
           card:
             - height: 30px

@@ -1,15 +1,17 @@
 hc_sensor_card:
+  template: hc_base_card
   show_name: true
   show_icon: true
   show_state: true
   show_last_changed: true
   variables:
-    card_color: var(--color-blue)
+    hc_card_color: var(--primary-color)
   state:
     - value: "on"
+      icon: "[[[ return variables.on_icon ]]]"
       styles:
         card:
-          - background: "[[[ return variables.card_color ]]]"
+          - background: "[[[ return variables.hc_card_color ]]]"
         name:
           - color: white
         state:
@@ -21,9 +23,7 @@ hc_sensor_card:
         label:
           - color: white
     - value: "off"
-      styles:
-        label:
-          - opacity: 0.5
+      icon: "[[[ return variables.off_icon ]]]"
   styles:
     grid:
       - grid-template-areas: |
@@ -33,39 +33,24 @@ hc_sensor_card:
       - grid-template-rows: min-content 1fr min-content
       - grid-template-columns: 1fr 1fr
     card:
-      - padding: 10px
-    icon:
-      - width: 50%
-    img_cell:
-      - background: var(--background-icon-color-default)
-      - padding: 6px
-      - border-radius: 50%
-      - width: 25px
-      - height: 25px
-      - align-self: start
-      - margin-bottom: 10px
-      - justify-self: end
+      - padding: 12px
     state:
       - justify-self: start
-      - font-size: 1rem
-      - font-weight: 700
+      - font-size: 12px
+      - font-weight: 800
       - padding-bottom: 10px
-      - font-family: montserrat
     name:
       - text-align: left
-      - font-size: 1rem
-      - font-family: Montserrat
+      - font-size: 12px
       - font-weight: 500
       - justify-self: start
       - align-self: end
       - overflow: visible
-      - font-size: 0.9rem
     label:
       - text-align: left
-      - font-size: 0.7rem
-      - font-family: Montserrat
+      - color: var(--subtext-color)
       - font-weight: 500
+      - font-size: 10px
       - justify-self: start
       - align-self: center
-      - opacity: 0.5
       - overflow: visible

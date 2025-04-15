@@ -4,8 +4,8 @@ hc_media_card:
   show_state: true
   show_name: false
   variables:
-    show_background_art: true
-    background_color: var(--color-purple)
+    hc_show_background_art: true
+    hc_background_color: var(--color-purple)
   state_display: >
     [[[ return states[entity.entity_id].attributes.media_artist ||
     'idle' ]]] 
@@ -24,10 +24,10 @@ hc_media_card:
       - padding: 10px
       - background: |
               [[[
-                if (variables.show_background_art) {
+                if (variables.hc_show_background_art) {
                     return "var(--opacity-contrast-0)";
                 }
-                return variables.background_color;
+                return variables.hc_background_color;
               ]]]
       - padding-right: 15px
     icon:
@@ -51,13 +51,13 @@ hc_media_card:
       - z-index: 1
       - color: white
       - align-self: center
-      - font-family: montserrat
+      - 
       - font-weight: 800
-      - font-size: 1.2rem
+      - font-size: 1.20
     state:
       - justify-self: center
-      - font-family: montserrat
-      - font-size: 1rem
+      - 
+      - font-size: 14px
       - color: white
       - z-index: 1
       - align-self: start
@@ -65,7 +65,7 @@ hc_media_card:
       background_cover:
         - display: >
             [[[
-              if (variables.show_background_art) {
+              if (variables.hc_show_background_art) {
                   return "block";
               }
               return "none";

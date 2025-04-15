@@ -5,8 +5,8 @@ hc_security_card:
   show_last_changed: true
   show_label: true
   variables:
-    color: var(--color-blue)
-    security_code: 
+    hc_icon_color: var(--primary-color)
+    hc_security_code: 
   styles:
     grid:
       - grid-template-areas: |
@@ -20,10 +20,10 @@ hc_security_card:
     label:
       - justify-self: start
       - align-self: start
-      - font-family: montserrat
+      - 
       - font-size: 12px
       - font-weight: 500
-      - color: var(--color-dark-gray)
+      - color: var(--subtext-color)
     img_cell:
       - position: absolute
       - top: 40%
@@ -31,33 +31,32 @@ hc_security_card:
       - overflow: visible
     icon:
       - position: absolute
-      - width: 15rem
-      - color: "[[[ return variables.color ]]]"
+      - width: 120px
+      - color: "[[[ return variables.hc_icon_color ]]]"
     name:
       - justify-self: start
       - font-size: 20px
       - font-weight: 600
-      - font-family: montserrat
+      - 
   state:
     - value: disarmed
       name: Disarmed
-      icon: fapro:shield-slash
+      icon: fapro:shield-fill-slash
     - value: armed_away
       name: Armed Away
-      icon: fapro:shield-keyhole
+      icon: fapro:shield-fill-keyhole
     - value: armed_home
       name: Armed Home
-      icon: fapro:shield-check
+      icon: fapro:shield-fill-check
     - value: arming
       name: Arming...
-      icon: fapro:shield
+      icon: fapro:shield-fill-keyhole
       styles:
         icon:
           - animation: flash 5s linear infinite
-          - color: var(--color-orange)
     - value: triggered
       name: Triggered!
-      icon: fapro:shield-exclamation
+      icon: fapro:shield-fill-exclamation
       styles:
         icon:
           - animation: flash 2s infinite
@@ -86,7 +85,8 @@ hc_security_card:
           card:
             - padding: 10px
             - border-radius: 50px
-            - background-color: var(--contrast-10)
+            - background-color: var(--button-card-background)
+            - box-shadow: none
         custom_fields:
           item1:
             card:
@@ -98,7 +98,7 @@ hc_security_card:
               styles:
                 icon:
                   - width: 25px
-                  - color: var(--text)
+                  - color: var(--icon-color)
                 card:
                   - padding: 10px
                   - border-radius: 500px
@@ -109,16 +109,16 @@ hc_security_card:
                 - value: armed_home
                   styles:
                     card:
-                      - background: "[[[ return variables.color ]]]"
+                      - background: "[[[ return variables.hc_icon_color ]]]"
                     icon:
-                      - color: white
+                      - color: '#fff'
               tap_action:
                 action: call-service
                 service: alarm_control_panel.alarm_arm_home
                 target:
                   entity_id: "[[[ return entity.entity_id ]]]"
                 data:
-                  code: "[[[ return variables.security_code ]]]"
+                  code: "[[[ return variables.hc_security_code ]]]"
           item2:
             card:
               type: custom:button-card
@@ -129,7 +129,7 @@ hc_security_card:
               styles:
                 icon:
                   - width: 25px
-                  - color: var(--text)
+                  - color: var(--icon-color)
                 card:
                   - padding: 10px
                   - border-radius: 500px
@@ -140,17 +140,17 @@ hc_security_card:
                 - value: armed_away
                   styles:
                     card:
-                      - background: "[[[ return variables.color ]]]"
+                      - background: "[[[ return variables.hc_icon_color ]]]"
                       - box-shadow: none
                     icon:
-                      - color: white
+                      - color: '#fff'
                 - value: arming
                   styles:
                     icon:
-                      - color: white
+                      - color: '#fff'
                       - animation: flash 5s linear infinite
                     card:
-                      - background: var(--color-orange)
+                      - background: var(--primary-color)
                       - box-shadow: none
               extra_styles: |
                 @keyframes flash {
@@ -164,7 +164,7 @@ hc_security_card:
                 target:
                   entity_id: "[[[ return entity.entity_id ]]]"
                 data:
-                  code: "[[[ return variables.security_code ]]]"
+                  code: "[[[ return variables.hc_security_code ]]]"
           item3:
             card:
               type: custom:button-card
@@ -175,17 +175,90 @@ hc_security_card:
               styles:
                 icon:
                   - width: 25px
-                  - color: var(--text)
+                  - color: var(--icon-color)
                 card:
                   - padding: 10px
                   - border-radius: 500px
                   - box-shadow: none
                   - pointer-events: auto
                   - background: none
+              state:
+                - value: disarmed
+                  styles:
+                    card:
+                      - background: "[[[ return variables.hc_icon_color ]]]"
+                    icon:
+                      - color: '#fff'               
               tap_action:
                 action: call-service
                 service: alarm_control_panel.alarm_disarm
                 target:
                   entity_id: "[[[ return entity.entity_id ]]]"
                 data:
-                  code: "[[[ return variables.security_code ]]]"
+                  code: "[[[ return variables.hc_security_code ]]]"
+
+hc_security_card_small:
+  show_icon: true
+  show_name: true
+  styles:
+    grid:
+      - grid-template-areas: |
+          ". i n ."
+      - grid-template-columns: 1fr min-content min-content 1fr
+    card:
+      - padding: 15px
+      - margin: 0
+    icon:
+      - width: 50%
+      - padding: 0
+      - margin: 0
+      - color: var(--subtext-color)
+    img_cell:
+      - width: 35px
+      - padding: 0
+      - margin: 0
+    name:
+      - 
+      - font-weight: 600
+      - color: var(--subtext-color)
+  state:
+    - value: disarmed
+      icon: fapro:shield-fill-slash
+      name: Alarm is disabled
+    - value: arming
+      icon: fapro:shield-fill-keyhole
+      name: Alarm is arming
+      styles:
+        card:
+          - background: var(--color-orange)
+        icon:
+          - animation: flash 2s infinite
+          - color: var(--subtext-color)
+        name:
+          - color: var(--subtext-color)
+    - value: armed_away
+      icon: fapro:shield-fill-keyhole
+      name: Alarm is enabled
+      styles:
+        card:
+          - background: var(--color-red)
+        name:
+          - color: '#fff'
+        icon:
+          - color: '#fff'
+    - value: armed_home
+      icon: fapro:shield-fill-check
+      name: Alarm is enabled
+      styles:
+        card:
+          - background: var(--color-green)
+        name:
+          - color: '#fff'
+        icon:
+          - color: '#fff'              
+  extra_styles: |
+    @keyframes flash {
+      0% {opacity: 100%;}
+      50% {opacity: 0%;}
+      100% {opacity: 100%;}
+    }

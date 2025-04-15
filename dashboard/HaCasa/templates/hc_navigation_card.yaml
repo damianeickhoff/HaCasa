@@ -4,12 +4,11 @@ hc_navigation_card:
   show_state: false
   show_label: true
   variables:
-    label_prefix: ""
-    icon_color: ""
-    color: ""
-    state_value: ""
+    hc_label_prefix: "On - "
+    hc_icon_color: ""
+    hc_color: "var(--color-blue)"
   label: |
-    [[[ return variables.label_prefix + states[entity.entity_id].state ]]]
+    [[[ return variables.hc_label_prefix + states[entity.entity_id].state ]]]
   styles:
     grid:
       - grid-template-areas: |
@@ -18,21 +17,19 @@ hc_navigation_card:
       - grid-template-rows: 1fr 1fr
     card:
       - padding: 20px
-      - height: 110px
+      - height: auto
     name:
       - text-align: left
-      - font-size: 1.3rem
-      - font-family: Montserrat
+      - font-size: 16px
       - font-weight: 800
       - justify-self: start
       - align-self: start
     label:
-      - opacity: 0.6
       - justify-self: start
       - align-self: end
-      - font-family: Montserrat
-      - font-size: 0.8rem
-      - font-weight: 500 
+      - font-size: 12px
+      - font-weight: 600 
+      - color: var(--subtext-color)
     img_cell:
       - position: absolute
       - top: 20%
@@ -42,7 +39,7 @@ hc_navigation_card:
       - position: absolute
       - width: 15em
       - opacity: 90%
-      - color: "[[[ return variables.icon_color ]]]"
+      - color: "var(--primary-color)"
 
 hc_navigation_card_security:
   template: hc_navigation_card
@@ -60,10 +57,10 @@ hc_navigation_card_security:
       label: Armed Home
       icon: fapro:shield-check
       styles:
+        card:
+          - background: var(--color-green)
         icon:
           - color: white
-        card:
-          - background: var(--color-blue)
         name:
           - color: white
         label:
@@ -72,8 +69,6 @@ hc_navigation_card_security:
       label: Armed Away
       icon: fapro:shield-keyhole
       styles:
-        card:
-          - background: var(--color-blue)
         name:
           - color: white
         label:
@@ -85,7 +80,7 @@ hc_navigation_card_security:
       icon: fapro:shield
       styles:
         icon:
-          - color: var(--color-blue)
+          - color: var(--primary-color)
     - value: triggered
       label: Triggered!
       icon: fapro:shield-exclamation
@@ -93,8 +88,6 @@ hc_navigation_card_security:
         icon:
           - color: white
           - animation: flash 2s infinite
-        card:
-          - background: var(--color-red)
         name:
           - color: white
         state:
