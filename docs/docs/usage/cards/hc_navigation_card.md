@@ -30,14 +30,14 @@ This card is also used for the security card. Use the tabs beneath to switch bet
       - value: 0 # Can also be 'on'
         operator: '>' # if value above is 'on', remove this line
         styles:
-            card:
-              - background: "[[[ return variables.hc_color ]]]" # Let this be
-            name:
-              - color: white
-            label:
-              - color: white
-            icon:
-              - color: white
+          card:
+            - background: "[[[ return variables.hc_color ]]]" # Let this be
+          name:
+            - color: white
+          label:
+            - color: white
+          icon:
+            - color: white
       - value: 0 # Can also be 'off'
         styles:
             icon:
