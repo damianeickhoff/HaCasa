@@ -14,6 +14,7 @@ Now that we have downloaded and placed the files, its time to do some configurat
 1. Open your `configuration.yaml` file. This file is located in the root of your Home Assistant instance.
 2. Add the following code to the top of your file to load frontend themes. This is a part of Home Assistant itself and not HaCasa's. Place it underneath `default_config:` if you have that.
 
+
     ```yaml
     # Load frontend themes from the themes folder
     frontend:
