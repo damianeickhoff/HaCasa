@@ -3,16 +3,6 @@ hc_base_card:
     enable_slider: false
     card_color: var(--primary-color)
     custom_label: ''
-  label: |
-    [[[
-      if (states[entity.entity_id].attributes.brightness) {
-        var bri = (Math.round(states[entity.entity_id].attributes.brightness / 2.55));
-        return variables.custom_label + (bri ? bri + '%': 'Off');
-      }
-      else {
-        return variables.custom_label + states[entity.entity_id].state;
-      }
-    ]]]
   show_name: true
   show_icon: true
   show_label: true
