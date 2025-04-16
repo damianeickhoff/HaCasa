@@ -5,31 +5,27 @@ layout: page
 parent: Cards
 ---
 
-import CodeBlock from '@theme/CodeBlock';
-import MyComponentSource from '!!raw-loader!/dashboard/HaCasa/templates/hc_header_card.yaml';
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+The `hc_header_card` is used on top of your dashboard. 
 
-The `hc_header_card` is used on top of your dashboard. It provides a button to navigate to the HA menu, a button to enable your alarm and a button for a person. 
-The last two buttons will change color depending the state.
+The header card will always show the weather conditions and the date. Its possible to hide the air quality and person when you don't use that variable.
 
 ![Header Card Light](../../../assets/images/cards/hc_header_card/headercard_light.png)
 
 ## Usage
 
 ```yaml
-type: custom:button-card
-template: hc_header_card
-variables:
-  security_entity: <your alarm entity>
-  person_entity: <your person entity>
-  person_name: <Name>
+    - type: custom:button-card
+      template: hc_header_card
+      entity: weather.buienradar
+      variables:
+        air_quality_sensor: sensor.<airqualitysensor>
+        person_entity: person.<person>
 ```
 
 ## Variables
 
 | Variable | Default | Required | Description|
 |----------|---------|----------|------------|
-| security_entity | / | **Yes** | Needed for the security card |
-| person_entity | / | **Yes** | Needed for the person card |
-| person_name | / | No | The name of the person (like a abbreviation) |
+| entity | / | **Yes** | Needed for the weather condition |
+| person_entity | / | No | Needed for the person card |
+| air_quality_sensor | / | No | The entity for air quality|

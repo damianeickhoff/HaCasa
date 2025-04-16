@@ -1,5 +1,5 @@
 hc_light_card:
-  icon: fapro:lightbulb-on-fill
+  icon: fapro:lightbulb-on
   template: hc_base_card
   variables:
     enable_slider: false

@@ -4,7 +4,7 @@ layout: page
 parent: Cards
 ---
 
-# HC Light Card
+# Light Card
 The `hc_light_card` is used to turn on and off a light. You have the option to show or hide the bightness slider.
 
 
