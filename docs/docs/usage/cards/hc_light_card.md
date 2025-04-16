@@ -13,7 +13,7 @@ The `hc_light_card` is used to turn on and off a light. You have the option to s
 ## Usage
 
 ```yaml
-    type: custom:button-card
+  - type: custom:button-card
     template: hc_light_card
     entity: <your light entity>
     variables:

@@ -15,21 +15,21 @@ This card is fairly simple. The most important part is that you change the backg
 
 ### View code
 ```yaml
-    - type: custom:button-card
-      template: hc_navigationbar_card
-      variables:
-        icon_color_1: white
-        background_color_1: var(--primary-color)
-        navigation_path_1: home
-        icon_1: fapro:house
-        navigation_path_2: climate
-        icon_2: fapro:thermometer
-        navigation_path_3: devices
-        icon_3: fapro:plug
-        entity_3: switch.all_switches
-        navigation_path_4: media
-        icon_4: fapro:music
-        entity_4: 'media_player.all_media'
+  - type: custom:button-card
+    template: hc_navigationbar_card
+    variables:
+      icon_color_1: white
+      background_color_1: var(--primary-color)
+      navigation_path_1: home
+      icon_1: fapro:house
+      navigation_path_2: climate
+      icon_2: fapro:thermometer
+      navigation_path_3: devices
+      icon_3: fapro:plug
+      entity_3: switch.all_switches
+      navigation_path_4: media
+      icon_4: fapro:music
+      entity_4: 'media_player.all_media'
 ```        
 
 ## Variables

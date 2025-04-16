@@ -16,9 +16,9 @@ With the `hc_media_card` you can control your media. It can show the album art a
 ## Usage
 
 ```yaml
-type: custom:button-card
-template: hc_media_card
-entity: <media entity>
+  - type: custom:button-card
+    template: hc_media_card
+    entity: <media entity>
 ```
 
 ## Variables

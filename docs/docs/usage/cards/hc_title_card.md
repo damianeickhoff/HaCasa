@@ -20,21 +20,21 @@ The `hc_title_card_backbtn` is a card that shows a title and a back button. The 
 ## Usage Title
 
 ```yaml
-type: custom:button-card
-template: hc_title_card
-name: <title>
-label: <subtitle>
-variables:
-    entity1: <entity>
-    entity1_name: <entity name>
+  - type: custom:button-card
+    template: hc_title_card
+    name: <title>
+    label: <subtitle>
+    variables:
+      entity1: <entity>
+      entity1_name: <entity name>
 ```
 
 ## Usage Backbutton
 
 ```yaml
-type: custom:button-card
-template: hc_title_card_backbtn
-name: The Climate
+  - type: custom:button-card
+    template: hc_title_card_backbtn
+    name: The Climate
 ```
 
 ## Variables

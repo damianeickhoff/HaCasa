@@ -19,36 +19,36 @@ Before you can use this card, you need to have a custom sensor that gets the for
 
 {% raw %}
 ```yaml
-  - trigger:
-      - trigger: time_pattern
-        hours: /1
-      - trigger: event
-        event_type: event_template_reloaded
-    action:
-      - action: weather.get_forecasts
-        target:
-          entity_id:
-            - weather.home
-        data:
-          type: daily
-        response_variable: dailyforecast
-    sensor:
+- trigger:
+    - trigger: time_pattern
+      hours: /1
+    - trigger: event
+      event_type: event_template_reloaded
+  action:
+    - action: weather.get_forecasts
+      target:
+        entity_id:
+          - weather.home
+      data:
+        type: daily
+      response_variable: dailyforecast
+  sensor:
 
-      - name: Weather Entity Forecast
-        unique_id: weather_entity_forecast
-        state: "{{ states('weather.home') }}"
-        icon: mdi:hours-24
-        attributes:
-          condition: "{{ states('weather.home') }}"
-          cloud_coverage: "{{ state_attr('weather.home','cloud_coverage') }}"
-          temperature: "{{ state_attr('weather.home','temperature')  }}"
-          wind_speed: "{{ state_attr('weather.home','wind_speed')  }}"
-          wind_gust: "{{ state_attr('weather.home','wind_gust_speed')  }}"
-          dew_point:  "{{ state_attr('weather.home','dew_point') }}"
-          wind_bearing:  "{{ state_attr('weather.home','wind_bearing') }}"
+    - name: Weather Entity Forecast
+      unique_id: weather_entity_forecast
+      state: "{{ states('weather.home') }}"
+      icon: mdi:hours-24
+      attributes:
+        condition: "{{ states('weather.home') }}"
+        cloud_coverage: "{{ state_attr('weather.home','cloud_coverage') }}"
+        temperature: "{{ state_attr('weather.home','temperature')  }}"
+        wind_speed: "{{ state_attr('weather.home','wind_speed')  }}"
+        wind_gust: "{{ state_attr('weather.home','wind_gust_speed')  }}"
+        dew_point:  "{{ state_attr('weather.home','dew_point') }}"
+        wind_bearing:  "{{ state_attr('weather.home','wind_bearing') }}"
 
-          datetime: "{{ dailyforecast['weather.home'].forecast[0].datetime }}"
-          forecast: "{{ daily forecast['weather.home'].forecast }}"
+        datetime: "{{ dailyforecast['weather.home'].forecast[0].datetime }}"
+        forecast: "{{ dailyforecast['weather.home'].forecast }}"
 ```
 {% endraw %}
 
@@ -62,6 +62,8 @@ Now, you should have a new sensor called `sensor.weather_entity_forecast` which 
       - type: custom:button-card
         template: hc_weather_card
         entity: sensor.weather_entity_forecast
+        variable:
+          show_forecast: false
 ```
 
 ## Variables

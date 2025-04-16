@@ -14,12 +14,12 @@ The header card will always show the weather conditions and the date. Its possib
 ## Usage
 
 ```yaml
-    - type: custom:button-card
-      template: hc_header_card
-      entity: weather.buienradar
-      variables:
-        air_quality_sensor: sensor.<airqualitysensor>
-        person_entity: person.<person>
+  - type: custom:button-card
+    template: hc_header_card
+    entity: weather.buienradar
+    variables:
+      air_quality_sensor: sensor.<airqualitysensor>
+      person_entity: person.<person>
 ```
 
 ## Variables

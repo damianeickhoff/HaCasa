@@ -18,10 +18,10 @@ You can add minimun 1 and maximum 3 entities. The card will automatically adjust
 
 
 ```yaml
-type: custom:button-card
-template: hc_glance_card
-variables:
-    entity1: <Your sensor>
+  - type: custom:button-card
+    template: hc_glance_card
+    variables:
+        entity1: <Your sensor>
 ```
 
 ## Variables
