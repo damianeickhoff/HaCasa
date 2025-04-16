@@ -59,11 +59,11 @@ Now, you should have a new sensor called `sensor.weather_entity_forecast` which 
 ### View code
 
 ```yaml
-      - type: custom:button-card
-        template: hc_weather_card
-        entity: sensor.weather_entity_forecast
-        variable:
-          show_forecast: false
+  - type: custom:button-card
+    template: hc_weather_card
+    entity: sensor.weather_entity_forecast
+    variables:
+      show_forecast: false
 ```
 
 ## Variables

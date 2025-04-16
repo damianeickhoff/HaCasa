@@ -23,13 +23,6 @@ hc_light_card:
                 return '". i" "n n" "l l"';
             ]]]
       - grid-template-rows: min-content min-content 1fr
-      - padding-bottom: |
-          [[[
-            if (variables.enable_slider && states[entity.entity_id].attributes.brightness) {
-                return '10px';
-            }
-              return '0';
-          ]]]
     custom_fields:
       slider:
         - display: >
