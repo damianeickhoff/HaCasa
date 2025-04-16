@@ -41,22 +41,22 @@ hc_security_card:
   state:
     - value: disarmed
       name: Disarmed
-      icon: fapro:shield-fill-slash
+      icon: fapro:shield-slash
     - value: armed_away
       name: Armed Away
-      icon: fapro:shield-fill-keyhole
+      icon: fapro:shield-keyhole
     - value: armed_home
       name: Armed Home
-      icon: fapro:shield-fill-check
+      icon: fapro:shield-check
     - value: arming
       name: Arming...
-      icon: fapro:shield-fill-keyhole
+      icon: fapro:shield-keyhole
       styles:
         icon:
           - animation: flash 5s linear infinite
     - value: triggered
       name: Triggered!
-      icon: fapro:shield-fill-exclamation
+      icon: fapro:shield-exclamation
       styles:
         icon:
           - animation: flash 2s infinite
@@ -223,10 +223,10 @@ hc_security_card_small:
       - color: var(--subtext-color)
   state:
     - value: disarmed
-      icon: fapro:shield-fill-slash
+      icon: fapro:shield-slash
       name: Alarm is disabled
     - value: arming
-      icon: fapro:shield-fill-keyhole
+      icon: fapro:shield-keyhole
       name: Alarm is arming
       styles:
         card:
@@ -237,7 +237,7 @@ hc_security_card_small:
         name:
           - color: var(--subtext-color)
     - value: armed_away
-      icon: fapro:shield-fill-keyhole
+      icon: fapro:shield-keyhole
       name: Alarm is enabled
       styles:
         card:
@@ -247,7 +247,7 @@ hc_security_card_small:
         icon:
           - color: '#fff'
     - value: armed_home
-      icon: fapro:shield-fill-check
+      icon: fapro:shield-check
       name: Alarm is enabled
       styles:
         card:

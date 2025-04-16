@@ -14,9 +14,9 @@ The `hc_sensor_card` is used to view the state of a sensor or binary sensor. It'
 ## Usage
 
 ```yaml
-type: custom:button-card
-template: hc_sensor_card
-entity: <sensor or binary sensor>
+  - type: custom:button-card
+    template: hc_sensor_card
+    entity: <sensor or binary sensor>
 ```
 
 ## Variables

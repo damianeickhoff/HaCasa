@@ -13,9 +13,9 @@ With the `hc_climate_card` you can control your climate. The big number shows th
 ## Usage
 
 ```yaml
-type: custom:button-card
-template: hc_climate_card
-entity: <climate entity>
+  - type: custom:button-card
+    template: hc_climate_card
+    entity: <climate entity>
 ```
 ## Variables
 

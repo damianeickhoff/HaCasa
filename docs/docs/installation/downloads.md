@@ -50,16 +50,17 @@ Install the following integrations through HACS or manual (see their documentati
 
 Ensure your file structure matches the following:
 
-```tree
+```markdown
 custom_icons/
 ├── house.svg
 └── ...
 dashboard/
 └── hacasa/
     ├── templates/
-    │   ├── example: hc_light_card/
-    │   │   └── hc_light_card.yaml
-    │   └── ...
+    │   ├── internal_templates/
+    │   │   └── example: hc_light_card.yaml
+    │   ├── ...
+    │   └── custom_templates
     ├── views/
     │   └── example: 00-default_view.yaml
     └── main.yaml
@@ -68,10 +69,11 @@ themes/
     ├── hacasa-gold.yaml
     └── hacasa-peachy.yaml
 www/
-└── img/
+└── images/
     ├── idle-media.gif
-    └── weather-icons/
-        └── sunny.svg
+    └── weather/
+        ├── sunny.svg
+        └── bg-sunny.svg
 configuration.yaml
 ```
 
