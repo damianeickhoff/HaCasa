@@ -16,12 +16,13 @@ jobs:
         id: get_issues
         with:
           script: |
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+            const { context } = github;
+            const octokit = context.octokit; // Use context.octokit instead of github.getOctokit
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             let page = 1;
             let allIssues = [];
-
+      
             while (true) {
               const { data: issues } = await octokit.rest.issues.listForRepo({
                 owner,
@@ -30,34 +31,35 @@ jobs:
                 per_page: 100,
                 page: page,
               });
-
+      
               if (issues.length === 0) {
                 break;
               }
-
+      
               allIssues = allIssues.concat(issues);
               page++;
             }
-
-            return allIssues;
-
+      
+            return JSON.stringify(allIssues);
+      
       - name: Label Existing Issues
         uses: actions/github-script@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
-            const issues = steps.get_issues.outputs;
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+            const { context } = github;
+            const octokit = context.octokit; // Use context.octokit instead of github.getOctokit
+            const issues = JSON.parse(steps.get_issues.outputs);
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            for (const issue of JSON.parse(issues)) {
+      
+            for (const issue of issues) {
               const issueTitle = issue.title ? issue.title.toLowerCase() : '';
               const issueBody = issue.body ? issue.body.toLowerCase().replace('frontend version', '') : '';
               const labelsToAdd = [];
               const existingLabels = issue.labels.map(label => label.name);
-
+      
               // Type Labels (checking body)
               if (issueBody.includes('question') || issueBody.includes('how to')) {
                 labelsToAdd.push('question');
@@ -65,7 +67,7 @@ jobs:
               if (issueBody.includes('documentation') || issueBody.includes('docs')) {
                 labelsToAdd.push('documentation');
               }
-
+      
               // Component Labels (checking title)
               if (issueTitle.includes('frontend') || issueTitle.includes('ui')) {
                 labelsToAdd.push('Frontend');
@@ -76,7 +78,7 @@ jobs:
               if (issueTitle.includes('documentation') || issueTitle.includes('docs')) {
                 labelsToAdd.push('Documentation');
               }
-
+      
               // Priority Labels (checking body)
               if (issueBody.includes('critical') || issueBody.includes('urgent') || issueBody.includes('must fix')) {
                 labelsToAdd.push('critical');
@@ -90,16 +92,16 @@ jobs:
               if (issueBody.includes('low priority') || issueBody.includes('minor')) {
                 labelsToAdd.push('low');
               }
-
+      
               const newLabelsToAdd = labelsToAdd.filter(label => !existingLabels.includes(label));
-
+      
               if (newLabelsToAdd.length > 0) {
                 try {
                   await octokit.rest.issues.addLabels({
                     owner,
                     repo,
                     issue_number: issue.number,
-                    labels: newLabelsToAdd
+                    labels: newLabelsToAdd,
                   });
                   console.log(`Added labels ${newLabelsToAdd} to issue #${issue.number}`);
                 } catch (error) {
