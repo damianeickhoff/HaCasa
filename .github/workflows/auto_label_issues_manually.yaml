@@ -48,11 +48,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
-            const { context } = github;
-            const octokit = context.octokit; // Use context.octokit instead of github.getOctokit
+            const { ctx } = github;
+            const octokit = ctx.octokit; // Use ctx.octokit instead of github.getOctokit
             const issues = JSON.parse(steps.get_issues.outputs);
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+            const owner = ctx.repo.owner;
+            const repo = ctx.repo.repo;
       
             for (const issue of issues) {
               const issueTitle = issue.title ? issue.title.toLowerCase() : '';
