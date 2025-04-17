@@ -20,29 +20,27 @@ jobs:
             const labelsToAdd = [];
 
             if (issueTitle.includes('bug')) {
-              labelsToAdd.push('Type: bug');
+              labelsToAdd.push('bug');
             }
             if (issueTitle.includes('feature request') || issueTitle.includes('new feature')) {
-              labelsToAdd.push('Type: feature');
+              labelsToAdd.push('feature');
             }
             if (issueTitle.includes('enhancement') || issueTitle.includes('improve')) {
-              labelsToAdd.push('Type: enhancement');
+              labelsToAdd.push('enhancement');
             }
             if (issueTitle.includes('question') || issueTitle.includes('how to')) {
-              labelsToAdd.push('Type: question');
+              labelsToAdd.push('question');
             }
             if (issueTitle.includes('documentation') || issueTitle.includes('docs')) {
-              labelsToAdd.push('Type: documentation');
+              labelsToAdd.push('documentation');
             }
             if (issueTitle.includes('frontend') || issueTitle.includes('ui')) {
-              labelsToAdd.push('Component: Frontend');
+              labelsToAdd.push('Frontend');
             }
             if (issueTitle.includes('backend') || issueTitle.includes('api')) {
-              labelsToAdd.push('Component: Backend');
+              labelsToAdd.push('Backend');
             }
-            if (issueTitle.includes('documentation') || issueTitle.includes('docs')) {
-              labelsToAdd.push('Component: Documentation');
-            }
+          
 
             if (labelsToAdd.length > 0) {
               try {
