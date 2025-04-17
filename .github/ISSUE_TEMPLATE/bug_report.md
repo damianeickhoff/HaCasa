@@ -2,7 +2,7 @@
 name: HaCasa Bug Report
 about: Report a bug or unexpected behavior in HaCasa
 title: "[BUG] [HaCasa] - Short description of the bug"
-labels: bug
+labels: bug, new
 assignees: ''
 ---
 
