@@ -2,7 +2,7 @@
 name: HaCasa Feature Request
 about: Suggest a new feature or visual element for HaCasa
 title: "[FEATURE] [HaCasa] - Short description of the feature"
-labels: enhancement, feature-request
+labels: feature, new
 assignees: ''
 ---
 
