@@ -1,59 +1,12 @@
-name: Auto Label Issues
+name: Auto Label Issues (Test)
 
 on:
   issues:
     opened:
 
 jobs:
-  label:
+  log_event:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
-      - name: Label issues based on title
-        uses: actions/github-script@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          script: |
-            const issueTitle = context.payload.issue.title.toLowerCase();
-            const labelsToAdd = [];
-
-            if (issueTitle.includes('bug')) {
-              labelsToAdd.push('bug');
-            }
-            if (issueTitle.includes('feature request') || issueTitle.includes('new feature')) {
-              labelsToAdd.push('feature');
-            }
-            if (issueTitle.includes('enhancement') || issueTitle.includes('improve')) {
-              labelsToAdd.push('enhancement');
-            }
-            if (issueTitle.includes('question') || issueTitle.includes('how to')) {
-              labelsToAdd.push('question');
-            }
-            if (issueTitle.includes('documentation') || issueTitle.includes('docs')) {
-              labelsToAdd.push('documentation');
-            }
-            if (issueTitle.includes('frontend') || issueTitle.includes('ui')) {
-              labelsToAdd.push('Frontend');
-            }
-            if (issueTitle.includes('backend') || issueTitle.includes('api')) {
-              labelsToAdd.push('Backend');
-            }
-          
-
-            if (labelsToAdd.length > 0) {
-              try {
-                await github.rest.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.issue.number,
-                  labels: labelsToAdd
-                });
-                console.log('Added labels:', labelsToAdd);
-              } catch (error) {
-                console.error('Failed to add labels:', error);
-              }
-            } else {
-              console.log('No matching keywords found in the title.');
-            }
+      - name: Log Issue Info
+        run: echo "Issue opened: ${{ github.event.issue.number }} at $(date +%s)"
