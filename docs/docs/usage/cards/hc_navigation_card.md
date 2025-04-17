@@ -18,18 +18,18 @@ This card is also used for the security card. Use the tabs beneath to switch bet
 ## Usage Navigation Card
 
 ```yaml
-type: custom:button-card
-template: hc_navigation_card
-name: <title of the card>
-entity: <entity for label>
-icon: <icon>
-variables: 
-    label_prefix: 'On - ' # Prefix can by anything but the state of the entity will be added after it.
-    color: var(--color-orange) # color of the card when the state underneath is met (in this case, higher then 0)
-state:
-    - value: 0 # Can also be 'on'
-      operator: '>' # if value above is 'on', remove this line
-      styles:
+  - type: custom:button-card
+    template: hc_navigation_card
+    name: <title of the card>
+    entity: <entity for label>
+    icon: <icon>
+    variables: 
+      label_prefix: 'On - ' # Prefix can by anything but the state of the entity will be added after it.
+      color: var(--color-orange) # color of the card when the state underneath is met (in this case, higher then 0)
+    state:
+      - value: 0 # Can also be 'on'
+        operator: '>' # if value above is 'on', remove this line
+        styles:
           card:
             - background: "[[[ return variables.hc_color ]]]" # Let this be
           name:
@@ -38,26 +38,26 @@ state:
             - color: white
           icon:
             - color: white
-    - value: 0 # Can also be 'off'
-      styles:
-          icon:
-            - color: <desired icon color> # color of the icon when the state is met (in this case, just 0)
-tap_action:
-    action: navigate
-    navigation_path: <navigation path>
+      - value: 0 # Can also be 'off'
+        styles:
+            icon:
+              - color: <desired icon color> # color of the icon when the state is met (in this case, just 0)
+    tap_action:
+      action: navigate
+      navigation_path: <navigation path>
 ```
 ## Usage Security Navigation Card
 
 ```yaml
-  type: custom:button-card
-  template: hc_navigation_card_security
-  name: <title of the card>
-  entity: <security entity>
-  variables: 
-    color: var(--color-blue) # color of the card when the alarm is not off
-  tap_action:
-    action: navigate
-    navigation_path: <navigation path>
+  - type: custom:button-card
+    template: hc_navigation_card_security
+    name: <title of the card>
+    entity: <security entity>
+    variables: 
+      color: var(--color-blue) # color of the card when the alarm is not off
+    tap_action:
+      action: navigate
+      navigation_path: <navigation path>
 ```
 
 

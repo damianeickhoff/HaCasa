@@ -30,39 +30,15 @@ Like mentioned in the installation, you need to be able to edit your files. Ther
     icon: fapro:house-fill
     cards:
         - type: vertical-stack
-        cards:
-        - type: custom:button-card
-            template: hc_header_card_beta
-            entity: weather.buienradar
-            variables:
-            air_quality_sensor: sensor.burgemeester_stolklaan_air_quality_index
-            person_entity: person.damian_eickhoff
-        - type: custom:button-card
-            template: hc_security_card_small
-            entity: alarm_control_panel.alarmo
-        - type: custom:button-card
-            template: hc_title_card
-            name: "Welcome Home"
-            label: "What are you up to"
-        - type: custom:button-card
-            template: hc_scene_card
-            entity: input_select.scene_selector
-            variables:
-            icon_1: fapro:house-fill
-            name_1: Home
-            scene_1: scene.home
-            icon_2: fapro:computer
-            name_2: Work
-            scene_2: scene.work
-            icon_3: fapro:door-open
-            name_3: Away
-            scene_3: scene.away
-            icon_4: fapro:moon-stars
-            name_4: Night
-            scene_4: scene.night      
-            icon_5: fapro:clapper-open
-            name_5: Movie
-            scene_5: scene.movie
+          cards:
+            - type: custom:button-card
+              template: hc_header_card
+              entity: weather.buienradar
+            - type: custom:button-card
+              template: hc_title_card
+              name: "Welcome Home"
+              label: "What are you up to"
+
     ```
 From here on out, we can add some cards.
 
@@ -71,12 +47,12 @@ From here on out, we can add some cards.
     Adding a card is really easy. For example we are going to add a light button. You just grab this code:
 
     ```yaml
-    - type: custom:button-card
-      template: hc_light_card
-      entity: light.<your light entity>
+         - type: custom:button-card
+           template: hc_light_card
+           entity: <your light entity>
     ```
 
-    and paste it underneath the last bit of code (`scene_5: scene.movie`) already in the `00-default-view.yaml` file as shown in step 2.
+    and paste it underneath the last bit of code `label: "what are you up to"` already in the `00-default-view.yaml` file as shown in step 2.
 
 4. **Refresh the page**
 

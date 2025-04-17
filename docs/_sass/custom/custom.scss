@@ -37,3 +37,25 @@
 .bg-black {
     background-color: $black;
 }
+
+.highlight, pre.highlightt {
+    line-height: 1;
+}
+
+
+.entry-type-ha {
+  display: inline-block; 
+  background-color: #2C84FA; 
+  border-radius: 50%; 
+  width: 10px; 
+  height: 10px;
+}
+
+.entry-type-hacasa {
+  display: inline-block; 
+  background-color: $peach; 
+  border-radius: 50%; 
+  width: 10px; 
+  height: 10px;
+  margin-right: 2px;
+}

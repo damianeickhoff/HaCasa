@@ -14,9 +14,9 @@ With the `hc_switch_card` you can control your switch. It gives the ability to a
 ## Usage
 
 ```yaml
-type: custom:button-card
-template: hc_switch_card
-entity: <your switch entity>
+  - type: custom:button-card
+    template: hc_switch_card
+    entity: <your switch entity>
 ```
 
 

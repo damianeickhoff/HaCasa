@@ -17,15 +17,15 @@ The weather card is a dynamic card that changes based on conditions. There is a 
 ### Custom Sensor needed
 Before you can use this card, you need to have a custom sensor that gets the forecast data. You can create a custom sensor inside your `configuration.yaml` or create a `templates.yaml` file in the root of Home Assistant and add `template: !include templates.yaml` to your `configuration.yaml`. Then, add this code underneath, save the file and reload your configuration.
 
-
+{% raw %}
 ```yaml
 - trigger:
-    - platform: time_pattern
+    - trigger: time_pattern
       hours: /1
-    - platform: event
+    - trigger: event
       event_type: event_template_reloaded
   action:
-    - service: weather.get_forecasts
+    - action: weather.get_forecasts
       target:
         entity_id:
           - weather.home
@@ -48,8 +48,9 @@ Before you can use this card, you need to have a custom sensor that gets the for
         wind_bearing:  "{{ state_attr('weather.home','wind_bearing') }}"
 
         datetime: "{{ dailyforecast['weather.home'].forecast[0].datetime }}"
-        forecast: "{{ daily forecast['weather.home'].forecast }}"
+        forecast: "{{ dailyforecast['weather.home'].forecast }}"
 ```
+{% endraw %}
 
 Now, you should have a new sensor called `sensor.weather_entity_forecast` which you can use as entity in this card.
 
@@ -58,9 +59,11 @@ Now, you should have a new sensor called `sensor.weather_entity_forecast` which 
 ### View code
 
 ```yaml
-      - type: custom:button-card
-        template: hc_weather_card
-        entity: sensor.weather_entity_forecast
+  - type: custom:button-card
+    template: hc_weather_card
+    entity: sensor.weather_entity_forecast
+    variables:
+      show_forecast: false
 ```
 
 ## Variables

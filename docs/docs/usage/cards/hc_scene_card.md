@@ -23,25 +23,25 @@ There are a lot of guides online on how to do this.
 ### View code
 
 ```yaml
-    - type: custom:button-card
-      template: hc_scene_card
-      entity: input_select.scene_selector # Create this one yourself!
-      variables:
-        icon_1: fapro:house-fill
-        name_1: Home
-        scene_1: scene.home
-        icon_2: fapro:computer
-        name_2: Work
-        scene_2: scene.work
-        icon_3: fapro:door-open
-        name_3: Away
-        scene_3: scene.away
-        icon_4: fapro:moon-stars
-        name_4: Night
-        scene_4: scene.night      
-        icon_5: fapro:clapper-open
-        name_5: Movie
-        scene_5: scene.movie
+  - type: custom:button-card
+    template: hc_scene_card
+    entity: input_select.scene_selector # Create this one yourself!
+    variables:
+      icon_1: fapro:house-fill
+      name_1: Home
+      scene_1: scene.home
+      icon_2: fapro:computer
+      name_2: Work
+      scene_2: scene.work
+      icon_3: fapro:door-open
+      name_3: Away
+      scene_3: scene.away
+      icon_4: fapro:moon-stars
+      name_4: Night
+      scene_4: scene.night      
+      icon_5: fapro:clapper-open
+      name_5: Movie
+      scene_5: scene.movie
 ```
 
 ## Variables
