@@ -18,7 +18,6 @@ jobs:
             const repo = context.repo.repo;
             let page = 1;
             let allIssues = [];
-
             while (true) {
               const { data: issues } = await github.rest.issues.listForRepo({
                 owner,
@@ -27,27 +26,24 @@ jobs:
                 per_page: 100,
                 page: page,
               });
-
               if (issues.length === 0) {
                 break;
               }
-
               allIssues = allIssues.concat(issues);
               page++;
             }
-
-            return allIssues;
+            return JSON.stringify(allIssues); // Return the issues as a JSON string
 
       - name: Label Existing Issues
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const issues = steps.get_issues.outputs;
+            const issues = JSON.parse("${{ steps.get_issues.outputs.result }}"); // Access the result
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            for (const issue of JSON.parse(issues)) {
+            for (const issue of issues) {
               const issueTitle = issue.title ? issue.title.toLowerCase() : '';
               const issueBody = issue.body ? issue.body.toLowerCase().replace('frontend version', '') : '';
               const labelsToAdd = [];
