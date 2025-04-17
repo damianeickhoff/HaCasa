@@ -79,4 +79,4 @@ configuration.yaml
 
 ## Proceed to Configuration
 
-Once the files are in place, proceed to the [configuration guide](02-configuration.md) to set up your dashboard.
+Once the files are in place, proceed to the [configuration guide](https://damianeickhoff.github.io/HaCasa/docs/installation/configuration.html) to set up your dashboard.
