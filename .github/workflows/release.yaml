@@ -1,0 +1,44 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Trigger on tags like v1.0.0
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }} # Checkout the tagged commit
+
+      - name: Create Release Directory
+        run: mkdir release_build
+
+      - name: Copy Specific Folders
+        run: |
+          cp -r themes release_build/
+          cp -r www release_build/
+          cp -r dashboard release_build/
+          cp -r custom_icons release_build/
+          # Add more folders as needed
+
+      - name: Package Release Artifact
+        run: |
+          cd release_build
+          zip -r my-release-${{ github.ref_name }}.zip *
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+          artifacts: release_build/hacasa-${{ github.ref_name }}.zip
+      - name: Remove Release Build Directory
+        run: rm -rf release_build

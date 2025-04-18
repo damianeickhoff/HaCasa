@@ -10,7 +10,7 @@ hc_weather_card:
     label_left: |
       [[[
         const today = new Date(); 
-        return `${today.toLocaleString('en-US', { month: 'long', day: 'numeric' })}`;
+        return `${today.toLocaleString('unknown', { month: 'long', day: 'numeric' })}`;
       ]]]
     label_right: ""
     show_forecast: true
