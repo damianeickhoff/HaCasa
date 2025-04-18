@@ -88,9 +88,6 @@ hc_header_card_2_person:
       person2:
         - justify-self: end
         - display: "[[[ return variables.person_entity2 ? 'block' : 'none' ]]]"
-      person3:
-        - justify-self: end
-        - display: "[[[ return variables.person_entity3 ? 'block' : 'none' ]]]"
       air_quality:
         - jusity-self: end
         - margin-left: "-30px"
@@ -151,7 +148,7 @@ hc_header_card_2_person:
                     return 'mdi:lighthouse';
                   } else if (stato === 'Toten') {
                     return 'mdi:tractor';
-                  } else if (stato === 'Oslo Revmatologipraksis') {
+                  } else if (stato === 'Oslo') {
                     return 'mdi:stethoscope';
                   } else {
                     return 'fas:plane';
@@ -173,7 +170,7 @@ hc_header_card_2_person:
                           return 'var(--color-brown)';
                         } else if (stato === 'Ullern') {
                           return 'var(--color-yellow)';
-                        } else if (stato === 'Oslo Revmatologipraksis') {
+                        } else if (stato === 'Oslo') {
                           return 'var(--color-red)';
                         } else {
                           return 'var(--color-blue)';
@@ -235,7 +232,7 @@ hc_header_card_2_person:
                     return 'mdi:lighthouse';
                   } else if (stato === 'Toten') {
                     return 'mdi:tractor';
-                  } else if (stato === 'Oslo Revmatologipraksis') {
+                  } else if (stato === 'Oslo') {
                     return 'mdi:stethoscope';
                   } else {
                     return 'fas:plane';
@@ -257,7 +254,7 @@ hc_header_card_2_person:
                           return 'var(--color-brown)';
                         } else if (stato === 'Ullern') {
                           return 'var(--color-yellow)';
-                        } else if (stato === 'Oslo Revmatologipraksis') {
+                        } else if (stato === 'Oslo') {
                           return 'var(--color-red)';
                         } else {
                           return 'var(--color-blue)';
