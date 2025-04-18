@@ -5,10 +5,12 @@ Supports up to 3 people instead of the default 1.
 Can be scaled from 3-person down to a 1 person.
 Inspired by the Header Card by MD3VIX i added the location icon for each person displayed.
 
-Variables:
+```
+variables:
   person_entity1:
   person_entity2:
   person_entity3:
+```
 
 ```
 - type: custom:button-card
