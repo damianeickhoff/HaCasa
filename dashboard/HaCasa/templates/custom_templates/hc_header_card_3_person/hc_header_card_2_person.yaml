@@ -1,0 +1,280 @@
+hc_header_card_2_person:
+  variables:
+    air_quality_sensor:
+    person_entity1:
+    person_entity2:
+  show_icon: false
+  show_label: true
+  name: |
+    [[[
+      const today = new Date();
+      const aqi = states[variables.air_quality_sensor]?.state || 0; // Replace with your AQI entity
+      let icon, color;
+
+      if (aqi <= 50) {
+        icon = 'mdi:alpha-g-box';
+        color = 'var(--color-green)';
+      } else if (aqi <= 100) {
+        icon = 'mdi:alpha-m-box';
+        color = 'var(--color-yellow)';
+      } else if (aqi <= 150) {
+        icon = 'mdi:alpha-u-box';
+        color = 'var(--color-orange)';
+      } else if (aqi <= 200) {
+        icon = 'mdi:alpha-u-box';
+        color = 'var(--color-red)';  
+      } else if (aqi <= 300) {
+        icon = 'mdi:alpha-v-box-box';
+        color = 'var(--color-purple)';
+      } else if (aqi <= 500) {
+        icon = 'mdi:alpha-h-box-box';
+        color = 'var(--color-orange)';      
+      } else {
+        icon = 'mdi:emoticon-dead';
+        color = 'var(--color-red)';
+      }
+
+      if (variables.air_quality_sensor) {
+        return `
+          ${today.toLocaleString('en-US', { month: 'long', day: 'numeric' })}
+          <ha-icon
+            icon="${icon}"
+            style="width: auto; height: 16px; color: ${color};"
+            title="AQI: ${aqi}">
+          </ha-icon>
+        `;
+      }
+      else {
+      return `
+        ${today.toLocaleString('en-US', { month: 'long', day: 'numeric' })}
+      `;
+      }
+    ]]]
+  label: |
+    [[[ return states[entity.entity_id].attributes.temperature + '° - ' +
+    states[entity.entity_id].attributes.humidity + '%']]]
+  styles:
+    card:
+      - box-shadow: none
+      - background: none
+      - border-radius: 0%
+      - padding-right: 4px
+    grid:
+      - grid-template-areas: |
+          "weather_icon n person1 person2"
+          "weather_icon l person1 person2"
+      - grid-template-columns: min-content min-content 1fr
+      - grid-template-rows: min-content min-content
+      - column-gap: 5px
+    name:
+      - justify-self: start
+      - font-family: montserrat
+      - font-weight: 800
+      - font-size: 16px
+      - align-self: end
+    label:
+      - justify-self: start
+      - font-family: montserrat
+      - font-size: 14px
+      - color: var(--subtext-color)
+    custom_fields:
+      weather_icon:
+        - justify-self: start
+        - padding: 0
+        - margin: 0
+      person1:
+        - justify-self: end
+        - display: "[[[ return variables.person_entity1 ? 'block' : 'none' ]]]"
+      person2:
+        - justify-self: end
+        - display: "[[[ return variables.person_entity2 ? 'block' : 'none' ]]]"
+      person3:
+        - justify-self: end
+        - display: "[[[ return variables.person_entity3 ? 'block' : 'none' ]]]"
+      air_quality:
+        - jusity-self: end
+        - margin-left: "-30px"
+        - align-self: center
+  custom_fields:
+    weather_icon: |
+      [[[
+        const style = `
+          <style>
+            .center {
+              display: block;
+              width: 50px;
+              height: 50px;
+            }
+          </style>`
+        if (!entity || !entity.state) return 'fas:question';
+        const weather = entity.state.toLowerCase();
+        return style + '<img src = "/local/images/weather/' + weather + '.svg" class="center"/> ' || 'fas:question'
+      ]]]
+    person1:
+      card:
+        type: custom:button-card
+        entity: "[[[ return variables.person_entity1 ]]]"
+        show_entity_picture: true
+        show_name: false
+        styles:
+          card:
+            - height: 55px
+            - width: 55px
+            - margin: 0
+            - padding: 0
+            - border-radius: 50%
+            - justify-self: end
+            - position: relative
+            - overflow: visible
+          img_cell:
+            - height: 100%
+            - width: 100%
+            - border-radius: 25px
+            - overflow: hidden
+          entity_picture:
+            - height: 100%
+            - width: 100%
+            - object-fit: cover
+            - border-radius: 25px
+        custom_fields:
+          status:
+            card:
+              type: "custom:button-card"
+              icon: |
+                [[[
+                  var stato = states[variables.person_entity1].state;
+                  if (stato === 'home') {
+                    return 'fapro:house-fill';
+                  } else if (stato === 'Ullern') {
+                    return 'mdi:account-school';
+                  } else if (stato === 'Strømstad') {
+                    return 'mdi:lighthouse';
+                  } else if (stato === 'Toten') {
+                    return 'mdi:tractor';
+                  } else if (stato === 'Oslo Revmatologipraksis') {
+                    return 'mdi:stethoscope';
+                  } else {
+                    return 'fas:plane';
+                  }
+                ]]]
+              show_name: false
+              show_state: false
+              show_label: false
+              styles:
+                card:
+                  - background-color: |
+                      [[[
+                        var stato = states[variables.person_entity1].state;
+                        if (stato === 'home') {
+                          return 'var(--color-green)';
+                        } else if (stato === 'Strømstad') {
+                          return 'var(--color-blue)';
+                        } else if (stato === 'Toten') {
+                          return 'var(--color-brown)';
+                        } else if (stato === 'Ullern') {
+                          return 'var(--color-yellow)';
+                        } else if (stato === 'Oslo Revmatologipraksis') {
+                          return 'var(--color-red)';
+                        } else {
+                          return 'var(--color-blue)';
+                        }
+                      ]]]
+                  - color: white
+                  - border-radius: 50%
+                  - height: 22px
+                  - width: 22px
+                  - position: absolute
+                  - top: -63px
+                  - right: -3px
+                  - display: flex
+                  - align-items: center
+                  - justify-content: center
+                  - box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2)
+                icon:
+                  - color: white
+                  - width: 60%
+                  - height: 60%
+    person2:
+      card:
+        type: custom:button-card
+        entity: "[[[ return variables.person_entity2 ]]]"
+        show_entity_picture: true
+        show_name: false
+        styles:
+          card:
+            - height: 55px
+            - width: 55px
+            - margin: 0
+            - padding: 0
+            - border-radius: 50%
+            - justify-self: end
+            - position: relative
+            - overflow: visible
+          img_cell:
+            - height: 100%
+            - width: 100%
+            - border-radius: 25px
+            - overflow: hidden
+          entity_picture:
+            - height: 100%
+            - width: 100%
+            - object-fit: cover
+            - border-radius: 25px
+        custom_fields:
+          status:
+            card:
+              type: "custom:button-card"
+              icon: |
+                [[[
+                  var stato = states[variables.person_entity2].state;
+                  if (stato === 'home') {
+                    return 'fapro:house-fill';
+                  } else if (stato === 'Ullern') {
+                    return 'mdi:account-school';
+                  } else if (stato === 'Strømstad') {
+                    return 'mdi:lighthouse';
+                  } else if (stato === 'Toten') {
+                    return 'mdi:tractor';
+                  } else if (stato === 'Oslo Revmatologipraksis') {
+                    return 'mdi:stethoscope';
+                  } else {
+                    return 'fas:plane';
+                  }
+                ]]]
+              show_name: false
+              show_state: false
+              show_label: false
+              styles:
+                card:
+                  - background-color: |
+                      [[[
+                        var stato = states[variables.person_entity2].state;
+                        if (stato === 'home') {
+                          return 'var(--color-green)';
+                        } else if (stato === 'Strømstad') {
+                          return 'var(--color-blue)';
+                        } else if (stato === 'Toten') {
+                          return 'var(--color-brown)';
+                        } else if (stato === 'Ullern') {
+                          return 'var(--color-yellow)';
+                        } else if (stato === 'Oslo Revmatologipraksis') {
+                          return 'var(--color-red)';
+                        } else {
+                          return 'var(--color-blue)';
+                        }
+                      ]]]
+                  - color: white
+                  - border-radius: 50%
+                  - height: 22px
+                  - width: 22px
+                  - position: absolute
+                  - top: -63px
+                  - right: -3px
+                  - display: flex
+                  - align-items: center
+                  - justify-content: center
+                  - box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2)
+                icon:
+                  - color: white
+                  - width: 60%
+                  - height: 60%
