@@ -1,1 +1,100 @@
-
+hc_garden_gate_card:
+  variables:
+    unlock_entity: 
+    lock_entity:
+    unlock_action: lock.unlock
+    lock_action: lock.lock
+    icon_entity:
+  triggers_update:
+    - "[[[ return entity.entity_id; ]]]"
+    - "[[[ return variables.icon_entity; ]]]"
+  show_icon: true
+  show_name: true
+  show_state: true
+  icon: >
+    [[[ return states[variables.icon_entity]?.state === 'on' ? 'mdi:gate-open' : 'mdi:gate'; ]]]
+  styles:
+    grid:
+      - grid-template-areas: |
+          'i n buttons'
+          'i s buttons'
+      - grid-template-columns: 1fr auto auto
+      - grid-template-rows: min-content min-content min-content min-content
+    card:
+      - padding: 20px
+    icon:
+      - grid-area: i
+      - position: absolute
+      - color: >
+          [[[
+            return states[variables.icon_entity]?.state === 'on'
+              ? 'var(--color-red)'
+              : 'var(--color-blue)';
+          ]]]
+      - bottom: -15%
+      - left: -28%
+      - width: 100%
+      - z-index: 10
+      - border-radius: 10px
+      - transform: scale(1)
+    name:
+      - grid-area: i
+      - justify-self: start
+      - align-self: start
+      - font-family: montserrat
+      - font-weight: 500
+      - z-index: 2
+    state:
+      - grid-area: i
+      - padding-top: 20px
+      - opacity: 0.8
+      - font-size: 12px
+      - justify-self: start
+      - align-self: start
+      - font-family: montserrat
+      - z-index: 2
+  tap_action: none
+  custom_fields:
+    buttons:
+      card:
+        type: custom:button-card
+        styles:
+          grid:
+            - grid-template-areas: |
+                'item_1'
+                'item_2'
+            - row-gap: 1rem
+          card:
+            - padding: 10px
+            - border-radius: 50px
+            - background-color: var(--button-card-background)
+            - z-index: 3
+        custom_fields:
+          item_1:
+            card:
+              type: custom:button-card
+              icon: mdi:lock-open
+              styles: &icon_style
+                icon:
+                  - width: 25px
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+                  - box-shadow: none
+                  - pointer-events: auto
+                  - background: none
+              tap_action:
+                action: call-service
+                service: "[[[ return variables.unlock_action ]]]"
+                target:
+                  entity_id: "[[[ return variables.unlock_entity ]]]"
+          item_2:
+            card:
+              type: custom:button-card
+              icon: mdi:lock
+              styles: *icon_style
+              tap_action:
+                action: call-service
+                service: "[[[ return variables.lock_action ]]]"
+                target:
+                  entity_id: "[[[ return variables.lock_entity ]]]"
