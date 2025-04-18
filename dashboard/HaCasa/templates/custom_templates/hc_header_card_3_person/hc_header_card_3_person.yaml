@@ -152,7 +152,7 @@ hc_header_card_3_person:
                     return 'mdi:lighthouse';
                   } else if (stato === 'Toten') {
                     return 'mdi:tractor';
-                  } else if (stato === 'Oslo Revmatologipraksis') {
+                  } else if (stato === 'Oslo') {
                     return 'mdi:stethoscope';
                   } else {
                     return 'fas:plane';
@@ -174,7 +174,7 @@ hc_header_card_3_person:
                           return 'var(--color-brown)';
                         } else if (stato === 'Ullern') {
                           return 'var(--color-yellow)';
-                        } else if (stato === 'Oslo Revmatologipraksis') {
+                        } else if (stato === 'Oslo') {
                           return 'var(--color-red)';
                         } else {
                           return 'var(--color-blue)';
@@ -236,7 +236,7 @@ hc_header_card_3_person:
                     return 'mdi:lighthouse';
                   } else if (stato === 'Toten') {
                     return 'mdi:tractor';
-                  } else if (stato === 'Oslo Revmatologipraksis') {
+                  } else if (stato === 'Oslo') {
                     return 'mdi:stethoscope';
                   } else {
                     return 'fas:plane';
@@ -258,7 +258,7 @@ hc_header_card_3_person:
                           return 'var(--color-brown)';
                         } else if (stato === 'Ullern') {
                           return 'var(--color-yellow)';
-                        } else if (stato === 'Oslo Revmatologipraksis') {
+                        } else if (stato === 'Oslo') {
                           return 'var(--color-red)';
                         } else {
                           return 'var(--color-blue)';
@@ -320,7 +320,7 @@ hc_header_card_3_person:
                     return 'mdi:lighthouse';
                   } else if (stato === 'Toten') {
                     return 'mdi:tractor';
-                  } else if (stato === 'Oslo Revmatologipraksis') {
+                  } else if (stato === 'Oslo') {
                     return 'mdi:stethoscope';
                   } else {
                     return 'fas:plane';
@@ -343,7 +343,7 @@ hc_header_card_3_person:
                           return 'var(--color-brown)';
                         } else if (stato === 'Ullern') {
                           return 'var(--color-yellow)';
-                        } else if (stato === 'Oslo Revmatologipraksis') {
+                        } else if (stato === 'Oslo') {
                           return 'var(--color-red)';
                         } else {
                           return 'var(--color-blue)';
