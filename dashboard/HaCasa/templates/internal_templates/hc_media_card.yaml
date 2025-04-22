@@ -51,12 +51,12 @@ hc_media_card:
       - z-index: 1
       - color: white
       - align-self: center
-      - 
+      - font-family: montserrat
       - font-weight: 800
       - font-size: 1.20
     state:
       - justify-self: center
-      - 
+      - font-family: montserrat
       - font-size: 14px
       - color: white
       - z-index: 1
@@ -79,7 +79,7 @@ hc_media_card:
         - background: |
             [[[
               if (entity.attributes.entity_picture == undefined){
-                return 'center / cover no-repeat url("/local/img/idle-music.gif")'
+                return 'center / cover no-repeat url("/local/images/music/idle-media.gif")'
               } else {
                 return 'center / cover no-repeat url("' + states[entity.entity_id].attributes.entity_picture + '")';
               }
@@ -92,15 +92,15 @@ hc_media_card:
         icon: mdi:play
         entity: "[[[ return entity.entity_id ]]]"
         show_name: false
-        styles:
+        styles: &item_styles
           icon:
             - width: 50%
-            - color: var(--color-darkest-gray)
+            - color: var(--primary-text-color)
           img_cell:
             - width: 40px
             - height: 40px
             - border-radius: 50px
-            - background: white
+            - background: var(--ha-card-background)
           card:
             - background: none
             - box-shadow: none
@@ -119,19 +119,7 @@ hc_media_card:
         icon: mdi:skip-next
         entity: "[[[ return entity.entity_id ]]]"
         show_name: false
-        styles:
-          icon:
-            - width: 50%
-            - color: var(--color-darkest-gray)
-          img_cell:
-            - width: 40px
-            - height: 40px
-            - border-radius: 50px
-            - background: white
-          card:
-            - background: none
-            - box-shadow: none
-            - "--mdc-ripple-color": transparent
+        styles: *item_styles
         tap_action:
           action: perform-action
           perform_action: media_player.media_next_track
@@ -143,19 +131,7 @@ hc_media_card:
         icon: mdi:skip-previous
         entity: "[[[ return entity.entity_id ]]]"
         show_name: false
-        styles:
-          icon:
-            - width: 50%
-            - color: var(--color-darkest-gray)
-          img_cell:
-            - width: 40px
-            - height: 40px
-            - border-radius: 50px
-            - background: white
-          card:
-            - background: none
-            - box-shadow: none
-            - "--mdc-ripple-color": transparent
+        styles: *item_styles
         tap_action:
           action: perform-action
           perform_action: media_player.media_previous_track
