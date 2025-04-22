@@ -24,7 +24,12 @@ jobs:
           ref: ${{ github.event.inputs.tag_name || github.ref_name }} # Use the provided tag or current ref
 
       - name: Create Release Directory
-        run: mkdir release_build
+        run: |
+          mkdir -p release_build
+          if [ ! -d "release_build" ]; then
+            echo "Failed to create release_build directory"
+            exit 1
+          fi
 
       - name: Copy Relevant Folders
         run: |
