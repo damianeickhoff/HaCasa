@@ -22,8 +22,7 @@ jobs:
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_id: ${{ github.event.release.id }}
+          upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./HaCasa.zip
           asset_name: HaCasa.zip
           asset_content_type: application/zip
