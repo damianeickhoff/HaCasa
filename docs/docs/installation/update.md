@@ -15,4 +15,6 @@ Updating HaCasa is a fairly simple task which we tried to make it as easy as pos
 4. Copy the contents (file **and** folders) to the root of your Home Assistant configuration directory (where `configuration.yaml` is located).
 5. If you use some custom cards the way we described, then those will be fine and not affected.
 
+*You can check the file `VERSION.TXT` to see the current versions you are running.*
+
 **Note:** If you don't copy all the files, the theme, cards and dashboard will probably not function correctly.
