@@ -1,52 +1,27 @@
-name: Create Release Zip
+name: "Release"
 
 on:
-  push:
-    tags:
-      - 'v*.*.*' # Trigger on tags like v1.0.0
-  workflow_dispatch: # Allows manual triggering of the workflow
-    inputs:
-      tag_name:
-        description: 'Tag to use for the release'
-        required: true
-        default: 'v1.0.0'
-
-permissions: 
-  contents: write # Grant write permissions to GITHUB_TOKEN
+  release:
+    types: ["published"]
 
 jobs:
-  create-release-zip:
-    runs-on: ubuntu-latest
+  update_hacs_manifest:
+    name: "Prepare release asset"
+    runs-on: "ubuntu-latest"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: "Check out repository"
+        uses: "actions/checkout@v4"
+        
+      - name: "Create zip"
+        run: |
+          cd HaCasa
+          zip HaCasa-${{ github.ref }}.zip -r ./
+
+      - name: "Upload zip to release"
+        uses: "svenstaro/upload-release-action@v1-release"
         with:
-          ref: ${{ github.event.inputs.tag_name || github.ref_name }} # Use the provided tag or current ref
-
-      - name: Create Release Directory
-        run: |
-          echo "Creating release_build directory..."
-          mkdir -p release_build
-          ls -ld release_build || echo "Directory not found"
-          if [ ! -d "release_build" ]; then
-            echo "Failed to create release_build directory"
-            exit 1
-          fi
-
-      - name: Copy Relevant Folders
-        run: |
-          cp -r dashboard release_build/
-          cp -r custom_icons release_build/
-          cp -r www release_build/
-          cp -r themes release_build/
-
-      - name: Package Release Artifact
-        run: |
-          cd release_build
-          zip -r HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip *
-
-      - name: Upload Release Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
-          path: release_build/HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          file: "./HaCasa/HaCasa-${{ github.ref }}.zip"
+          asset_name: "HaCasa-${{ github.ref }}.zip"
+          tag: "${{ github.ref }}"
+          overwrite: true
