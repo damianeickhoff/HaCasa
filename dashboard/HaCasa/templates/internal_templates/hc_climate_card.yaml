@@ -50,7 +50,7 @@ hc_climate_card:
     custom_fields:
       graph:
         - display: |
-            [[[ return variables.show_graph ? 'block' : 'none' ]]]
+            [[[ return variables.show_graph && variables.graph_entity ? 'block' : 'none' ]]]
         - position: absolute
         - left: 0
         - bottom: -1px

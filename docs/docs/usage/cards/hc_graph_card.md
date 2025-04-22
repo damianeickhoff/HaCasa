@@ -18,7 +18,7 @@ The `hc_graph_card` is used for showing a graph of a sensor. It also shows the c
     template: hc_graph_card
     entity: <sensor entity>
     variables:
-        color: <desired color>
+        graph_color: <desired color>
 ```
 
 ## Variables
