@@ -12,7 +12,7 @@ on:
         default: 'v1.0.0'
 
 permissions: 
-  contents: write # Grant write permissions to GITHUB_TOKEN
+  contents: write # Required for creating releases
 
 jobs:
   create-release-zip:
@@ -25,11 +25,22 @@ jobs:
 
       - name: Package Release Artifact
         run: |
+          mkdir -p artifacts
           cd HaCasa
-          zip -r HaCasa-release.zip *
+          zip -r ../artifacts/HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip *
 
-      - name: Upload Release Artifact
-        uses: actions/upload-artifact@v4
+      - name: Get Release by Tag
+        id: get_release
+        uses: octokit/request-action@v2.x
         with:
-          name: HaCasa-release.zip
-          path: HaCasa/HaCasa-release.zip
+          route: GET /repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.tag_name || github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+          asset_name: HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+          asset_content_type: application/zip
