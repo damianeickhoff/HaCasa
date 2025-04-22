@@ -25,29 +25,14 @@ Now that we have downloaded and placed the files, its time to do some configurat
 
    ```yaml
    lovelace:
-   mode: "storage"
-   resources:
-     - url: "/hacsfiles/button-card/button-card.js"
-       type: "module"
-     - url: "/hacsfiles/my-cards/my-cards.js"
-       type: "module"
-     - url: "/hacsfiles/kiosk-mode/kiosk-mode.js"
-       type: module
-     - url: "/hacsfiles/lovelace-card-mod/card-mod.js"
-       type: module   
-     - url: "/hacsfiles/mini-graph-card/mini-graph-card-bundle.js"
-       type: module 
-     - url: "/hacsfiles/lovelace-layout-card/layout-card.js"
-       type: module        
-     - url: "https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900"
-       type: css
-   dashboards:
+     mode: "storage"
+     dashboards:
        hacasa-dashboard:
-           mode: "yaml"
-           title: HaCasa
-           icon: fapro:house-fill
-           show_in_sidebar: true
-           filename: "dashboard/HaCasa/main.yaml"
+         mode: "yaml"
+         title: HaCasa
+         icon: fapro:house-fill
+         show_in_sidebar: true
+         filename: "dashboard/HaCasa/main.yaml"
    ```
 As you can see, we load the needed intergrations and add a new dashboard called HaCasa and because we set the `mode` to `storage` (underneath `lovelace`), we don't remove any other dashboards you created with UI.
 
