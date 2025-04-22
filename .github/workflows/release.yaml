@@ -26,10 +26,10 @@ jobs:
       - name: Package Release Artifact
         run: |
           cd HaCasa
-          zip -r HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip *
+          zip -r HaCasa-release.zip *
 
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
-          path: HaCasa/HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+          name: HaCasa-release.zip
+          path: HaCasa/HaCasa-release.zip
