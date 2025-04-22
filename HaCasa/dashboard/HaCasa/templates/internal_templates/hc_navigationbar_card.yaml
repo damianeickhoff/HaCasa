@@ -1,0 +1,340 @@
+hc_navigationbar_card:
+  triggers_update:
+    - '[[[ return variables.entity_1 ]]]'
+    - '[[[ return variables.entity_2 ]]]'
+    - '[[[ return variables.entity_3 ]]]'
+    - '[[[ return variables.entity_4 ]]]'
+    - '[[[ return variables.entity_5 ]]]'
+    - '[[[ return variables.entity_6 ]]]'
+  variables:
+    # Menu button 1:
+    icon_color_1: var(--color-dark-gray)
+    background_color_1: var(--color-light-gray-nav)
+    navigation_path_1: ''
+    icon_1:
+    entity_1:
+    active_state_1: 'on'
+      
+    # Menu button 2:
+    icon_color_2: var(--color-dark-gray)
+    background_color_2: var(--color-light-gray-nav)
+    navigation_path_2: ''
+    icon_2:
+    entity_2:
+    active_state_2: 'on'
+    
+    # Menu button 3:
+    icon_color_3: var(--color-dark-gray)
+    background_color_3: var(--color-light-gray-nav)
+    navigation_path_3: ''
+    icon_3:
+    entity_3:
+    active_state_3: 'on'
+
+    # Menu button 4:
+    icon_color_4: var(--color-dark-gray)
+    background_color_4: var(--color-light-gray-nav)
+    navigation_path_4: ''
+    icon_4:
+    entity_4: ''
+    active_state_4: 'on'
+
+    # Menu button 5:
+    icon_color_5: var(--color-dark-gray)
+    background_color_5: var(--color-light-gray-nav)
+    navigation_path_5: ''
+    icon_5:
+    entity_5:
+    active_state_5: 'on'
+
+    # Menu button 6:
+    icon_color_6: var(--color-dark-gray)
+    background_color_6: var(--color-light-gray-nav)
+    navigation_path_6: ''
+    icon_6:
+    entity_6:
+    active_state_6: 'on'
+  tap_action:
+    action: none
+  styles:
+    grid:
+      - display: grid
+      - grid-template-areas: |
+          [[[ 
+            let areas = [];
+            if(variables.icon_1) areas.push("item_1");
+            if(variables.icon_2) areas.push("item_2");
+            if(variables.icon_3) areas.push("item_3");
+            if(variables.icon_4) areas.push("item_4");
+            if(variables.icon_5) areas.push("item_5");
+            if(variables.icon_6) areas.push("item_6");
+            // Return a string wrapped in single quotes:
+            return "'" + areas.join(" ") + "'";
+          ]]]
+      - grid-template-columns: |
+          [[[ 
+            let count = 0;
+            if(variables.icon_1) count++;
+            if(variables.icon_2) count++;
+            if(variables.icon_3) count++;
+            if(variables.icon_4) count++;
+            if(variables.icon_5) count++;
+            if(variables.icon_6) count++;
+            return "repeat(" + count + ", 1fr)";
+          ]]]
+      - column-gap: 14px
+      - justify-content: center
+    card:
+      - height: 60px
+      - width: min-content
+      - border-radius: 40px
+      - overflow: visible
+      - position: fixed
+      - bottom: 25px
+      - z-index: 5
+      - padding: 10px
+      - "--mdc-ripple-color": transparent
+      - left: 50%
+      - transform: translateX(-50%)
+    custom_fields:
+      item_1:
+        - display: "[[[ return variables.icon_1 ? '' : 'none'; ]]]"    
+      item_2:
+        - display: "[[[ return variables.icon_2 ? '' : 'none'; ]]]"    
+      item_3:
+        - display: "[[[ return variables.icon_3 ? '' : 'none'; ]]]"    
+      item_4:
+        - display: "[[[ return variables.icon_4 ? '' : 'none'; ]]]"    
+      item_5:
+        - display: "[[[ return variables.icon_5 ? '' : 'none'; ]]]"    
+      item_6:
+        - display: "[[[ return variables.icon_6 ? '' : 'none'; ]]]"      
+  custom_fields:
+    item_1:
+      card:
+        type: custom:button-card
+        icon: '[[[ return variables.icon_1 ]]]'
+        tap_action:
+          action: navigate
+          navigation_path: '[[[ return variables.navigation_path_1 ]]]'
+        styles:
+          card:
+            - display: |
+                [[[ return variables.icon_1 ? '' : 'none' ]]]
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10px
+            - overflow: visible
+            - border-radius: 500px
+            - background: '[[[ return variables.background_color_1 ]]]'
+          icon:
+            - color: '[[[ return variables.icon_color_1 ]]]'
+            - height: 100%
+            - width: 100%
+        custom_fields:
+          badge:
+            card:
+              type: custom:button-card
+              show_name: false
+              show_icon: false
+              template: hc_badge_card
+              styles:
+                card:
+                  - display: |
+                      [[[ 
+                        const e = variables.entity_1;
+                        const active = variables.active_state_1 || 'on';
+                        return e && states[e] && states[e].state === active ? '' : 'none';
+                      ]]]
+    item_2:
+      card:
+        type: custom:button-card
+        icon: '[[[ return variables.icon_2 ]]]'
+        tap_action:
+          action: navigate
+          navigation_path: '[[[ return variables.navigation_path_2 ]]]'
+        styles:
+          card:
+            - display: |
+                [[[ return variables.icon_2 ? '' : 'none' ]]]
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10px
+            - overflow: visible
+            - border-radius: 500px
+            - background: '[[[ return variables.background_color_2 ]]]'
+          icon:
+            - color: '[[[ return variables.icon_color_2 ]]]'
+            - height: 100%
+            - width: 100%            
+        custom_fields:
+          badge:
+            card:
+              type: custom:button-card
+              show_name: false
+              show_icon: false
+              template: hc_badge_card
+              styles:
+                card:
+                  - display: |
+                      [[[ 
+                        const e = variables.entity_2;
+                        const active = variables.active_state_2 || 'on';
+                        return e && states[e] && states[e].state === active ? '' : 'none';
+                      ]]]
+    item_3:
+      card:
+        type: custom:button-card
+        icon: '[[[ return variables.icon_3 ]]]'
+        tap_action:
+          action: navigate
+          navigation_path: '[[[ return variables.navigation_path_3 ]]]'
+        styles:
+          card:
+            - display: |
+                [[[ return variables.icon_3 ? '' : 'none' ]]]
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10px
+            - border-radius: 500px
+            - overflow: visible
+            - background: '[[[ return variables.background_color_3 ]]]'
+          icon:
+            - color: '[[[ return variables.icon_color_3 ]]]'
+            - height: 100%
+            - width: 100%            
+        custom_fields:
+          badge:
+            card:
+              type: custom:button-card
+              show_name: false
+              show_icon: false
+              template: hc_badge_card
+              styles:
+                card:
+                  - display: |
+                      [[[ 
+                        const e = variables.entity_3;
+                        const active = variables.active_state_3 || 'on';
+                        return e && states[e] && states[e].state === active ? '' : 'none';
+                      ]]]
+    item_4:
+      card:
+        type: custom:button-card
+        icon: '[[[ return variables.icon_4 ]]]'
+        tap_action:
+          action: navigate
+          navigation_path: '[[[ return variables.navigation_path_4 ]]]'
+        styles:
+          card:
+            - display: |
+                [[[ return variables.icon_4 ? '' : 'none' ]]]
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10px
+            - border-radius: 500px
+            - overflow: visible
+            - background: '[[[ return variables.background_color_4 ]]]'
+          icon:
+            - color: '[[[ return variables.icon_color_4 ]]]'
+            - height: 100%
+            - width: 100%            
+        custom_fields:
+          badge:
+            card:
+              type: custom:button-card
+              show_name: false
+              show_icon: false
+              template: hc_badge_card
+              styles:
+                card:
+                  - display: |
+                      [[[ 
+                        const e = variables.entity_4;
+                        const active = variables.active_state_4 || 'on';
+                        return e && states[e] && states[e].state === active ? '' : 'none';
+                      ]]]
+    item_5:
+      card:
+        type: custom:button-card
+        icon: '[[[ return variables.icon_5 ]]]'
+        tap_action:
+          action: navigate
+          navigation_path: '[[[ return variables.navigation_path_5 ]]]'
+        styles:
+          card:
+            - display: |
+                [[[ return variables.icon_5 ? '' : 'none' ]]]
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10px
+            - border-radius: 500px
+            - overflow: visible
+            - background: '[[[ return variables.background_color_5 ]]]'
+          icon:
+            - color: '[[[ return variables.icon_color_5 ]]]'
+            - height: 100%
+            - width: 100%
+        custom_fields:
+          badge:
+            card:
+              type: custom:button-card
+              show_name: false
+              show_icon: false
+              template: hc_badge_card
+              styles:
+                card:
+                  - display: |
+                      [[[ 
+                        const e = variables.entity_5;
+                        const active = variables.active_state_5 || 'on';
+                        return e && states[e] && states[e].state === active ? '' : 'none';
+                      ]]]        
+
+    item_6:
+      card:
+        type: custom:button-card
+        icon: '[[[ return variables.icon_6 ]]]'
+        tap_action:
+          action: navigate
+          navigation_path: '[[[ return variables.navigation_path_6 ]]]'
+        styles:
+          card:
+            - display: |
+                [[[ return variables.icon_6 ? '' : 'none' ]]]
+            - height: 40px
+            - width: 40px
+            - margin: 0
+            - padding: 10px
+            - border-radius: 500px
+            - overflow: visible
+            - background: '[[[ return variables.background_color_6 ]]]'
+          icon:
+            - color: '[[[ return variables.icon_color_6 ]]]'
+            - height: 100%
+            - width: 100%
+        card_mod:
+          style: |
+            ha-card {
+              display: none;
+            }                              
+        custom_fields:
+          badge:
+            card:
+              type: custom:button-card
+              show_name: false
+              show_icon: false
+              template: hc_badge_card
+              styles:
+                card:
+                  - display: |
+                      [[[ 
+                        const e = variables.entity_6;
+                        const active = variables.active_state_6 || 'on';
+                        return e && states[e] && states[e].state === active ? '' : 'none';
+                      ]]]        
