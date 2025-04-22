@@ -25,7 +25,9 @@ jobs:
 
       - name: Create Release Directory
         run: |
+          echo "Creating release_build directory..."
           mkdir -p release_build
+          ls -ld release_build || echo "Directory not found"
           if [ ! -d "release_build" ]; then
             echo "Failed to create release_build directory"
             exit 1
@@ -44,7 +46,7 @@ jobs:
           zip -r HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip *
 
       - name: Upload Release Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
           path: release_build/HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
