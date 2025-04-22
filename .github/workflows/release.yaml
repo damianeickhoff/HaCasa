@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*.*.*' # Trigger on tags like v1.0.0
+  workflow_dispatch: # Allows manual triggering of the workflow
+    inputs:
+      tag_name:
+        description: 'Tag to use for the release'
+        required: true
+        default: 'v1.0.0'
 
 permissions: 
   contents: write # Grant write permissions to GITHUB_TOKEN
@@ -15,7 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }} # Checkout the tagged commit
+          ref: ${{ github.event.inputs.tag_name || github.ref_name }} # Use the provided tag or current ref
 
       - name: Create Release Directory
         run: mkdir release_build
@@ -30,10 +36,10 @@ jobs:
       - name: Package Release Artifact
         run: |
           cd release_build
-          zip -r HaCasa-${{ github.ref_name }}.zip *
+          zip -r HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip *
 
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: HaCasa-${{ github.ref_name }}.zip
-          path: release_build/HaCasa-${{ github.ref_name }}.zip
+          name: HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+          path: release_build/HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
