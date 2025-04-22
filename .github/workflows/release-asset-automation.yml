@@ -5,24 +5,25 @@ on:
     types:
       - created
 
+permissions:
+  contents: write  # Required to upload assets to a release
+
 jobs:
   upload-zip:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
+      # Checkout repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Compress the HaCasa folder into a .zip file
+      # Create ZIP file of the HaCasa folder
       - name: Create ZIP file
         run: zip -r HaCasa.zip HaCasa
 
       # Upload the ZIP file to the release
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./HaCasa.zip
