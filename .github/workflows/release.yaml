@@ -33,7 +33,7 @@ jobs:
         id: get_release
         uses: octokit/request-action@v2.x
         with:
-          route: GET /repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.tag_name || github.ref_name }}
+          route: GET /repos/${{ github.repository }}/releases/tag/${{ github.event.inputs.tag_name || github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
