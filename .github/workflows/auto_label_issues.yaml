@@ -2,7 +2,7 @@ name: Auto Label Issues
 
 on:
   issues:
-    opened:
+    types: opened
 
 jobs:
   label:
