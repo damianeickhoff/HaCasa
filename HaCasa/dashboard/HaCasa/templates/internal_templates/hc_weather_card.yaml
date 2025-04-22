@@ -1,0 +1,317 @@
+hc_weather_card:
+  show_name: true
+  show_label: true
+  show_icon: false
+  show_state: false
+  name: "[[[ return helpers.localize(states[entity.entity_id]) ]]]"
+  show_last_changed: false
+  label: "[[[ return states[entity.entity_id].attributes.temperature +'°C']]]"
+  variables:
+    label_left: |
+      [[[
+        const today = new Date(); 
+        return `${today.toLocaleString('en-US', { month: 'long', day: 'numeric' })}`;
+      ]]]
+    label_right: ""
+    show_forecast: true
+  triggers_update: all
+  styles:
+    grid:
+      - grid-template-areas: |
+          "label_left label_right"
+          "weather_icon n"
+          "weather_icon l"
+          "f f"
+      - grid-template-columns: 1fr 1fr
+      - grid-template-rows: repeat(4, min-content)
+    card:
+      - padding: 15px
+      - background: |
+          [[[ 
+            if (!entity || !entity.state) return 'fas:question';
+            const weather = entity.state.toLowerCase();
+            const gradientMap = {
+              'sunny': 'linear-gradient(180deg, rgba(143,200,235,1) 0%, rgba(143,189,235,1) 100%)',
+              'clear-night': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
+              'clear': 'linear-gradient(rgba(74, 138, 247, 1) 0%, rgba(85, 173, 250, 1) 65%)',
+              'partlycloudy': 'linear-gradient(rgb(120, 155, 177) 0%, rgb(131, 181, 212) 67%)',
+              'cloudy': 'linear-gradient(180deg, rgba(198,207,212,1) 0%, rgba(161,170,179,1) 100%)',
+              'fog': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
+              'rainy': 'linear-gradient(180deg, rgba(164,172,176,1) 0%, rgba(122,129,136,1) 100%)',
+              'pouring': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
+              'lightning': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)0',
+              'lightning-rainy': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
+              'windy': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
+              'snowy': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
+              'snowy-rainy': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
+              'hail': 'linear-gradient(rgb(12, 18, 65) 0%, rgb(26, 48, 128) 77%)',
+            };
+            if 
+              (weather in gradientMap) return 'center / cover no-repeat url(/local/images/weather/bg-' + weather + '.svg), ' + gradientMap[weather]
+            else
+              return variables.var_card_color;            
+          ]]]
+    name:
+      - text-align: left
+      - font-size: 30px
+      - font-weight: 400
+      - justify-self: start
+      - align-self: end
+      - color: white
+      - margin-left: 30px
+      - text-wrap: wrap
+      - z-index: 1
+    label:
+      - text-align: left
+      - font-size: 35px
+      - font-weight: 800
+      - justify-self: start
+      - align-self: start
+      - margin-left: 30px
+      - color: white
+      - z-index: 1
+    custom_fields:
+      f:
+        - display:  "[[[ return variables.show_forecast ? '' : 'none' ]]]"
+      weather_icon:
+         - z-index: 1
+      gradient_overlay:
+        - background: var(--weather-card-overlay)
+        - width: 100%
+        - height: 100%
+        - position: absolute
+        - opacity: 0.4
+        - left: 0
+        - top: 0
+        - z-index: 0
+  custom_fields:
+    gradient_overlay: ''
+    weather_icon: |
+      [[[
+        const style = `
+          <style>
+            .center {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              width: 120px;
+              height: 120px;
+            }
+          </style>`
+        if (!entity || !entity.state) return 'fas:question';
+        const weather = entity.state.toLowerCase();
+        return style + '<img src = "/local/images/weather/' + weather + '.svg" class="center"/> ' || 'fas:question'
+      ]]]
+    f:
+      card:
+        type: custom:button-card
+        entity: "[[[ return entity.entity_id ]]]"
+        show_name: false
+        show_icon: false
+        show_state: false
+        styles:
+          grid:
+            - grid-template-areas: |
+                "day1 day2 day3"
+            - grid-template-columns: 1fr 1fr 1fr
+          card:
+            - padding: 0
+            - padding-top: 10px
+            - background: none
+            - box-shadow: none
+            - border-style: none
+            - overflow: visible
+        custom_fields:
+          day1:
+            card:
+              type: custom:button-card
+              entity: "[[[ return entity.entity_id ]]]"
+              label: |-
+                [[[ return
+                  states[entity.entity_id].attributes.forecast[1].temperature +
+                  "<span style>°C</span>" 
+                ]]]
+              name: |
+                [[[ 
+                  const day = states[entity.entity_id].attributes.forecast[1].datetime;
+                  return helpers.formatDateWeekdayShort(day);
+                ]]]
+              show_label: true
+              show_icon: false
+              styles: &styles
+                grid:
+                  - grid-template-areas: |
+                      "n n" 
+                      "icon icon" 
+                      "l l" 
+                      "temp temp" 
+                      "templow templow" 
+                      "precip precip"
+                  - grid-template-rows: min-content
+                card:
+                  - font-family: montserrat
+                  - border-style: none
+                  - background: none
+                  - padding: 0
+                  - overflow: visible
+                  - box-shadow: none
+                name:
+                  - font-weight: 800
+                  - opacity: 0.9
+                  - font-size: 14px
+                  - color: white
+                custom_fields:
+                  icon:
+                    - width: 20px
+                    - height: auto
+                    - overflow: visible
+                    - justify-self: center
+                    - margin-bottom: -5px
+                    - color: white
+                    - margin-right: 7px
+                  img_cell:
+                    - overflow: visible
+                  precip:
+                    - font-weight: 400
+                    - opacity: 0.9
+                    - color: white
+                    - font-size: 14px
+                  temp:
+                    - font-weight: 700
+                    - opacity: 0.9
+                    - color: white
+                    - font-size: 1.20
+                    - padding-bottom: 5px
+                  templow:
+                    - font-weight: 400
+                    - opacity: 0.9
+                    - color: white
+                    - font-size: 14px
+              custom_fields:
+                icon: |
+                  [[[
+                    const weather = states[entity.entity_id].attributes.forecast[1].condition;
+                    return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
+                  ]]]
+                temp: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[1].temperature + "<span style>°C</span>" ;
+                  ]]]  
+                templow: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[1].templow + "<span style>°C</span>" ;
+                  ]]]  
+                precip: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[1].precipitation + "<span style> mm</span>" ;
+                  ]]]
+          day2:
+            card:
+              type: custom:button-card
+              entity: "[[[ return entity.entity_id ]]]"
+              label: |-
+                [[[ return
+                  states[entity.entity_id].attributes.forecast[2].temperature +
+                  "<span style>°C</span>"
+                ]]]
+              name: |
+                [[[ 
+                  const day = states[entity.entity_id].attributes.forecast[2].datetime;
+                  return helpers.formatDateWeekdayShort(day);
+                ]]]
+              show_label: true
+              show_icon: false
+              styles: *styles
+              custom_fields:
+                icon: |
+                  [[[
+                    const weather = states[entity.entity_id].attributes.forecast[2].condition;
+                    return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
+                  ]]]
+                temp: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[2].temperature + "<span style>°C</span>" ;
+                  ]]]  
+                templow: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[2].templow + "<span style>°C</span>" ;
+                  ]]]  
+                precip: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[2].precipitation + "<span style> mm</span>" ;
+                  ]]]
+          day3:
+            card:
+              type: custom:button-card
+              entity: "[[[ return entity.entity_id ]]]"
+              label: |-
+                [[[ return
+                  states[entity.entity_id].attributes.forecast[3].temperature +
+                  "<span style>°C</span>" 
+                ]]]
+              name: |
+                [[[ 
+                  const day = states[entity.entity_id].attributes.forecast[3].datetime;
+                  return helpers.formatDateWeekdayShort(day);
+                ]]]
+              show_label: true
+              show_icon: false
+              styles: *styles
+              custom_fields:
+                icon: |
+                  [[[
+                    const weather = states[entity.entity_id].attributes.forecast[3].condition;
+                    return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
+                  ]]]
+                temp: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[3].temperature + "<span style>°C</span>" ;
+                  ]]]  
+                templow: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[3].templow + "<span style>°C</span>" ;
+                  ]]]  
+                precip: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[3].precipitation + "<span style> mm</span>" ;
+                  ]]]
+    label_left:
+      card:
+        type: custom:button-card
+        show_label: true
+        label: "[[[ return variables.label_left ]]]"
+        styles:
+          card:
+            - padding: 0
+            - background: none
+            - box-shadow: none
+            - border-radius: none
+            - padding-left: 10px
+            - border-style: none
+          label:
+            - align-self: start
+            - justify-self: start
+            - font-size: 14px
+            - font-weight: 500
+            - font-family: montserrat
+            - color: white
+    label_right:
+      card:
+        type: custom:button-card
+        show_label: true
+        label: "[[[ return variables.label_right ]]]"
+        styles:
+          card:
+            - padding: 0
+            - background: none
+            - box-shadow: none
+            - padding-right: 10px
+            - border-radius: none
+            - border-style: none
+          label:
+            - align-self: start
+            - justify-self: end
+            - font-size: 14px
+            - font-weight: 500
+            - font-family: montserrat
+            - color: white

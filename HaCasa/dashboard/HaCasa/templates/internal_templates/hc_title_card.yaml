@@ -1,0 +1,123 @@
+hc_title_card:
+  show_label: true
+  variables:
+    hc_btn1_entity:
+    hc_btn1_name:
+    hc_btn2_entity:
+    hc_btn2_name:
+    hc_btn3_entity:
+    hc_btn3_name:
+  styles:
+    grid:
+      - grid-template-areas: |
+          "n btn1 btn2 btn3"
+          "l btn1 btn2 btn3"
+    name:
+      - justify-self: start
+      - align-self: start
+      - font-weight: 800
+      - 
+      - font-size: 25px
+    label:
+      - justify-self: start
+      - 
+      - color: var(--subtext-color)
+      - font-size: 14px
+      - font-weight: 500
+    card:
+      - background: none
+      - animation: slide-in 1s ease-out, opacity 1s ease-in
+      - box-shadow: none
+      - "--mdc-ripple-color": transparent 
+  custom_fields:
+    btn1:
+      card:
+        type: custom:button-card
+        name: '[[[ return variables.hc_btn1_name ]]]'
+        entity: '[[[ return variables.hc_btn1_entity ]]]'
+        show_icon: false
+        styles: &card_styles
+          grid:
+            - grid-template-areas: "'n i'"
+            - grid-template-columns: min-content
+          card:
+            - padding: 8px
+            - background: none
+            - border-radius: 0
+            - box-shadow: none
+          name:
+            - 
+            - font-weight: 600
+            - font-size: 12px
+            - opacity: 0.6
+        state:
+          - value: 'on'
+            styles: &state_style
+              card:
+                - background: var(--primary-color)
+                - border-radius: 5px
+              name:
+                - color: var(--color-white)
+    btn2:
+      card:
+        type: custom:button-card
+        entity: '[[[ return variables.hc_btn2_entity ]]]'
+        name: '[[[ return variables.hc_btn2_name ]]]'
+        show_icon: false
+        styles: *card_styles
+        state:
+          - value: 'on'
+            styles: *state_style
+    btn3:
+      card:
+        type: custom:button-card
+        entity: '[[[ return variables.hc_btn3_entity ]]]'
+        name: '[[[ return variables.hc_btn3_name ]]]'
+        show_icon: false
+        styles: *card_styles
+        state:
+          - value: 'on'
+            styles: *state_style
+  extra_styles: |
+    @keyframes slide-in {
+      0% {transform: translateX(-2%);}
+      100% {transform: translateX(0%);}
+    }
+    @keyframes opacity {
+      0% {opacity:0;}
+      100% {opacity:1;}
+    }
+
+hc_title_card_backbtn:
+  icon: mdi:chevron-left
+  styles:
+    card:
+      - background: none
+      - margin-bottom: 20px
+      - padding: 0
+      - box-shadow: none
+      - overflow: visible
+      - "--mdc-ripple-color": transparent
+      - pointer-events: none
+    icon:
+      - width: 70%
+    img_cell:
+      - width: 40px
+      - height: 40px
+      - background: var(--ha-card-background)
+      - border-radius: 50% 
+      - box-shadow: var(--ha-card-box-shadow)
+      - overflow: visible
+      - pointer-events: auto
+    grid:
+      - grid-template-areas: "'i n'"
+      - grid-template-columns: min-content 1fr
+    name:
+      - justify-self: center
+      - font-weight: 700
+      - 
+      - font-size: 20px
+      - margin-left: -2.350px
+  tap_action:
+    action: navigate
+    navigation_path: /home      

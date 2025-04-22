@@ -1,0 +1,264 @@
+hc_security_card:
+  show_state: false
+  show_icon: true
+  show_name: true
+  show_last_changed: true
+  show_label: true
+  variables:
+    hc_icon_color: var(--primary-color)
+    hc_security_code: 
+  styles:
+    grid:
+      - grid-template-areas: |
+          "n action_card"
+          "l action_card"
+      - grid-template-rows: min-content 1fr
+    card:
+      - overflow: hidden
+      - padding: 20px
+      - pointer-events: none
+    label:
+      - justify-self: start
+      - align-self: start
+      - 
+      - font-size: 12px
+      - font-weight: 500
+      - color: var(--subtext-color)
+    img_cell:
+      - position: absolute
+      - top: 40%
+      - right: 40%
+      - overflow: visible
+    icon:
+      - position: absolute
+      - width: 120px
+      - color: "[[[ return variables.hc_icon_color ]]]"
+    name:
+      - justify-self: start
+      - font-size: 20px
+      - font-weight: 600
+      - 
+  state:
+    - value: disarmed
+      name: Disarmed
+      icon: fapro:shield-slash
+    - value: armed_away
+      name: Armed Away
+      icon: fapro:shield-keyhole
+    - value: armed_home
+      name: Armed Home
+      icon: fapro:shield-check
+    - value: arming
+      name: Arming...
+      icon: fapro:shield-keyhole
+      styles:
+        icon:
+          - animation: flash 5s linear infinite
+    - value: triggered
+      name: Triggered!
+      icon: fapro:shield-exclamation
+      styles:
+        icon:
+          - animation: flash 2s infinite
+          - color: white
+        card:
+          - background: var(--color-red)
+        name:
+          - color: white
+        label:
+          - color: white
+          
+  extra_styles: |
+    @keyframes flash {
+      0% {opacity: 100%;}
+      50% {opacity: 0%;}
+      100% {opacity: 100%;}
+    }
+  custom_fields:
+    action_card:
+      card:
+        type: custom:button-card
+        styles:
+          grid:
+            - grid-template-areas: "\"item1\" \"item2\" \"item3\""
+            - row-gap: 10px
+          card:
+            - padding: 10px
+            - border-radius: 50px
+            - background-color: var(--button-card-background)
+            - box-shadow: none
+        custom_fields:
+          item1:
+            card:
+              type: custom:button-card
+              entity: "[[[ return entity.entity_id ]]]"
+              show_name: false
+              show_state: false
+              icon: mdi:shield-home
+              styles:
+                icon:
+                  - width: 25px
+                  - color: var(--icon-color)
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+                  - box-shadow: none
+                  - pointer-events: auto
+                  - background: none
+              state:
+                - value: armed_home
+                  styles:
+                    card:
+                      - background: "[[[ return variables.hc_icon_color ]]]"
+                    icon:
+                      - color: '#fff'
+              tap_action:
+                action: call-service
+                service: alarm_control_panel.alarm_arm_home
+                target:
+                  entity_id: "[[[ return entity.entity_id ]]]"
+                data:
+                  code: "[[[ return variables.hc_security_code ]]]"
+          item2:
+            card:
+              type: custom:button-card
+              entity: "[[[ return entity.entity_id ]]]"
+              show_name: false
+              show_state: false
+              icon: mdi:shield-lock
+              styles:
+                icon:
+                  - width: 25px
+                  - color: var(--icon-color)
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+                  - box-shadow: none
+                  - pointer-events: auto
+                  - background: none
+              state:
+                - value: armed_away
+                  styles:
+                    card:
+                      - background: "[[[ return variables.hc_icon_color ]]]"
+                      - box-shadow: none
+                    icon:
+                      - color: '#fff'
+                - value: arming
+                  styles:
+                    icon:
+                      - color: '#fff'
+                      - animation: flash 5s linear infinite
+                    card:
+                      - background: var(--primary-color)
+                      - box-shadow: none
+              extra_styles: |
+                @keyframes flash {
+                  0% {opacity: 100%;}
+                  50% {opacity: 0%;}
+                  100% {opacity: 100%;}
+                }
+              tap_action:
+                action: call-service
+                service: alarm_control_panel.alarm_arm_away
+                target:
+                  entity_id: "[[[ return entity.entity_id ]]]"
+                data:
+                  code: "[[[ return variables.hc_security_code ]]]"
+          item3:
+            card:
+              type: custom:button-card
+              entity: "[[[ return entity.entity_id ]]]"
+              show_name: false
+              show_state: false
+              icon: mdi:shield-off
+              styles:
+                icon:
+                  - width: 25px
+                  - color: var(--icon-color)
+                card:
+                  - padding: 10px
+                  - border-radius: 500px
+                  - box-shadow: none
+                  - pointer-events: auto
+                  - background: none
+              state:
+                - value: disarmed
+                  styles:
+                    card:
+                      - background: "[[[ return variables.hc_icon_color ]]]"
+                    icon:
+                      - color: '#fff'               
+              tap_action:
+                action: call-service
+                service: alarm_control_panel.alarm_disarm
+                target:
+                  entity_id: "[[[ return entity.entity_id ]]]"
+                data:
+                  code: "[[[ return variables.hc_security_code ]]]"
+
+hc_security_card_small:
+  show_icon: true
+  show_name: true
+  styles:
+    grid:
+      - grid-template-areas: |
+          ". i n ."
+      - grid-template-columns: 1fr min-content min-content 1fr
+    card:
+      - padding: 15px
+      - margin: 0
+    icon:
+      - width: 50%
+      - padding: 0
+      - margin: 0
+      - color: var(--subtext-color)
+    img_cell:
+      - width: 35px
+      - padding: 0
+      - margin: 0
+    name:
+      - 
+      - font-weight: 600
+      - color: var(--subtext-color)
+  state:
+    - value: disarmed
+      icon: fapro:shield-slash
+      name: Alarm is disabled
+    - value: arming
+      icon: fapro:shield-keyhole
+      name: Alarm is arming
+      styles:
+        card:
+          - background: var(--color-orange)
+        icon:
+          - animation: flash 2s infinite
+          - color: var(--subtext-color)
+        name:
+          - color: var(--subtext-color)
+    - value: armed_away
+      icon: fapro:shield-keyhole
+      name: Alarm is enabled
+      styles:
+        card:
+          - background: var(--color-red)
+        name:
+          - color: '#fff'
+        icon:
+          - color: '#fff'
+    - value: armed_home
+      icon: fapro:shield-check
+      name: Alarm is enabled
+      styles:
+        card:
+          - background: var(--color-green)
+        name:
+          - color: '#fff'
+        icon:
+          - color: '#fff'              
+  extra_styles: |
+    @keyframes flash {
+      0% {opacity: 100%;}
+      50% {opacity: 0%;}
+      100% {opacity: 100%;}
+    }
