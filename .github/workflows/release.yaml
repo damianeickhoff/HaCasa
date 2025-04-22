@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*.*.*' # Trigger on tags like v1.0.0
+      
+permissions: 
+  contents: write # Grant write permissions to GITHUB_TOKEN
 
 jobs:
   build-and-release:
