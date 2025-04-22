@@ -16,13 +16,13 @@ jobs:
       - name: "Create zip"
         run: |
           cd HaCasa
-          zip HaCasa-${{ github.ref }}.zip -r ./
+          zip HaCasa-${{ github.ref_name }}.zip -r ./
 
       - name: "Upload zip to release"
         uses: "svenstaro/upload-release-action@v1-release"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          file: "./HaCasa/HaCasa-${{ github.ref }}.zip"
-          asset_name: "HaCasa-${{ github.ref }}.zip"
+          file: "./HaCasa/HaCasa-${{ github.ref_name }}.zip"
+          asset_name: "HaCasa-${{ github.ref_name }}.zip"
           tag: "${{ github.ref }}"
           overwrite: true
