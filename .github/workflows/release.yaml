@@ -1,28 +1,35 @@
-name: "Release"
+name: Create Release Zip
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*' # Trigger on tags like v1.0.0
+  workflow_dispatch: # Allows manual triggering of the workflow
+    inputs:
+      tag_name:
+        description: 'Tag to use for the release'
+        required: true
+        default: 'v1.0.0'
+
+permissions: 
+  contents: write # Grant write permissions to GITHUB_TOKEN
 
 jobs:
-  update_hacs_manifest:
-    name: "Prepare release asset"
-    runs-on: "ubuntu-latest"
+  create-release-zip:
+    runs-on: ubuntu-latest
     steps:
-      - name: "Check out repository"
-        uses: "actions/checkout@v4"
-        
-      - name: "Create zip"
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag_name || github.ref_name }} # Use the provided tag or current ref
+
+      - name: Package Release Artifact
         run: |
           cd HaCasa
-          zip HaCasa-Release.zip -r ./
+          zip -r HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip *
 
-      - name: "Upload zip to release"
-        uses: "svenstaro/upload-release-action@v1-release"
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          file: "./HaCasa/HaCasa-Release.zip"
-          asset_name: "HaCasa-Release.zip"
-          tag: "${{ github.ref }}"
-          overwrite: true
+          name: HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+          path: HaCasa/HaCasa-${{ github.event.inputs.tag_name || github.ref_name }}.zip
