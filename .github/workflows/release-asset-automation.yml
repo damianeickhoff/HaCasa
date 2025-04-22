@@ -17,6 +17,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Debug: Print the release payload
+      - name: Debug Event Payload
+        env:
+          GITHUB_EVENT: ${{ toJson(github.event) }}
+        run: echo "$GITHUB_EVENT"
+
       # Create ZIP file of the HaCasa folder
       - name: Create ZIP file
         run: zip -r HaCasa.zip HaCasa
