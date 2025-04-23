@@ -26,6 +26,21 @@ Now that we have downloaded and placed the files, its time to do some configurat
    ```yaml
    lovelace:
      mode: "storage"
+     resources:
+      - url: "/hacsfiles/button-card/button-card.js"
+        type: "module"
+      - url: "/hacsfiles/my-cards/my-cards.js"
+        type: "module"
+      - url: "/hacsfiles/kiosk-mode/kiosk-mode.js"
+        type: module
+      - url: "/hacsfiles/lovelace-card-mod/card-mod.js"
+        type: module   
+      - url: "/hacsfiles/mini-graph-card/mini-graph-card-bundle.js"
+        type: module 
+      - url: "/hacsfiles/lovelace-layout-card/layout-card.js"
+        type: module        
+      - url: "https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900"
+        type: css
      dashboards:
        hacasa-dashboard:
          mode: "yaml"
