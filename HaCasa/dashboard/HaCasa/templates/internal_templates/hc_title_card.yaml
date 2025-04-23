@@ -1,12 +1,12 @@
 hc_title_card:
   show_label: true
   variables:
-    hc_btn1_entity:
-    hc_btn1_name:
-    hc_btn2_entity:
-    hc_btn2_name:
-    hc_btn3_entity:
-    hc_btn3_name:
+    btn1_entity:
+    btn1_name:
+    btn2_entity:
+    btn2_name:
+    btn3_entity:
+    btn3_name:
   styles:
     grid:
       - grid-template-areas: |
@@ -33,8 +33,8 @@ hc_title_card:
     btn1:
       card:
         type: custom:button-card
-        name: '[[[ return variables.hc_btn1_name ]]]'
-        entity: '[[[ return variables.hc_btn1_entity ]]]'
+        name: '[[[ return variables.btn1_name ]]]'
+        entity: '[[[ return variables.btn1_entity ]]]'
         show_icon: false
         styles: &card_styles
           grid:
@@ -61,8 +61,8 @@ hc_title_card:
     btn2:
       card:
         type: custom:button-card
-        entity: '[[[ return variables.hc_btn2_entity ]]]'
-        name: '[[[ return variables.hc_btn2_name ]]]'
+        entity: '[[[ return variables.btn2_entity ]]]'
+        name: '[[[ return variables.btn2_name ]]]'
         show_icon: false
         styles: *card_styles
         state:
@@ -71,8 +71,8 @@ hc_title_card:
     btn3:
       card:
         type: custom:button-card
-        entity: '[[[ return variables.hc_btn3_entity ]]]'
-        name: '[[[ return variables.hc_btn3_name ]]]'
+        entity: '[[[ return variables.btn3_entity ]]]'
+        name: '[[[ return variables.btn3_name ]]]'
         show_icon: false
         styles: *card_styles
         state:
