@@ -1,0 +1,39 @@
+name: Upload HaCasa ZIP to Release
+
+on:
+  release:
+    types:
+      - created
+
+permissions:
+  contents: write  # Required to upload assets to a release
+
+jobs:
+  upload-zip:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Debug: Print the release payload
+      - name: Debug Event Payload
+        env:
+          GITHUB_EVENT: ${{ toJson(github.event) }}
+        run: echo "$GITHUB_EVENT"
+
+      # Create ZIP file of the HaCasa folder
+      - name: Create ZIP file
+        run: zip -r HaCasa.zip HaCasa
+
+      # Upload the ZIP file to the release
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./HaCasa.zip
+          asset_name: HaCasa.zip
+          asset_content_type: application/zip

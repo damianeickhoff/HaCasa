@@ -40,7 +40,7 @@ Install the following integrations through HACS or manual (see their documentati
 ## Download and place files
 
 1. Go to [latest release](https://github.com/damianeickhoff/HaCasa/releases).
-2. Download the latest `HaCasa-X.zip` file.
+2. Download the latest `HaCasa.zip` file.
 3. Unpack the ZIP file.
 4. Copy the contents (file **and** folders) to the root of your Home Assistant configuration directory (where `configuration.yaml` is located).
 
