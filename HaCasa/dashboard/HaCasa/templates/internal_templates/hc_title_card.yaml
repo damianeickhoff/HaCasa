@@ -7,6 +7,7 @@ hc_title_card:
     entity2_name:
     entity3:
     entity3_name:
+    name_size: large
   styles:
     grid:
       - grid-template-areas: |
@@ -16,11 +17,14 @@ hc_title_card:
       - justify-self: start
       - align-self: start
       - font-weight: 800
-      - 
-      - font-size: 25px
+      - font-size: >
+          [[[ 
+            if (variables.name_size === "small") return "14px";
+            if (variables.name_size === "medium") return "18px";
+            return "25px"; 
+          ]]]
     label:
       - justify-self: start
-      - 
       - color: var(--subtext-color)
       - font-size: 14px
       - font-weight: 500
@@ -46,7 +50,6 @@ hc_title_card:
             - border-radius: 0
             - box-shadow: none
           name:
-            - 
             - font-weight: 600
             - font-size: 12px
             - opacity: 0.6
@@ -115,9 +118,8 @@ hc_title_card_backbtn:
     name:
       - justify-self: center
       - font-weight: 700
-      - 
       - font-size: 20px
       - margin-left: -2.350px
   tap_action:
     action: navigate
-    navigation_path: /home      
+    navigation_path: /home
