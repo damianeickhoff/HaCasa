@@ -128,12 +128,12 @@ hc_weather_card:
               entity: "[[[ return entity.entity_id ]]]"
               label: |-
                 [[[ return
-                  states[entity.entity_id].attributes.forecast[1].temperature +
+                  states[entity.entity_id].attributes.forecast[0].temperature +
                   "<span style>°C</span>" 
                 ]]]
               name: |
                 [[[ 
-                  const day = states[entity.entity_id].attributes.forecast[1].datetime;
+                  const day = states[entity.entity_id].attributes.forecast[0].datetime;
                   return helpers.formatDateWeekdayShort(day);
                 ]]]
               show_label: true
@@ -190,6 +190,41 @@ hc_weather_card:
               custom_fields:
                 icon: |
                   [[[
+                    const weather = states[entity.entity_id].attributes.forecast[0].condition;
+                    return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
+                  ]]]
+                temp: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[0].temperature + "<span style>°C</span>" ;
+                  ]]]  
+                templow: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[0].templow + "<span style>°C</span>" ;
+                  ]]]  
+                precip: |
+                  [[[ 
+                    return states[entity.entity_id].attributes.forecast[0].precipitation + "<span style> mm</span>" ;
+                  ]]]
+          day2:
+            card:
+              type: custom:button-card
+              entity: "[[[ return entity.entity_id ]]]"
+              label: |-
+                [[[ return
+                  states[entity.entity_id].attributes.forecast[1].temperature +
+                  "<span style>°C</span>"
+                ]]]
+              name: |
+                [[[ 
+                  const day = states[entity.entity_id].attributes.forecast[1].datetime;
+                  return helpers.formatDateWeekdayShort(day);
+                ]]]
+              show_label: true
+              show_icon: false
+              styles: *styles
+              custom_fields:
+                icon: |
+                  [[[
                     const weather = states[entity.entity_id].attributes.forecast[1].condition;
                     return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
                   ]]]
@@ -205,14 +240,14 @@ hc_weather_card:
                   [[[ 
                     return states[entity.entity_id].attributes.forecast[1].precipitation + "<span style> mm</span>" ;
                   ]]]
-          day2:
+          day3:
             card:
               type: custom:button-card
               entity: "[[[ return entity.entity_id ]]]"
               label: |-
                 [[[ return
                   states[entity.entity_id].attributes.forecast[2].temperature +
-                  "<span style>°C</span>"
+                  "<span style>°C</span>" 
                 ]]]
               name: |
                 [[[ 
@@ -239,41 +274,6 @@ hc_weather_card:
                 precip: |
                   [[[ 
                     return states[entity.entity_id].attributes.forecast[2].precipitation + "<span style> mm</span>" ;
-                  ]]]
-          day3:
-            card:
-              type: custom:button-card
-              entity: "[[[ return entity.entity_id ]]]"
-              label: |-
-                [[[ return
-                  states[entity.entity_id].attributes.forecast[3].temperature +
-                  "<span style>°C</span>" 
-                ]]]
-              name: |
-                [[[ 
-                  const day = states[entity.entity_id].attributes.forecast[3].datetime;
-                  return helpers.formatDateWeekdayShort(day);
-                ]]]
-              show_label: true
-              show_icon: false
-              styles: *styles
-              custom_fields:
-                icon: |
-                  [[[
-                    const weather = states[entity.entity_id].attributes.forecast[3].condition;
-                    return '<img src = "/local/images/weather/' + weather + '.svg" class="color-white-svg" />'
-                  ]]]
-                temp: |
-                  [[[ 
-                    return states[entity.entity_id].attributes.forecast[3].temperature + "<span style>°C</span>" ;
-                  ]]]  
-                templow: |
-                  [[[ 
-                    return states[entity.entity_id].attributes.forecast[3].templow + "<span style>°C</span>" ;
-                  ]]]  
-                precip: |
-                  [[[ 
-                    return states[entity.entity_id].attributes.forecast[3].precipitation + "<span style> mm</span>" ;
                   ]]]
     label_left:
       card:
