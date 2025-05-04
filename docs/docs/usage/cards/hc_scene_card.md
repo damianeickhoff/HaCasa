@@ -14,9 +14,45 @@ Adds the scenes card. It switches between the scenes you selected. For now, it h
 ## Usage
 
 ### Input selector needed
-This card used a input selector to determine which scene is active. It does this based on the name of your scene. Its important that the options you add to the input selector have the same name as the name you give in the card.
+This card used an input selector to determine which scene is active. It does this based on the id of your scene. It's important that the options you add to the input selector have the same id as the scene you give in the card.
 
-You'll also need a automation to change the scene when the input selector changes.
+For example:
+
+```json
+{
+  "key": "input_select",
+  "data": {
+    "items": [
+      {
+        "id": "scene_selector",
+        "name": "scene_selector",
+        "options": [
+          "scene.home",
+          "scene.work",
+          "scene.away",
+          "scene.night",
+          "scene.movie"
+        ]
+      }
+    ]
+  }
+}
+```
+
+You'll also need an automation to change the scene when the input selector changes. For example:
+
+```yaml
+- alias: Scene selector
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.scene_selector
+  actions:
+  - action: scene.turn_on
+    data:
+      entity_id: '{{ trigger.to_state.state }}'
+  mode: restart
+```
 
 There are a lot of guides online on how to do this.
 
@@ -46,20 +82,20 @@ There are a lot of guides online on how to do this.
 
 ## Variables
 
-| Variable | Default | Required | Description|
-|----------|---------|----------|------------|
-| icon_1 | '' | Yes | Icon for first item |
-| scene_1 | '' | Yes | Scene entity first item (`scene.x`) |
-| name_1 | '' | Yes | Name of first item, needs to be the same as name in `input_selector` |
-| icon_2 | '' | Yes | Icon for second item |
-| scene_2 | '' | Yes | Scene entity second item (`scene.x`) |
-| name_2 | '' | Yes | Name of second item, needs to be the same as name in `input_selector` |
-| icon_3 | '' | Yes | Icon for third item |
-| scene_3 | '' | Yes | Scene entity third item (`scene.x`) |
-| name_3 | '' | Yes | Name of third item, needs to be the same as name in `input_selector` |
-| icon_4 | '' | Yes | Icon for forth item |
-| scene_4 | '' | Yes | Scene entity forth item (`scene.x`) |
-| name_4 | '' | Yes | Name of forth item, needs to be the same as name in `input_selector` |
-| icon_5 | '' | Yes | Icon for fifth item |
-| scene_5 | '' | Yes | Scene entity fifth item (`scene.x`) |
-| name_5 | '' | Yes | Name of fifth item, needs to be the same as name in `input_selector` |
+| Variable | Default | Required | Description                                                                                     |
+|----------|---------|----------|-------------------------------------------------------------------------------------------------|
+| icon_1 | '' | Yes | Icon for first item                                                                             |
+| scene_1 | '' | Yes | Scene entity first item (`scene.x`), needs to be the same as a scene option in `input_selector` |
+| name_1 | '' | Yes | Name of first item                                                                              |
+| icon_2 | '' | Yes | Icon for second item                                                                            |
+| scene_2 | '' | Yes | Scene entity second item (`scene.x`), needs to be the same as a scene option in `input_selector` |
+| name_2 | '' | Yes | Name of second item                                                                             |
+| icon_3 | '' | Yes | Icon for third item                                                                             |
+| scene_3 | '' | Yes | Scene entity third item (`scene.x`), needs to be the same as a scene option in `input_selector` |
+| name_3 | '' | Yes | Name of third item                                                                              |
+| icon_4 | '' | Yes | Icon for forth item                                                                             |
+| scene_4 | '' | Yes | Scene entity forth item (`scene.x`), needs to be the same as a scene option in `input_selector` |
+| name_4 | '' | Yes | Name of forth item                                                                              |
+| icon_5 | '' | Yes | Icon for fifth item                                                                             |
+| scene_5 | '' | Yes | Scene entity fifth item (`scene.x`), needs to be the same as a scene option in `input_selector` |
+| name_5 | '' | Yes | Name of fifth item                                                                              |
