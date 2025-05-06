@@ -19,12 +19,12 @@ The `hc_security_card` is used for enabling or disabling your alarm. It's config
     template: hc_security_card
     entity: <your_alarm_entity>
     variables:
-      security_code: <your_code>
+      hc_security_code: <your_code>
 ```
 
 ## Variables
 
 | Variable | Default | Required | Description|
 |----------|---------|----------|------------|
-| security_code | / | **Yes** | The code to arm or disarm the alarm |
+| hc_security_code | / | **Yes** | The code to arm or disarm the alarm |
 | icon_color | var(--color-blue) | No | Color of the icon |
