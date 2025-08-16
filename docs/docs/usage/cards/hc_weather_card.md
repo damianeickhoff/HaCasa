@@ -54,7 +54,7 @@ Before you can use this card, you need to have a custom sensor that gets the for
 
 Now, you should have a new sensor called `sensor.weather_entity_forecast` which you can use as entity in this card.
 
-**Note:** If you want to use another weather provider like Buienradar or Accuweather, just replace `weather.home` with your desired intergration.
+**Note:** If you want to use another weather provider like Buienradar or Accuweather, just replace `weather.home` with your desired integration.
 
 ### View code
 

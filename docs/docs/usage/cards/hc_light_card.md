@@ -5,7 +5,7 @@ parent: Cards
 ---
 
 # Light Card
-The `hc_light_card` is used to turn on and off a light. You have the option to show or hide the bightness slider.
+The `hc_light_card` is used to turn on and off a light. You have the option to show or hide the brightness slider.
 
 
 ![light Card Light](../../../assets/images/cards/hc_light_card/lightcard_light.png)
@@ -34,4 +34,4 @@ The `hc_light_card` is used to turn on and off a light. You have the option to s
 More explanation about how some things are working.
 
 ### Brightness and slider
-The slider and brightness will only show if the light entity emmits a brightness attribute. If not, then the slider won't be visible, even if you have `enable_slider: true` and the brightness percentage will just be the state of the light (on/off).
+The slider and brightness will only show if the light entity emits a brightness attribute. If not, then the slider won't be visible, even if you have `enable_slider: true` and the brightness percentage will just be the state of the light (on/off).

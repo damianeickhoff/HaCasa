@@ -9,7 +9,7 @@ nav_order: 1.5
 
 In some rare cases, you might want to uninstall the theme. Well, here are the instructions for that!
 
-1. Go to the root folder of your Home Assistant and remove the folder `dashboard` or, if you have multiple dashboards, remove the `HaCasa` folder inside of there.
+1. Go to the root folder of your Home Assistant and remove the folder `dashboard` or, if you have multiple dashboards, remove the `HaCasa` folder inside there.
 2. Remove, underneath the `themes` folder the `HaCasa` folder.
 3. Remove the `custom_icons` folder.
 4. Remove the `hacasa_img` folder inside `www`.

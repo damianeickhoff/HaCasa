@@ -7,7 +7,7 @@ parent: Cards
 
 The `hc_header_card` is used on top of your dashboard. 
 
-The header card will always show the weather conditions and the date. Its possible to hide the air quality and person when you don't use that variable.
+The header card will always show the weather conditions and the date. It's possible to hide the air quality and person when you don't use that variable.
 
 ![Header Card Light](../../../assets/images/cards/hc_header_card/headercard_light.png)
 

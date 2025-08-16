@@ -7,9 +7,9 @@ parent: Cards
 
 # Navigation Card
 
-**This card is not fully developed and has a more advanced configuration for determining the color based on the state. Any questions or issues can be asked in the [Discord server](https://discord.gg/7yt64Tf) or at [Github](https://discord.gg/7yt64Tf).**
+**This card is not fully developed and has a more advanced configuration for determining the color based on the state. Any questions or issues can be asked in the [Discord server](https://discord.gg/7yt64Tf) or at [GitHub](https://discord.gg/7yt64Tf).**
 
-The `hc_navigation_card` can be used to navigate to certain pages in your dashboard. Although, because HaCasa is so versitile, you can also use this card as a action card without navigation or give it another hold action.
+The `hc_navigation_card` can be used to navigate to certain pages in your dashboard. Although, because HaCasa is so versatile, you can also use this card as an action card without navigation or give it another hold action.
 
 ![Navigation Card Light](../../../assets/images/cards/hc_navigation_card/navigationcard_light.png)
 
@@ -24,8 +24,8 @@ This card is also used for the security card. Use the tabs beneath to switch bet
     entity: <entity for label>
     icon: <icon>
     variables: 
-      label_prefix: 'On - ' # Prefix can by anything but the state of the entity will be added after it.
-      color: var(--color-orange) # color of the card when the state underneath is met (in this case, higher then 0)
+      label_prefix: 'On - ' # Prefix can be anything but the state of the entity will be added after it.
+      color: var(--color-orange) # color of the card when the state underneath is met (in this case, higher than 0)
     state:
       - value: 0 # Can also be 'on'
         operator: '>' # if value above is 'on', remove this line

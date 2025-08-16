@@ -15,8 +15,8 @@ But don't worry, we'll guide you through it 😄
 Ensure you have the following:
 
 - A running [Home Assistant](https://www.home-assistant.io/) instance.
-- Basic knowledge of Home Assistant like chaning your `configuration.yaml` file.
-- Preferrably [HACS](https://hacs.xyz) installed which is needed for installing the cards.
+- Basic knowledge of Home Assistant like changing your `configuration.yaml` file.
+- Preferably [HACS](https://hacs.xyz) installed which is needed for installing the cards.
 - You have access to your config folder of HA. It doesn’t matter which way this is. You will need this to upload and change files in your configuration.
 
 ## Backup Your Home Assistant
@@ -65,14 +65,16 @@ dashboard/
     │   └── example: 00-default_view.yaml
     └── main.yaml
 themes/
-└── hacasa/
+└── HaCasa/
     ├── hacasa-gold.yaml
-    └── hacasa-peachy.yaml
+    └── hacasa-peach.yaml
 www/
 └── images/
-    ├── idle-media.gif
+    ├── music/
+    │   └── idle-media.gif
     └── weather/
         ├── sunny.svg
+        ├── ...
         └── bg-sunny.svg
 configuration.yaml
 ```

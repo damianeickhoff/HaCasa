@@ -12,7 +12,7 @@ Now that we have downloaded and placed the files, its time to do some configurat
 ## Load the Theme
 
 1. Open your `configuration.yaml` file. This file is located in the root of your Home Assistant instance.
-2. Add the following code to the top of your file to load frontend themes. This is a part of Home Assistant itself and not HaCasa's. Place it underneath `default_config:` if you have that.
+2. Add the following code to the top of your file to load frontend themes if it is not already present. This is a part of Home Assistant itself and not HaCasa's. Place it underneath `default_config:` if you have that.
 
 
    ```yaml
@@ -21,7 +21,7 @@ Now that we have downloaded and placed the files, its time to do some configurat
      themes: !include_dir_merge_named themes
    ```
 
-4. Add the next part of code also to the `configration.yaml` to enable YAML mode for the new dashboard:
+3. Add the next part of code also to the `configuration.yaml` to enable YAML mode for the new dashboard:
 
    ```yaml
    lovelace:
@@ -49,7 +49,8 @@ Now that we have downloaded and placed the files, its time to do some configurat
          show_in_sidebar: true
          filename: "dashboard/HaCasa/main.yaml"
    ```
-As you can see, we load the needed intergrations and add a new dashboard called HaCasa and because we set the `mode` to `storage` (underneath `lovelace`), we don't remove any other dashboards you created with UI.
+Do not forget to replace _/**hacsfiles**/_ with your local path to the HACS files (_for example: /www/community/_).
+As you can see, we load the needed integrations and add a new dashboard called HaCasa and because we set the `mode` to `storage` (underneath `lovelace`), we don't remove any other dashboards you created with UI.
 
 3. Save the file and **Restart** Home Assistant.
 
@@ -75,7 +76,7 @@ We have two teams available by default. The gold (and original) one and the new 
        cards:
          - type: custom:button-card
            template: hc_header_card
-           entity: weather.buienradar
+           entity: weather.buienradar # Need https://www.home-assistant.io/integrations/buienradar/ to display weather, or replace with your local weather integration
          - type: custom:button-card
            template: hc_title_card
            name: "Welcome Home"
@@ -88,7 +89,7 @@ We have two teams available by default. The gold (and original) one and the new 
 
 1. Open your Home Assistant webpage.
 2. Navigate to the new HaCasa dashboard.
-3. Verify that the header card, alarm card and scene card are displayed correctly like the image below (based on peachy theme):
+3. Verify that the header card and welcome card are displayed correctly like the image below (based on peachy theme):
 ![Example view Light](/img/other/example_view_light.jpeg#light-mode-only)![Example view Dark](/img/other/example_view_light.jpeg#dark-mode-only)
 
 If everything works as expected, you are ready to start customizing your dashboard 🎉! Explore the cards section in the menu for more options.

@@ -7,7 +7,7 @@ parent: Cards
 
 # Media Card
 
-**The hc_media_card is not fully done yet. It can be used, but lacks some features like selecting the player. Its just a simple card to control the music at this moment.**
+**The hc_media_card is not fully done yet. It can be used, but lacks some features like selecting the player. It's just a simple card to control the music at this moment.**
 
 With the `hc_media_card` you can control your media. It can show the album art as background and the buttons provide to control the media.
 
@@ -23,7 +23,7 @@ With the `hc_media_card` you can control your media. It can show the album art a
 
 ## Variables
 
-| Variable | Default | Required | Description|
-|----------|---------|----------|------------|
-| show_background_art | true | No | If true, the background will show the album art. If nothing is payhing, a animated GIF will play. |
-| background_color | var(--color-purple) | No | The color will be used for the background if `hc_show_background_art` if `false`. |
+| Variable | Default | Required | Description                                                                                       |
+|----------|---------|----------|---------------------------------------------------------------------------------------------------|
+| show_background_art | true | No | If true, the background will show the album art. If nothing is playing, a animated GIF will play. |
+| background_color | var(--color-purple) | No | The color will be used for the background if `hc_show_background_art` if `false`.                 |

@@ -7,7 +7,7 @@ parent: Cards
 
 # Fan Card
 
-With the `hc_fan_card` you can control your fan. It has the option to add a oscillation button and a slider to set the speed. The fan icon has a little spinning animation.
+With the `hc_fan_card` you can control your fan. It has the option to add an oscillation button and a slider to set the speed. The fan icon has a little spinning animation.
 
 ![Climate Card Light](../../../assets/images/cards/hc_fan_card/fancard_light.png)
 

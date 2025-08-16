@@ -8,7 +8,7 @@ parent: Cards
 # Glance Card
 
 The `hc_glance_card` is used to display a summary of your entities. It's configured to show the state of the entity and the icon.
-You can add minimun 1 and maximum 3 entities. The card will automatically adjust the placement of the entities.
+You can add minimum 1 and maximum 3 entities. The card will automatically adjust the placement of the entities.
 
 **Note: The card will show the name you have given the entity. If you want to change the name, you must do this in the entity configuration from HA self.**
 

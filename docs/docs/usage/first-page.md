@@ -9,9 +9,9 @@ nav_order: 2.1
 
 Now, the most exciting part begins. Creating your first page. Actually we're going to edit your first page since you had to create a page while installing HaCasa. There are 2 ways to go. 
 
-You can create multiple views for different types like lights, security, switches or livingroom, bathroom and bedroom OR you can put everything on one page. Either way, HaCasa will work just fine so its totally up to you.
+You can create multiple views for different types like lights, security, switches or living room, bathroom and bedroom OR you can put everything on one page. Either way, HaCasa will work just fine so its totally up to you.
 
-If you want to use multiple views remember that the file order of the views will determain which view comes first. So for example `01-home.yaml` will be shown first and `02-lights.yaml` second. Just give your files a logical name.
+If you want to use multiple views remember that the file order of the views will determine which view comes first. So for example `01-home.yaml` will be shown first and `02-lights.yaml` second. Just give your files a logical name.
 
 ## Adding cards to the view
 
@@ -33,7 +33,7 @@ Like mentioned in the installation, you need to be able to edit your files. Ther
           cards:
             - type: custom:button-card
               template: hc_header_card
-              entity: weather.buienradar
+              entity: weather.buienradar # Need https://www.home-assistant.io/integrations/buienradar/ to display weather, or replace with your local weather integration
             - type: custom:button-card
               template: hc_title_card
               name: "Welcome Home"
@@ -44,7 +44,7 @@ From here on out, we can add some cards.
 
 3. **Add a card**
 
-    Adding a card is really easy. For example we are going to add a light button. You just grab this code:
+    Adding a card is really easy. For example, we are going to add a light button. You just grab this code:
 
     ```yaml
          - type: custom:button-card
@@ -60,7 +60,7 @@ Now to see the change you made just go to your dashboard in Home Assistant, pres
 
 ## Explanation
 
-So we just added a card, and it works! Great, but how? And why? Well, HaCasa uses something called `templates` which is a part of the `custom:button-card` intergration. Practically what happends is that we already created all the cards you will see later on and the only thing you have to do, is show them on the dashboard with that piece of code you added.
+So we just added a card, and it works! Great, but how? And why? Well, HaCasa uses something called `templates` which is a part of the `custom:button-card` integration. Practically what happened is that we already created all the cards you will see later on and the only thing you have to do, is show them on the dashboard with that piece of code you added.
 
 Every card we create uses the `name`,`label` and `entity` values from HA itself. We use those values to fill our information we want to show by default without you thinking about it.
 

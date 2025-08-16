@@ -14,9 +14,9 @@ Adds the scenes card. It switches between the scenes you selected. For now, it h
 ## Usage
 
 ### Input selector needed
-This card used a input selector to determine which scene is active. It does this based on the name of your scene. Its important that the options you add to the input selector have the same name as the name you give in the card.
+This card used an input selector to determine which scene is active. It does this based on the name of your scene. Its important that the options you add to the input selector have the same name as the name you give in the card.
 
-You'll also need a automation to change the scene when the input selector changes.
+You'll also need an automation to change the scene when the input selector changes.
 
 There are a lot of guides online on how to do this.
 
