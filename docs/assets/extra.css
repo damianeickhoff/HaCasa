@@ -17,3 +17,8 @@
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
 .grid2 figure { margin: 0; }
 .grid2 figcaption { font-size: .75rem; opacity: .8; }
+/* buttons: the dark primary colour is for the header only */
+.md-typeset .md-button { color: var(--md-typeset-a-color); border-color: currentColor; }
+.md-typeset .md-button--primary { background: #ffa08a; border-color: #ffa08a; color: #1b1a19; }
+.md-typeset .md-button:hover, .md-typeset .md-button:focus { background: #ff8a6e; border-color: #ff8a6e; color: #1b1a19; }
+.hero h1 { color: inherit; font-size: 2.6rem; margin-bottom: .8rem; }
