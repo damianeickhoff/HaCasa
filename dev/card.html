@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HaCasa Nova – card mode (dev)</title>
+  <style>
+    body { margin: 0; background: #1c1c1c; font-family: system-ui, sans-serif; --header-height: 56px; }
+    .ha-header { height: 56px; background: #03a9f4; color: #fff; display: flex; align-items: center; padding: 0 16px; font-weight: 600; }
+  </style>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/iconify-icon@2/dist/iconify-icon.min.js"></script>
+</head>
+<body>
+<div class="ha-header">Home Assistant · dashboard (panel view) · the card below fills the rest</div>
+<script type="module">
+  // Simulates a Lovelace dashboard in panel view hosting the card. Fresh user data = the first-run wizard appears.
+  if (!customElements.get("ha-icon")) {
+    customElements.define("ha-icon", class extends HTMLElement {
+      static get observedAttributes() { return ["icon"]; }
+      connectedCallback() { this.attachShadow({ mode: "open" }); this.render(); }
+      attributeChangedCallback() { if (this.shadowRoot) this.render(); }
+      set icon(v) { this.setAttribute("icon", v); }
+      render() { this.shadowRoot.innerHTML = `<iconify-icon icon="${this.getAttribute("icon") || ""}" style="font-size:var(--mdc-icon-size,24px)"></iconify-icon>`; }
+    });
+  }
+  import { makeHass } from "./mock-hass.js";
+  await import("../dist/hacasa-nova.js?v=" + Date.now());
+  if (new URLSearchParams(location.search).has("fresh")) ["hacasa_nova", "kamer_panel", "homio_panel"].forEach(k => localStorage.removeItem("mock:" + k));
+  const card = document.createElement("hacasa-nova-card");
+  card.setConfig({ type: "custom:hacasa-nova-card" });           // no config: like a brand-new install
+  const inner = card.shadowRoot.querySelector("hacasa-nova");
+  inner.loadConfig = async () => inner.applyConfig();        // skip ../config.json: behave like a brand-new install
+  card.hass = makeHass(h => { card.hass = { ...h }; });
+  card.hass.userData = {};
+  document.body.append(card);
+  window.card = card; window.panel = card.shadowRoot.querySelector("hacasa-nova");
+</script>
+</body>
+</html>

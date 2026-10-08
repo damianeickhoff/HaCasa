@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HaCasa Nova – dev</title>
+<!-- Home Assistant provides <ha-icon>; outside HA we shim it with iconify's mdi set. -->
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
+<style>html,body{margin:0;height:100%;background:#222}</style>
+</head>
+<body>
+<script type="module">
+  if (!customElements.get("ha-icon")) {
+    customElements.define("ha-icon", class extends HTMLElement {
+      static get observedAttributes() { return ["icon"]; }
+      // shadow DOM, like the real ha-icon: never touch light DOM (it would shift Lit's template node indexes)
+      constructor() { super(); this.attachShadow({ mode: "open" }); }
+      connectedCallback() { this.style.display = "inline-flex"; this.render(); }
+      attributeChangedCallback() { if (this.shadowRoot) this.render(); }
+      render() { this.shadowRoot.innerHTML = `<iconify-icon icon="${this.getAttribute("icon") || ""}" style="font-size:var(--mdc-icon-size,24px)"></iconify-icon>`; }
+    });
+  }
+  import { makeHass } from "./mock-hass.js";
+  await import("../dist/hacasa-nova.js?v=" + Date.now());
+
+  const el = document.createElement("hacasa-nova");
+  // dev config: images are served from the www root by http-server, not /local
+  // dev config: photos come from /images/rooms/ under the served folder (not part of the repo; rooms without one get a gradient)
+  const img = n => `/images/rooms/${n}.png`;
+  el.fileConfig = {
+    title: "Home.", rooms: ["living_room", "kitchen", "bedroom", "dressing_room", "landing", "attic"],
+    roomImage: "/images/rooms/{slug}.jpg", homeImage: img("backyard"),
+    pages: { living_room: { image: img("livingroom") }, kitchen: { image: img("kitchen") }, bedroom: { image: img("lounge") }, dressing_room: { image: img("dressing") }, landing: { image: img("landing") }, attic: { image: img("office") } },
+    home: { weather: "weather.home", energy: { power: "sensor.p1_power", today: "sensor.p1_energy_today" },
+      waste: [{ entity: "sensor.waste_bio", label: "Bio" }, { entity: "sensor.waste_plastic", label: "Plastic" }, { entity: "sensor.waste_paper", label: "Paper" }] },
+    more: [],
+    templates: [{ id: "tpl1", name: "Outside", icon: "mdi:thermometer", state: "{{ states('weather.home') }}", label: "example", room: undefined }],
+  };
+  el.loadConfig = async () => { el.applyConfig(); };   // keep the dev config (acts as config.json)
+  el.hass = makeHass(h => { el.hass = { ...h }; });
+  el.panel = { url_path: "hacasa" };
+  el.hass.userData = {};
+  el.addEventListener("hass-toggle-menu", () => console.log("[mock] hass-toggle-menu"));
+  const route = () => ({ prefix: "/hacasa", path: location.hash.replace(/^#/, "") || "/" });
+  el.route = route();
+  // the panel navigates with history.pushState("/hacasa/<room>"); map that back to a hash for the dev server
+  const origPush = history.pushState.bind(history);
+  history.pushState = (s, t, url) => { location.hash = String(url).replace(/^\/hacasa/, "") || "/"; };
+  addEventListener("hashchange", () => { el.route = route(); });
+  // screenshot helpers: ?shot hides the first-run hint, ?popup=light:light.floor_lamp (or ?popup=weather) opens a popup
+  const q = new URLSearchParams(location.search);
+  if (q.has("shot")) {
+    el.fileConfig.hintSeen = true;
+    // animations jump to their end state, so a capture never lands mid-fade
+    customElements.whenDefined("hacasa-nova").then(() => el.updateComplete).then(() => {
+      const st = document.createElement("style");
+      st.textContent = "*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important}";
+      el.shadowRoot.append(st);
+    });
+  }
+  if (q.get("popup")) setTimeout(() => {
+    const [type, id] = q.get("popup").split(":");
+    const all = el.rooms.flatMap(r => Object.values(r.ents).filter(Array.isArray).flat());
+    const e = id ? all.find(x => x?.id === id || x?.entity_id === id) : undefined;
+    el.openPopup({ type, e, s: e?.state || e, a: e });
+  }, 900);
+  document.body.appendChild(el);
+  window.panel = el;
+  el.addEventListener("hass-more-info", e => console.log("[mock] hass-more-info", e.detail.entityId));
+</script>
+</body>
+</html>

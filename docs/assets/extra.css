@@ -1,0 +1,19 @@
+/* HaCasa Nova docs: warm dark header, HaCasa peach accent */
+:root {
+  --md-primary-fg-color: #2b2724;
+  --md-primary-fg-color--light: #3a3530;
+  --md-primary-fg-color--dark: #1b1a19;
+  --md-accent-fg-color: #ff8a6e;
+}
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #1e1c1b;
+  --md-typeset-a-color: #ffa08a;
+}
+[data-md-color-scheme="default"] { --md-typeset-a-color: #c4573d; }
+.md-typeset h1 { font-weight: 700; letter-spacing: -.02em; }
+.md-typeset img { border-radius: 10px; }
+.hero { text-align: center; margin: 0 0 2rem; }
+.hero p.tag { font-size: 1.15rem; opacity: .85; margin-top: -.6rem; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.grid2 figure { margin: 0; }
+.grid2 figcaption { font-size: .75rem; opacity: .8; }

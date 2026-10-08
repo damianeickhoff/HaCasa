@@ -1,0 +1,204 @@
+# "HaCasa Nova": makes the rest of Home Assistant look like the HaCasa Nova panel.
+#
+# Install: copy to /config/themes/hacasa-nova/hacasa-nova.yaml (themes: !include_dir_merge_named themes in configuration.yaml),
+# reload themes (Developer tools > YAML > Themes), then Profile > Theme > "HaCasa Nova".
+#
+# One continuous photo (the panel's home image with its dark overlay) sits behind the
+# sidebar, the header and the view. Sidebar, header, cards and dialogs are frosted glass
+# over it, with the panel's 8px radius and white accent. The glass needs card-mod (HACS).
+# The photo is /config/www/images/rooms/home.jpg; change the url() below to use another one.
+#
+# Font everywhere: add to configuration.yaml under lovelace: resources:
+#   - url: https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700
+#     type: css
+HaCasa Nova:
+  card-mod-theme: HaCasa Nova
+
+  # ----- the photo behind everything (fixed, so sidebar + view line up) ----- #
+  card-mod-root: |
+    :host {
+      background: linear-gradient(to bottom, rgba(51,51,51,.7) 0%, rgba(51,51,51,.7) 50%, rgba(51,51,51,.5) 100%),
+                  url('/local/images/rooms/home.jpg') center center / cover no-repeat fixed !important;
+    }
+    .header, app-header, app-toolbar, .toolbar {
+      background: rgba(40,40,40,.35) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: #fff !important;
+    }
+    #view { padding-top: 16px !important; }
+    .header { border: 0 !important; box-shadow: none !important; }
+  # Sidebar: plain dark glass (translucent; blurs the page behind it when it slides in)
+  card-mod-sidebar: |
+    :host {
+      background: rgba(31,31,31,.85) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 0 !important;
+    }
+    .menu, paper-listbox, .divider { background: transparent !important; border: 0 !important; }
+    .title { font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-size: 15px; }
+    paper-icon-item, ha-md-list-item, a { border-radius: 8px; margin: 2px 8px; }
+    .iron-selected .item-background, a[aria-selected="true"] .item-background, .selected .item-background,
+    ha-md-list-item[type="link"].selected { background: rgba(255,255,255,.14) !important; border-radius: 8px; }
+  card-mod-more-info: |
+    .mdc-dialog__surface, .mdc-dialog .mdc-dialog__surface {
+      background: rgba(60,60,60,.72) !important;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 12px !important;
+    }
+  card-mod-card: |
+    ha-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+  # ----- Fonts ----- #
+  primary-font-family: "Hanken Grotesk, Roboto, system-ui, sans-serif"
+  ha-font-family-body: var(--primary-font-family)
+  ha-font-family-heading: var(--primary-font-family)
+  ha-card-header-font-family: var(--primary-font-family)
+  paper-font-common-base_-_font-family: var(--primary-font-family)
+  ha-card-header-font-size: "13px"
+  # ----- Text ----- #
+  primary-text-color: "#ffffff"
+  secondary-text-color: "rgba(255,255,255,0.75)"
+  disabled-text-color: "rgba(255,255,255,0.38)"
+  text-primary-color: "#ffffff"
+  # ----- Backgrounds (the photo is applied via card-mod above; these are the fallbacks) ----- #
+  primary-background-color: "#2b2b2b"
+  secondary-background-color: "#303030"
+  lovelace-background: "transparent"
+  app-header-background-color: "rgba(40,40,40,0.35)"
+  app-header-text-color: "#ffffff"
+  app-header-edit-background-color: "#282828"
+  divider-color: "rgba(255,255,255,0.06)"
+  ha-card-border-width: "0px"
+  ha-border-width: "0px"
+  # ----- Sidebar (translucent; the blur comes from card-mod-sidebar) ----- #
+  sidebar-background-color: "rgba(31,31,31,0.85)"
+  sidebar-icon-color: "rgba(255,255,255,0.6)"
+  sidebar-text-color: "#f1f1f1"
+  sidebar-selected-background-color: "rgba(255,255,255,0.14)"
+  sidebar-selected-icon-color: "#ffffff"
+  sidebar-selected-text-color: "#ffffff"
+  sidebar-menu-button-background-color: "transparent"
+  # ----- Cards: frosted white, 8px radius, no border/shadow (same as the panel) ----- #
+  # ha-card gets the glass; card-background-color must stay opaque because HA uses it for dropdown lists, menus and overlays
+  ha-card-background: "rgba(255,255,255,0.10)"
+  card-background-color: "#2f2f2f"
+  ha-card-border-radius: "8px"
+  ha-card-border-color: "transparent"
+  ha-card-box-shadow: "none"
+  ha-card-header-color: "#ffffff"
+  # ----- Accent: white, like the panel's active pill ----- #
+  primary-color: "#ffffff"
+  accent-color: "#ffffff"
+  light-primary-color: "rgba(255,255,255,0.6)"
+  dark-primary-color: "#dddddd"
+  state-icon-color: "rgba(255,255,255,0.75)"
+  state-icon-active-color: "#ffffff"
+  state-active-color: "#ffffff"
+  state-light-active-color: "#ffffff"
+  state-switch-active-color: "#ffffff"
+  state-climate-heat-color: "#ffffff"
+  state-binary_sensor-active-color: "#ffffff"
+  state-cover-active-color: "#ffffff"
+  state-media_player-active-color: "#ffffff"
+  paper-item-icon-color: "rgba(255,255,255,0.75)"
+  paper-item-icon-active-color: "#ffffff"
+  tile-color: "#ffffff"
+  # ----- Menus, dropdown lists and dialogs: dark surfaces, white text ----- #
+  mdc-theme-surface: "#2f2f2f"
+  mdc-theme-on-surface: "#ffffff"
+  mdc-theme-text-primary-on-background: "#ffffff"
+  mdc-theme-text-secondary-on-background: "rgba(255,255,255,0.7)"
+  mdc-theme-text-icon-on-background: "rgba(255,255,255,0.7)"
+  mdc-theme-text-hint-on-background: "rgba(255,255,255,0.5)"
+  mdc-menu-item-text-color: "#ffffff"
+  mdc-list-item-text-color: "#ffffff"
+  mdc-select-dropdown-icon-color: "#ffffff"
+  md-sys-color-surface: "#2f2f2f"
+  md-sys-color-surface-container: "#353535"
+  md-sys-color-surface-container-high: "#3a3a3a"
+  md-sys-color-on-surface: "#ffffff"
+  md-sys-color-on-surface-variant: "rgba(255,255,255,0.7)"
+  md-sys-color-outline: "transparent"
+  md-sys-color-outline-variant: "transparent"
+  md-menu-container-color: "#2f2f2f"
+  ha-select-text-color: "#ffffff"
+  paper-listbox-background-color: "#2f2f2f"
+  paper-listbox-color: "#ffffff"
+  paper-item-icon-color: "rgba(255,255,255,0.75)"
+  vaadin-combo-box-overlay-background: "#2f2f2f"
+  mdc-ripple-color: "#ffffff"
+  # new HA pickers (language, entity, …) use wa-popover + design tokens; force their dark values
+  ha-dialog-surface-background: "#2f2f2f"
+  ha-color-fill-neutral-quiet-resting: "rgba(255,255,255,0.08)"
+  ha-color-fill-neutral-quiet-hover: "rgba(255,255,255,0.14)"
+  ha-color-fill-neutral-normal-resting: "rgba(255,255,255,0.14)"
+  ha-color-fill-neutral-normal-hover: "rgba(255,255,255,0.2)"
+  ha-color-fill-neutral-loud-resting: "#3a3a3a"
+  ha-color-fill-primary-quiet-resting: "rgba(255,255,255,0.14)"
+  ha-color-on-neutral-quiet: "#ffffff"
+  ha-color-on-neutral-normal: "#ffffff"
+  ha-color-on-neutral-loud: "#ffffff"   # toast text (toast background is HA's dark neutral-10, which dark mode always re-applies)
+  ha-color-text-primary: "#ffffff"
+  ha-color-text-secondary: "rgba(255,255,255,0.7)"
+  ha-color-text-disabled: "rgba(255,255,255,0.38)"
+  ha-color-border-neutral-quiet: "transparent"
+  ha-color-border-neutral-normal: "rgba(255,255,255,0.12)"
+  ha-color-border-neutral-loud: "rgba(255,255,255,0.3)"
+  ha-color-border-primary-quiet: "rgba(255,255,255,0.2)"
+  ha-color-border-primary-loud: "#ffffff"
+  ha-list-item-selected-background: "rgba(255,255,255,0.14)"
+  ha-list-item-active-background: "rgba(255,255,255,0.2)"
+  # badge (sidebar notifications): dark text on the white accent
+  text-accent-color: "#282828"
+  # ----- Controls ----- #
+  switch-checked-color: "#ffffff"
+  switch-checked-button-color: "#ffffff"
+  switch-checked-track-color: "rgba(255,255,255,0.4)"
+  switch-unchecked-button-color: "rgba(255,255,255,0.7)"
+  switch-unchecked-track-color: "rgba(255,255,255,0.15)"
+  slider-color: "#ffffff"
+  slider-bar-color: "rgba(255,255,255,0.25)"
+  slider-track-color: "rgba(255,255,255,0.25)"
+  mdc-theme-primary: "#ffffff"
+  mdc-theme-on-primary: "#282828"
+  mdc-button-outline-color: "rgba(255,255,255,0.3)"
+  mdc-text-field-fill-color: "rgba(0,0,0,0.25)"
+  mdc-text-field-ink-color: "#ffffff"
+  mdc-text-field-label-ink-color: "rgba(255,255,255,0.7)"
+  mdc-select-fill-color: "rgba(0,0,0,0.25)"
+  mdc-select-ink-color: "#ffffff"
+  mdc-select-label-ink-color: "rgba(255,255,255,0.7)"
+  mdc-select-dropdown-icon-color: "#ffffff"
+  input-fill-color: "rgba(0,0,0,0.25)"
+  input-ink-color: "#ffffff"
+  input-label-ink-color: "rgba(255,255,255,0.7)"
+  input-idle-line-color: "rgba(255,255,255,0.3)"
+  input-hover-line-color: "rgba(255,255,255,0.6)"
+  input-dropdown-icon-color: "#ffffff"
+  # ----- Dialogs ----- #
+  ha-dialog-border-radius: "12px"
+  mdc-dialog-scrim-color: "rgba(20,20,20,0.55)"
+  mdc-dialog-heading-ink-color: "#ffffff"
+  # ----- Misc ----- #
+  code-editor-background-color: "#1f1f1f"
+  table-row-background-color: "rgba(255,255,255,0.06)"
+  table-row-alternative-background-color: "rgba(255,255,255,0.03)"
+  error-color: "#f27a5c"
+  warning-color: "#f2b63a"
+  success-color: "#8fd16a"
+  info-color: "#7fb6ff"
+  # ----- Toasts: explicit colours so they stay readable whatever HA applies ----- #
+  paper-toast-background-color: "#3a3a3a"
+  paper-toast-text-color: "#ffffff"
+  ha-color-fill-neutral-loud-resting: "#3a3a3a"
+  # ----- Dark tokens: HA only applies its dark design tokens (text colours, dialogs, toasts) when a dark mode exists.
+  # Light is not defined, so both choices in the profile give the same dark result. ----- #
+  modes:
+    dark:
+      primary-background-color: "#2b2b2b"

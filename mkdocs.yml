@@ -1,0 +1,83 @@
+site_name: HaCasa Nova
+site_description: The HaCasa reboot. A room-first Home Assistant panel, built on the Homio design by iamtherufus.
+site_url: https://damianeickhoff.github.io/HaCasa/
+site_author: Damian Eickhoff
+repo_url: https://github.com/damianeickhoff/HaCasa
+repo_name: damianeickhoff/HaCasa
+edit_uri: edit/main/docs/
+copyright: HaCasa Nova · MIT · design based on <a href="https://github.com/iamtherufus/Homio">Homio</a> by iamtherufus
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  font:
+    text: Hanken Grotesk
+    code: JetBrains Mono
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.tabs.link
+    - search.highlight
+
+extra_css:
+  - assets/extra.css
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: installation.md
+      - First run: first-run.md
+      - Room photos: photos.md
+  - Using the panel:
+      - Home view and rooms: rooms.md
+      - Cards: cards.md
+      - Pages: pages.md
+      - Popups and extras: extras.md
+  - Configuration:
+      - Settings: settings.md
+      - Card settings: card-settings.md
+      - Theme for Home Assistant: theme.md
+  - Help:
+      - Troubleshooting: troubleshooting.md
+      - Development: development.md
+      - Changelog: changelog.md
+      - HaCasa v2 (legacy): legacy.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/damianeickhoff/HaCasa
