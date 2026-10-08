@@ -1,3 +1,7 @@
+> [!NOTE]
+> **This is the legacy branch: HaCasa v2**, the original button-card dashboard (last release v2.1.3). It is kept for reference and no longer maintained.
+> HaCasa is back as **[HaCasa Nova](https://github.com/damianeickhoff/HaCasa)**, a rebuilt panel on the `main` branch. Docs: https://damianeickhoff.github.io/HaCasa/
+
 # Archived Project
 
 This project has been archived due to insufficient time to continue active development and maintenance.
