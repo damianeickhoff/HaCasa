@@ -154,4 +154,4 @@ npx http-server .. -p 8097 -c-1
 
 ## License
 
-[MIT](LICENSE). The Homio design credit and Lit's license notice are included in the license file.
+[MIT](LICENSE). The Homio design credit and the license notices of what is bundled are in [NOTICE.md](NOTICE.md).
