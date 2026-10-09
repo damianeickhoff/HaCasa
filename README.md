@@ -11,9 +11,11 @@
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/github/license/damianeickhoff/HaCasa?style=flat-square)](https://github.com/damianeickhoff/HaCasa/blob/main/LICENSE)
 
-[Documentation](https://damianeickhoff.github.io/HaCasa/) · [Install](#install) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
+[Documentation](https://damianeickhoff.github.io/HaCasa/) · [Demo video](https://damianeickhoff.github.io/HaCasa/#demo) · [Install](#install) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
 
-<img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/home.png" alt="HaCasa Nova home view" width="100%">
+<a href="https://damianeickhoff.github.io/HaCasa/#demo"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/demo/poster-play.webp" alt="HaCasa Nova: watch the 40-second demo" width="100%"></a>
+
+<sub>▶ Click to watch the 40-second demo</sub>
 
 </div>
 

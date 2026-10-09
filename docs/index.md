@@ -16,7 +16,11 @@ hide:
 
 </div>
 
-![HaCasa Nova home view](assets/screenshots/home.png)
+<div id="demo" class="video">
+<video controls autoplay muted loop playsinline preload="metadata" poster="assets/screenshots/home.png">
+  <source src="assets/demo/hacasa-nova-demo.mp4" type="video/mp4">
+</video>
+</div>
 
 !!! danger "Work in progress"
     HaCasa Nova is a work in progress and needs testing. This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).

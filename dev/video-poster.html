@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HaCasa Nova – video poster</title>
+<!-- Still frame with a play button for the README (links to the demo video on the docs site).
+     Capture at 1600x900 as WebP into docs/assets/demo/poster-play.webp; the plain still is docs/assets/screenshots/home.png. -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;width:1600px;height:900px;overflow:hidden;font-family:"Hanken Grotesk",system-ui,sans-serif}
+  body{background:url(../docs/assets/screenshots/home.png) center/cover}
+  body::after{content:"";position:fixed;inset:0;background:rgba(10,10,12,.38)}
+  .play{position:fixed;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:22px;color:#fff}
+  .btn{width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.18);border:3px solid rgba(255,255,255,.9);backdrop-filter:blur(14px);display:grid;place-items:center;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+  .btn svg{width:62px;height:62px;margin-left:10px}
+  .lbl{font-size:34px;font-weight:700;letter-spacing:-.4px;text-shadow:0 2px 16px rgba(0,0,0,.6)}
+  .lbl span{opacity:.75;font-weight:600}
+</style>
+</head>
+<body>
+  <div class="play">
+    <div class="btn"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L7.5 3.64A1 1 0 0 0 6 4.5Z"/></svg></div>
+    <div class="lbl">Watch the demo <span>· 40 s</span></div>
+  </div>
+</body>
+</html>
