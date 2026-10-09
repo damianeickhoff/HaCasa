@@ -111,6 +111,7 @@ export function makeHass(onChange) {
   add("vacuum.robbie", "living_room", "docked", { friendly_name: "Robbie", battery_level: 86, fan_speed: "standard" });
   add("humidifier.humidifier", "bedroom", "on", { friendly_name: "Humidifier", humidity: 50, current_humidity: 44, action: "humidifying", available_modes: ["auto", "sleep"] });
   add("update.home_assistant_core_update", null, "on", { friendly_name: "Home Assistant Core Update", title: "Home Assistant Core", installed_version: "2026.9.3", latest_version: "2026.10.1", release_summary: "New features and improvements.", supported_features: 1 + 16 });
+  add("update.hacasa_nova_update", null, "on", { friendly_name: "HaCasa Nova update", title: "HaCasa Nova", installed_version: "v3.0.4", latest_version: "v3.0.5", release_url: "https://github.com/damianeickhoff/HaCasa/releases/v3.0.5", supported_features: 1 + 4 + 16 });
   add("update.shelly_plug_firmware", "kitchen", "on", { friendly_name: "Shelly Plug Firmware", title: "Shelly Plug", installed_version: "1.4.2", latest_version: "1.5.0", device_class: "firmware", supported_features: 1 });
   add("script.good_night", null, "off", { friendly_name: "Good night", icon: "mdi:weather-night" });
   add("binary_sensor.doorbell", "hallway", "off", { friendly_name: "Doorbell", device_class: "occupancy" });
@@ -140,6 +141,7 @@ export function makeHass(onChange) {
 
   const notifications = [{ notification_id: "update_available", title: "Update available", message: "Home Assistant 2026.10.1 is available.", created_at: ago(40) }];
   const hass = {
+    user: { id: "u1", name: "Alex", is_admin: true },
     areas, devices, entities, states, floors, language: new URLSearchParams(location.search).get("lang") || "en",
     connection: { subscribeMessage(cb, msg) { console.log("[mock] subscribe", msg.type); if (msg.type === "render_template") { setTimeout(() => cb({ result: msg.template.includes("weather") ? "Partly cloudy" : "example" }), 30); return Promise.resolve(() => {}); } setTimeout(() => cb({ notifications: Object.fromEntries(notifications.map(n => [n.notification_id, n])) }), 50); return () => {}; } },
     callService(domain, service, data) {

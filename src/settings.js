@@ -3,12 +3,13 @@
 // The page is split into tabs (left) so each topic stays small.
 import { t, locale, LANGUAGES } from "./i18n.js";
 import { html, nothing } from "lit";
-import { domain, slug } from "./util.js";
-import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates } from "./features.js";
+import { domain, slug, SUFFIX, VERSION } from "./util.js";
+import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates, selfUpdate } from "./features.js";
 
-export const USER_DATA_KEY = "hacasa_nova";
+export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
 
-const OLD_USER_DATA_KEYS = ["kamer_panel", "homio_panel"];   // pre-release names: their settings are carried over once
+// carried over once when the key is empty: pre-release names, or (dev build) a copy of the real settings
+const OLD_USER_DATA_KEYS = SUFFIX ? ["hacasa_nova"] : ["kamer_panel", "homio_panel"];
 export async function loadUserConfig(hass) {
   try {
     const r = await hass.callWS({ type: "frontend/get_user_data", key: USER_DATA_KEY });
@@ -110,6 +111,7 @@ export function renderSettings(p) {
         ${field(t("Media-achtergrond"), text(d.mediaIdleImage, v => set("mediaIdleImage", v), "/local/images/music/idle-media.gif"), t("op mediakaarten als er niets speelt; leeg = geen"))}`)}
       ${sec(t("Gedrag"), "", html`
         ${field(t("Batterij-grens"), number(d.home?.lowBattery ?? 20, v => setHome("lowBattery", v)), t("onder dit percentage in Aandacht"))}
+        ${field(t("Controleren op updates"), check(!d.noUpdateCheck, v => set("noUpdateCheck", v ? undefined : true)), t("melding op de startpagina als er een nieuwe HaCasa Nova is (alleen voor beheerders)"))}
         ${field(t("Lichtscènes"), check(!d.noPresets, v => set("noPresets", v ? undefined : true)), t("kaart in elke kamer met lampen: sla lampstanden op en roep ze terug"))}
         <div class="f"><span>${t("Slaapstand na")}<small>${t("minuten zonder aanraking; 0 = uit")}</small></span><div class="row" style="grid-template-columns:1fr max-content;margin:0">${number(d.idleMinutes ?? 0, v => set("idleMinutes", v))}<button @click=${() => p.showIdle()}>${t("Nu tonen")}</button></div></div>
         <div class="f"><span>${t("Installatiehulp")}<small>${t("opnieuw doorlopen; wijzigt alleen wat je invult")}</small></span><button @click=${() => p.openPopup({ type: "wizard", step: 0 })}>${t("Opnieuw starten")}</button></div>
@@ -219,7 +221,7 @@ export function renderSettings(p) {
   };
 
   return html`<section class="settings page">
-    <header class="phead"><div><h1>${t("Instellingen")}</h1><div class="psub">${t("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · HaCasa Nova ${typeof __VERSION__ === "string" ? __VERSION__ : "dev"}</div></div>
+    <header class="phead"><div><h1>${t("Instellingen")}</h1><div class="psub">${t("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · HaCasa Nova ${VERSION}${(su => su ? html` · <a class="upd" @click=${su.open}>${t("{v} beschikbaar", { v: String(su.to).replace(/^v/, "") })}</a>` : nothing)(selfUpdate(p))}</div></div>
       <div class="actions">
         ${p.saved ? html`<span class="ok">${t("Opgeslagen")}</span>` : dirty ? html`<span class="dirty"><ha-icon icon="mdi:circle-medium"></ha-icon>${t("Niet opgeslagen")}</span>` : nothing}
         <button class=${dirty ? "primary pulse" : "primary"} @click=${() => p.saveSettings()}>${t("Opslaan")}</button>

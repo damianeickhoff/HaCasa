@@ -1,7 +1,7 @@
 // Quick actions, doorbell/motion camera pop-up, pending updates and per-room light presets.
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
-import { domain, isOn, unavailable } from "./util.js";
+import { SUFFIX, VERSION, domain, isOn, unavailable } from "./util.js";
 import { pressDir } from "./cards.js";
 
 /* ---------- quick actions (home view) ---------- */
@@ -139,3 +139,36 @@ export const featureStyles = `
     .settings .row.quick{grid-template-columns:1fr 1fr}
   }
 `;
+
+/* ---------- a newer HaCasa Nova ---------- */
+const REPO = "damianeickhoff/HaCasa";
+const parts = v => String(v || "").replace(/^v/, "").split(/[.-]/).slice(0, 3).map(n => parseInt(n, 10) || 0);
+/** true when version a is newer than b ("v3.0.5" > "3.0.4") */
+export const newer = (a, b) => { const x = parts(a), y = parts(b); for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i]; return false; };
+/** the update to offer an administrator, or null: from HACS's update entity, or, for installs without HACS,
+ *  GitHub's latest release (checked at most twice a day, cached per browser). Dev builds stay quiet. */
+export function selfUpdate(p) {
+  const hass = p.hass;
+  if (!hass?.user?.is_admin || p.config.noUpdateCheck) return null;
+  const ent = Object.values(hass.states).find(s => s.entity_id.startsWith("update.") && (s.entity_id === "update.hacasa_nova_update" || String(s.attributes.release_url || "").includes(REPO)));
+  if (ent) return ent.state === "on" && ent.attributes.skipped_version !== ent.attributes.latest_version
+    ? { to: ent.attributes.latest_version, from: ent.attributes.installed_version, open: () => p.moreInfo(ent.entity_id) } : null;
+  if (SUFFIX) return null;
+  checkGithub(p);
+  const g = p.ghLatest;
+  return g?.tag && newer(g.tag, VERSION) ? { to: g.tag, from: VERSION, open: () => window.open(g.url, "_blank", "noopener") } : null;
+}
+let ghBusy = false;
+function checkGithub(p) {
+  if (p.ghLatest !== undefined || ghBusy) return;
+  ghBusy = true;
+  const KEY = "hacasa-nova:latest-release";
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(KEY) || "null"); } catch {}
+  if (cached && Date.now() - cached.at < 12 * 3600e3) { queueMicrotask(() => { p.ghLatest = cached; ghBusy = false; }); return; }
+  fetch(`https://api.github.com/repos/${REPO}/releases/latest`)
+    .then(r => (r.ok ? r.json() : null))
+    .then(j => { const v = { tag: j?.tag_name || null, url: j?.html_url || `https://github.com/${REPO}/releases`, at: Date.now() }; try { localStorage.setItem(KEY, JSON.stringify(v)); } catch {} p.ghLatest = v; })
+    .catch(() => { p.ghLatest = null; })
+    .finally(() => { ghBusy = false; });
+}

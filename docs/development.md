@@ -29,9 +29,33 @@ then open `http://localhost:8097/HaCasa/dev/index.html` (adjust the folder name)
 
 Room photos are looked up under `/images/rooms/` of the served folder; without them the rooms get gradients.
 
-## Inside Home Assistant
+## Inside Home Assistant: a dev panel next to the real one
 
-Point `panel_custom` (or a dashboard resource) at your build, for example by copying the project to `/config/www/hacasa-nova-dev/` and using `/local/hacasa-nova-dev/dist/hacasa-nova.js`. Reload the browser after `npm run build`.
+`npm run build:dev` builds a variant that registers its own names (`<hacasa-nova-dev>`, `custom:hacasa-nova-dev-card`) and keeps its own settings (copied once from your real ones). It runs side by side with the version installed through HACS, so the household keeps the stable one while you experiment.
+
+1. Tell the deploy script where your Home Assistant `www` folder is, in `deploy.local.json` (git-ignored):
+
+    ```json
+    { "target": "//homeassistant/config/www/hacasa-dev" }
+    ```
+
+    (any path to `/config/www/hacasa-dev`: a mapped network drive, a Samba share, …)
+
+2. Add the dev panel to `configuration.yaml` once and restart Home Assistant:
+
+    ```yaml
+    panel_custom:
+      - name: hacasa-nova-dev
+        url_path: hacasa-dev
+        sidebar_title: HaCasa dev
+        sidebar_icon: mdi:flask-outline
+        require_admin: true
+        module_url: /local/hacasa-dev/hacasa-nova-dev-loader.js
+    ```
+
+3. After every change: `npm run deploy:dev` and reload the browser. The loader picks up the new build by itself, no restart needed.
+
+Releases go the normal way: `npm run build`, commit `dist/hacasa-nova.js`, publish a GitHub release, and update your own install through HACS like any other user.
 
 ## Layout
 

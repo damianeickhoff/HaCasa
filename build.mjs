@@ -1,11 +1,18 @@
 // Bundles src/panel.js into one self-contained file, dist/hacasa-nova.js (HACS serves a single file),
-// with the SVG icons from icons/ inlined as data: URLs. Also writes dist/version.json for local cache-busting.
+// with the SVG icons from icons/ inlined as data: URLs. Also writes version.json for cache-busting.
 // `node build.mjs --watch` rebuilds on change.
+// `node build.mjs --dev` builds the dev variant into dist-dev/hacasa-nova-dev.js: element <hacasa-nova-dev>,
+// card custom:hacasa-nova-dev-card and its own settings key, so it runs next to the HACS install.
 import * as esbuild from "esbuild";
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 
 const watch = process.argv.includes("--watch");
+const dev = process.argv.includes("--dev");
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+const version = pkg.version + (dev ? "-dev" : "");
+const outdir = dev ? "dist-dev" : "dist";
+const name = dev ? "hacasa-nova-dev" : "hacasa-nova";
+mkdirSync(outdir, { recursive: true });
 
 const icons = {
   name: "icons",
@@ -26,23 +33,23 @@ const stamp = {
     build.onEnd(result => {
       if (result.errors.length) return;
       const v = Date.now().toString(36);
-      writeFileSync("dist/version.json", JSON.stringify({ v, version: pkg.version, built: new Date().toISOString() }));
-      console.log(`[hacasa-nova] built ${pkg.version} v=${v}`);
+      writeFileSync(`${outdir}/version.json`, JSON.stringify({ v, version, built: new Date().toISOString() }));
+      console.log(`[hacasa-nova] built ${version} v=${v}`);
     });
   },
 };
 
 const ctx = await esbuild.context({
   entryPoints: ["src/panel.js"],
-  define: { __VERSION__: JSON.stringify(pkg.version) },
+  define: { __VERSION__: JSON.stringify(version), __SUFFIX__: JSON.stringify(dev ? "-dev" : "") },
   bundle: true,
   format: "esm",
   target: "es2020",
   minify: !watch,
   sourcemap: watch ? "inline" : false,
-  outfile: "dist/hacasa-nova.js",
+  outfile: `${outdir}/${name}.js`,
   legalComments: "eof",
-  banner: { js: `/*! HaCasa Nova ${pkg.version} · MIT · https://github.com/damianeickhoff/HaCasa */` },
+  banner: { js: `/*! HaCasa Nova ${version} · MIT · https://github.com/damianeickhoff/HaCasa */` },
   plugins: [icons, stamp],
 });
 

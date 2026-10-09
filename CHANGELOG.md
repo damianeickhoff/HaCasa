@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.5
+
+- **Update notice:** when a new HaCasa Nova is out, administrators see it in the notification row on the home page. Tap it for the changelog and an Install button (Home Assistant's update dialog, from HACS). Installs without HACS check GitHub instead, at most twice a day. Can be turned off under Panel settings → General → Check for updates.
+- Lines in the notification row can now be tapped when they lead somewhere.
+- For developers: `npm run deploy:dev` builds a dev variant (`hacasa-nova-dev`) that runs next to the HACS install in your own Home Assistant. See the [development guide](https://damianeickhoff.github.io/HaCasa/development/).
+
 ## 3.0.4
 
 Maintenance release; the panel works the same as 3.0.3.

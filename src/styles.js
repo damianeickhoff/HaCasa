@@ -123,6 +123,9 @@ export const styles = css`
   .ticker div{position:absolute;left:0;top:0;height:24px;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(100%);transition:opacity .45s var(--ease),transform .45s var(--ease);white-space:nowrap}
   .ticker div.show{opacity:1;transform:none}
   .ticker div.out{opacity:0;transform:translateY(-100%)}
+  .ticker div:not(.show){pointer-events:none}
+  .ticker .tk{all:unset;display:flex;align-items:center;gap:10px;cursor:pointer;height:24px}
+  .ticker .tk:hover span,.ticker .tk:focus-visible span{color:#fff;text-decoration:underline;text-underline-offset:3px}
   .ticker .tt{color:#fff;font-weight:700}
   .ticker b{color:#fff;font-weight:700}
   .ticker span{color:var(--fg-2)}

@@ -165,6 +165,7 @@ npm install
 npm run watch            # rebuilds dist/hacasa-nova.js on every change
 npx http-server .. -p 8097 -c-1
 # open http://localhost:8097/<this folder>/dev/index.html
+npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one
 ```
 
 `dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/card.html?fresh` shows the card wrapper with the first-run wizard. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. See the [development guide](https://damianeickhoff.github.io/HaCasa/development/) for more.

@@ -13,11 +13,11 @@ import { renderPage, PAGES } from "./pages.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
 import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon } from "./cards.js";
-import { quickRow, watchTriggers, presetCard } from "./features.js";
+import { quickRow, watchTriggers, presetCard, selfUpdate } from "./features.js";
 import { searchBar } from "./search.js";
 import { fetchNumeric, batteryEta, modeList } from "./extras3.js";
 import { deviceName } from "./model.js";
-import { BASE, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
+import { BASE, TAG, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
 
 /** numbers with their unit (6,8 kWh · 50% · 12 min · 14:02) rendered white inside a notice */
 const emph = text => { const parts = String(text ?? "").split(/(\d+(?:[.,:]\d+)?(?:\s?(?:%|kWh|W|kW|°C?|min|uur|u|×))?)/g); return parts.map((x, i) => i % 2 ? html`<b>${x}</b>` : x); };
@@ -36,7 +36,7 @@ class HacasaNova extends LitElement {
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
     config: { state: true }, popup: { state: true }, drawer: { state: true }, tick: { state: true }, now: { state: true },
-    draft: { state: true }, saved: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true },
+    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true },
   };
 
   constructor() {
@@ -437,7 +437,8 @@ class HacasaNova extends LitElement {
         <h1>${title}</h1>
         ${sub ? html`<div class="sub">${sub}</div>` : nothing}
         ${items.length ? html`<div class="ticker">
-          ${items.map((it, k) => html`<div class=${k === i ? "show" : ""}>${ico(it.icon)}${it.title ? html`<b class="tt">${it.title}</b><i class="dt"></i>` : nothing}<span>${emph(it.text)}</span></div>`)}
+          ${items.map((it, k) => { const body = html`${ico(it.icon)}${it.title ? html`<b class="tt">${it.title}</b><i class="dt"></i>` : nothing}<span>${emph(it.text)}</span>`;
+            return html`<div class=${k === i ? "show" : ""}>${it.tap ? html`<button class="tk" @click=${e => { e.stopPropagation(); it.tap(); }}>${body}</button>` : body}</div>`; })}
         </div>` : nothing}
         ${extra}
       </div>
@@ -482,6 +483,8 @@ class HacasaNova extends LitElement {
     if (h.doorsOpen.length) items.push({ k: "doors", icon: "mdi:door-open", title: h.doorsOpen.map(e => name(this.hass, e)).join(", "), text: h.doorsOpen.length === 1 ? t("Staat open") : t("Staan open") });
     for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", icon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));
+    const su = selfUpdate(this);   // a newer HaCasa Nova: first in the row, tap = what's new (+ install via HACS)
+    if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("HaCasa Nova {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
     const cards = this.applyPage("home", homeCards(this, h)).map(c => c.tpl);
     return html`
       ${this.renderTitle(h.temp, t(this.pageCfg("home").title || this.config.home?.greeting || "") || greeting(), "", this.tickerOn("home", items), html`${this.renderPills(h)}${quickRow(this)}`, "home", this.renderWx(h.weather), h.hum)}
@@ -536,6 +539,6 @@ class HacasaNova extends LitElement {
   }
 }
 
-if (!customElements.get("hacasa-nova")) customElements.define("hacasa-nova", HacasaNova);
+if (!customElements.get(TAG)) customElements.define(TAG, HacasaNova);
 import "./card.js";
 import "./iconset.js";

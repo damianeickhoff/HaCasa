@@ -1,3 +1,4 @@
+import { TAG, SUFFIX } from "./util.js";
 // Lovelace card wrapper: lets the panel live in a dashboard (panel view) instead of panel_custom.
 // Install the bundle as a dashboard resource, add a dashboard with one card:  type: custom:hacasa-nova-card
 // Routing inside the card uses the URL hash (#/<room>), so the dashboard URL itself never changes.
@@ -16,8 +17,8 @@ class HacasaNovaCard extends HTMLElement {
     const root = this.attachShadow({ mode: "open" });
     const style = document.createElement("style");
     style.textContent = `:host{display:block;position:relative;height:calc(100vh - var(--header-height, 56px));height:calc(100dvh - var(--header-height, 56px));overflow:hidden}
-      hacasa-nova{display:block;height:100%}`;
-    const el = document.createElement("hacasa-nova");
+      ${TAG}{display:block;height:100%}`;
+    const el = document.createElement(TAG);
     el.hashMode = true;
     el.classList.add("in-card");
     el.panel = { url_path: location.pathname.split("/")[1] || "hacasa" };
@@ -29,6 +30,6 @@ class HacasaNovaCard extends HTMLElement {
   static getStubConfig() { return {}; }
   static getConfigElement() { return undefined; }
 }
-if (!customElements.get("hacasa-nova-card")) customElements.define("hacasa-nova-card", HacasaNovaCard);
+if (!customElements.get(TAG + "-card")) customElements.define(TAG + "-card", HacasaNovaCard);
 window.customCards = window.customCards || [];
-if (!window.customCards.some(c => c.type === "hacasa-nova-card")) window.customCards.push({ type: "hacasa-nova-card", name: "HaCasa Nova", description: "The HaCasa Nova home panel inside a dashboard. Use it as the only card in a view of type panel.", preview: false });
+if (!window.customCards.some(c => c.type === TAG + "-card")) window.customCards.push({ type: TAG + "-card", name: "HaCasa Nova" + (SUFFIX ? " (dev)" : ""), description: "The HaCasa Nova home panel inside a dashboard. Use it as the only card in a view of type panel.", preview: false });

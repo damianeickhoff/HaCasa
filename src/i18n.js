@@ -115,4 +115,10 @@ const EN = {
   "Code om thuis in te schakelen": "Code to arm home",
   "Code om weg in te schakelen": "Code to arm away",
   "Code om nacht in te schakelen": "Code to arm night",
+  "HaCasa Nova {v}": "HaCasa Nova {v}",
+  "update beschikbaar · tik voor wat er nieuw is": "update available · tap to see what's new",
+  "HaCasa-updates": "HaCasa updates",
+  "{v} beschikbaar": "{v} available",
+  "Controleren op updates": "Check for updates",
+  "melding op de startpagina als er een nieuwe HaCasa Nova is (alleen voor beheerders)": "a line on the home page when a new HaCasa Nova is out (administrators only)",
 };

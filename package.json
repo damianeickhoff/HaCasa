@@ -1,6 +1,6 @@
 {
   "name": "hacasa-nova",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "private": true,
   "type": "module",
   "description": "HaCasa Nova: the HaCasa reboot, a room-first Home Assistant panel built on the Homio design.",
@@ -8,6 +8,8 @@
   "repository": "github:damianeickhoff/HaCasa",
   "scripts": {
     "build": "node build.mjs",
+    "build:dev": "node build.mjs --dev",
+    "deploy:dev": "node dev/deploy-dev.mjs",
     "watch": "node build.mjs --watch",
     "icons": "node dev/make-icons.mjs"
   },

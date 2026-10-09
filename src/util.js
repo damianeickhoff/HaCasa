@@ -3,6 +3,10 @@ import { t, locale } from "./i18n.js";
 import ICONS from "hcn:icons";                                 // icons/*.svg as data: URLs (inlined by build.mjs)
 export const BASE = new URL("./", import.meta.url);           // dist/ folder URL at runtime
 export const icon = name => ICONS[name] || ICONS.sparkles;
+// "" for the release build, "-dev" for `npm run build:dev`, so a dev copy can run next to the HACS install
+export const SUFFIX = typeof __SUFFIX__ === "string" ? __SUFFIX__ : "";
+export const TAG = "hacasa-nova" + SUFFIX;                    // custom element name of the panel
+export const VERSION = typeof __VERSION__ === "string" ? __VERSION__ : "dev";
 
 export const slug = s => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
   .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");

@@ -89,4 +89,9 @@ Open the panel and the [setup wizard](first-run.md) starts. Then add [room photo
 
 ## Updating
 
-HACS shows an update when a new release is out. Download it and reload the browser. Your settings are stored in Home Assistant, not in the file, so updates never touch them.
+When a new version is out, administrators see a line in the notification row on the home page: **HaCasa Nova 3.x.x · update available**. Tap it to open Home Assistant's update dialog with the **changelog** (all release notes since your version) and an **Install** button. The same dialog is under **Settings → System → Updates → HaCasa Nova**. After installing, reload the browser.
+
+Your settings are stored in Home Assistant, not in the file, so updates never touch them.
+
+!!! note
+    The notice comes from the update entity HACS creates (`update.hacasa_nova_update`). Installed without HACS? Then the panel asks GitHub for the latest release, at most twice a day. Turn the notice off under **More → Panel settings → General → Check for updates**.

@@ -34,7 +34,7 @@ const wrap = (title, big, sub, body) => {
 };
 /** a switch whose device also has a power sensor or an operation-state sensor can be shown as an appliance (bezig / klaar) */
 const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$/.test(e.entity_id))); };
-const TICKER_KINDS = { home: { energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } };
+const TICKER_KINDS = { home: { update: t("HaCasa-updates"), energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } };
 /** sensible wizard defaults: what the panel already detected */
 function wizardDefaults(p) {
   const h = p.config.home || {};
