@@ -15,6 +15,9 @@
 
 </div>
 
+> [!CAUTION]
+> **HaCasa Nova is a work in progress and needs testing.** This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
+
 ## Why a reboot?
 
 HaCasa started as a set of button-card templates: a calm, good-looking dashboard that the whole household could use. It grew to almost 500 stars, and then it stalled, because every new device meant more YAML and every Home Assistant update risked breaking a template.

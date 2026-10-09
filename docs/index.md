@@ -15,6 +15,9 @@ hide:
 
 ![HaCasa Nova home view](assets/screenshots/home.png)
 
+!!! danger "Work in progress"
+    HaCasa Nova is a work in progress and needs testing. This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
+
 ## What it is
 
 HaCasa Nova is a full-screen panel for [Home Assistant](https://www.home-assistant.io/). It turns your **areas** into rooms, each with its own photo and a strip of cards, and puts a calm home view in front of them: greeting, weather, what needs attention, and the things you use every day.
