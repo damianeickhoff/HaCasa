@@ -9,8 +9,8 @@ copyright: HaCasa Nova · MIT · design based on <a href="https://github.com/iam
 
 theme:
   name: material
-  logo: assets/logo.svg
-  favicon: assets/logo.svg
+  logo: assets/logo/hacasa-mark-white.svg
+  favicon: assets/logo/favicon.svg
   font:
     text: Hanken Grotesk
     code: JetBrains Mono

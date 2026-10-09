@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.1
+
+The HaCasa logo is back ([#159](https://github.com/damianeickhoff/HaCasa/issues/159)).
+
+- The original HaCasa logo by Fredrik Persson is used again: in the panel (top left), the README and the docs site.
+- New icon `hacasa:logo`, registered by the panel, for the sidebar (`sidebar_icon: hacasa:logo`) or anywhere else Home Assistant takes an icon. Load the file with `frontend: extra_module_url` so the icon is there at startup; see the [installation guide](https://damianeickhoff.github.io/HaCasa/installation/#2a-sidebar-panel).
+
 ## 3.0.0 · HaCasa Nova
 
 The HaCasa reboot. A complete rewrite as a Home Assistant panel, built on the [Homio](https://github.com/iamtherufus/Homio) design by iamtherufus. Nothing from v2 carries over; v2 lives on the [`legacy`](https://github.com/damianeickhoff/HaCasa/tree/legacy) branch.

@@ -1,5 +1,10 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/logo/hacasa-white.svg">
+  <img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/logo/hacasa-color.svg" alt="HaCasa" width="300">
+</picture>
+
 # HaCasa Nova
 
 **The HaCasa reboot.** A room-first Home Assistant panel, built on the [Homio](https://github.com/iamtherufus/Homio) design by [iamtherufus](https://github.com/iamtherufus).
@@ -93,15 +98,24 @@ You need Home Assistant **2024.4 or newer**. HaCasa Nova can run as its own side
 Add this to `configuration.yaml` and restart Home Assistant:
 
 ```yaml
+frontend:
+  extra_module_url:
+    - /hacsfiles/HaCasa/hacasa-nova.js   # loads the HaCasa logo icon for the sidebar
+
 panel_custom:
   - name: hacasa-nova
     url_path: hacasa
     sidebar_title: HaCasa
-    sidebar_icon: mdi:home-outline
+    sidebar_icon: hacasa:logo
     module_url: /hacsfiles/HaCasa/hacasa-nova.js
 ```
 
-**HaCasa** now appears in the sidebar. Open it and the setup wizard starts.
+**HaCasa** now appears in the sidebar with the HaCasa logo. Open it and the setup wizard starts.
+
+> [!TIP]
+> Already have a `frontend:` section (for themes, for example)? Add `extra_module_url` to it instead of adding a second one. Without `extra_module_url` the panel still works; use `sidebar_icon: mdi:home-outline` then, because the logo icon only loads once the panel has been opened.
+
+The icon works everywhere Home Assistant takes an icon, so `hacasa:logo` can also be used on your own cards.
 
 ### 2b. Or use it as a dashboard card (no YAML)
 
@@ -151,7 +165,7 @@ npx http-server .. -p 8097 -c-1
 ## Credits
 
 - **Design:** [Homio](https://github.com/iamtherufus/Homio) by [iamtherufus](https://github.com/iamtherufus). HaCasa Nova would not look the way it does without it.
-- **HaCasa:** created by [Damian Eickhoff](https://github.com/damianeickhoff). Original HaCasa logo by [Fredrik Persson](https://github.com/fredrikpersson92).
+- **HaCasa:** created by [Damian Eickhoff](https://github.com/damianeickhoff). HaCasa logo by [Fredrik Persson](https://github.com/fredrikpersson92).
 - **Built with** [Lit](https://lit.dev). Icons are original, drawn for this project.
 - **Made with AI assistance.** HaCasa Nova was written together with an AI coding assistant ([Claude Code](https://claude.com/claude-code)). The design decisions, the testing and the maintenance are mine; much of the code was written by the AI under my direction, which is why you'll see it credited in the commit history. It is also what made bringing HaCasa back possible at all.
 - **And the community**, who kept asking about HaCasa long after it went quiet. This one is for you. 💜

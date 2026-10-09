@@ -5,6 +5,9 @@ hide:
 
 <div class="hero" markdown>
 
+![HaCasa](assets/logo/hacasa-white.svg#only-dark){ width="300" }
+![HaCasa](assets/logo/hacasa-color.svg#only-light){ width="300" }
+
 # HaCasa Nova
 
 <p class="tag">The HaCasa reboot. A room-first Home Assistant panel, built on the <a href="https://github.com/iamtherufus/Homio">Homio</a> design by iamtherufus.</p>

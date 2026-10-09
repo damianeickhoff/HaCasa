@@ -5,6 +5,9 @@
     - `name` must be exactly `hacasa-nova`.
     - Restart Home Assistant after changing `panel_custom`, then reload the browser.
 
+??? question "The sidebar icon is empty"
+    `sidebar_icon: hacasa:logo` needs the file loaded at startup: add it under `frontend: extra_module_url` (see [Installation](installation.md#2a-sidebar-panel)) and restart. Or use an `mdi:` icon instead.
+
 ??? question "Custom element doesn't exist: hacasa-nova-card"
     The dashboard resource is missing. HACS adds it automatically in storage-mode dashboards; otherwise add `/hacsfiles/HaCasa/hacasa-nova.js` as a *JavaScript module* under **Settings → Dashboards → ⋮ → Resources**, then reload.
 

@@ -377,7 +377,7 @@ class HacasaNova extends LitElement {
       ${this._prevBg ? html`<div class="bg out" style="--bg:url(&quot;${this._prevBg}&quot;)"></div>` : nothing}
       ${keyed(bg || "plain", isPage ? html`<div class="bg plain"></div>` : html`<div class=${classMap({ bg: true, grad: !this.bgOk(bg) })} style=${this.bgStyle(bg, room?.slug)}></div>`)}
       <nav class=${classMap({ nav: true, open: this.drawer, srch: !!this.searchOpen })}>
-        <a class="logo" @click=${() => this.go(null)}><span class="mark"><img class="ico" src=${icon("home")} alt=""></span>${brandTitle(this.config.title || t("Thuis") + ".")}</a>
+        <a class="logo" @click=${() => this.go(null)}><span class="mark"><img class="ico logo" src=${icon("hacasa")} alt="HaCasa"></span>${brandTitle(this.config.title || t("Thuis") + ".")}</a>
         ${this.renderLinks(room, isPage)}
         ${h.persons.length ? html`<div class="people pill" title=${t("Wie is thuis")} @click=${() => this.openPopup({ type: "people" })}><ha-icon icon="mdi:account-group-outline"></ha-icon><span class="pc">${h.home}<small>/${h.persons.length}</small></span></div>` : nothing}
         ${alarm ? html`<div class=${classMap({ alarm: true, pill: true, armed, [alarmCls]: true })} @click=${() => this.openPopup({ type: "alarm" })}><ha-icon icon=${alarm.state === "triggered" ? "mdi:shield-alert" : alarm.state === "arming" || alarm.state === "pending" ? "mdi:shield-sync" : armed ? "mdi:shield-home" : "mdi:shield-home-outline"}></ha-icon><span class="al">${alarmLbl}</span><i></i></div>` : html`<span></span>`}
@@ -538,3 +538,4 @@ class HacasaNova extends LitElement {
 
 if (!customElements.get("hacasa-nova")) customElements.define("hacasa-nova", HacasaNova);
 import "./card.js";
+import "./iconset.js";

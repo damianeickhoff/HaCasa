@@ -31,11 +31,15 @@ Both use the same settings, so you can switch later.
 Add this to `configuration.yaml` and restart Home Assistant:
 
 ```yaml
+frontend:
+  extra_module_url:
+    - /hacsfiles/HaCasa/hacasa-nova.js   # loads the HaCasa logo icon for the sidebar
+
 panel_custom:
   - name: hacasa-nova
     url_path: hacasa
     sidebar_title: HaCasa
-    sidebar_icon: mdi:home-outline
+    sidebar_icon: hacasa:logo
     module_url: /hacsfiles/HaCasa/hacasa-nova.js
 ```
 
@@ -43,8 +47,14 @@ panel_custom:
 |---|---|
 | `name` | must be `hacasa-nova` (the element the file registers) |
 | `url_path` | the address: `http://homeassistant.local:8123/hacasa` |
-| `sidebar_title`, `sidebar_icon` | whatever you like |
+| `sidebar_title` | whatever you like |
+| `sidebar_icon` | `hacasa:logo` for the HaCasa logo, or any `mdi:` icon |
 | `require_admin` | optional, `true` hides it from non-admin users |
+
+!!! note "The logo icon and `extra_module_url`"
+    `hacasa:logo` is an icon that HaCasa Nova registers itself. `extra_module_url` loads the file when Home Assistant starts, so the icon is there before you open the panel. Already have a `frontend:` section (for themes, for example)? Add `extra_module_url` to it rather than adding a second `frontend:`. Without it the panel works fine; use an `mdi:` icon for `sidebar_icon` then.
+
+    The icon works anywhere Home Assistant takes an icon, for example `icon: hacasa:logo` on your own cards.
 
 !!! tip "Make it the start page"
     In the panel go to **More → Panel settings → General → Start page of HA** to open Home Assistant on HaCasa Nova (per user).
