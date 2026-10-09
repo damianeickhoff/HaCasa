@@ -153,6 +153,7 @@ npx http-server .. -p 8097 -c-1
 - **Design:** [Homio](https://github.com/iamtherufus/Homio) by [iamtherufus](https://github.com/iamtherufus). HaCasa Nova would not look the way it does without it.
 - **HaCasa:** created by [Damian Eickhoff](https://github.com/damianeickhoff). Original HaCasa logo by [Fredrik Persson](https://github.com/fredrikpersson92).
 - **Built with** [Lit](https://lit.dev). Icons are original, drawn for this project.
+- **Made with AI assistance.** HaCasa Nova was written together with an AI coding assistant ([Claude Code](https://claude.com/claude-code)). The design decisions, the testing and the maintenance are mine; much of the code was written by the AI under my direction, which is why you'll see it credited in the commit history. It is also what made bringing HaCasa back possible at all.
 - **And the community**, who kept asking about HaCasa long after it went quiet. This one is for you. 💜
 
 ## License
