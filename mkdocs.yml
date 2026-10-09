@@ -82,3 +82,7 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/damianeickhoff/HaCasa
+      name: GitHub
+    - icon: fontawesome/solid/comments
+      link: https://github.com/damianeickhoff/HaCasa/discussions
+      name: Discussions

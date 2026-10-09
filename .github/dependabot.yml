@@ -1,0 +1,18 @@
+# Keeps the GitHub Actions and the build dependencies (Lit, esbuild) up to date, once a month.
+# An npm update changes the bundle: run `npm run build` on the Dependabot branch and commit dist/ before merging.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        patterns: ["*"]
