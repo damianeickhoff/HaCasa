@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.3
+
+README and docs only; the panel is unchanged since 3.0.2.
+
+- A 40-second demo video, playing on the docs home page; the README header links to it.
+- New docs page [Best experience](https://damianeickhoff.github.io/HaCasa/best-experience/): make HaCasa Nova your start page, hide the sidebar, wall tablet tips. Linked from the README.
+- The Cards page in the docs shows a picture of every card.
+
 ## 3.0.2
 
 - The README now displays properly inside HACS: one logo image that reads on light and dark backgrounds instead of a light/dark switch HACS cannot show, plain notes instead of GitHub-only alert boxes, and absolute links.
