@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.4
+
+Maintenance release; the panel works the same as 3.0.3.
+
+- Build tool esbuild updated to 0.28.1 (security advisory GHSA-67mh-4wv8-2f99 affects only esbuild's development server, which HaCasa Nova does not use; the released file was never affected).
+- README: a Community section and links to [GitHub Discussions](https://github.com/damianeickhoff/HaCasa/discussions) for questions, ideas and showing your setup.
+- New CONTRIBUTING.md and SECURITY.md (report security problems privately via the Security tab).
+
 ## 3.0.3
 
 README and docs only; the panel is unchanged since 3.0.2.
