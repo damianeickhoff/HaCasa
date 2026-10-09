@@ -63,5 +63,6 @@ The original **HaCasa** was a button-card dashboard that grew to almost 500 star
 
 - **[Installation](installation.md)**: HACS, then a sidebar panel or a dashboard card.
 - **[First run](first-run.md)**: the four-step setup.
+- **[Best experience](best-experience.md)**: start page, hidden sidebar, wall tablets.
 - **[Cards](cards.md)**: what every card does and how to change it.
 - **[Settings](settings.md)**: a tour of the settings page.

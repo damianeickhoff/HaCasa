@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HaCasa Nova – social preview</title>
+<!-- GitHub social preview (Settings > General > Social preview). Capture at 1280x640 into docs/assets/social-preview.png. -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;width:1280px;height:640px;overflow:hidden;font-family:"Hanken Grotesk",system-ui,sans-serif;color:#fff}
+  body{background:radial-gradient(120% 120% at 0% 0%,#3a3530 0%,#242d39 55%,#171a20 100%);position:relative}
+  .copy{position:absolute;left:80px;top:0;bottom:0;width:470px;display:flex;flex-direction:column;justify-content:center;gap:22px}
+  .copy img{width:330px}
+  h1{margin:0;font-size:64px;font-weight:700;letter-spacing:-1.5px;line-height:1}
+  h1 span{color:#ffa08a}
+  p{margin:0;font-size:24px;line-height:1.35;opacity:.85;font-weight:500}
+  .by{font-size:17px;opacity:.6;font-weight:500}
+  .shot{position:absolute;left:590px;top:70px;width:900px;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+</style>
+</head>
+<body>
+  <div class="copy">
+    <img src="../docs/assets/logo/hacasa-white.svg" alt="HaCasa">
+    <h1>HaCasa <span>Nova</span></h1>
+    <p>The HaCasa reboot. A room-first panel for Home Assistant.</p>
+    <div class="by">Built on the Homio design by iamtherufus</div>
+  </div>
+  <img class="shot" src="../docs/assets/screenshots/home.png" alt="">
+</body>
+</html>

@@ -58,6 +58,24 @@
       el.shadowRoot.append(st);
     });
   }
+  // ?solo=<card name> (with ?shot): only that card, centred over the page photo; used for the per-card docs images
+  if (q.get("solo")) {
+    el.fileConfig.rooms = "auto"; el.fileConfig.maxRooms = 0;   // every area, so cards outside the nav rooms can be shown too
+    el.fileConfig.home = { ...el.fileConfig.home, weatherCard: true };   // the weather card next to the hero weather
+    const want = q.get("solo").toLowerCase();
+    const solo = () => {
+      const sr = el.shadowRoot; if (!sr) return;
+      if (!sr.querySelector("style.solo")) {
+        const st = document.createElement("style"); st.className = "solo";
+        st.textContent = ".nav,.title,.sfade,.banner{display:none!important}" +
+          ".strip{position:fixed!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important;padding:0!important;margin:0!important;transform:none!important;mask-image:none!important}" +
+          ".strip>*:not(.solo),.strip .card:not(.solo){display:none!important}.strip .card.solo{margin:0!important;flex:none!important}.strip::after,.strip::before{display:none!important}";
+        sr.append(st);
+      }
+      for (const c of sr.querySelectorAll(".strip .card")) if ((c.querySelector(".n")?.textContent || "").trim().toLowerCase() === want) c.classList.add("solo");
+    };
+    setInterval(solo, 300);
+  }
   if (q.get("popup")) setTimeout(() => {
     const [type, id] = q.get("popup").split(":");
     const all = el.rooms.flatMap(r => Object.values(r.ents).filter(Array.isArray).flat());

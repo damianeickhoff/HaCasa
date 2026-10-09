@@ -57,7 +57,7 @@ panel_custom:
     The icon works anywhere Home Assistant takes an icon, for example `icon: hacasa:logo` on your own cards.
 
 !!! tip "Make it the start page"
-    In the panel go to **More → Panel settings → General → Start page of HA** to open Home Assistant on HaCasa Nova (per user).
+    In the panel go to **More → Panel settings → General → HA start page** to open Home Assistant on HaCasa Nova (per user). See [Best experience](best-experience.md) for that, hiding the sidebar and wall tablets.
 
 ## 2b. Dashboard card
 

@@ -132,6 +132,8 @@ Put a photo per room in `/config/www/images/rooms/`, named after the area: `Livi
 
 That's it. Everything else lives in the panel: **More → Panel settings**.
 
+> 💡 **For the best experience**, make HaCasa Nova your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://damianeickhoff.github.io/HaCasa/best-experience/) in the docs, which also has tips for wall tablets.
+
 ## Documentation
 
 The full guide is at **[damianeickhoff.github.io/HaCasa](https://damianeickhoff.github.io/HaCasa/)**: installation, the setup wizard, every card and its settings, the built-in pages, the optional theme for the rest of Home Assistant, and troubleshooting.
