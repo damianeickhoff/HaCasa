@@ -49,6 +49,7 @@
   addEventListener("hashchange", () => { el.route = route(); });
   // screenshot helpers: ?shot hides the first-run hint, ?popup=light:light.floor_lamp (or ?popup=weather) opens a popup
   const q = new URLSearchParams(location.search);
+  if (q.has("nohint")) el.fileConfig.hintSeen = true;   // demo recordings: normal animations, no first-run hint
   if (q.has("shot")) {
     el.fileConfig.hintSeen = true;
     // animations jump to their end state, so a capture never lands mid-fade
