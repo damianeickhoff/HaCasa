@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.2
+
+- The README now displays properly inside HACS: one logo image that reads on light and dark backgrounds instead of a light/dark switch HACS cannot show, plain notes instead of GitHub-only alert boxes, and absolute links.
+
 ## 3.0.1
 
 The HaCasa logo is back ([#159](https://github.com/damianeickhoff/HaCasa/issues/159)).

@@ -1,9 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/logo/hacasa-white.svg">
-  <img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/logo/hacasa-color.svg" alt="HaCasa" width="300">
-</picture>
+<img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/logo/hacasa-banner.svg" alt="HaCasa" width="280">
 
 # HaCasa Nova
 
@@ -12,7 +9,7 @@
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
 [![Release](https://img.shields.io/github/v/release/damianeickhoff/HaCasa?style=flat-square&label=release)](https://github.com/damianeickhoff/HaCasa/releases)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
-[![License](https://img.shields.io/github/license/damianeickhoff/HaCasa?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/github/license/damianeickhoff/HaCasa?style=flat-square)](https://github.com/damianeickhoff/HaCasa/blob/main/LICENSE)
 
 [Documentation](https://damianeickhoff.github.io/HaCasa/) · [Install](#install) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
 
@@ -20,8 +17,7 @@
 
 </div>
 
-> [!CAUTION]
-> **HaCasa Nova is a work in progress and needs testing.** This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
+> ⚠️ **HaCasa Nova is a work in progress and needs testing.** This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
 
 ## Why a reboot?
 
@@ -112,8 +108,7 @@ panel_custom:
 
 **HaCasa** now appears in the sidebar with the HaCasa logo. Open it and the setup wizard starts.
 
-> [!TIP]
-> Already have a `frontend:` section (for themes, for example)? Add `extra_module_url` to it instead of adding a second one. Without `extra_module_url` the panel still works; use `sidebar_icon: mdi:home-outline` then, because the logo icon only loads once the panel has been opened.
+> 💡 Already have a `frontend:` section (for themes, for example)? Add `extra_module_url` to it instead of adding a second one. Without `extra_module_url` the panel still works; use `sidebar_icon: mdi:home-outline` then, because the logo icon only loads once the panel has been opened.
 
 The icon works everywhere Home Assistant takes an icon, so `hacasa:logo` can also be used on your own cards.
 
@@ -145,7 +140,7 @@ The full guide is at **[damianeickhoff.github.io/HaCasa](https://damianeickhoff.
 
 - **Admin features.** Template cards and your own ticker lines use Home Assistant's template renderer, installing updates calls `update.install`, and the System page asks the Supervisor for host info. These need an administrator account; for other users those parts stay empty.
 - **Fonts.** The panel uses [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk) from Google Fonts. Without internet access it falls back to the system font.
-- **Languages.** English and Dutch, following your Home Assistant language. Other languages fall back to English. Translations are welcome: see [`src/i18n.js`](src/i18n.js).
+- **Languages.** English and Dutch, following your Home Assistant language. Other languages fall back to English. Translations are welcome: see [`src/i18n.js`](https://github.com/damianeickhoff/HaCasa/blob/main/src/i18n.js).
 
 ## HaCasa v2 (legacy)
 
@@ -172,4 +167,4 @@ npx http-server .. -p 8097 -c-1
 
 ## License
 
-[MIT](LICENSE). The Homio design credit and the license notices of what is bundled are in [NOTICE.md](NOTICE.md).
+[MIT](https://github.com/damianeickhoff/HaCasa/blob/main/LICENSE). The Homio design credit and the license notices of what is bundled are in [NOTICE.md](https://github.com/damianeickhoff/HaCasa/blob/main/NOTICE.md).
