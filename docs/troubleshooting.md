@@ -27,7 +27,7 @@
     The energy sensor needs long-term statistics (a `state_class`). Check it in **Developer tools → Statistics**.
 
 ??? question "It is in Dutch"
-    **Settings → General → Language**. *Automatic* follows the language of your Home Assistant profile; anything other than Dutch shows English.
+    **Settings → General → Language**. *Automatic* follows the language of your Home Assistant profile; anything other than Dutch or German shows English.
 
 ??? question "Something else"
     Ask in [Discussions → Q&A](https://github.com/damianeickhoff/HaCasa/discussions/categories/q-a), where the answer helps the next person too. Found a bug? Open an [issue on GitHub](https://github.com/damianeickhoff/HaCasa/issues/new/choose) with your Home Assistant version, the browser and any red lines from the browser console (F12).

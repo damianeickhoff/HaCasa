@@ -45,4 +45,4 @@ When the connection to Home Assistant drops, a red pill at the top says so until
 
 ## Language
 
-English and Dutch. **Settings → General → Language**: automatic (follows your Home Assistant profile), English or Nederlands. Other Home Assistant languages fall back to English.
+English, Dutch and German. **Settings → General → Language**: automatic (follows your Home Assistant profile), English, Nederlands or Deutsch. Other Home Assistant languages fall back to English.
