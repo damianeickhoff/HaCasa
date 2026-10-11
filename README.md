@@ -44,7 +44,7 @@ The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus
 | **Attention** | Unavailable devices, low batteries, pending updates and persistent notifications in one place, with one-tap install for updates. |
 | **Popups** | Every card opens a detailed popup: brightness, colour and colour temperature, climate modes, media volume, history of the last 24 hours, and a shortcut to Home Assistant's own dialog. |
 | **Per-card settings** | Name, icon, tap and hold behaviour, bottom line, custom action buttons and template overrides per card, plus defaults per card type. |
-| **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, Dutch, English and German. |
+| **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, [several languages](https://damianeickhoff.github.io/HaCasa/extras/#language). |
 | **Phone and tablet** | Built for wall tablets and phones alike: the strip becomes a two-column grid on phones. |
 
 ## Screenshots
@@ -144,7 +144,7 @@ The full guide is at **[damianeickhoff.github.io/HaCasa](https://damianeickhoff.
 
 - **Admin features.** Template cards and your own ticker lines use Home Assistant's template renderer, installing updates calls `update.install`, and the System page asks the Supervisor for host info. These need an administrator account; for other users those parts stay empty.
 - **Fonts.** The panel uses [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk) from Google Fonts. Without internet access it falls back to the system font.
-- **Languages.** English, Dutch and German, following your Home Assistant language. Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/damianeickhoff/HaCasa/tree/main/src/lang), see [CONTRIBUTING](https://github.com/damianeickhoff/HaCasa/blob/main/CONTRIBUTING.md#translations).
+- **Languages.** Follows your Home Assistant language; see the [list of languages](https://damianeickhoff.github.io/HaCasa/extras/#language). Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/damianeickhoff/HaCasa/tree/main/src/lang), see [CONTRIBUTING](https://github.com/damianeickhoff/HaCasa/blob/main/CONTRIBUTING.md#translations).
 
 ## Community
 
@@ -162,7 +162,7 @@ The original button-card based HaCasa is kept on the [`legacy`](https://github.c
 
 ```bash
 npm install
-npm run watch            # rebuilds dist/hacasa-nova.js on every change
+npm run watch            # rebuilds dev/build/hacasa-nova.js on every change
 npx http-server .. -p 8097 -c-1
 # open http://localhost:8097/<this folder>/dev/index.html
 npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one

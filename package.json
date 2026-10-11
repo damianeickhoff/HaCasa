@@ -8,6 +8,7 @@
   "repository": "github:damianeickhoff/HaCasa",
   "scripts": {
     "build": "node build.mjs",
+    "dev": "node build.mjs --local",
     "build:dev": "node build.mjs --dev",
     "deploy:dev": "node dev/deploy-dev.mjs",
     "watch": "node build.mjs --watch",

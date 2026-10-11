@@ -21,7 +21,7 @@
     });
   }
   import { makeHass } from "./mock-hass.js";
-  await import("../dist/hacasa-nova.js?v=" + Date.now());
+  await import("./build/hacasa-nova.js?v=" + Date.now()); // npm run dev, watch or build
 
   const el = document.createElement("hacasa-nova");
   // dev config: images are served from the www root by http-server, not /local

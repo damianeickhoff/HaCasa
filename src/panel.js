@@ -1,6 +1,6 @@
 // HaCasa Nova: a Home Assistant custom panel (panel_custom) that builds a home view and one
 // page per area, straight from the area/device/entity registries.
-import { t, locale, setLang, pickLang } from "./i18n.js";
+import { t, locale, setLang, pickLang, inText } from "./i18n.js";
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
@@ -556,7 +556,7 @@ class HacasaNova extends LitElement {
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen kaarten: wijs entiteiten toe aan ruimtes in Home Assistant.")}</div>` : nothing}
       ${editing ? editBar(this, "home") : nothing}
-      <div class=${classMap({ banner: true, show: h.motion.length > 0 && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => roomWord(r.name)).join(", ") })}</div>`;
+      <div class=${classMap({ banner: true, show: h.motion.length > 0 && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => inText(r.name)).join(", ") })}</div>`;
   }
 
   /** every card of a room as { key, label, tpl } (key = entity/device id or a fixed name) */
@@ -626,12 +626,10 @@ class HacasaNova extends LitElement {
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen apparaten in deze ruimte.")}</div>` : nothing}
       ${editing ? editBar(this, r.id) : nothing}
-      <div class=${classMap({ banner: true, show: r.motionOn && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in de {room}", { room: roomWord(r.name) })}</div>`;
+      <div class=${classMap({ banner: true, show: r.motionOn && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in de {room}", { room: inText(r.name) })}</div>`;
   }
 }
 
 if (!customElements.get(TAG)) customElements.define(TAG, HacasaNova);
 import "./card.js";
 import "./iconset.js";
-/** room name inside a sentence: lower-cased, except in German where nouns keep their capital */
-const roomWord = n => locale().startsWith("de") ? n : n.toLowerCase();

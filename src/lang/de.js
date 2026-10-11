@@ -1,4 +1,6 @@
 // German (Deutsch). Keys are the Dutch text used in the source; see src/i18n.js for how to add a language.
+// keepCase: room names inside a sentence keep their capital ("Bewegung in Küche"), as German nouns do.
+export const meta = { name: "Deutsch", locale: "de-DE", keepCase: true };
 export default {
   // states and short words
   "Aan": "Ein", "Uit": "Aus", "Open": "Offen", "Dicht": "Geschlossen", "Onbereikbaar": "Nicht verfügbar", "Onreachable": "Nicht verfügbar", "Offline": "Offline", "Live": "Live",
