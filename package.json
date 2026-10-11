@@ -11,7 +11,8 @@
     "build:dev": "node build.mjs --dev",
     "deploy:dev": "node dev/deploy-dev.mjs",
     "watch": "node build.mjs --watch",
-    "icons": "node dev/make-icons.mjs"
+    "icons": "node dev/make-icons.mjs",
+    "i18n:check": "node dev/i18n-check.mjs"
   },
   "dependencies": {
     "lit": "^3.2.1"

@@ -144,7 +144,7 @@ The full guide is at **[damianeickhoff.github.io/HaCasa](https://damianeickhoff.
 
 - **Admin features.** Template cards and your own ticker lines use Home Assistant's template renderer, installing updates calls `update.install`, and the System page asks the Supervisor for host info. These need an administrator account; for other users those parts stay empty.
 - **Fonts.** The panel uses [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk) from Google Fonts. Without internet access it falls back to the system font.
-- **Languages.** English and Dutch, following your Home Assistant language. Other languages fall back to English. Translations are welcome: see [`src/i18n.js`](https://github.com/damianeickhoff/HaCasa/blob/main/src/i18n.js).
+- **Languages.** English and Dutch, following your Home Assistant language. Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/damianeickhoff/HaCasa/tree/main/src/lang), see [CONTRIBUTING](https://github.com/damianeickhoff/HaCasa/blob/main/CONTRIBUTING.md#translations).
 
 ## Community
 

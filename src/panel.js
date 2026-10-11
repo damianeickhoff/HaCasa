@@ -1,6 +1,6 @@
 // HaCasa Nova: a Home Assistant custom panel (panel_custom) that builds a home view and one
 // page per area, straight from the area/device/entity registries.
-import { t, locale, setLang } from "./i18n.js";
+import { t, locale, setLang, pickLang } from "./i18n.js";
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
@@ -134,7 +134,7 @@ class HacasaNova extends LitElement {
   /* ---------- derived model ---------- */
   willUpdate() {
     if (!this.hass) return;
-    setLang(this.config.language || (String(this.hass.language || this.hass.locale?.language || "en").startsWith("nl") ? "nl" : "en"));
+    setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
     if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this._unsubNotif = subscribeNotifications(this.hass, list => { this.notifications = list; }); this.subscribeTemplates(); }
     this.rooms = buildRooms(this.hass, this.config);
     this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);

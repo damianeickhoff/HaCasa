@@ -15,6 +15,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - name: translations
+        run: npm run i18n:check
       - run: npm run build
       - name: dist is up to date
         run: git diff --exit-code -- dist/hacasa-nova.js || (echo "Run npm run build and commit dist/hacasa-nova.js" && exit 1)

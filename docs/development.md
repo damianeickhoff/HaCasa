@@ -70,7 +70,8 @@ src/
   settings.js   the settings page and per-user storage
   features.js   quick actions, doorbell, updates, light scenes
   extras*.js    keypad, idle screen, history, statistics, calendar
-  i18n.js       translations (the Dutch text is the key)
+  i18n.js       t(), the language list and fallbacks (the Dutch text is the key)
+  lang/         one dictionary per language (en.js, …)
   styles.js     all CSS
 icons/          SVG icons, drawn by dev/make-icons.mjs, inlined by build.mjs
 dist/           the built file Home Assistant loads (committed for HACS)
@@ -79,7 +80,15 @@ docs/           this site (MkDocs Material)
 
 ## Translations
 
-All text goes through `t()` from `src/i18n.js`. The Dutch text is the key and `EN` holds the English. To add a language, add a dictionary next to `EN`, list it in `LANGUAGES` and extend `setLang()`. Pull requests are welcome.
+All text goes through `t()` from `src/i18n.js`. The Dutch text is the key; each other language is one file in `src/lang/` (`en.js` holds the English). To add a language:
+
+1. Copy `src/lang/en.js` to `src/lang/<code>.js` (`de`, `fr`, … as Home Assistant names the language) and translate the values. The keys are the Dutch text used in the source; leave them as they are.
+2. Add one line to `LANGS` in `src/i18n.js`: `de: { name: "Deutsch", locale: "de-DE", dict: de }`, plus the matching `import`.
+3. Run `npm run i18n:check`. It shows how many keys are translated, and fails on a `{placeholder}` that differs from the key. `npm run i18n:check -- <code>` prints the keys still missing, ready to paste into your file.
+
+A missing or empty key falls back to English, so a partial translation works. The panel picks the language from the Home Assistant profile (`de-CH` uses `de`); users can override it in the panel settings. Check long words with `?lang=<code>` in `dev/index.html`.
+
+Pull requests are welcome.
 
 ## Releasing
 
