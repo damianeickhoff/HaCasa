@@ -4,7 +4,7 @@ The first time a user opens HaCasa Nova, a four-step setup appears. Every step c
 
 ![Setup wizard](assets/screenshots/wizard.png)
 
-1. **Welcome**: language (automatic follows your Home Assistant profile, or pick English or Nederlands) and the title shown top left.
+1. **Welcome**: language (automatic follows your Home Assistant profile, or pick English, Nederlands or Deutsch) and the title shown top left.
 2. **Rooms**: tick the areas that should become rooms. Their order is the order of the navigation; you can change it later under *Rooms*.
 3. **Home page**: the weather entity, thermostat, alarm panel, and the power and energy sensors for the home view. Left empty, the panel picks the first of each it finds.
 4. **Photos**: where room photos live. See [Room photos](photos.md).

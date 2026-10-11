@@ -1,4 +1,4 @@
-// Translations. The Dutch text is the key, so the source stays readable; `t("Aan")` returns "On" in English.
+// Translations. The Dutch text is the key, so the source stays readable; `t("Aan")` returns "On" in English and "Ein" in German.
 // `t("{n} van {m} aan", { n, m })` fills placeholders.
 //
 // Each language is one file in src/lang/ (`export default { "Dutch key": "translation", … }`) plus one line in
@@ -6,10 +6,12 @@
 // `npm run i18n:check` lists missing keys and placeholder mistakes; `npm run i18n:check -- <code>` prints the
 // missing keys of one language as a block to paste into its file.
 import en from "./lang/en.js";
+import de from "./lang/de.js";
 
 export const LANGS = {
   nl: { name: "Nederlands", locale: "nl-NL" },
   en: { name: "English", locale: "en-GB", dict: en },
+  de: { name: "Deutsch", locale: "de-DE", dict: de },
 };
 
 let lang = "nl", dict = null;

@@ -32,7 +32,7 @@ When you use the [dashboard card](installation.md#2b-dashboard-card), its `confi
 | key | meaning |
 |---|---|
 | `title` | title top left |
-| `language` | `en` or `nl` (leave out to follow Home Assistant) |
+| `language` | `en`, `nl` or `de` (leave out to follow Home Assistant) |
 | `rooms` | `auto` or a list of area ids or names, in navigation order |
 | `roomImage`, `homeImage` | photo paths; `{slug}` is replaced by the room name |
 | `home.weather`, `home.climate`, `home.alarm` | entity ids for the home view |

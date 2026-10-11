@@ -490,7 +490,7 @@ class HacasaNova extends LitElement {
       ${this.renderTitle(h.temp, t(this.pageCfg("home").title || this.config.home?.greeting || "") || greeting(), "", this.tickerOn("home", items), html`${this.renderPills(h)}${quickRow(this)}`, "home", this.renderWx(h.weather), h.hum)}
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen kaarten: wijs entiteiten toe aan ruimtes in Home Assistant.")}</div>` : nothing}
-      <div class=${classMap({ banner: true, show: h.motion.length > 0 })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => r.name.toLowerCase()).join(", ") })}</div>`;
+      <div class=${classMap({ banner: true, show: h.motion.length > 0 })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => roomWord(r.name)).join(", ") })}</div>`;
   }
 
   /** every card of a room as { key, label, tpl } (key = entity/device id or a fixed name) */
@@ -535,10 +535,12 @@ class HacasaNova extends LitElement {
       ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), nothing, r.id, nothing, r.hum)}
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen apparaten in deze ruimte.")}</div>` : nothing}
-      <div class=${classMap({ banner: true, show: r.motionOn })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in de {room}", { room: r.name.toLowerCase() })}</div>`;
+      <div class=${classMap({ banner: true, show: r.motionOn })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in de {room}", { room: roomWord(r.name) })}</div>`;
   }
 }
 
 if (!customElements.get(TAG)) customElements.define(TAG, HacasaNova);
 import "./card.js";
 import "./iconset.js";
+/** room name inside a sentence: lower-cased, except in German where nouns keep their capital */
+const roomWord = n => locale().startsWith("de") ? n : n.toLowerCase();
