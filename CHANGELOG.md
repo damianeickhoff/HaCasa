@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.0-beta.1 (beta)
 
 - **Edit mode:** administrators pick **More → Edit room** (or *Edit home view*), or hold the page title. The strip then shows every card of the page: drag a card by its grip to reorder, × hides it, hidden cards stay in the row dimmed with an eye to bring them back, a tap opens the card settings, and an **Add card** tile sits at the end. *Done* in the bar at the bottom (the bottom nav on phones) leaves edit mode. This replaces the up/down list in Page settings for ordering.
 - **Template cards as a library:** a template card now lives in **Settings → Template cards** as a reusable definition. The entity is chosen when you place it (`$entity` in the templates), and the template marks which fields (text, label, condition) are **filled in when placing**. Place the same template as often as you like through edit mode → Add card → Template; each copy keeps its own values, name and icon. A template can also be written right in the picker, once for that page or kept in the library. Template cards that were pinned to a page are moved to that page's cards automatically.
