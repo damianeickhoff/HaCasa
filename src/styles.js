@@ -619,20 +619,20 @@ export const styles = css`
     .alarm i{width:7px;height:7px}
     .links{display:none}
     /* ===== bottom bar: glass pill (home · rooms · more) + detached search; the room sheet opens above it ===== */
-    .bnav{position:fixed;left:var(--pad);right:var(--pad);bottom:calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));z-index:41;display:flex;gap:8px;align-items:flex-end;animation:upT .5s var(--ease) both}
+    .bnav{position:fixed;left:var(--pad);right:var(--pad);bottom:calc(10px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));z-index:41;display:flex;gap:8px;align-items:flex-end;animation:upT .5s var(--ease) both}
     :host(.in-card) .bnav{position:absolute}
     .btabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:54px;padding:4px}
     /* icon tabs; only the active one slides open to icon + name (nav option 1 + 3) */
-    .btabs a{flex:1;min-width:40px;display:flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0;border-radius:999px;color:var(--fg-2);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
+    .btabs a{flex:1;min-width:36px;display:flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0;border-radius:999px;color:var(--fg-2);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
     .btabs a span{display:none;overflow:hidden;text-overflow:ellipsis}
     .nav.open .links a.home{gap:10px}
     .nav.open .links a.home img.ico{width:18px;height:18px}
-    .btabs a.active{flex:2.6;padding:0 14px;background:rgba(255,255,255,.26);color:#fff;font-weight:700}
+    .btabs a.active{flex:3;padding:0 10px;background:rgba(255,255,255,.26);color:#fff;font-weight:700}
     .btabs a.active span{display:inline}
     .btabs a img.ico{width:20px;height:20px;flex:none;opacity:.9}
     .btabs a ha-icon{--mdc-icon-size:21px;width:21px;height:21px;opacity:.9;flex:none}
     .btabs a.active ha-icon{opacity:1}
-    .btabs .sep{width:1px;height:20px;background:var(--line);margin:0 3px;flex:none}
+    .btabs .sep{width:1px;height:20px;background:var(--line);margin:0 2px;flex:none}
     .bnav .sbtn{display:grid;width:54px;height:54px}
     .bnav .sbtn img{width:20px;height:20px}
     .bnav .sbtn.on img{width:16px;height:16px}

@@ -218,7 +218,7 @@ export const pageStyles = `
   .ppills button{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--fg-2);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
   .ppills button.on{background:rgba(255,255,255,.18);color:#fff}
   .ppills button img.ico,.ppills button ha-icon{width:17px;height:17px;--mdc-icon-size:17px}
-  .seg.pseg{height:46px;padding:4px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid var(--line);display:inline-flex}
+  .seg.pseg{height:46px;padding:4px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid var(--line);display:inline-flex;flex-wrap:nowrap;gap:2px;width:max-content;max-width:100%}
   .seg.pseg button{height:100%;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--fg-3);font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
   .seg.pseg button.on{background:rgba(255,255,255,.9);color:#1d1d1f}
   .sblks{columns:400px;column-gap:6px;margin-top:26px}

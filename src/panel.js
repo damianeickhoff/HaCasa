@@ -466,7 +466,8 @@ class HacasaNova extends LitElement {
     if (this.edit && !this.settings) return html`<div class="bnav"><div class="btabs pill edit"><span class="lbl"><ha-icon icon="mdi:pencil-outline"></ha-icon>${this.editKey === "home" ? t("Startpagina bewerken") : t("Kamer bewerken")}</span><a class="done" @click=${() => this.stopEdit()}>${t("Klaar")}</a></div></div>`;
     return html`<div class=${classMap({ bnav: true, srch })}>
       ${srch ? searchBar(this) : html`<div class="btabs pill">
-        <a class=${classMap({ rtab: true, active: !isPage || this.drawer })} title=${t("Kamers")} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img class="ico" src=${icon(room ? "floorplan" : "home")} alt=""><span>${room ? room.name : t("Thuis")}</span></a>
+        <a class=${classMap({ active: !room && !isPage })} title=${t("Thuis")} @click=${() => this.go(null)}><img class="ico" src=${icon("home")} alt=""><span>${t("Thuis")}</span></a>
+        <a class=${classMap({ rtab: true, active: !!room })} title=${t("Kamers")} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img class="ico" src=${icon("floorplan")} alt=""><span>${room ? room.name : t("Kamers")}</span></a>
         ${shortcuts.map(k => html`<a class=${classMap({ active: this.page === k })} title=${t(PAGES[k].label)} @click=${() => { this.drawer = false; this.goPath("__" + k + "__"); }}><ha-icon icon=${PAGES[k].icon}></ha-icon><span>${t(PAGES[k].label)}</span></a>`)}
         <span class="sep"></span>
         <a class=${classMap({ more: true, active: !!isPage && !shortcuts.includes(this.page) })} title=${t("Meer")} @click=${() => this.openPopup({ type: "more" })}><ha-icon icon="mdi:dots-horizontal"></ha-icon><span>${t("Meer")}</span></a>
@@ -479,7 +480,7 @@ class HacasaNova extends LitElement {
     if (this.searchOpen && !this.drawer && !matchMedia("(max-width:900px)").matches) return html`<div class="links pill srch">${searchBar(this)}</div>`;
     const more = html`<a class=${classMap({ more: true, active: !!isPage })} @click=${() => this.openPopup({ type: "more" })}>${t("Meer")}</a><span class="sep"></span><a class=${classMap({ search: true, active: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; }}><img class="ico" src=${icon("search")} alt=""></a>`;
     const groups = this.config.navMode === "floors" ? this.floorGroups : [];
-    const homeLink = this.drawer ? html`<a class=${classMap({ home: true, active: !room && !isPage })} @click=${() => this.go(null)}><img class="ico" src=${icon("home")} alt="">${t("Thuis")}</a>` : nothing;   // the phone sheet lists home too (the bar has no home tab)
+    const homeLink = nothing;   // (the bar has its own home tab)
     if (groups.length < 2) return html`<div class="links pill">${homeLink}
       ${this.rooms.map(r => html`<a class=${classMap({ active: room?.id === r.id })} @click=${() => this.go(r)}>${r.name}</a>`)}${more}</div>`;
     const all = this.drawer && this.config.navExpand;   // mobile menu: every floor open, headers are just headings
