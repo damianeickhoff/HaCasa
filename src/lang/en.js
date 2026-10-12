@@ -178,6 +178,12 @@ export default {
   "vermogen en verbruik vandaag": "power and use today", "Aandacht": "Attention", "onbereikbaar, batterij, updates": "unavailable, battery, updates", "Thermostaat (thuis)": "Thermostat (home)", "de hoofdthermostaat": "the main thermostat",
   "scèneknoppen van een ruimte": "a room's scene buttons", "Lichtscènes": "Light scenes", "opgeslagen lichtstanden van een ruimte": "a room's saved light settings",
   "meerdere lampen of stekkers als één kaart": "several lights or plugs as one card",
+  // one-time template cards written in the picker
+  "Een nieuwe templatekaart, of een uit je bibliotheek": "A new template card, or one from your library", "Nieuwe templatekaart": "New template card",
+  "eenmalig voor deze pagina, of bewaren in je bibliotheek": "once for this page, or kept in your library", "Bibliotheek": "Library",
+  "Tekst en label zijn Jinja-templates; Home Assistant rendert ze live": "Text and label are Jinja templates; Home Assistant renders them live", "bv. Filter vervangen": "e.g. Replace filter",
+  "optioneel, kleine regel onderin": "optional, small line at the bottom", "Bewaren": "Keep", "eenmalig, alleen hier": "once, only here", "ook in mijn bibliotheek": "in my library too",
+  "een bewaarde template plaats je later opnieuw via Eigen kaarten": "a kept template can be placed again later via Your own cards", "Jinja, live gerenderd": "Jinja, rendered live",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)

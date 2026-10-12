@@ -371,7 +371,7 @@ export const styles = css`
   .popup h2 .hb button.on{background:rgba(255,255,255,.3)}
   /* ••• menu: the floor-nav dropdown glass, hung under the button; lives next to .popup (not inside: overflow:auto would clip it) */
   .pw{position:relative;display:flex;justify-content:center;max-width:100%}
-  .pmenu{position:absolute;top:70px;right:68px;z-index:3;min-width:250px;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:var(--r);background:rgba(255,255,255,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.25);animation:downT .18s var(--ease) both}
+  .pmenu{position:absolute;top:70px;right:68px;z-index:3;min-width:250px;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:var(--r);background:rgba(44,46,50,.8);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.25);animation:downT .18s var(--ease) both}
   .pmenu a{display:flex;align-items:center;gap:12px;min-height:40px;padding:6px 14px 6px 12px;border-radius:var(--r-sm);font-size:14px;font-weight:600;cursor:pointer;line-height:1.25}
   .pmenu a:hover{background:rgba(255,255,255,.1)}
   .pmenu a ha-icon{--mdc-icon-size:18px;flex:none}

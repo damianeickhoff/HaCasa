@@ -218,7 +218,9 @@ Every room with lights gets a **Light scenes** card. Save the current state of t
 {{ states('$entity') | int < 10 }}        ← visible
 ```
 
-Under **Filled in when placing** you mark which fields (text, label, visibility) the card asks for when it is placed; what you type in the template is then the example. You place a template through [edit mode](rooms.md#edit-mode) → **Add card → Template**: pick the entity, fill in the asked fields, done. The same template can be placed as often as you like; each copy keeps its own values, name and icon in its card settings. Template cards that were pinned to a page before 3.1 are moved to that page's cards automatically.
+Under **Filled in when placing** you mark which fields (text, label, visibility) the card asks for when it is placed; what you type in the template is then the example. You place a template through [edit mode](rooms.md#edit-mode) → **Add card → Template**: pick the entity, fill in the asked fields, done. The same template can be placed as often as you like; each copy keeps its own values, name and icon in its card settings.
+
+You do not have to go through the settings page: **Add card → Template → New template card** writes a template right there, with a choice between **once, only here** (the definition travels with that one card; its texts are edited in the card settings) and **in my library too** (saved as a reusable template as well). Template cards that were pinned to a page before 3.1 are moved to that page's cards automatically.
 
 !!! note
     Templates are rendered by Home Assistant's template websocket, which needs an administrator account.

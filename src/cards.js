@@ -556,8 +556,8 @@ export const substEntity = (str, entity) => !str || !entity ? str : str.replace(
 export const templateOf = (p, key) => (p.config.templates || []).find(x => x.id === key.split(":")[1]) || null;
 /** a placed template card: the template with the fields filled in at placement (cards[key].fields) on top */
 export function templateInstance(p, key) {
-  const tc = templateOf(p, key); if (!tc) return null;
-  const c = cardCfg(p, key), fl = c.fields || {}, m = { ...tc, ...Object.fromEntries(Object.entries(fl).filter(([, v]) => v)) }, sub = s => substEntity(s, fl.entity);
+  const c = cardCfg(p, key), tc = key.startsWith("tpl:once:") ? c.once : templateOf(p, key); if (!tc) return null;   // tpl:once:<n> carries its own definition
+  const fl = c.fields || {}, m = { ...tc, ...Object.fromEntries(Object.entries(fl).filter(([, v]) => v)) }, sub = s => substEntity(s, fl.entity);
   return { ...m, id: key, name: c.name || m.name, icon: c.icon || m.icon, state: sub(m.state), label: sub(m.label), visible: sub(m.visible), entity: fl.entity || null, data: sub(m.data), path: sub(m.path), ask: undefined, room: undefined };
 }
 /** template card instances on every page ("tpl:<template>:<n>") with their texts filled in, for subscribeTemplates */

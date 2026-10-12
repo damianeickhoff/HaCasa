@@ -194,10 +194,32 @@ export function addPopup(p, pop) {
   }
   if (type?.id === "tpl" && step === 2) {
     const list = p.config.templates || [];
-    return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Een templatekaart uit je bibliotheek"))}
-      <ul class="ents">${list.map(tc => html`<li class="tap" @click=${() => upd({ step: 3, pick: tc.id, fields: {} })}><ha-icon icon=${tc.icon || "mdi:code-braces"}></ha-icon><div>${tc.name || t("Naamloos")}<small>${tc.state || ""}</small></div><ha-icon icon="mdi:chevron-right"></ha-icon></li>`)}</ul>
-      ${!list.length ? html`<div class="sub" style="margin-top:16px">${t("Nog geen templatekaarten. Maak er een onder Instellingen → Templatekaarten.")}</div>` : nothing}
+    return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Een nieuwe templatekaart, of een uit je bibliotheek"))}
+      <ul class="ents"><li class="tap" @click=${() => upd({ step: 3, pick: "new", nt: { icon: "mdi:code-braces", keep: false } })}><ha-icon icon="mdi:plus-box-outline"></ha-icon><div>${t("Nieuwe templatekaart")}<small>${t("eenmalig voor deze pagina, of bewaren in je bibliotheek")}</small></div><ha-icon icon="mdi:chevron-right"></ha-icon></li></ul>
+      ${list.length ? html`<div class="glbl">${t("Bibliotheek")}<b>${list.length}</b></div><ul class="ents">${list.map(tc => html`<li class="tap" @click=${() => upd({ step: 3, pick: tc.id, fields: {} })}><ha-icon icon=${tc.icon || "mdi:code-braces"}></ha-icon><div>${tc.name || t("Naamloos")}<small>${tc.state || ""}</small></div><ha-icon icon="mdi:chevron-right"></ha-icon></li>`)}</ul>` : nothing}
       ${foot(backBtn(1))}</div>`;
+  }
+  if (type?.id === "tpl" && step === 3 && pop.pick === "new") {
+    // a template written right here: placed once (its definition travels with the card) or kept in the library as well
+    const nt = pop.nt || {}, n = patch => upd({ nt: { ...nt, ...patch } }), ok = !!(nt.name && nt.state);
+    const txt = (k, ph, sub) => f(t(k === "state" ? "Tekst" : k === "label" ? "Label" : k === "visible" ? "Zichtbaar (voorwaarde)" : k === "name" ? "Naam" : k === "icon" ? "Icoon" : k), html`<input type="text" .value=${nt[k] || ""} placeholder=${ph} @change=${e => n({ [k]: e.target.value || undefined })}>`, sub);
+    const place = async () => {
+      const def = { name: nt.name, icon: nt.icon, state: nt.state, label: nt.label, visible: nt.visible, visibleInvert: nt.visibleInvert, tap: nt.tap, service: nt.service, data: nt.data, path: nt.path };
+      if (nt.keep) { const id = "tpl" + Date.now().toString(36); await p.saveUser({ templates: [...(p.userConfig?.templates || p.config.templates || []), { ...def, id, room: "none" }] }); await addKey(p, key, `tpl:${id}:${Date.now().toString(36)}`, { cardCfg: { fields: { entity: nt.entity } } }); }
+      else await addKey(p, key, `tpl:once:${Date.now().toString(36)}`, { cardCfg: { once: def, fields: { entity: nt.entity } } });
+    };
+    return html`<div class="popup addp">${head(t("Nieuwe templatekaart"), t("Tekst en label zijn Jinja-templates; Home Assistant rendert ze live"))}
+      <div class="form">
+        ${txt("name", t("bv. Filter vervangen"))}${txt("icon", "mdi:wrench")}
+        ${f(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${nt.entity || ""} placeholder="sensor.x" @change=${e => n({ entity: e.target.value || undefined })}><datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
+        ${txt("state", "{{ states('$entity') }} dagen", t("template voor de staat"))}${txt("label", "{{ relative_time(states['$entity'].last_changed) }}", t("optioneel, kleine regel onderin"))}
+        ${f(t("Zichtbaar (voorwaarde)"), html`<input type="text" .value=${nt.visible || ""} placeholder="{{ states('$entity') | int < 10 }}" @change=${e => n({ visible: e.target.value || undefined })}><div class="seg" style="margin-top:6px">${[[false, t("tonen als waar")], [true, t("tonen als onwaar")]].map(([v, l]) => html`<button class=${!!nt.visibleInvert === v ? "on" : ""} @click=${() => n({ visibleInvert: v || undefined })}>${l}</button>`)}</div>`, t("Jinja; onwaar = false, 0, no, off, none of leeg"))}
+        ${f(t("Tikken"), html`<div class="seg">${[["", t("details van de entiteit")], ["toggle", t("entiteit schakelen")], ["service", t("actie uitvoeren")], ["navigate", t("naar pad gaan")]].map(([v, l]) => html`<button class=${(nt.tap || "") === v ? "on" : ""} @click=${() => n({ tap: v || undefined })}>${l}</button>`)}</div>`)}
+        ${nt.tap === "service" ? html`${f(t("Actie"), html`<input type="text" list="hcn-services" .value=${nt.service || ""} placeholder="light.turn_on" @change=${e => n({ service: e.target.value || undefined })}><datalist id="hcn-services">${Object.entries(p.hass.services || {}).flatMap(([d, s]) => Object.keys(s).map(k => `${d}.${k}`)).sort().map(x => html`<option value=${x}></option>`)}</datalist>`)}${f(t("Data"), html`<input type="text" .value=${nt.data || ""} placeholder='{"entity_id": "$entity"}' @change=${e => n({ data: e.target.value || undefined })}>`, "JSON")}` : nothing}
+        ${nt.tap === "navigate" ? f(t("Pad"), html`<input type="text" .value=${nt.path || ""} placeholder="/energy" @change=${e => n({ path: e.target.value || undefined })}>`) : nothing}
+        ${f(t("Bewaren"), html`<div class="seg">${[[false, t("eenmalig, alleen hier")], [true, t("ook in mijn bibliotheek")]].map(([v, l]) => html`<button class=${!!nt.keep === v ? "on" : ""} @click=${() => n({ keep: v })}>${l}</button>`)}</div>`, t("een bewaarde template plaats je later opnieuw via Eigen kaarten"))}
+      </div>
+      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && place()}>${t("Toevoegen en instellen")}</button>`, backBtn(2))}</div>`;
   }
   if (type?.id === "tpl" && step === 3) {
     const tc = (p.config.templates || []).find(x => x.id === pop.pick); if (!tc) return nothing;

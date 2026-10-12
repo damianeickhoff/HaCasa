@@ -433,7 +433,7 @@ class HacasaNova extends LitElement {
       ${this.hass.connected === false ? html`<div class="offline"><ha-icon icon="mdi:lan-disconnect"></ha-icon>${t("Geen verbinding met Home Assistant")}</div>` : nothing}
       ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info" })}>${this.toast}</div>` : nothing}
       ${this.idle ? idleScreen(this) : nothing}
-      ${this.popup ? html`<div class="overlay" @click=${e => { if ((e.target.classList.contains("overlay") && this.popup?.type !== "wizard") || e.target.hasAttribute("data-close")) this.popup = null; }}>${renderPopup(this, this.popup)}</div>` : nothing}
+      ${this.popup ? html`<div class="overlay" @click=${e => { if ((e.target.classList.contains("overlay") && this.popup?.type !== "wizard") || e.target.closest?.("[data-close]")) this.popup = null; }}>${renderPopup(this, this.popup)}</div>` : nothing}
     `;
   }
 
