@@ -418,17 +418,22 @@ class HacasaNova extends LitElement {
     const alarm = h.alarm, armed = alarm && alarm.state !== "disarmed" && !unavailable(alarm);
     const alarmLbl = alarm ? ({ disarmed: t("Uit"), armed_home: t("Thuis"), armed_away: t("Weg"), armed_night: t("Nacht"), armed_vacation: t("Vakantie"), arming: t("Inschakelen"), pending: t("Wachten"), triggered: t("Alarm"), unavailable: "?" }[alarm.state] || alarm.state) : null;
     const alarmCls = alarm ? ({ disarmed: "off", armed_home: "home", arming: "arming", pending: "arming", triggered: "triggered", unavailable: "off" }[alarm.state] || "armed") : "";
+    const phone = matchMedia("(max-width:900px)").matches;
     return html`
       ${this._prevBg ? html`<div class="bg out" style="--bg:url(&quot;${this._prevBg}&quot;)"></div>` : nothing}
       ${keyed(bg || "plain", isPage ? html`<div class="bg plain"></div>` : html`<div class=${classMap({ bg: true, grad: !this.bgOk(bg) })} style=${this.bgStyle(bg, room?.slug)}></div>`)}
-      <nav class=${classMap({ nav: true, open: this.drawer, srch: !!this.searchOpen })}>
+      <nav class=${classMap({ nav: true, open: this.drawer, srch: !!this.searchOpen, topnav: this.config.phoneNav === "top" })}>
         <a class="logo" @click=${() => this.go(null)}><span class="mark"><img class="ico logo" src=${icon("hacasa")} alt="HaCasa"></span>${brandTitle(this.config.title || t("Thuis") + ".")}</a>
         ${this.renderLinks(room, isPage)}
         ${h.persons.length ? html`<div class="people pill" title=${t("Wie is thuis")} @click=${() => this.openPopup({ type: "people" })}><ha-icon icon="mdi:account-group-outline"></ha-icon><span class="pc">${h.home}<small>/${h.persons.length}</small></span></div>` : nothing}
         ${alarm ? html`<div class=${classMap({ alarm: true, pill: true, armed, [alarmCls]: true })} @click=${() => this.openPopup({ type: "alarm" })}><ha-icon icon=${alarm.state === "triggered" ? "mdi:shield-alert" : alarm.state === "arming" || alarm.state === "pending" ? "mdi:shield-sync" : armed ? "mdi:shield-home" : "mdi:shield-home-outline"}></ha-icon><span class="al">${alarmLbl}</span><i></i></div>` : html`<span></span>`}
         <div class="time"><b>${this.now}</b></div>
+        ${phone && this.config.phoneNav === "top" ? html`
+          <button class=${classMap({ sbtn: true, on: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; this.drawer = false; }}><img src=${icon(this.searchOpen ? "close" : "search")} alt=""></button>
+          <button class="menu" title=${t("Menu")} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img src=${icon(this.drawer ? "close" : "menu")} alt="menu"></button>
+          ${this.searchOpen && !this.settings ? searchBar(this) : nothing}` : nothing}
       </nav>
-      ${matchMedia("(max-width:900px)").matches ? this.renderBottomNav(room, isPage) : nothing}
+      ${phone && (this.config.phoneNav !== "top" || this.edit) ? this.renderBottomNav(room, isPage) : nothing}
       ${keyed(this.settings ? "settings" : this.page || (room ? room.id : "home"), this.settings ? renderSettings(this) : this.page ? renderPage(this, this.page) : room ? this.renderRoom(room) : this.renderHome(h))}
       ${this.hass.connected === false ? html`<div class="offline"><ha-icon icon="mdi:lan-disconnect"></ha-icon>${t("Geen verbinding met Home Assistant")}</div>` : nothing}
       ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info" })}>${this.toast}</div>` : nothing}
@@ -463,6 +468,7 @@ class HacasaNova extends LitElement {
       ${srch ? searchBar(this) : html`<div class="btabs pill">
         <a class=${classMap({ ic: true, active: !room && !isPage && !this.drawer })} title=${t("Thuis")} @click=${() => this.go(null)}><img class="ico" src=${icon("home")} alt=""></a>
         <a class=${classMap({ rtab: true, active: !!room || this.drawer })} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><span>${room ? room.name : t("Kamers")}</span><ha-icon icon=${this.drawer ? "mdi:chevron-down" : "mdi:chevron-up"}></ha-icon></a>
+        ${(this.config.bottomTabs || ["sensoren", "energie"]).filter(k => PAGES[k]).map(k => html`<a class=${classMap({ ic: true, active: this.page === k })} title=${t(PAGES[k].label)} @click=${() => { this.drawer = false; this.goPath("__" + k + "__"); }}><ha-icon icon=${PAGES[k].icon}></ha-icon></a>`)}
         <span class="sep"></span>
         <a class=${classMap({ ic: true, more: true, active: !!isPage })} title=${t("Meer")} @click=${() => this.openPopup({ type: "more" })}><ha-icon icon="mdi:dots-horizontal"></ha-icon></a>
       </div>`}

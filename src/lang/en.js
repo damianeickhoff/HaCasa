@@ -188,6 +188,10 @@ export default {
   "Zichtbaar": "Visible", "Voorwaarde": "Condition", "een verborgen kaart vind je terug in de bewerkmodus": "a hidden card is back in edit mode", "Vergelijking": "Comparison",
   "de staat van de entiteit, bv. on, off, 21.5": "the entity's state, e.g. on, off, 21.5", "Jinja; onwaar is false, 0, no, off, none of leeg, alles anders is waar": "Jinja; false is false, 0, no, off, none or empty, anything else is true",
   "Tonen als": "Show when", "waar": "true", "onwaar": "false", "de kaart staat er als de voorwaarde dit oplevert": "the card is shown when the condition gives this",
+  // phone bar position, bottom-bar shortcuts, card defaults chips
+  "Menu": "Menu", "Balk op telefoon": "Bar on phones", "onderaan": "at the bottom", "bovenaan": "at the top",
+  "onderaan: thuis, kamers, twee sneltoetsen en meer; bovenaan: menu- en zoekknop in de bovenbalk zoals in 3.0": "bottom: home, rooms, two shortcuts and more; top: menu and search buttons in the top bar as in 3.0",
+  "Sneltoets {n}": "Shortcut {n}", "pagina's in de balk onderaan, naast de kamers": "pages in the bottom bar, next to the rooms", "batterij: rechtsonder, als het apparaat er een heeft": "battery: bottom right, when the device has one",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)

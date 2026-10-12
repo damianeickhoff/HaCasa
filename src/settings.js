@@ -5,7 +5,7 @@ import { t, locale, LANGUAGES } from "./i18n.js";
 import { html, nothing } from "lit";
 import { domain, slug, SUFFIX, VERSION } from "./util.js";
 import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates, selfUpdate } from "./features.js";
-import { GRAPH_HOURS } from "./graph.js";
+import { PAGES } from "./pages.js";
 
 export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
 
@@ -64,8 +64,6 @@ export const TABS = [
   { id: "meldingen", label: t("Bewegen & deurbel"), sub: t("bewegingsbalk, camera-popup"), icon: "mdi:motion-sensor" },
   { id: "agenda", label: t("Agenda & afval"), sub: t("kalenders en ophaaldagen"), icon: "mdi:calendar-blank-outline" },
   { id: "energie", label: t("Energie"), sub: t("vermogen, verbruik, gas"), icon: "mdi:lightning-bolt-outline" },
-  { id: "groepen", label: t("Groepen"), sub: t("meerdere lampen of stekkers op één kaart"), icon: "mdi:shape-outline" },
-  { id: "grafieken", label: t("Grafieken"), sub: t("lijn van een sensor op een kaart"), icon: "mdi:chart-line" },
   { id: "templates", label: t("Templatekaarten"), sub: t("eigen kaarten met Jinja"), icon: "mdi:code-braces" },
   { id: "meer", label: t("Meer-menu"), sub: t("eigen links"), icon: "mdi:dots-horizontal-circle-outline" },
   { id: "modi", label: t("Modi"), sub: t("gast, vakantie, …"), icon: "mdi:account-switch-outline" },
@@ -109,6 +107,8 @@ export function renderSettings(p) {
         ${field(t("Taal"), html`<select @change=${e => set("language", e.target.value || undefined)}><option value="" ?selected=${!d.language}>${t("automatisch (taal van Home Assistant)")}</option>${Object.entries(LANGUAGES).map(([k, l]) => html`<option value=${k} ?selected=${d.language === k}>${l}</option>`)}</select>`, t("direct zichtbaar na opslaan"))}
         ${field(t("Titel"), text(d.title, v => set("title", v), t("Thuis") + "."), t("linksboven in de navigatie"))}
         ${field(t("Navigatie"), html`<select @change=${e => set("navMode", e.target.value || undefined)}><option value="" ?selected=${d.navMode !== "floors"}>${t("per kamer")}</option><option value="floors" ?selected=${d.navMode === "floors"}>${t("per verdieping, kamers in een uitklapmenu")}</option></select>`, Object.keys(p.hass.floors || {}).length ? t("verdiepingen komen uit Home Assistant (Instellingen › Ruimtes)") : t("nog geen verdiepingen in Home Assistant: maak ze aan bij Instellingen › Ruimtes"))}
+        ${field(t("Balk op telefoon"), pills([{ v: "", l: t("onderaan") }, { v: "top", l: t("bovenaan") }], d.phoneNav, "", v => set("phoneNav", v)), t("onderaan: thuis, kamers, twee sneltoetsen en meer; bovenaan: menu- en zoekknop in de bovenbalk zoals in 3.0"))}
+        ${d.phoneNav !== "top" ? [0, 1].map(i => field(t("Sneltoets {n}", { n: i + 1 }), html`<select @change=${e => { const cur = d.bottomTabs || ["sensoren", "energie"]; const next = [...cur]; next[i] = e.target.value; set("bottomTabs", next); }}><option value="" ?selected=${(d.bottomTabs || ["sensoren", "energie"])[i] === ""}>${t("geen")}</option>${Object.entries(PAGES).map(([k, v]) => html`<option value=${k} ?selected=${(d.bottomTabs || ["sensoren", "energie"])[i] === k}>${t(v.label)}</option>`)}</select>`, i === 0 ? t("pagina's in de balk onderaan, naast de kamers") : "")) : nothing}
         ${d.navMode === "floors" ? field(t("Menu op telefoon"), html`<select @change=${e => set("navExpand", e.target.value ? true : undefined)}><option value="" ?selected=${!d.navExpand}>${t("verdieping uitklappen met tikken")}</option><option value="1" ?selected=${!!d.navExpand}>${t("alle verdiepingen uitgeklapt")}</option></select>`, t("hoe de kamers in het menu op telefoon en tablet staan")) : nothing}
         ${field(t("Kamerfoto"), text(d.roomImage, v => set("roomImage", v), "/local/images/rooms/{slug}.jpg"), t("{slug} wordt de ruimtenaam · per kamer aanpasbaar bij Pagina's", { slug: "{slug}" }))}
         ${field(t("Foto startpagina"), text(d.homeImage, v => set("homeImage", v), "/local/images/rooms/home.jpg"))}
@@ -158,36 +158,8 @@ export function renderSettings(p) {
           ${field(t("Tikken"), pills([{ v: "", l: canToggle(type) ? t("schakelen") : t("details openen") }, ...(canToggle(type) ? [{ v: "popup", l: t("details openen") }] : []), { v: "more", l: t("Home Assistant-dialoog") }, { v: "none", l: t("niets") }], c.tap, "", v => setT(type, { tap: v })))}
           ${field(t("Vasthouden"), pills([{ v: "", l: t("details openen") }, { v: "more", l: t("Home Assistant-dialoog") }, { v: "none", l: t("niets") }], c.hold, "", v => setT(type, { hold: v })))}
           ${bottoms.length ? field(t("Onderaan"), pills([{ v: "", l: t("automatisch") }, { v: "none", l: t("niets") }, ...bottoms.map(b => ({ v: b, l: BL[b] }))], c.bottom, "", v => setT(type, { bottom: v }))) : nothing}
-          ${field(t("Tonen"), html`<span class="chk3"><label><input type="checkbox" .checked=${!c.hideName} @change=${e => setT(type, { hideName: e.target.checked ? undefined : true })}> ${t("Naam")}</label><label><input type="checkbox" .checked=${!c.hideSub} @change=${e => setT(type, { hideSub: e.target.checked ? undefined : true })}> ${t("Ondertitel")}</label><label><input type="checkbox" .checked=${!c.hideState} @change=${e => setT(type, { hideState: e.target.checked ? undefined : true })}> ${t("Staat")}</label></span>`)}
-          ${["light", "switch", "binary_sensor", "lock", "cover", "fan"].includes(type) ? field(t("Batterij tonen"), check(!!c.showBattery, v => setT(type, { showBattery: v || undefined })), t("rechtsonder, als het apparaat er een heeft")) : nothing}
+          ${field(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ["hideSub", t("Ondertitel")], ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!c[k] ? "on" : ""} @click=${() => setT(type, { [k]: c[k] ? undefined : true })}>${l}</button>`)}${["light", "switch", "binary_sensor", "lock", "cover", "fan"].includes(type) ? html`<button class=${c.showBattery ? "on" : ""} @click=${() => setT(type, { showBattery: c.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`, t("batterij: rechtsonder, als het apparaat er een heeft"))}
         </div>`; })}`);
-    })(),
-    groepen: (() => {
-      const groups = d.groups || [], setG = (i, patch) => { const list = groups.map((g, k) => k === i ? { ...g, ...patch } : g); set("groups", list); };
-      const cands = p.rooms.flatMap(r => [...r.ents.lights, ...r.ents.switches, ...r.ents.fans, ...r.ents.appliances.filter(a => a.switch).map(a => a.switch)].map(e => ({ id: e.id, name: `${r.name} · ${e.state?.attributes?.friendly_name || e.id}` })));
-      return sec(t("Groepen"), t("één kaart voor meerdere lampen, schakelaars of stekkers; tikken op een tegel schakelt dat ene, de kaart zelf opent de lijst"), html`
-        ${groups.map((g, i) => html`<div class="dsec">
-          <h4>${g.name || t("Nieuwe groep")}<button class="link" @click=${() => set("groups", groups.filter((_, k) => k !== i))}>${t("verwijderen")}</button></h4>
-          ${field(t("Naam"), html`<input type="text" .value=${g.name || ""} @change=${e => setG(i, { name: e.target.value })}>`)}
-          ${field(t("Icoon"), html`<input type="text" .value=${g.icon || ""} placeholder="mdi:shape-outline" @change=${e => setG(i, { icon: e.target.value || undefined })}>`)}
-          ${field(t("Plaats"), html`<select @change=${e => setG(i, { room: e.target.value })}><option value="home" ?selected=${!g.room || g.room === "home"}>${t("startpagina")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${g.room === r.id}>${r.name}</option>`)}</select>`)}
-          ${field(t("Stijl"), html`<select @change=${e => setG(i, { style: e.target.value })}><option value="tiles" ?selected=${!g.style || g.style === "tiles"}>${t("tegels (tikken schakelt)")}</option><option value="list" ?selected=${g.style === "list"}>${t("lijst")}</option></select>`)}
-          ${field(t("Onderdelen"), html`<select multiple size="6" @change=${e => setG(i, { members: [...e.target.selectedOptions].map(o => o.value) })}>${cands.map(c => html`<option value=${c.id} ?selected=${(g.members || []).includes(c.id)}>${c.name}</option>`)}</select>`, t("Ctrl/Cmd-klik voor meerdere"))}
-        </div>`)}
-        <button class="add" @click=${() => set("groups", [...groups, { id: "grp" + Date.now().toString(36), name: "", members: [], style: "tiles", room: "home" }])}>${t("+ groep")}</button>`);
-    })(),
-    grafieken: (() => {
-      const graphs = d.graphs || [], setG = (i, patch) => set("graphs", graphs.map((g, k) => k === i ? { ...g, ...patch } : g));
-      const numeric = s => domain(s.entity_id) === "sensor" && Number.isFinite(parseFloat(s.state)) && !["timestamp", "date", "enum"].includes(s.attributes.device_class);
-      return sec(t("Grafieken"), t("één kaart per sensor met een lijn van de laatste uren; tikken opent de Home Assistant-grafiek"), html`
-        ${graphs.map((g, i) => html`<div class="dsec">
-          <h4>${g.name || p.hass.states[g.entity]?.attributes?.friendly_name || t("Nieuwe grafiek")}<button class="link" @click=${() => set("graphs", graphs.filter((_, k) => k !== i))}>${t("verwijderen")}</button></h4>
-          ${field(t("Sensor"), select(hass, "sensor", g.entity, v => setG(i, { entity: v || undefined }), { empty: t("kies"), filter: numeric }), t("elke numerieke sensor: temperatuur, vochtigheid, vermogen, …"))}
-          ${field(t("Naam"), html`<input type="text" .value=${g.name || ""} placeholder=${p.hass.states[g.entity]?.attributes?.friendly_name || ""} @change=${e => setG(i, { name: e.target.value || undefined })}>`)}
-          ${field(t("Plaats"), html`<select @change=${e => setG(i, { room: e.target.value })}><option value="home" ?selected=${!g.room || g.room === "home"}>${t("startpagina")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${g.room === r.id}>${r.name}</option>`)}</select>`)}
-          ${field(t("Periode"), html`<select @change=${e => setG(i, { hours: +e.target.value })}>${GRAPH_HOURS.map(n => html`<option value=${n} ?selected=${(+g.hours || 24) === n}>${n % 24 ? t("{n} uur", { n }) : n === 24 ? t("24 uur") : t("{n} dagen", { n: n / 24 })}</option>`)}</select>`)}
-        </div>`)}
-        <button class="add" @click=${() => set("graphs", [...graphs, { id: "gr" + Date.now().toString(36), room: "home", hours: 24 }])}>${t("+ grafiek")}</button>`);
     })(),
     acties: sec(t("Snelle acties"), t("knoppen onder de begroeting op de startpagina"), html`
       ${quick.map((q, i) => html`<div class="row quick">${text(q.label, v => setQuick(i, "label", v), "label")}${text(q.icon, v => setQuick(i, "icon", v), t("mdi:icon (optioneel)"))}

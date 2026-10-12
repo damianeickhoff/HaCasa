@@ -411,7 +411,7 @@ export const styles = css`
   .seg.two button{justify-content:center}
   .seg button,.popup .form .f .seg button{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap}
   .seg button ha-icon{--mdc-icon-size:15px}
-  .seg button.on,.popup .form .f .seg button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
+  .seg button.on,.popup .form .f .seg button.on,.settings .seg button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
   .seg button sup{font-size:8.5px;letter-spacing:.5px;opacity:.55;margin-left:-3px}
   .popup .form .f .chips{margin:0}
   .popup .act{display:grid;grid-template-columns:34px 1fr max-content;gap:12px;align-items:center;padding:8px 12px;margin-top:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-sm);font-size:13px;font-weight:600}
@@ -582,6 +582,17 @@ export const styles = css`
     .popup .pvrow .pvc .card{width:100%}
   }
 
+  /* phone bar at the top (config.phoneNav "top"): search + menu buttons in the top bar, the room list as a left drawer, as in 3.0 */
+  @media (max-width:900px){
+    .nav.topnav{grid-template-columns:minmax(0,1fr) 0 max-content max-content max-content max-content}
+    .nav.topnav .sbtn,.nav.topnav .menu{display:grid}
+    .nav.topnav .searchbar{position:absolute;top:calc(100% + 8px);left:0;right:0;transform:none;width:auto;animation:none;z-index:8}
+    .nav.topnav.open .links{position:fixed;top:0;left:0;right:auto;bottom:0;width:260px;max-height:none;padding:calc(90px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 20px 30px;border-radius:0;gap:4px;background:rgba(28,28,32,.55);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border:0;border-right:1px solid var(--line);box-shadow:20px 0 60px rgba(0,0,0,.35);animation:none}
+    .nav.topnav.open .links a{height:46px;font-size:17px}
+    .nav.topnav.open .links.floors{position:fixed;background:rgba(28,28,32,.55);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border:0;border-right:1px solid var(--line);box-shadow:20px 0 60px rgba(0,0,0,.35)}
+    .btabs a.ic ha-icon{opacity:.85}
+  }
+
   /* ===== tablet portrait & phone ===== */
   @media (max-width:900px){
     :host(.in-card){position:relative;height:100%}
@@ -608,10 +619,14 @@ export const styles = css`
     .btabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:54px;padding:4px}
     .btabs a{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;height:46px;padding:0 14px;border-radius:999px;color:var(--fg-2);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
     .btabs a.active{background:rgba(255,255,255,.26);color:#fff;font-weight:700}
-    .btabs a.ic{width:46px;padding:0}
+    .btabs a.ic{width:42px;padding:0}
+    .btabs:has(a.ic + a.ic) .sep{margin:0 2px}
+    .btabs:has(a.ic + a.ic + .sep) a.ic{width:36px}
+    .btabs:has(a.ic + a.ic + .sep) a.rtab{padding:0 6px 0 10px}
+    .btabs:has(a.ic + a.ic + .sep) a.rtab ha-icon{--mdc-icon-size:16px;width:16px;height:16px}
     .btabs a img.ico{width:20px;height:20px}
     .btabs a ha-icon{--mdc-icon-size:18px;width:18px;height:18px;opacity:.7;flex:none}
-    .btabs a.rtab{flex:1;min-width:0;padding:0 10px 0 16px}
+    .btabs a.rtab{flex:1;min-width:0;padding:0 8px 0 12px;gap:4px}
     .btabs a.rtab span{overflow:hidden;text-overflow:ellipsis}
     .btabs .sep{width:1px;height:20px;background:var(--line);margin:0 4px;flex:none}
     .bnav .sbtn{display:grid;width:54px;height:54px}
