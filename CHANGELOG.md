@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.0-beta.3 (beta)
 
 - **Home view on phones with quick actions** (#169): the greeting, notification line and pills were pushed up under the top bar, leaving a gap above the cards. A desktop-only rule for the quick-action row was leaking into the phone layout; it is now limited to desktop widths.
 
