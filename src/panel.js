@@ -6,7 +6,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
 import { styles } from "./styles.js";
 import { buildRooms, buildHome, name } from "./model.js";
-import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard } from "./cards.js";
+import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateOf } from "./cards.js";
 import { editStrip, editBar, canEdit } from "./edit.js";
 import { renderPopup } from "./popups.js";
 import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
@@ -115,7 +115,7 @@ class HacasaNova extends LitElement {
     this.config.templates = cards;
     const lines = Object.entries(this.config.pages || {}).flatMap(([k, pc]) => (pc.lines || []).map((l, i) => ({ id: `line:${k}:${i}`, state: l.text })));
     const overrides = Object.entries(this.config.cards || {}).filter(([, c]) => c.tplState || c.tplSub || c.tplFoot || c.tplVisible).map(([id, c]) => ({ id: "card:" + id, state: c.tplState, label: c.tplSub, foot: c.tplFoot, visible: c.tplVisible }));
-    const list = [...cards, ...lines, ...overrides];
+    const list = [...cards.filter(x => x.room !== "none"), ...lines, ...overrides, ...templateInstances(this)];   // room "none" = library only, rendered per instance
     const key = JSON.stringify(list.map(x => [x.id, x.state, x.label, x.foot, x.visible]));
     if (key === this._tplKey || !this.hass?.connection?.subscribeMessage) return;
     this._tplKey = key; (this._tplUnsubs || []).forEach(u => { try { u.then ? u.then(f => f(), () => {}) : u(); } catch {} }); this._tplUnsubs = [];
@@ -221,8 +221,22 @@ class HacasaNova extends LitElement {
   /** cards in the configured order: keys listed in `order` first, the rest in their default position */
   orderCards(list, order = []) { const pos = k => { const i = order.indexOf(k); return i < 0 ? order.length + list.findIndex(c => c.key === k) : i; }; return [...list].sort((a, b) => pos(a.key) - pos(b.key)); }
   applyPage(key, list) { const pc = this.pageCfg(key), hid = new Set(pc.hidden || []); return this.orderCards(list, pc.order).filter(c => !hid.has(c.key) && !this.condHiddenCard(c.key)); }
-  /** card hidden by the visibility template in its card settings (template cards check their own `visible` field) */
-  condHiddenCard(key) { const c = cardCfg(this, key); return condHidden(this, "card:" + key, c.tplVisible, c.tplVisibleInvert); }
+  /** card hidden by the condition in its card settings: a simple comparison on an entity state, or the visibility template;
+      template instances fall back to the `visible` field of their template */
+  condHiddenCard(key) {
+    const c = cardCfg(this, key);
+    if (c.visEntity) {
+      const s = this.hass.states[c.visEntity]; if (!s) return false;
+      const v = s.state, w = String(c.visValue ?? ""), n = num(v), m = num(w);
+      const ok = c.visOp === "ne" ? v !== w : c.visOp === "gt" ? (n != null && m != null && n > m) : c.visOp === "lt" ? (n != null && m != null && n < m) : v === w;
+      return c.tplVisibleInvert ? ok : !ok;
+    }
+    if (c.tplVisible) return condHidden(this, "card:" + key, c.tplVisible, c.tplVisibleInvert);
+    if (key.startsWith("tpl:")) { const tc = templateOf(this, key); return tc ? condHidden(this, key, tc.visible, tc.visibleInvert) : false; }
+    return false;
+  }
+  /** take a hand-added card off its page again (a template instance also drops its settings) */
+  async removeAdded(pageKey, key) { const pc = this.pageCfg(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null); }
   tickerOn(key, items) {
     const pc = this.pageCfg(key), tk = pc.ticker || {};
     const custom = (pc.lines || []).map((l, i) => ({ k: "custom", icon: l.icon || "mdi:text", text: this.templates?.[`line:${key}:${i}`]?.state })).filter(x => x.text && String(x.text).trim());
@@ -553,6 +567,8 @@ class HacasaNova extends LitElement {
     add(v(e.motion), nm, x => sensorCard(this, x, "motion"));
     add(v(e.other), nm, x => sensorCard(this, x, "binary"));
     add(v(e.values), nm, x => valueCard(this, x));
+    // hand-added template instances and panel cards (entities added by hand are already in r.ents through the model)
+    if (!this._noAdded) for (const key of (this.pageCfg(r.id).add || [])) if (!key.includes(".")) { const c = addedCard(this, key, r.id); if (c) list.push({ key, label: c.label, tpl: c.tpl }); }
     return list;
   }
 
@@ -569,7 +585,8 @@ class HacasaNova extends LitElement {
       if (a) this.popup = { type: "appliance", a, form: true }; else if (st) this.popup = { type: "strip", st, form: true };
       return;
     }
-    const s = this.hass.states[key]; if (!s) return;
+    const s = this.hass.states[key];
+    if (!s) { this.popup = { type: "cardcfg", key, form: true }; return; }   // a panel card or template instance: settings only
     const r = this.rooms.find(r => r.ents.all.some(e => e.id === key));
     openFor(this, s, r ? { e: r.ents.all.find(e => e.id === key), r } : null);
     if (this.popup) this.popup = { ...this.popup, form: true, menu: false };

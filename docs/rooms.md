@@ -45,7 +45,7 @@ On phones the bar at the bottom becomes the edit bar; drag with a short hold.
 
 ### Adding a card
 
-**Add card** asks what you want: a **device or entity**, or a new **group**, **graph** or **template card** (those open their settings tab with the room already filled in). For an entity you search by name, id or area; entities without an area come first, entities from other rooms carry their room name, and what is already on this page is greyed out. Then you choose where it belongs:
+**Add card** asks what you want: a **device or entity**; a **HaCasa card** (one of the panel's own cards from another page: weather, agenda, waste, scenes, light scenes, groups, graphs …); a **template** from your library (see [template cards](cards.md#template-cards)), filling in its fields; or a new **group** or **graph** (those open their settings tab with the room already filled in). Cards you added this way are removed again with the bin in edit mode; the panel's automatic cards are hidden instead. For an entity you search by name, id or area; entities without an area come first, entities from other rooms carry their room name, and what is already on this page is greyed out. Then you choose where it belongs:
 
 - **Only in HaCasa** (default): the card is added to this page; nothing changes in Home Assistant. When the entity lives in another room you can hide it there at the same time.
 - **Change the area in Home Assistant** (administrators): moves the entity to this area for every dashboard, automation and voice assistant.

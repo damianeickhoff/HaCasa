@@ -33,7 +33,16 @@ Jinja templates, rendered live by Home Assistant:
 | **Bottom** | the bottom line (instead of the choice above) |
 | **Visible (condition)** | whether the card is shown at all |
 
-The visibility condition hides the card when the template renders `false`, `0`, `no`, `off`, `none` or nothing; switch it to **show when false** to invert that. A hidden card stays listed under *Page settings*. Template cards have the same field in their own form. (Templates need an administrator account; for other users the card is simply shown.)
+The visibility condition comes in two forms:
+
+- **Simple:** an entity, a comparison (*is*, *is not*, *greater than*, *less than*) and a value — `binary_sensor.front_door` *is* `on`, `sensor.battery` *less than* `30`.
+- **Template:** a Jinja template; the card is hidden when it renders `false`, `0`, `no`, `off`, `none` or nothing.
+
+**Show when false** inverts either. A hidden card comes back in [edit mode](rooms.md#edit-mode), dimmed with a banner, so you can always reach its settings. Template cards have the same field in their definition. (Templates need an administrator account; for other users the card is simply shown.)
+
+## Panel cards and template cards
+
+In edit mode a tap opens the settings of *every* card, also the panel's own (weather, agenda, scenes …): those only carry the visibility condition. A placed template card shows its **fields** here, so you can change the entity or threshold it was placed with, and its own name and icon.
 
 ## Card defaults
 

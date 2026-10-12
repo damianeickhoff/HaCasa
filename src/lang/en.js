@@ -143,6 +143,19 @@ export default {
   "beheerder": "administrator", "Verbergen in {room}": "Hide in {room}", "anders staat hij in beide": "otherwise it shows in both",
   "Na het toevoegen open je meteen de kaartinstellingen voor naam, icoon en onderkant.": "After adding, the card settings open right away for name, icon and bottom line.",
   "Toevoegen en instellen": "Add and set up",
+  // edit mode round 2: panel cards, template library, simple condition
+  "Verborgen door voorwaarde": "Hidden by condition", "Invullen": "Fill in", "HaCasa-kaart": "HaCasa card", "weer, agenda, scènes, groepen …": "weather, agenda, scenes, groups …",
+  "uit je eigen bibliotheek": "from your own library", "Een kaart van het paneel zelf": "One of the panel's own cards", "Alle kaarten staan al op deze pagina.": "Every card is already on this page.",
+  "Een templatekaart uit je bibliotheek": "A template card from your library", "{n} invulvelden": "{n} fields",
+  "Nog geen templatekaarten. Maak er een onder Instellingen → Templatekaarten.": "No template cards yet. Make one under Settings → Template cards.",
+  "Vul de velden van deze kaart in": "Fill in the fields of this card", "Kaart van het paneel": "Panel card",
+  "Naam en inhoud volgen de instellingen van het paneel; hieronder kun je de kaart op voorwaarde verbergen.": "Name and contents follow the panel settings; below you can hide the card on a condition.",
+  "leeg = zoals in de template": "empty = as in the template", "invulveld van de template": "field of the template",
+  "Eenvoudig": "Simple", "is": "is", "is niet": "is not", "groter dan": "greater than", "kleiner dan": "less than",
+  "entiteit, vergelijking, waarde — de kaart verdwijnt als het niet klopt. Een verborgen kaart vind je terug in de bewerkmodus.": "entity, comparison, value — the card disappears when it does not hold. A hidden card is back in edit mode.",
+  "Jinja; onwaar = false, 0, no, off, none of leeg. Een verborgen kaart vind je terug in de bewerkmodus.": "Jinja; false = false, 0, no, off, none or empty. A hidden card is back in edit mode.",
+  "bibliotheek — plaatsen via Bewerken → Kaart toevoegen": "library — place it via Edit → Add card", "vast op een pagina, of als sjabloon dat je meerdere keren kunt plaatsen": "fixed on one page, or a template you can place several times",
+  "Invulvelden": "Fields", "$sleutel in de teksten wordt bij het plaatsen vervangen": "$key in the texts is replaced when placing", "sleutel": "key", "entiteit": "entity", "getal": "number", "+ veld": "+ field", "bibliotheek": "library",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)

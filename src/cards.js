@@ -550,6 +550,44 @@ export function cardFor(p, e) {
   }
 }
 
+/* ---------- cards added to a page by hand (pages[key].add) ---------- */
+/** `$key` placeholders in a template card's texts, filled from the instance inputs (or the field defaults) */
+export const substInputs = (str, tc, inputs = {}) => !str ? str : (tc.inputs || []).reduce((s, f) => f.key ? s.replace(new RegExp("\\$" + f.key + "(?![\\w])", "g"), String(inputs[f.key] ?? f.default ?? "")) : s, str);
+export const templateOf = (p, key) => (p.config.templates || []).find(x => x.id === key.split(":")[1]) || null;
+/** template card instances on every page ("tpl:<template>:<n>") with their texts filled in, for subscribeTemplates */
+export function templateInstances(p) {
+  const out = [];
+  for (const pc of Object.values(p.config.pages || {})) for (const key of (pc.add || [])) {
+    if (!key.startsWith("tpl:")) continue; const tc = templateOf(p, key); if (!tc) continue;
+    const inputs = cardCfg(p, key).inputs || {}, sub = s => substInputs(s, tc, inputs);
+    out.push({ id: key, state: sub(tc.state), label: sub(tc.label), visible: sub(tc.visible) });
+  }
+  return out;
+}
+/** { label, tpl } for a key in pages[page].add: an entity, a template instance, or one of the panel's own cards */
+export function addedCard(p, key, pageKey) {
+  if (key.startsWith("tpl:")) {
+    const tc = templateOf(p, key); if (!tc) return null;
+    const c = cardCfg(p, key), inputs = c.inputs || {}, sub = s => substInputs(s, tc, inputs);
+    return { label: c.name || tc.name || t("Template"), tpl: templateCard(p, { ...tc, id: key, name: c.name || tc.name, icon: c.icon || tc.icon, entity: sub(tc.entity), service: sub(tc.service), data: sub(tc.data), path: sub(tc.path) }, 0) };
+  }
+  if (key.includes(".")) { const s = p.hass.states[key]; if (!s) return null; const e = { id: key, state: s, reg: p.hass.entities?.[key] || {} }; const tpl = cardFor(p, e); return tpl ? { label: label(p, e), tpl } : null; }
+  const c = findCard(p, key, pageKey); return c ? { label: c.label, tpl: c.tpl } : null;
+}
+/** one of the panel's own cards by key: "room:<id>:<key>" for a room-bound card, else a home card or a card of any room.
+    _noAdded stops the pages' add lists from being followed while we look, so two pages cannot point at each other forever */
+export function findCard(p, key, exceptPage) {
+  if (p._noAdded) return null;
+  p._noAdded = true;
+  try {
+    const m = /^room:([^:]+):(.+)$/.exec(key);
+    if (m) { const r = p.rooms.find(x => x.id === m[1]); return r ? p.roomCards(r).find(c => c.key === m[2]) || null : null; }
+    if (exceptPage !== "home") { const c = homeCards(p, p.home).find(c => c.key === key); if (c) return c; }
+    for (const r of p.rooms) if (r.id !== exceptPage) { const c = p.roomCards(r).find(c => c.key === key); if (c) return c; }
+    return null;
+  } finally { p._noAdded = false; }
+}
+
 export function homeCards(p, h) {
   const cards = [], add = (key, label, tpl) => cards.push({ key, label, tpl });
   if (h.climate) add("climate", t("Thermostaat"), climateCard(p, h.climate));
@@ -605,8 +643,8 @@ export function homeCards(p, h) {
   for (const g of (p.config.graphs || []).filter(g => (!g.room || g.room === "home") && g.entity)) add("graph:" + g.id, g.name || t("Grafiek"), graphCard(p, g));
   // template cards placed on the home view
   (p.config.templates || []).filter(tc => (!tc.room || tc.room === "home") && !condHidden(p, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => add(tc.id, tc.name || t("Template"), templateCard(p, tc, i)));
-  // entities added to the home view by hand (edit mode → Kaart toevoegen)
-  for (const id of (p.config.pages?.home?.add || [])) { const s = p.hass.states[id]; if (!s) continue; const e = { id, state: s, reg: p.hass.entities?.[id] || {} }; const tpl = cardFor(p, e); if (tpl) add(id, label(p, e), tpl); }
+  // cards added to the home view by hand (edit mode → Kaart toevoegen): entities, template instances, the panel's own cards
+  if (!p._noAdded) for (const key of (p.config.pages?.home?.add || [])) { const c = addedCard(p, key, "home"); if (c) add(key, c.label, c.tpl); }
   if (h.energy.power) add("energy", t("Energie"), html`<div class="card" ${pressDir(p, { tap: () => p.openPopup({ type: "energy" }) })}>
     <div class="n">${t("Energie")}</div><div class="s">${Math.round(num(h.energy.power.state) ?? 0)} W</div>
     <div class="lbl">${h.energy.today ? t("Vandaag {n} kWh", { n: num(h.energy.today.state)?.toFixed(1) }) : ""}</div><div class="i">${ico("mdi:flash-outline", "electric")}</div></div>`);

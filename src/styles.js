@@ -393,8 +393,8 @@ export const styles = css`
   .popup.wide .form .f{grid-template-columns:160px 1fr}
   .popup .form .f{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;padding:10px 12px;margin-top:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-sm);font-size:13px;font-weight:600}
   /* card form: live preview on the left, sections on the right, the Opslaan row stays in view */
-  .popup.cardf{padding-bottom:0}
-  .popup .fwrap{display:grid;grid-template-columns:320px 1fr;gap:28px;margin-top:8px}
+  .popup.cardf{padding-bottom:0;width:min(calc(var(--card-w) + 720px),calc(100vw - 32px));max-width:none}
+  .popup .fwrap{display:grid;grid-template-columns:var(--card-w) 1fr;gap:28px;margin-top:8px}
   .popup .pv{position:sticky;top:0;align-self:start}
   .popup .pv .ey{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--fg-2);margin:0 0 8px 2px;display:flex;justify-content:space-between}
   .popup .pv .ey span{color:var(--fg-3)}
@@ -406,11 +406,11 @@ export const styles = css`
   .popup .sh .cnt{margin-left:auto;color:var(--fg-3);font-size:11px;letter-spacing:1px}
   .popup .grp{margin-bottom:18px}
   .popup .form .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .popup .form .seg{display:flex;flex-wrap:wrap;gap:4px}
-  .popup .form .seg button{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap}
-  .popup .form .seg button ha-icon{--mdc-icon-size:15px}
-  .popup .form .seg button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
-  .popup .form .seg button sup{font-size:8.5px;letter-spacing:.5px;opacity:.55;margin-left:-3px}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  .seg button{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap}
+  .seg button ha-icon{--mdc-icon-size:15px}
+  .seg button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
+  .seg button sup{font-size:8.5px;letter-spacing:.5px;opacity:.55;margin-left:-3px}
   .popup .form .f .chips{margin:0}
   .popup .act{display:grid;grid-template-columns:34px 1fr max-content;gap:12px;align-items:center;padding:8px 12px;margin-top:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-sm);font-size:13px;font-weight:600}
   .popup .act .bx{height:34px;width:34px;border-radius:var(--r-sm);background:rgba(255,255,255,.12);border:1px solid var(--line);display:grid;place-items:center}
@@ -507,8 +507,8 @@ export const styles = css`
   .ecard .x.eye{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
   .ecard .grip{position:absolute;right:var(--cp);bottom:var(--cp);height:28px;display:flex;align-items:center;color:var(--fg-3);pointer-events:none}
   .ecard .grip ha-icon{--mdc-icon-size:20px}
-  .ecard .why{position:absolute;left:var(--cp);right:var(--cp);bottom:var(--cp);height:28px;display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;font-weight:600;color:var(--fg-2);pointer-events:none;white-space:nowrap;overflow:hidden}
-  .ecard .why ha-icon{--mdc-icon-size:14px;flex:none}
+  .ecard .hban{position:absolute;left:0;right:0;bottom:0;z-index:3;height:36px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--fg-2);background:rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);border-radius:0 0 var(--r) var(--r);pointer-events:none;white-space:nowrap;overflow:hidden}
+  .ecard .hban ha-icon{--mdc-icon-size:14px;flex:none}
   .card.add{background:rgba(255,255,255,.04);border-style:dashed;box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--fg-3);animation:none}
   .card.add .plus{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.1);display:grid;place-items:center;color:#fff}
   .card.add .plus ha-icon{--mdc-icon-size:20px}
@@ -525,7 +525,7 @@ export const styles = css`
   .card.value .nm{grid-area:s;font-size:13px;font-weight:500;color:var(--fg-3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card.value.noname .nm{display:none}
   /* "Kaart toevoegen" popup */
-  .popup.addp{width:min(560px,calc(100vw - 32px));max-width:none}
+  .popup.addp{width:min(640px,calc(100vw - 32px));max-width:none}
   .popup .steps{display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--fg-3);margin:-6px 0 14px}
   .popup .steps span{display:flex;gap:6px;align-items:center}
   .popup .steps span i{width:18px;height:18px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:10px;letter-spacing:0}
@@ -547,9 +547,14 @@ export const styles = css`
   .popup ul.place li small{font-size:12px;line-height:1.4;margin-top:3px;opacity:.75}
   .popup ul.place li .st{align-self:start;margin-top:4px}
   .popup ul.place li .st.adm{opacity:.5}
-  .popup .pvrow{display:flex;gap:16px;align-items:center;margin-top:18px}
+  .popup .pvrow{display:flex;flex-direction:column;gap:12px;align-items:stretch;margin-top:18px}
   .popup .pvrow .cap{font-size:12px;line-height:1.45;color:var(--fg-3)}
-  .popup .pvrow .pvc .card{width:280px;height:175px}
+  .popup .pvrow .pvc .card{width:var(--card-w);height:var(--card-h)}
+  .popup .form .three{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px}
+  .popup .form .irow{display:grid;grid-template-columns:1fr 1fr .9fr 1fr 34px;gap:4px;margin-top:4px}
+  .popup .form .irow button{border:0;border-radius:var(--r-sm);background:rgba(255,255,255,.14);color:#fff;cursor:pointer}
+  .popup .form .note{font-size:13px;font-weight:500;color:var(--fg-2);line-height:1.4}
+  .popup .sub code{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#fff}
   @media (max-width:900px){
     .banner.ebar{display:none}
     .ecard{--cp:14px}

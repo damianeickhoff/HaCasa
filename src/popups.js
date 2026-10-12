@@ -12,12 +12,13 @@ import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check } from "./settings.js";
 import { LANGUAGES } from "./i18n.js";
 import { fetchHistory } from "./extras2.js";
-import { addPopup, canEdit } from "./edit.js";
+import { addPopup, canEdit, isBuiltin } from "./edit.js";
+import { templateOf } from "./cards.js";
 
 const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
-const entityOf = pop => pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
+const entityOf = pop => pop.type === "cardcfg" ? pop.key : pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
 /** header buttons: ⋯ (card options) when the popup belongs to an entity, and close */
-const hbtns = (p, pop) => html`<span class="hb">${entityOf(pop) ? html`<button class=${pop.menu ? "on" : ""} title=${t("Opties")} @click=${ev => { ev.stopPropagation(); p.openPopup({ ...pop, menu: !pop.menu, form: false }); }}><ha-icon icon="mdi:dots-horizontal"></ha-icon></button>` : nothing}<button data-close title=${t("Sluiten")}><img src=${icon("close")} alt="sluiten" data-close></button></span>`;
+const hbtns = (p, pop) => html`<span class="hb">${entityOf(pop) && pop.type !== "cardcfg" ? html`<button class=${pop.menu ? "on" : ""} title=${t("Opties")} @click=${ev => { ev.stopPropagation(); p.openPopup({ ...pop, menu: !pop.menu, form: false }); }}><ha-icon icon="mdi:dots-horizontal"></ha-icon></button>` : nothing}<button data-close title=${t("Sluiten")}><img src=${icon("close")} alt="sluiten" data-close></button></span>`;
 /** the ••• menu: a dropdown under the button (desktop) or a sheet at the bottom (phone), outside .popup so its scroll box can't clip it */
 function optionsMenu(p, pop) {
   const id = entityOf(pop), dev = id.startsWith("device:") ? id.slice(7) : p.hass.entities?.[id]?.device_id;
@@ -61,6 +62,7 @@ function cardForm(p, pop) {
   const appliance = pop.type === "appliance", canToggle = ["light", "switch", "input_boolean", "fan", "lock"].includes(dom) || (appliance && !!pop.a.switch);
   const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player"].includes(dom) || appliance;
   const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock"].includes(dom) || appliance;
+  const builtin = isBuiltin(id), inst = id.startsWith("tpl:"), tc = inst ? templateOf(p, id) : null;   // a panel card / a template instance: settings only
   // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders)
   const pageKey = p.room?.id || "home";
   let preview = null;
@@ -88,7 +90,7 @@ function cardForm(p, pop) {
   const setA = (i, patch) => setActs(acts.map((a, k) => k === i ? { ...a, ...patch } : a));
   const services = Object.entries(p.hass.services || {}).flatMap(([d, s]) => Object.keys(s).map(k => `${d}.${k}`)).sort();
   const jsonOk = s => { if (!s) return true; try { JSON.parse(s); return true; } catch { return false; } };
-  const tplCount = ["tplState", "tplSub", "tplFoot", "tplVisible"].filter(k => draft[k]).length;
+  const tplCount = ["tplState", "tplSub", "tplFoot", "tplVisible", "visEntity"].filter(k => draft[k]).length, visMode = pop.visMode || (draft.tplVisible ? "tpl" : "simple");
   const battery = batteryOf(p, pop.e || { id, reg: p.hass.entities?.[id] });
   return html`<div class="fwrap">
     <div class="pv">
@@ -99,9 +101,11 @@ function cardForm(p, pop) {
     </div>
     <div class="form">
       <div class="grp">${sh(t("Weergave"))}
-        ${row(t("Naam"), html`<div class="two">${inp("name", st?.attributes.friendly_name || (id.startsWith("device:") ? deviceName(p.hass, id.slice(7)) : ""))}${inp("icon", "mdi:lightbulb-outline")}</div>`, t("leeg = naam en icoon uit Home Assistant"))}
+        ${builtin ? row(t("Kaart van het paneel"), html`<span class="note">${t("Naam en inhoud volgen de instellingen van het paneel; hieronder kun je de kaart op voorwaarde verbergen.")}</span>`) : nothing}
+        ${!builtin ? row(t("Naam"), html`<div class="two">${inp("name", inst ? (tc?.name || "") : st?.attributes.friendly_name || (id.startsWith("device:") ? deviceName(p.hass, id.slice(7)) : ""))}${inp("icon", inst ? (tc?.icon || "mdi:code-braces") : "mdi:lightbulb-outline")}</div>`, inst ? t("leeg = zoals in de template") : t("leeg = naam en icoon uit Home Assistant")) : nothing}
+        ${inst && tc?.inputs?.length ? tc.inputs.filter(f => f.key).map(f => row(f.label || f.key, f.type === "number" ? html`<input type="number" .value=${draft.inputs?.[f.key] ?? ""} placeholder=${f.default ?? ""} @change=${e => upd({ inputs: { ...(draft.inputs || {}), [f.key]: e.target.value === "" ? undefined : +e.target.value } })}>` : html`<input type="text" list=${f.type === "entity" ? "hcn-entities" : nothing} .value=${draft.inputs?.[f.key] ?? ""} placeholder=${f.default ?? (f.type === "entity" ? "sensor.x" : "")} @change=${e => upd({ inputs: { ...(draft.inputs || {}), [f.key]: e.target.value || undefined } })}>`, t("invulveld van de template"))) : nothing}
         ${dom === "binary_sensor" ? row(t("Soort"), seg("kind", [{ v: "door", l: t("Deur"), icon: "mdi:door" }, { v: "window", l: t("Raam"), icon: "mdi:window-closed-variant" }, { v: "motion", l: t("Beweging"), icon: "mdi:motion-sensor" }, { v: "binary", l: t("Algemeen"), icon: "mdi:checkbox-blank-circle-outline" }], pop.kind || "binary"), t("bepaalt icoon en teksten; zichtbaar na opslaan")) : nothing}
-        ${row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ["hideSub", t("Ondertitel")], ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
+        ${builtin || inst ? nothing : row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ["hideSub", t("Ondertitel")], ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
         ${bottomOpts ? row(t("Onderaan"), seg("bottom", bottomOpts, bottomDef), dom === "climate" ? t("naast de doeltemperatuur; op telefoons alleen dit") : t("wat de kaart onderaan toont")) : nothing}
         ${(dom === "light" || dom === "binary_sensor") && bottom === "today" ? row(t("Weergave"), seg("todayStyle", [{ v: "", l: t("balkjes per uur") }, { v: "text", l: t("tekst") }], "")) : nothing}
         ${dom === "light" && bottom === "colors" && caps.rgb ? row(t("Kleuren"), html`<input type="text" .value=${(draft.colors || []).join(", ")} placeholder="#ffb46e, #f27a5c, #7fb6ff, #9fcf8a" @change=${e => { const l = e.target.value.split(",").map(x => x.trim()).filter(x => /^#[0-9a-f]{6}$/i.test(x)); upd({ colors: l.length ? l : undefined }); }}>`, t("hex-kleuren, gescheiden door komma's")) : nothing}
@@ -138,7 +142,12 @@ function cardForm(p, pop) {
           ${hasTpl ? row(t("Staat (template)"), inp("tplState", "{{ states('sensor.x') }} W"), t("tekst in de hoek")) : nothing}
           ${hasTpl ? row(t("Ondertitel (template)"), inp("tplSub", "{{ relative_time(states.light.x.last_changed) }}")) : nothing}
           ${hasTpl ? row(t("Onderaan (template)"), inp("tplFoot", ""), t("vervangt de keuze hierboven")) : nothing}
-          ${row(t("Zichtbaar (voorwaarde)"), html`${inp("tplVisible", "{{ states('sensor.x') | int < 30 }}")}<div class="seg" style="margin-top:6px">${[[false, t("tonen als waar")], [true, t("tonen als onwaar")]].map(([v, l]) => html`<button class=${!!draft.tplVisibleInvert === v ? "on" : ""} @click=${() => upd({ tplVisibleInvert: v || undefined })}>${l}</button>`)}</div>`, t("Jinja; onwaar = false, 0, no, off, none of leeg. Een verborgen kaart staat nog in Pagina instellen."))}` : nothing}
+          ${row(t("Zichtbaar (voorwaarde)"), html`<div class="seg" style="margin-bottom:6px">${[["simple", t("Eenvoudig")], ["tpl", t("Template")]].map(([v, l]) => html`<button class=${visMode === v ? "on" : ""} @click=${() => p.openPopup({ ...pop, visMode: v, draft: { ...draft, ...(v === "simple" ? { tplVisible: undefined } : { visEntity: undefined, visOp: undefined, visValue: undefined }) } })}>${l}</button>`)}</div>
+            ${visMode === "simple" ? html`<div class="three"><input type="text" list="hcn-entities" .value=${draft.visEntity || ""} placeholder="sensor.x" @change=${e => upd({ visEntity: e.target.value || undefined })}><select @change=${e => upd({ visOp: e.target.value || undefined })}>${[["", t("is")], ["ne", t("is niet")], ["gt", t("groter dan")], ["lt", t("kleiner dan")]].map(([v, l]) => html`<option value=${v} ?selected=${(draft.visOp || "") === v}>${l}</option>`)}</select><input type="text" .value=${draft.visValue ?? ""} placeholder="on" @change=${e => upd({ visValue: e.target.value === "" ? undefined : e.target.value })}></div>`
+              : inp("tplVisible", "{{ states('sensor.x') | int < 30 }}")}
+            <div class="seg" style="margin-top:6px">${[[false, t("tonen als waar")], [true, t("tonen als onwaar")]].map(([v, l]) => html`<button class=${!!draft.tplVisibleInvert === v ? "on" : ""} @click=${() => upd({ tplVisibleInvert: v || undefined })}>${l}</button>`)}</div>`,
+            visMode === "simple" ? t("entiteit, vergelijking, waarde — de kaart verdwijnt als het niet klopt. Een verborgen kaart vind je terug in de bewerkmodus.") : t("Jinja; onwaar = false, 0, no, off, none of leeg. Een verborgen kaart vind je terug in de bewerkmodus."))}` : nothing}
+        <datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>
       </div>
     </div>
   </div>
@@ -448,7 +457,13 @@ export function renderPopup(p, pop) {
         <div class="form">
           ${f(t("Naam"), txt("name", "bv. Buiten"))}
           ${f(t("Icoon"), txt("icon", "mdi:thermometer"))}
-          ${f(t("Plaats"), html`<select @change=${e => upd({ room: e.target.value || undefined })}><option value="" ?selected=${!tp.room}>${t("Thuis")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${tp.room === r.id}>${r.name}</option>`)}</select>`, t("startpagina of een kamer"))}
+          ${f(t("Plaats"), html`<select @change=${e => upd({ room: e.target.value || undefined })}><option value="none" ?selected=${tp.room === "none"}>${t("bibliotheek — plaatsen via Bewerken → Kaart toevoegen")}</option><option value="" ?selected=${!tp.room}>${t("Thuis")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${tp.room === r.id}>${r.name}</option>`)}</select>`, t("vast op een pagina, of als sjabloon dat je meerdere keren kunt plaatsen"))}
+          <div class="prow" style="margin-top:12px"><span>${t("Invulvelden")}</span><b>${t("$sleutel in de teksten wordt bij het plaatsen vervangen")}</b></div>
+          ${(tp.inputs || []).map((fld, i) => { const setIn = patch => upd({ inputs: (tp.inputs || []).map((x, j) => j === i ? { ...x, ...patch } : x) }); return html`<div class="irow">
+            <input type="text" placeholder=${t("sleutel")} .value=${fld.key || ""} @change=${e => setIn({ key: e.target.value.replace(/[^\w]/g, "") || undefined })}><input type="text" placeholder=${t("label")} .value=${fld.label || ""} @change=${e => setIn({ label: e.target.value || undefined })}>
+            <select @change=${e => setIn({ type: e.target.value || undefined })}><option value="" ?selected=${!fld.type}>${t("tekst")}</option><option value="entity" ?selected=${fld.type === "entity"}>${t("entiteit")}</option><option value="number" ?selected=${fld.type === "number"}>${t("getal")}</option></select>
+            <input type="text" placeholder=${t("standaard")} .value=${fld.default ?? ""} @change=${e => setIn({ default: e.target.value || undefined })}><button @click=${() => upd({ inputs: (tp.inputs || []).filter((_, j) => j !== i) })}>×</button></div>`; })}
+          <button class="addline" @click=${() => upd({ inputs: [...(tp.inputs || []), {}] })}>${t("+ veld")}</button>
           ${f(t("Tekst"), txt("state", "{{ states('sensor.buiten_temperatuur') }} °C"), t("template voor de staat"))}
           ${f(t("Label"), txt("label", "{{ relative_time(states.sensor.x.last_changed) }} geleden"), "optioneel, kleine regel onderin")}
           ${f(t("Zichtbaar (voorwaarde)"), html`<div class="two">${txt("visible", "{{ states('sensor.x') | int < 10 }}")}<select @change=${e => upd({ visibleInvert: e.target.value === "1" || undefined })}><option value="" ?selected=${!tp.visibleInvert}>${t("tonen als waar")}</option><option value="1" ?selected=${!!tp.visibleInvert}>${t("tonen als onwaar")}</option></select></div>`, t("Jinja; onwaar = false, 0, no, off, none of leeg"))}
@@ -468,6 +483,7 @@ export function renderPopup(p, pop) {
         <ul>${m.map(x => li(x.id.startsWith("light.") ? "mdi:lightbulb-outline" : x.id.startsWith("fan.") ? "mdi:fan" : "mdi:power-socket-eu", x.name, x.on ? t("Aan") : t("Uit"), { on: x.on, svg: x.id.startsWith("light.") ? "lamp" : x.id.startsWith("fan.") ? "fan" : "plug", onclick: () => p.call(svc(x.id), "toggle", { entity_id: x.id }) }))}</ul>`);
     }
     case "add": return addPopup(p, pop);
+    case "cardcfg": return wrap(roomName, p.pageCards(p.room?.id || "home").find(c => c.key === pop.key)?.label || pop.key, "", nothing);
     case "value": {
       const s = hass.states[pop.e.id] || pop.e.state, v = num(s?.state), unit = s?.attributes?.unit_of_measurement || "";
       return wrap(roomName, label(p, pop.e), unavailable(s) ? t("Onbereikbaar") : v != null ? `${s.state} ${unit}`.trim() : (s?.state || ""), html`
