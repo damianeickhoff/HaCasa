@@ -466,7 +466,7 @@ class HacasaNova extends LitElement {
     if (this.edit && !this.settings) return html`<div class="bnav"><div class="btabs pill edit"><span class="lbl"><ha-icon icon="mdi:pencil-outline"></ha-icon>${this.editKey === "home" ? t("Startpagina bewerken") : t("Kamer bewerken")}</span><a class="done" @click=${() => this.stopEdit()}>${t("Klaar")}</a></div></div>`;
     return html`<div class=${classMap({ bnav: true, srch })}>
       ${srch ? searchBar(this) : html`<div class="btabs pill">
-        <a class=${classMap({ rtab: true, active: !!room || this.drawer })} title=${t("Kamers")} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img class="ico" src=${icon("floorplan")} alt=""><span>${room ? room.name : t("Kamers")}</span></a>
+        <a class=${classMap({ rtab: true, active: !isPage || this.drawer })} title=${t("Kamers")} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img class="ico" src=${icon(room ? "floorplan" : "home")} alt=""><span>${room ? room.name : t("Thuis")}</span></a>
         ${shortcuts.map(k => html`<a class=${classMap({ active: this.page === k })} title=${t(PAGES[k].label)} @click=${() => { this.drawer = false; this.goPath("__" + k + "__"); }}><ha-icon icon=${PAGES[k].icon}></ha-icon><span>${t(PAGES[k].label)}</span></a>`)}
         <span class="sep"></span>
         <a class=${classMap({ more: true, active: !!isPage && !shortcuts.includes(this.page) })} title=${t("Meer")} @click=${() => this.openPopup({ type: "more" })}><ha-icon icon="mdi:dots-horizontal"></ha-icon><span>${t("Meer")}</span></a>

@@ -1207,16 +1207,16 @@ var is=Object.defineProperty;var ss=(t,e,a)=>e in t?is(t,e,{enumerable:!0,config
     :host(.in-card) .bnav{position:absolute}
     .btabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:54px;padding:4px}
     /* icon tabs; only the active one slides open to icon + name (nav option 1 + 3) */
-    .btabs a{flex:none;width:42px;min-width:0;display:flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0;border-radius:999px;color:var(--fg-2);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
+    .btabs a{flex:1;min-width:40px;display:flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0;border-radius:999px;color:var(--fg-2);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
     .btabs a span{display:none;overflow:hidden;text-overflow:ellipsis}
     .nav.open .links a.home{gap:10px}
     .nav.open .links a.home img.ico{width:18px;height:18px}
-    .btabs a.active{flex:1;width:auto;justify-content:flex-start;padding:0 14px 0 12px;background:rgba(255,255,255,.26);color:#fff;font-weight:700}
+    .btabs a.active{flex:2.6;justify-content:flex-start;padding:0 14px 0 13px;background:rgba(255,255,255,.26);color:#fff;font-weight:700}
     .btabs a.active span{display:inline}
-    .btabs a img.ico{width:20px;height:20px;flex:none}
-    .btabs a ha-icon{--mdc-icon-size:18px;width:18px;height:18px;opacity:.8;flex:none}
+    .btabs a img.ico{width:20px;height:20px;flex:none;opacity:.9}
+    .btabs a ha-icon{--mdc-icon-size:21px;width:21px;height:21px;opacity:.9;flex:none}
     .btabs a.active ha-icon{opacity:1}
-    .btabs .sep{width:1px;height:20px;background:var(--line);margin:0 2px;flex:none}
+    .btabs .sep{width:1px;height:20px;background:var(--line);margin:0 3px;flex:none}
     .bnav .sbtn{display:grid;width:54px;height:54px}
     .bnav .sbtn img{width:20px;height:20px}
     .bnav .sbtn.on img{width:16px;height:16px}
@@ -1648,7 +1648,7 @@ var is=Object.defineProperty;var ss=(t,e,a)=>e in t?is(t,e,{enumerable:!0,config
       ${this.popup?d`<div class="overlay" @click=${u=>{(u.target.classList.contains("overlay")&&this.popup?.type!=="wizard"||u.target.closest?.("[data-close]"))&&(this.popup=null)}}>${Qi(this,this.popup)}</div>`:g}
     `}applianceItems(e){return e.filter(a=>!tn(this,a.id)&&!a.plain).map(a=>{let i=K(this,a.id),r=Ke(this.hass,a,i.threshold??5),o=i.name||we(this.hass,a.device);return rn.includes(r.st)?{k:"appliances",icon:r.st==="alert"?"mdi:alert-circle-outline":i.icon||Zn(o),title:o,text:[r.label,Zt(r)].filter(Boolean).join(", ")}:null}).filter(Boolean)}get floorGroups(){let a=Object.values(this.hass.floors||{}).sort((r,o)=>(r.level??0)-(o.level??0)||r.name.localeCompare(o.name)).map(r=>({id:r.floor_id,name:r.name,rooms:this.rooms.filter(o=>o.floor===r.floor_id)})).filter(r=>r.rooms.length),i=this.rooms.filter(r=>!a.some(o=>o.rooms.includes(r)));return i.length?[...a,{id:"_none",name:n("Overig"),rooms:i}]:a}floorOf(e){return e?this.floorGroups.find(a=>a.rooms.includes(e))?.id??null:null}renderBottomNav(e,a){let i=this.searchOpen&&!this.settings,r=(this.config.bottomTabs||["sensoren","energie"]).filter(s=>be[s]),o=()=>{this.searchOpen=!this.searchOpen,this.searchOpen||(this.search=""),this.drawer=!1};return this.edit&&!this.settings?d`<div class="bnav"><div class="btabs pill edit"><span class="lbl"><ha-icon icon="mdi:pencil-outline"></ha-icon>${this.editKey==="home"?n("Startpagina bewerken"):n("Kamer bewerken")}</span><a class="done" @click=${()=>this.stopEdit()}>${n("Klaar")}</a></div></div>`:d`<div class=${j({bnav:!0,srch:i})}>
       ${i?mn(this):d`<div class="btabs pill">
-        <a class=${j({rtab:!0,active:!!e||this.drawer})} title=${n("Kamers")} @click=${()=>{this.drawer=!this.drawer,this.navFloor=this.drawer?this.floorOf(e):null}}><img class="ico" src=${ee("floorplan")} alt=""><span>${e?e.name:n("Kamers")}</span></a>
+        <a class=${j({rtab:!0,active:!a||this.drawer})} title=${n("Kamers")} @click=${()=>{this.drawer=!this.drawer,this.navFloor=this.drawer?this.floorOf(e):null}}><img class="ico" src=${ee(e?"floorplan":"home")} alt=""><span>${e?e.name:n("Thuis")}</span></a>
         ${r.map(s=>d`<a class=${j({active:this.page===s})} title=${n(be[s].label)} @click=${()=>{this.drawer=!1,this.goPath("__"+s+"__")}}><ha-icon icon=${be[s].icon}></ha-icon><span>${n(be[s].label)}</span></a>`)}
         <span class="sep"></span>
         <a class=${j({more:!0,active:!!a&&!r.includes(this.page)})} title=${n("Meer")} @click=${()=>this.openPopup({type:"more"})}><ha-icon icon="mdi:dots-horizontal"></ha-icon><span>${n("Meer")}</span></a>
