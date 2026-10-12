@@ -129,11 +129,11 @@ export const CARD_TYPES = [
   { id: "homeclimate", group: "panel", label: "Thermostaat (thuis)", sub: "de hoofdthermostaat", icon: "mdi:home-thermometer-outline", key: "climate" },
   { id: "scenes", group: "panel", label: "Scènes", sub: "scèneknoppen van een ruimte", icon: "mdi:palette-outline", roomKey: "scenes" },
   { id: "presets", group: "panel", label: "Lichtscènes", sub: "opgeslagen lichtstanden van een ruimte", icon: "mdi:lightbulb-group-outline", roomKey: "presets" },
-  { id: "group", group: "own", label: "Groep", sub: "meerdere lampen of stekkers als één kaart", icon: "mdi:shape-outline" },
-  { id: "graph", group: "own", label: "Grafiek", sub: "verloop van een sensor", icon: "mdi:chart-line" },
+  { id: "group", group: "panel", label: "Groep", sub: "meerdere lampen of stekkers als één kaart", icon: "mdi:shape-outline" },
+  { id: "graph", group: "panel", label: "Grafiek", sub: "verloop van een sensor", icon: "mdi:chart-line" },
   { id: "tpl", group: "own", label: "Template", sub: "uit je eigen bibliotheek", icon: "mdi:code-braces" },
 ];
-const GROUPS = [["dev", "Apparaten"], ["panel", "Kaarten van het paneel"], ["own", "Eigen kaarten"]];
+const GROUPS = [["dev", "Apparaten"], ["panel", "Kaarten van HaCasa"], ["own", "Eigen kaarten"]];   // shipped with the panel vs. made by the user
 
 export function addPopup(p, pop) {
   const key = pop.key, isHome = key === "home", room = isHome ? null : p.rooms.find(r => r.id === key), where = isHome ? t("Startpagina") : (room?.name || key);
@@ -158,7 +158,7 @@ export function addPopup(p, pop) {
     await addKey(p, key, k);
   };
 
-  if (step === 1) return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Welk soort kaart?"))}
+  if (step === 1) return html`<div class="popup addp nofoot">${head(t("Kaart toevoegen"), t("Welk soort kaart?"))}
     ${GROUPS.map(([g, lbl]) => html`<div class="glbl">${t(lbl)}</div><div class="pages types">${CARD_TYPES.filter(x => x.group === g).map(x => html`
       <a @click=${() => x.key ? addPanel(x.key) : x.id === "group" ? upd({ step: 2, kind: x.id, gd: { style: "tiles", members: [] } }) : x.id === "graph" ? upd({ step: 2, kind: x.id, gd: { hours: 24 } }) : upd({ step: 2, kind: x.id, q: "" })}><ha-icon icon=${x.icon}></ha-icon><div>${t(x.label)}<small>${t(x.sub)}</small></div></a>`)}</div>`)}
     </div>`;

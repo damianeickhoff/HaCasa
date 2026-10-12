@@ -531,6 +531,7 @@ export const styles = css`
   /* "Kaart toevoegen" popup */
   .popup.addp{width:min(680px,calc(100vw - 32px));max-width:none;padding-bottom:0}
   .popup.addp .foot{margin-top:22px}
+  .popup.addp.nofoot{padding-bottom:30px}
   .popup .pages.types{grid-template-columns:repeat(3,1fr);margin-top:0;margin-bottom:6px}
   .popup .pages.types a{padding:12px 12px;gap:10px;font-size:13px;align-items:flex-start}
   .popup .pages.types a ha-icon{--mdc-icon-size:22px;margin-top:1px}

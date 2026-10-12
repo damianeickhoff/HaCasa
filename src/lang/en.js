@@ -168,7 +168,7 @@ export default {
   // card type picker (edit mode → Kaart toevoegen); labels pass through t() at runtime
   "Deze kaart staat al op deze pagina": "This card is already on this page", "Deze kaart is nog niet ingesteld: zie Instellingen → Startpagina": "This card is not set up yet: see Settings → Home page",
   "Welk soort kaart?": "What kind of card?", "Van welke ruimte?": "From which room?", "staat al op deze pagina": "already on this page", "niets beschikbaar": "nothing available",
-  "Apparaten": "Devices", "Kaarten van het paneel": "Panel cards", "Eigen kaarten": "Your own cards",
+  "Apparaten": "Devices", "Kaarten van HaCasa": "HaCasa cards", "Eigen kaarten": "Your own cards",
   "Lamp": "Light", "aan/uit, helderheid, kleur": "on/off, brightness, colour", "Schakelaar of stekker": "Switch or plug", "ook met vermogensmeter": "also with a power meter",
   "Deur of raam": "Door or window", "open / dicht, sinds wanneer": "open / closed, since when", "laatste beweging": "last motion", "Sensor aan/uit": "On/off sensor", "rook, lek, contact …": "smoke, leak, contact …",
   "Waarde": "Value", "temperatuur, vermogen, tekst": "temperature, power, text", "speler met hoes en bediening": "player with artwork and controls", "Thermostaat": "Thermostat", "temperatuur en modus": "temperature and mode",

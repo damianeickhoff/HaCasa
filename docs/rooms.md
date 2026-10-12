@@ -48,8 +48,8 @@ On phones the bar at the bottom becomes the edit bar; drag with a short hold.
 **Add card** works like Home Assistant's card picker: choose a **kind of card**, then configure it.
 
 - **Devices:** light, switch or plug, door or window, motion, on/off sensor, value (any sensor), media, thermostat, shutter, fan, lock, camera, other. You pick the entity from a list that only shows that kind (entities without an area first, entities from other rooms with their room name), then where it belongs.
-- **Panel cards:** weather, agenda, waste, energy, attention, the home thermostat, scenes and light scenes (the last two ask which room's). A card that is hidden on this page is simply shown again; one that is not set up yet points you to Settings → Home page.
-- **Your own cards:** a new **group** (name, style, members) or **graph** (sensor, period), configured right there, or a **template** from your library (see [template cards](cards.md#template-cards)), picking its entity and filling in the fields it asks for.
+- **HaCasa cards:** weather, agenda, waste, energy, attention, the home thermostat, scenes and light scenes (the last two ask which room's), and a new **group** (name, style, members) or **graph** (sensor, period), configured right there. A card that is hidden on this page is simply shown again; one that is not set up yet points you to Settings → Home page.
+- **Your own cards:** a **template** from your library (see [template cards](cards.md#template-cards)), picking its entity and filling in the fields it asks for.
 
 Cards you added this way, including groups and graphs, are removed again with the bin in edit mode; the panel's automatic cards are hidden instead. A tap on a group or graph in edit mode opens its settings (members, sensor, period) too. For an entity you search by name, id or area; entities without an area come first, entities from other rooms carry their room name, and what is already on this page is greyed out. Then you choose where it belongs:
 
