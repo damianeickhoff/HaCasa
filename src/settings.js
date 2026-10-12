@@ -127,7 +127,9 @@ export function renderSettings(p) {
           <button @click=${() => p.openPopup({ type: "page", key })}>${t("Instellen")}</button>${Object.keys(pc).length ? html`<button title=${t("Herstel")} @click=${() => { const pages = { ...d.pages }; delete pages[key]; set("pages", pages); }}>×</button>` : nothing}</li>`; })}</ul>
       <div class="hint">${t("Sneller: houd de titel van een pagina ingedrukt.")}</div>`),
 
-    kamers: sec(t("Kamers"), t("{n} zichtbaar · volgorde = navigatie", { n: selected.length }) + " · " + t("Meer staat altijd achteraan"), html`<ul class="rooms">
+    kamers: sec(t("Kamers"), t("{n} zichtbaar · volgorde = navigatie", { n: selected.length }) + " · " + t("Meer staat altijd achteraan"), html`
+      ${!Array.isArray(d.rooms) ? field(t("Maximum"), number(d.maxRooms, v => set("maxRooms", v || undefined)), t("alleen in de automatische stand: leeg = alle ruimtes met apparaten (3.0 stopte stil bij 9)")) : nothing}
+      <ul class="rooms">
       ${selected.map((a, i) => html`<li class="on"><span>${a.name}</span>
         <button title=${t("Omhoog")} @click=${() => move(i, -1)}>↑</button><button title=${t("Omlaag")} @click=${() => move(i, 1)}>↓</button>
         <button title=${t("Verbergen")} @click=${() => setRooms(selected.filter(x => x.id !== a.id))}>×</button></li>`)}
@@ -189,7 +191,7 @@ export function renderSettings(p) {
       ${field(t("Prijs per kWh"), html`<input type="number" step="0.01" min="0" .value=${d.home?.energy?.price ?? ""} placeholder="0.30" @change=${e => setEnergy("price", e.target.value === "" ? undefined : +e.target.value)}>`, t("voor de kostenregel op stekkerkaarten"))}
       ${field(t("Gas"), select(hass, "sensor", d.home?.energy?.gas, v => setEnergy("gas", v), { empty: t("geen"), filter: s => s.attributes.unit_of_measurement === "m³" }))}`),
 
-    templates: sec(t("Templatekaarten"), t("sjablonen met Jinja; plaatsen doe je per pagina via Bewerken → Kaart toevoegen"), html`<ul class="rooms">
+    templates: sec(t("Templatekaarten"), t("sjablonen met Jinja; plaatsen doe je per pagina via Bewerken → Kaart toevoegen") + (hass.user?.is_admin ? "" : " · " + t("templates rendert Home Assistant alleen voor beheerders")), html`<ul class="rooms">
       ${(d.templates || []).map((tp, i) => html`<li class="on"><span>${tp.name || t("Naamloos")}<small>${tp.ask?.length ? t("{n} invulvelden", { n: tp.ask.length }) + " · " : ""}${tp.state || t("geen template")}</small></span><button title=${t("Bewerken")} @click=${() => p.openPopup({ type: "tpl", index: i })}>✎</button><button title=${t("Verwijderen")} @click=${() => set("templates", (d.templates || []).filter((_, j) => j !== i))}>×</button></li>`)}
       ${!(d.templates || []).length ? html`<li><span>${t("Nog geen templatekaarten")}</span></li>` : nothing}
     </ul><button class="add" @click=${() => { const list = [...(d.templates || []), { id: "tpl" + Date.now().toString(36), name: "", icon: "mdi:code-braces", state: "", room: "none" }]; set("templates", list); p.openPopup({ type: "tpl", index: list.length - 1 }); }}>${t("+ templatekaart")}</button>`),

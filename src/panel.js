@@ -31,7 +31,7 @@ const brandTitle = s => html`<span class="bt">${s}</span>`;
 const eventWhenShort = ev => ev.allDay ? t("hele dag") : ev.start.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
 const BUILD = Math.floor(Date.now() / 3600000).toString(36);   // changes every hour: replaced photos show up after a reload
 const FONT = "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap";
-const DEFAULT_CONFIG = { rooms: "auto", roomImage: "/local/images/rooms/{slug}.jpg", homeImage: "/local/images/rooms/home.jpg", maxRooms: 9, home: {}, more: [] };
+const DEFAULT_CONFIG = { rooms: "auto", roomImage: "/local/images/rooms/{slug}.jpg", homeImage: "/local/images/rooms/home.jpg", home: {}, more: [] };   // no room cap by default (#146); Settings → Kamers can set one
 
 class HacasaNova extends LitElement {
   static styles = styles;
@@ -274,7 +274,16 @@ class HacasaNova extends LitElement {
   basePath() { if (this.hashMode) return ""; return "/" + (this.route?.prefix || this.panel?.url_path || location.pathname.split("/")[1]).replace(/^\/+|\/+$/g, ""); }
   stripDragged() { return this._drag > 6; }
   /** true while the image is assumed to load; flips to false (and re-renders) when it 404s */
-  bgOk(url) { if (!url) return false; const c = this._bgCache || (this._bgCache = new Map()); if (c.has(url)) return c.get(url); c.set(url, true); const im = new Image(); im.onerror = () => { c.set(url, false); this.requestUpdate(); }; im.src = url; return true; }
+  bgOk(url) {
+    if (!url) return false;
+    const c = this._bgCache || (this._bgCache = new Map()); if (c.has(url)) return c.get(url);
+    // photos that 404'd are remembered for the session (without the cache-bust), so every reload does not retry 8 paths per room (#149)
+    const key = url.replace(/\?v=[^&]*$/, ""), missed = this._bgMiss || (this._bgMiss = new Set((() => { try { return JSON.parse(sessionStorage.getItem("hcn:bgmiss") || "[]"); } catch { return []; } })()));
+    if (missed.has(key)) { c.set(url, false); return false; }
+    c.set(url, true); const im = new Image();
+    im.onerror = () => { c.set(url, false); missed.add(key); try { sessionStorage.setItem("hcn:bgmiss", JSON.stringify([...missed])); } catch {} this.requestUpdate(); };
+    im.src = url; return true;
+  }
   /** photo for a room (or home): the first candidate path that loads, trying .jpg/.jpeg/.png/.webp for each */
   bgUrl(room) {
     const ver = u => u + (u.includes("?") ? "" : "?v=" + BUILD);
@@ -438,7 +447,7 @@ class HacasaNova extends LitElement {
       ${this.hass.connected === false ? html`<div class="offline"><ha-icon icon="mdi:lan-disconnect"></ha-icon>${t("Geen verbinding met Home Assistant")}</div>` : nothing}
       ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info" })}>${this.toast}</div>` : nothing}
       ${this.idle ? idleScreen(this) : nothing}
-      ${this.popup ? html`<div class="overlay" @click=${e => { if ((e.target.classList.contains("overlay") && this.popup?.type !== "wizard") || e.target.closest?.("[data-close]")) this.popup = null; }}>${renderPopup(this, this.popup)}</div>` : nothing}
+      ${this.popup ? html`<div class="overlay" @click=${e => { if ((e.target.classList.contains("overlay") && this.popup?.type !== "wizard") || e.target.closest?.("[data-close]")) this.popup = null; }}>${this.safePopup()}</div>` : nothing}
     `;
   }
 
@@ -590,6 +599,9 @@ class HacasaNova extends LitElement {
     if (!this._noAdded) for (const key of (this.pageCfg(r.id).add || [])) if (!key.includes(".")) { const c = addedCard(this, key, r.id); if (c) list.push({ key, label: c.label, tpl: c.tpl }); }
     return list;
   }
+
+  /** a popup whose entity vanished mid-render (fast switching, a removed entity) closes instead of breaking the whole panel (#153) */
+  safePopup() { try { return renderPopup(this, this.popup); } catch (e) { console.warn("[hacasa-nova] popup closed after a render error", this.popup?.type, e); setTimeout(() => { this.popup = null; }, 0); return nothing; } }
 
   /* ---------- edit mode: edit.js renders the strip and the bar, these hold the state and save ---------- */
   startEdit(key) { this.edit = true; this.editKey = key; this.editOrder = null; this.editDrag = null; this.popup = null; this.drawer = false; this.searchOpen = false; }

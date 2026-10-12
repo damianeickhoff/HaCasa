@@ -30,6 +30,8 @@ export const pickLang = hassLang => {
 // A room name inside a sentence ("Motion in the kitchen"): lower case, unless the language keeps it (German nouns).
 export const inText = name => LANGS[lang].keepCase ? name : name.toLowerCase();
 
+/** one of two strings by count: tn(n, "{n} sensor", "{n} sensoren") (#152) */
+export const tn = (n, one, many, vars = {}) => t(n === 1 ? one : many, { n, ...vars });
 export function t(key, vars) {
   let s = lang === "nl" ? key : (dict?.[key] || en[key] || key);
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(v);

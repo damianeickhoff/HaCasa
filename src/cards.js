@@ -1,6 +1,7 @@
 // Card renderers. Each returns a lit template. `p` is the panel (for hass, popups, services).
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
+import { directive, Directive, PartType } from "lit/directive.js";
 import { classMap } from "lit/directives/class-map.js";
 import { icon, isOn, unavailable, num, relTime, shortDate, sinceText, domain } from "./util.js";
 import { name, deviceName } from "./model.js";
@@ -450,7 +451,7 @@ export function templateCard(p, tc, i) {
   const state = String(r.state ?? "…").replace(/^!/, "");
   const tap = () => { if (tc.tap === "toggle" && tc.entity) p.call(tc.entity.split(".")[0] === "input_boolean" ? "input_boolean" : "homeassistant", "toggle", { entity_id: tc.entity }); else if (tc.tap === "service" && tc.service) { const [d, s] = tc.service.split("."); let data = {}; try { data = JSON.parse(tc.data || "{}"); } catch {} p.call(d, s, data); } else if (tc.tap === "navigate" && tc.path) p.goPath(tc.path); else if (tc.entity) p.moreInfo(tc.entity); };
   return html`<div class=${classMap({ card: true, on, unavailable: r.error })} ${pressDir(p, { tap, hold: tc.entity ? () => p.moreInfo(tc.entity) : null })}>
-    <div class="n">${tc.name || t("Template")}</div><div class="s">${r.error ? t("Templatefout") : state}</div>
+    <div class="n">${tc.name || t("Template")}</div><div class="s">${r.error ? (p.hass.user?.is_admin ? t("Templatefout") : t("alleen voor beheerders")) : state}</div>
     ${r.label ? html`<div class="lbl">${r.label}</div>` : nothing}
     <div class="i">${ico(tc.icon || "mdi:code-braces")}</div>
   </div>`;
@@ -604,14 +605,6 @@ export function homeCards(p, h) {
       <div class="n">${title}</div>
       <div class="s">${open.length ? open.slice(0, 2).map((e, i) => html`${i ? html`<br>` : nothing}<b>${nm(e)}</b> ${t("open sinds {t}", { t: relTime(e.state?.last_changed) })}`) : html`${t("Alles dicht")}${dot()}${sinceText(latest)}`}</div>
       <div class="lbl">${footList((open.length ? closed : all).map(nm))}</div></div>`); };
-  if (false) openCard("doors", h.doors.length && h.windows.length ? t("Deuren & ramen") : h.doors.length ? t("Deuren") : t("Ramen"), [...h.doors, ...h.windows], [...h.doorsOpen, ...h.windowsOpen], "doors", h.doors.length ? "mdi:door" : "mdi:window-closed-variant", h.doors.length ? "door" : "window");
-  if (false) { const lastL = h.lights.map(e => e.state?.last_changed).filter(Boolean).sort().at(-1);
-    add("lights", t("Lampen"), html`<div class=${classMap({ card: true, foot: true, on: h.lightsOn.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "lights" }) })}>
-    <div class="i">${ico("mdi:lightbulb-outline", "lamp")}</div>
-    <div class="c">${h.lightsOn.length ? t("{n} aan", { n: h.lightsOn.length }) : t("Uit")}</div>
-    <div class="n">${t("Lampen")}</div>
-    <div class="s">${h.lightsOn.length ? html`<b>${h.lightsOn.length}</b> ${t("van")} <b>${h.lights.length}</b> ${t("lampen aan")}` : html`${t("Alles uit")}${dot()}${sinceText(lastL)}`}</div>
-    <div class="lbl">${footList((h.lightsOn.length ? h.lightsOn : h.lights).map(e => name(p.hass, e)))}</div></div>`); }
   const heroWx = h.weather && (p.config.home?.wxMobile || !matchMedia("(max-width:900px)").matches);
   if (h.weather && (p.config.home?.weatherCard || !heroWx)) { const w = h.weather, days = (p.wx?.daily || []).slice(1, 3), dayName = f => new Date(f.datetime).toLocaleDateString(locale(), { weekday: "short" }).replace(".", "");
     const expect = wxExpect(p, true);
@@ -724,7 +717,6 @@ function vsliderDrag(ev, fn) {
 }
 
 /* press() as a lit directive so it can be used inline in templates */
-import { directive, Directive, PartType } from "lit/directive.js";
 class PressDirective extends Directive {
   constructor(part) { super(part); if (part.type !== PartType.ELEMENT) throw new Error("pressDir on elements only"); }
   update(part, [p, opts]) {

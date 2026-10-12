@@ -1,6 +1,6 @@
 // Full-page views opened from the t("Meer") menu. They use the same cards as the room pages,
 // laid out in a grid with small uppercase section titles. `ha` = the real HA page (button top-right).
-import { t, locale } from "./i18n.js";
+import { t, tn, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { domain, num, isOn, unavailable, isDown, relTime } from "./util.js";
@@ -139,10 +139,11 @@ function system(p) {
     host ? srow({ icon: "mdi:server", svg: "server", name: host.hostname || t("Host"), sub: [host.operating_system, host.kernel].filter(Boolean).join(" · "), pill: "OK", tap: () => p.goPath("/config/hardware") }) : null,
     ...updates.map(u => srow({ icon: u.kind === t("Firmware") ? "mdi:chip" : "mdi:update", svg: "update", name: u.title, sub: `${u.busy ? t("Bezig…") : `${u.from || "?"} → ${u.to || "?"}`}${u.canInstall ? " · " + t("tik = installeren") : ""}`, pill: t("Update"), on: true, tap: () => installUpdate(p, u) })),
   ].filter(Boolean);
-  return { sub: t("{n} sensoren · {u} updates", { n: new Set([...cpu, ...mem, ...disk, ...net].map(s => s.entity_id)).size, u: updates.length }),
+  return { sub: tn(new Set([...cpu, ...mem, ...disk, ...net].map(s => s.entity_id)).size, "{n} sensor", "{n} sensoren") + " · " + tn(updates.length, "{n} update", "{n} updates"),
     body: html`
       <div class="kpis">${kpis}</div>
       ${!kpis.length ? html`<div class="hint" style="margin-top:20px;opacity:.75;font-size:13px">${t("Geen systeemsensoren gevonden. Voeg de integratie System Monitor toe voor processor, geheugen, schijf en netwerk.")}</div>` : nothing}
+      ${!p.hass.user?.is_admin ? html`<div class="hint" style="margin-top:12px;opacity:.75;font-size:13px">${t("Host- en kerngegevens komen van de Supervisor en zijn alleen voor beheerders zichtbaar.")}</div>` : nothing}
       <div class="sblks">
         ${sblock("Home Assistant", ha, hc.version || "")}
         ${sblock(t("Host"), hostRows, `${updates.length} ${t("updates")}`)}
@@ -179,14 +180,14 @@ function sensors(p) {
     ...(filter === "all" || filter === "offline" ? offline.map(({ e, r }) => row({ icon: "mdi:lan-disconnect", svg: "network_off", name: name(p.hass, e), sub: `${r.name} · ${t("sinds {t}", { t: relTime(e.state?.last_changed) })}`, pill: t("Offline"), dim: true, tap: more(e.id) })) : []),
   ];
   const kinds = [[t("Klimaat"), r => [...r.ents.temp.map(e => R.temp(e, r, true)), ...r.ents.hum.map(e => R.hum(e, r, true))]], [t("Deuren & ramen"), r => [...r.ents.doors.map(e => R.door(e, r, true, "door")), ...r.ents.windows.map(e => R.door(e, r, true, "window"))]], [t("Beweging"), r => r.ents.motion.map(e => R.motion(e, r, true))], [t("Overig"), r => [...r.ents.other, ...r.ents.details].map(e => R.other(e, r, true))], [t("Batterijen"), r => r.ents.battery.filter(e => num(e.state?.state) != null).map(e => R.batt(e, r, num(e.state.state), true))]];
-  const pills = [["all", t("Alles"), "mdi:radar", "radar", null], ["battery", t("batterijen"), "mdi:battery", "battery", lowB.length], ["offline", t("onbereikbaar"), "mdi:lan-disconnect", "network_off", offline.length], ["update", t("updates"), "mdi:update", "update", updates.length]];
-  return { sub: t("{n} sensoren in {r} ruimtes · {b} batterijen laag · {o} onbereikbaar", { n: total, r: p.rooms.length, b: lowB.length, o: offline.length }) + (updates.length ? ` · ${t("{n} updates", { n: updates.length })}` : ""),
+  const pills = [["all", t("Alles"), "mdi:radar", "radar", null], ["battery", lowB.length === 1 ? t("batterij") : t("batterijen"), "mdi:battery", "battery", lowB.length], ["offline", t("onbereikbaar"), "mdi:lan-disconnect", "network_off", offline.length], ["update", updates.length === 1 ? t("update") : t("updates"), "mdi:update", "update", updates.length]];
+  return { sub: [tn(total, "{n} sensor", "{n} sensoren") + " " + tn(p.rooms.length, "in {n} ruimte", "in {n} ruimtes"), tn(lowB.length, "{n} batterij laag", "{n} batterijen laag"), t("{n} onbereikbaar", { n: offline.length }), updates.length ? tn(updates.length, "{n} update", "{n} updates") : ""].filter(Boolean).join(" · "),
     head: html`<div class="ppills">${pills.map(([k, l, icon, svg, n]) => html`<button class=${classMap({ on: filter === k })} @click=${() => { p.sensFilter = k; }}>${ico(icon, svg)}${n != null ? `${n} ${l}` : l}</button>`)}</div>`,
     tools: html`<div class="seg pseg"><button class=${group === "room" ? "on" : ""} @click=${() => { p.sensGroup = "room"; }}>${t("Per ruimte")}</button><button class=${group === "kind" ? "on" : ""} @click=${() => { p.sensGroup = "kind"; }}>${t("Per soort")}</button></div>`,
     body: html`
       <div class="sblks">
         ${block(t("Aandacht"), attention, `${attention.length}`)}
-        ${filter === "all" ? (group === "room" ? p.rooms.map(r => block(r.name, roomRows(r), t("{n} sensoren", { n: roomRows(r).length }))) : kinds.map(([title, f]) => block(title, p.rooms.flatMap(f)))) : nothing}
+        ${filter === "all" ? (group === "room" ? p.rooms.map(r => block(r.name, roomRows(r), tn(roomRows(r).length, "{n} sensor", "{n} sensoren"))) : kinds.map(([title, f]) => block(title, p.rooms.flatMap(f)))) : nothing}
       </div>` };
 }
 

@@ -58,7 +58,7 @@ export function pendingUpdates(hass) {
     .sort((a, b) => a.title.localeCompare(b.title, "nl"));
 }
 export function installUpdate(p, u) {
-  if (!u.canInstall) return p.moreInfo(u.id);
+  if (!u.canInstall || !p.hass.user?.is_admin) return p.moreInfo(u.id);   // update.install is refused for non-admins (#144): show HA's dialog instead
   p.openPopup({ type: "confirm", title: t("Update installeren"), big: u.title, sub: `${u.from || "?"} → ${u.to || "?"}${u.summary ? " · " + u.summary.replace(/\s+/g, " ").slice(0, 160) : ""}`, okLabel: t("Installeren"), ok: () => p.call("update", "install", { entity_id: u.id }) });
 }
 

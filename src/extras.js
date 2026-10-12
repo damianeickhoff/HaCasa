@@ -1,5 +1,5 @@
 // Notifications, energy statistics, alarm keypad and the idle screen.
-import { t, locale } from "./i18n.js";
+import { t, tn, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { num, relTime, clock } from "./util.js";
 import { condText, condIcon } from "./cards.js";
@@ -49,7 +49,7 @@ export function idleScreen(p) {
     <div class="iclock">${clock()}</div>
     <div class="idate">${date}</div>
     ${w ? html`<div class="iwx"><ha-icon icon=${condIcon(w.state)}></ha-icon>${Math.round(num(w.attributes.temperature) ?? 0)}° · ${condText(w.state)}</div>` : nothing}
-    <div class="iline">${[h?.temp != null ? t("{t}° binnen", { t: h.temp.toFixed(1) }) : "", h?.lightsOn?.length ? t("{n} lampen aan", { n: h.lightsOn.length }) : "", h?.doorsOpen?.length ? t("{n} deur open", { n: h.doorsOpen.length }) : "", h?.attention?.length ? t("{n} meldingen", { n: h.attention.length }) : ""].filter(Boolean).join(" · ")}</div>
+    <div class="iline">${[h?.temp != null ? t("{t}° binnen", { t: h.temp.toFixed(1) }) : "", h?.lightsOn?.length ? t("{n} lampen aan", { n: h.lightsOn.length }) : "", h?.doorsOpen?.length ? t("{n} deur open", { n: h.doorsOpen.length }) : "", h?.attention?.length ? tn(h.attention.length, "{n} melding", "{n} meldingen") : ""].filter(Boolean).join(" · ")}</div>
   </div>`;
 }
 

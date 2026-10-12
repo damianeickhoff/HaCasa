@@ -193,6 +193,13 @@ export default {
   "Menu": "Menu", "Balk op telefoon": "Bar on phones", "onderaan": "at the bottom", "bovenaan": "at the top",
   "onderaan: thuis, kamers, twee sneltoetsen en meer; bovenaan: menu- en zoekknop in de bovenbalk zoals in 3.0": "bottom: home, rooms, two shortcuts and more; top: menu and search buttons in the top bar as in 3.0",
   "Sneltoets {n}": "Shortcut {n}", "pagina's in de balk onderaan, naast de kamers": "pages in the bottom bar, next to the rooms", "batterij: rechtsonder, als het apparaat er een heeft": "battery: bottom right, when the device has one",
+  // 3.1 fixes: non-admin hints (#144), room cap (#146), plurals (#152; tn() keys are not scanned, listed by hand)
+  "alleen voor beheerders": "administrators only", "Host- en kerngegevens komen van de Supervisor en zijn alleen voor beheerders zichtbaar.": "Host and core figures come from the Supervisor and are visible to administrators only.",
+  "templates rendert Home Assistant alleen voor beheerders": "Home Assistant renders templates for administrators only",
+  "Maximum": "Maximum", "alleen in de automatische stand: leeg = alle ruimtes met apparaten (3.0 stopte stil bij 9)": "automatic mode only: empty = every area with devices (3.0 silently stopped at 9)",
+  "batterij": "battery", "update": "update", "{n} onbereikbaar": "{n} unavailable",
+  "{n} sensor": "{n} sensor", "{n} sensoren": "{n} sensors", "in {n} ruimte": "in {n} room", "in {n} ruimtes": "in {n} rooms", "{n} batterij laag": "{n} battery low", "{n} batterijen laag": "{n} batteries low",
+  "{n} update": "{n} update", "{n} melding": "{n} notice",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **Non-admin users** (#144): template cards say *only for administrators* instead of showing an error, the System page says why host and core figures are missing, the Template cards settings carry the same note, and *install* on an update opens Home Assistant's dialog instead of failing silently.
+- **Room cap gone** (#146): automatic room mode no longer stops at nine rooms. **Settings → Rooms → Maximum** sets a limit if you want one.
+- **Room photo lookup** (#149): paths that gave a 404 are remembered for the session, so a reload no longer retries every extension for every room.
+- **Plurals** (#152): "1 sensor", "1 battery low", "1 update" instead of "1 sensors".
+- **Popups** (#153): a popup whose entity disappears while it renders closes instead of breaking the panel.
+- Dead code for the old Lights / Doors home cards removed (#155).
+
 ## 3.1.0-beta.1 (beta)
 
 - **Edit mode:** administrators pick **More → Edit room** (or *Edit home view*), or hold the page title. The strip then shows every card of the page: drag a card by its grip to reorder, × hides it, hidden cards stay in the row dimmed with an eye to bring them back, a tap opens the card settings, and an **Add card** tile sits at the end. *Done* in the bar at the bottom (the bottom nav on phones) leaves edit mode. This replaces the up/down list in Page settings for ordering.
