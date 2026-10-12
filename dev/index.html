@@ -82,6 +82,7 @@
     const [type, id] = q.get("popup").split(":");
     const all = el.rooms.flatMap(r => Object.values(r.ents).filter(Array.isArray).flat());
     const e = id ? all.find(x => x?.id === id || x?.entity_id === id) : undefined;
+    if (type === "add") { el.startEdit(id || "home"); el.openPopup({ type, key: id || "home" }); return; }   // popup=add:<page> opens the card picker
     el.openPopup({ type, e, s: e?.state || e, a: e, kind: q.get("kind") || undefined, form: q.has("form") || undefined, menu: q.has("menu") || undefined });   // &form opens the card settings, &menu the ••• menu
   }, 900);
   if (q.has("edit")) setTimeout(() => el.startEdit(el.room?.id || "home"), 900);   // &edit: edit mode on the current page
