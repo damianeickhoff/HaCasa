@@ -95,8 +95,11 @@ export function presetCard(p, r) {
 export const featureStyles = `
   .offline{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:rgba(242,122,92,.95);color:#fff;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:fadeIn .3s ease-out both}
   .offline ha-icon{--mdc-icon-size:18px}
-  .title:has(.quick){transform:translateY(-56%)}
-  @media (max-height:620px){ .title:has(.quick){transform:translateY(-64%)} .quick{margin-top:10px} }
+  /* desktop only: the hero is centred with a transform there; on phones it is static, and :has() would out-rank the phone rule (#169) */
+  @media (min-width:901px){
+    .title:has(.quick){transform:translateY(-56%)}
+    @media (max-height:620px){ .title:has(.quick){transform:translateY(-64%)} .quick{margin-top:10px} }
+  }
   .quick{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0 5px;max-width:640px}
   .quick button{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 12px;border:0;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .quick button:active{background:rgba(255,255,255,.3)}

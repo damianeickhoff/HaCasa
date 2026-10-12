@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Home view on phones with quick actions** (#169): the greeting, notification line and pills were pushed up under the top bar, leaving a gap above the cards. A desktop-only rule for the quick-action row was leaking into the phone layout; it is now limited to desktop widths.
+
 ## 3.1.0-beta.2 (beta)
 
 - **Non-admin users** (#144): template cards say *only for administrators* instead of showing an error, the System page says why host and core figures are missing, the Template cards settings carry the same note, and *install* on an update opens Home Assistant's dialog instead of failing silently.
