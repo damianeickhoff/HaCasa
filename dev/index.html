@@ -82,7 +82,7 @@
     const [type, id] = q.get("popup").split(":");
     const all = el.rooms.flatMap(r => Object.values(r.ents).filter(Array.isArray).flat());
     const e = id ? all.find(x => x?.id === id || x?.entity_id === id) : undefined;
-    el.openPopup({ type, e, s: e?.state || e, a: e });
+    el.openPopup({ type, e, s: e?.state || e, a: e, kind: q.get("kind") || undefined, form: q.has("form") || undefined, menu: q.has("menu") || undefined });   // &form opens the card settings, &menu the ••• menu
   }, 900);
   document.body.appendChild(el);
   window.panel = el;

@@ -53,8 +53,9 @@ function classify(list, config = {}, hass = {}) {
     else if (d === "cover") r.covers.push(e);
     else if (d === "climate") r.climate.push(e);
     else if (d === "binary_sensor") {
-      if (DOOR.includes(dc)) r.doors.push(e); else if (WINDOW.includes(dc)) r.windows.push(e);
-      else if (MOTION.includes(dc)) r.motion.push(e); else r.other.push(e);
+      const k = config.cards?.[e.id]?.kind;                                 // card setting "Soort" wins over the device class
+      if (k ? k === "door" : DOOR.includes(dc)) r.doors.push(e); else if (k ? k === "window" : WINDOW.includes(dc)) r.windows.push(e);
+      else if (k ? k === "motion" : MOTION.includes(dc)) r.motion.push(e); else r.other.push(e);
     } else if (d === "sensor") {
       if (dc === "temperature") r.temp.push(e); else if (dc === "humidity") r.hum.push(e);
       else if (dc === "battery") r.battery.push(e);

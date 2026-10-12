@@ -61,7 +61,17 @@ export const ico = (mdi, svg) => (svg = svg || ownFor(mdi)) ? html`<img class="i
 /* ---------- per-card behaviour: panel-wide defaults per card type, overridden per card ---------- */
 /** card type used for the defaults: entity domain, "plug" for a switch with a power meter, "appliance" for devices with a programme */
 export const cardType = (p, id) => id.startsWith("device:") ? "appliance" : id.split(".")[0];
-export const cardCfg = (p, id) => ({ ...((p.config.cardDefaults || {})[cardType(p, id)] || {}), ...((p.config.cards || {})[id] || {}) });
+export const cardCfg = (p, id) => ({ ...((p.config.cardDefaults || {})[cardType(p, id)] || {}), ...(p._preview?.id === id ? p._preview.draft : (p.config.cards || {})[id] || {}) });   // _preview: the card form's draft, while its preview renders
+/** a rendered visibility template counts as false when it is one of these (or empty) */
+export const condFalse = v => /^(false|0|no|off|none|unknown|unavailable|)$/i.test(String(v ?? "").trim());
+/** is the card hidden by its visibility condition? `key` is its entry in p.templates ("card:<id>" or a template card id).
+    Not rendered yet = hidden (no flash); a template error (also: non-admin users) = shown, so a condition never loses a card silently */
+export function condHidden(p, key, tpl, invert) {
+  if (!tpl) return false;
+  const r = p.templates?.[key]; if (!r || r.error) return false;
+  if (r.visible === undefined) return true;
+  const f = condFalse(r.visible); return invert ? !f : f;
+}
 /** tap / hold handlers from the settings: tap = toggle (default when the card can toggle) | popup | more | none; hold = popup (default) | more | none */
 export function pressFor(p, id, toggle, popup) {
   const cfg = cardCfg(p, id), run = k => k === "toggle" && toggle ? toggle : k === "popup" ? popup : k === "more" ? () => p.moreInfo(id.startsWith("device:") ? cfg.key || id : id) : k === "none" ? () => {} : null;
@@ -565,7 +575,7 @@ export function homeCards(p, h) {
   for (const g of (p.config.groups || []).filter(g => (!g.room || g.room === "home") && g.members?.length)) add("group:" + g.id, g.name || t("Groep"), groupCard(p, g));
   for (const g of (p.config.graphs || []).filter(g => (!g.room || g.room === "home") && g.entity)) add("graph:" + g.id, g.name || t("Grafiek"), graphCard(p, g));
   // template cards placed on the home view
-  (p.config.templates || []).filter(tc => !tc.room || tc.room === "home").forEach((tc, i) => add(tc.id, tc.name || t("Template"), templateCard(p, tc, i)));
+  (p.config.templates || []).filter(tc => (!tc.room || tc.room === "home") && !condHidden(p, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => add(tc.id, tc.name || t("Template"), templateCard(p, tc, i)));
   if (h.energy.power) add("energy", t("Energie"), html`<div class="card" ${pressDir(p, { tap: () => p.openPopup({ type: "energy" }) })}>
     <div class="n">${t("Energie")}</div><div class="s">${Math.round(num(h.energy.power.state) ?? 0)} W</div>
     <div class="lbl">${h.energy.today ? t("Vandaag {n} kWh", { n: num(h.energy.today.state)?.toFixed(1) }) : ""}</div><div class="i">${ico("mdi:flash-outline", "electric")}</div></div>`);

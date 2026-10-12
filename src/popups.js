@@ -6,7 +6,7 @@ import { name, deviceName } from "./model.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState } from "./extras2.js";
-import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers } from "./cards.js";
+import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
 import { roomPresets, snapshot, applyPreset, presetMatches, installUpdate, pendingUpdates } from "./features.js";
 import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check } from "./settings.js";
@@ -39,9 +39,10 @@ const modes = (items, cls = "") => html`<div class="modes ${cls}">${items.map(m 
 let CUR = null; // current {p, pop} while rendering, so wrap() can draw the header buttons
 const wrap = (title, big, sub, body) => {
   const { p, pop } = CUR;
-  if (pop.form && entityOf(pop)) body = cardForm(p, pop);   // popups without an entity (presets) render their own form
+  const form = !!(pop.form && entityOf(pop));                // popups without an entity (presets) render their own form
+  if (form) { body = cardForm(p, pop); title = html`${t("Kaart instellen")}<span class="rm"> · ${title}</span>`; sub = t("Zo ziet de kaart eruit met deze instellingen"); }
   // .pw: the popup plus its ••• menu; a click anywhere in it (outside the menu) closes the menu
-  return html`<div class="pw" @click=${() => { if (pop.menu) p.openPopup({ ...pop, menu: false }); }}><div class="popup"><h2>${title} ${hbtns(p, pop)}</h2><div class="big">${big}</div><div class="sub">${sub}</div>${body}</div>${pop.menu && entityOf(pop) ? optionsMenu(p, pop) : nothing}</div>`;
+  return html`<div class="pw" @click=${() => { if (pop.menu) p.openPopup({ ...pop, menu: false }); }}><div class=${form ? "popup wide cardf" : "popup"}><h2>${title} ${hbtns(p, pop)}</h2><div class="big">${big}</div><div class="sub">${sub}</div>${body}</div>${pop.menu && entityOf(pop) ? optionsMenu(p, pop) : nothing}</div>`;
 };
 /** a switch whose device also has a power sensor or an operation-state sensor can be shown as an appliance (bezig / klaar) */
 const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$/.test(e.entity_id))); };
@@ -55,56 +56,96 @@ function wizardDefaults(p) {
 function cardForm(p, pop) {
   const id = entityOf(pop), cur = (p.config.cards || {})[id] || {}, draft = pop.draft || { ...cur };
   const upd = patch => p.openPopup({ ...pop, draft: { ...draft, ...patch } });
-  const dom = id.split(".")[0], canToggle = ["light", "switch", "input_boolean", "fan", "lock"].includes(dom) || (pop.type === "appliance" && !!pop.a.switch);
-  const opt = (key, lbl, sub) => html`<label class="f"><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span><input type="checkbox" .checked=${!draft[key]} @change=${e => upd({ [key]: e.target.checked ? undefined : true })}></label>`;
-  return html`<div class="form">
-    <label class="f"><span>${t("Naam")}</span><input type="text" .value=${draft.name || ""} placeholder=${p.hass.states[id]?.attributes.friendly_name || (id.startsWith("device:") ? (p.hass.devices?.[id.slice(7)]?.name_by_user || p.hass.devices?.[id.slice(7)]?.name || "") : "")} @change=${e => upd({ name: e.target.value || undefined })}></label>
-    <label class="f"><span>${t("Icoon")}</span><input type="text" .value=${draft.icon || ""} placeholder="mdi:lightbulb-outline" @change=${e => upd({ icon: e.target.value || undefined })}></label>
-    ${["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player"].includes(dom) || pop.type === "appliance" ? html`
-    <label class="f"><span>${t("Tikken")}</span><select @change=${e => upd({ tap: e.target.value || undefined })}>
-      <option value="" ?selected=${!draft.tap}>${t("standaard")}${canToggle ? ` (${t("schakelen")})` : ` (${t("details")})`}</option>
-      ${canToggle ? html`<option value="toggle" ?selected=${draft.tap === "toggle"}>${t("schakelen")}</option>` : nothing}
-      <option value="popup" ?selected=${draft.tap === "popup"}>${t("details openen")}</option><option value="more" ?selected=${draft.tap === "more"}>${t("Home Assistant-dialoog")}</option><option value="none" ?selected=${draft.tap === "none"}>${t("niets")}</option></select></label>
-    <label class="f"><span>${t("Vasthouden")}</span><select @change=${e => upd({ hold: e.target.value || undefined })}>
-      <option value="" ?selected=${!draft.hold}>${t("standaard")} (${t("details")})</option><option value="more" ?selected=${draft.hold === "more"}>${t("Home Assistant-dialoog")}</option><option value="none" ?selected=${draft.hold === "none"}>${t("niets")}</option></select></label>
-    <label class="f"><span>${t("Tonen")}<small>${t("naam, ondertitel, staat in de hoek")}</small></span><span class="chk3"><label><input type="checkbox" .checked=${!draft.hideName} @change=${e => upd({ hideName: e.target.checked ? undefined : true })}> ${t("Naam")}</label><label><input type="checkbox" .checked=${!draft.hideSub} @change=${e => upd({ hideSub: e.target.checked ? undefined : true })}> ${t("Ondertitel")}</label><label><input type="checkbox" .checked=${!draft.hideState} @change=${e => upd({ hideState: e.target.checked ? undefined : true })}> ${t("Staat")}</label></span></label>
-    <div class="f acts"><span>${t("Actieknoppen")}<small>${t("max. 3 · label, mdi:icoon, domein.service, JSON-data (entity_id = deze kaart als je niets invult)")}</small></span><div>
-      ${[0, 1, 2].map(i => { const a = (draft.actions || [])[i] || {}; const setA = patch => { const list = [0, 1, 2].map(k => (draft.actions || [])[k] || {}); list[i] = { ...list[i], ...patch }; const clean = list.filter(x => x.label || x.service || x.icon || x.data); upd({ actions: clean.length ? clean : undefined }); };
-        return html`<div class="arow"><input type="text" placeholder=${t("label")} .value=${a.label || ""} @change=${e => setA({ label: e.target.value || undefined })}><input type="text" placeholder="mdi:…" .value=${a.icon || ""} @change=${e => setA({ icon: e.target.value || undefined })}><input type="text" placeholder="light.turn_on" .value=${a.service || ""} @change=${e => setA({ service: e.target.value || undefined })}><input type="text" placeholder='{"brightness_pct": 50}' .value=${a.data || ""} @change=${e => setA({ data: e.target.value || undefined })}></div>`; })}
-    </div></div>` : nothing}
-    ${["light", "switch", "fan", "binary_sensor", "lock"].includes(dom) || pop.type === "appliance" ? html`
-    <label class="f"><span>${t("Staat (template)")}<small>${t("tekst in de hoek, Jinja")}</small></span><input type="text" .value=${draft.tplState || ""} placeholder="{{ states('sensor.x') }} W" @change=${e => upd({ tplState: e.target.value || undefined })}></label>
-    <label class="f"><span>${t("Ondertitel (template)")}</span><input type="text" .value=${draft.tplSub || ""} placeholder="{{ relative_time(states.light.x.last_changed) }}" @change=${e => upd({ tplSub: e.target.value || undefined })}></label>
-    <label class="f"><span>${t("Onderaan (template)")}<small>${t("vervangt de keuze hierboven")}</small></span><input type="text" .value=${draft.tplFoot || ""} @change=${e => upd({ tplFoot: e.target.value || undefined })}></label>` : nothing}
-    ${dom === "switch" ? html`<label class="f"><span>${t("Vermogenssensor")}<small>${t("maakt er een stekkerkaart van (watt, verbruik, timer)")}</small></span>${select(p.hass, "sensor", draft.power, v => upd({ power: v || undefined }), { empty: t("automatisch (zelfde apparaat)"), filter: s => s.attributes.unit_of_measurement === "W" })}</label>` : nothing}
-    ${dom === "light" ? opt("noColor", t("Kleur tonen"), t("kaart kleurt mee met de lamp")) : nothing}
-    ${dom === "light" ? html`<label class="f"><span>${t("Onderaan")}<small>${t("wat de kaart onderaan toont")}</small></span><select @change=${e => upd({ bottom: e.target.value || undefined })}>
-      <option value="" ?selected=${!draft.bottom}>${t("automatisch")}</option><option value="none" ?selected=${draft.bottom === "none"}>${t("niets")}</option>
-      ${lightCaps(p.hass.states[id]).dim ? html`<option value="steps" ?selected=${draft.bottom === "steps"}>${t("helderheid-stappen")}</option>` : nothing}
-      ${lightCaps(p.hass.states[id]).rgb || lightCaps(p.hass.states[id]).ct ? html`<option value="colors" ?selected=${draft.bottom === "colors"}>${t("kleuren")}</option>` : nothing}
-      <option value="today" ?selected=${draft.bottom === "today"}>${t("vandaag aan (uren)")}</option></select></label>` : nothing}
-    ${dom === "light" && draft.bottom === "colors" && lightCaps(p.hass.states[id]).rgb ? html`<label class="f"><span>${t("Kleuren")}<small>${t("hex-kleuren, gescheiden door komma's")}</small></span><input type="text" .value=${(draft.colors || []).join(", ")} placeholder="#ffb46e, #f27a5c, #7fb6ff, #9fcf8a" @change=${e => upd({ colors: e.target.value.split(",").map(x => x.trim()).filter(x => /^#[0-9a-f]{6}$/i.test(x)).length ? e.target.value.split(",").map(x => x.trim()).filter(x => /^#[0-9a-f]{6}$/i.test(x)) : undefined })}></label>` : nothing}
-    ${dom === "binary_sensor" ? html`<label class="f"><span>${t("Onderaan")}<small>${t("wat de kaart onderaan toont")}</small></span><select @change=${e => upd({ bottom: e.target.value || undefined })}><option value="" ?selected=${!draft.bottom}>${t("niets")}</option><option value="today" ?selected=${draft.bottom === "today"}>${t("vandaag (uren)")}</option><option value="graph" ?selected=${draft.bottom === "graph"}>${t("grafiek (aan/uit-lijn)")}</option></select></label>` : nothing}
-    ${(dom === "light" || dom === "binary_sensor") && draft.bottom === "today" ? html`<label class="f"><span>${t("Weergave")}</span><select @change=${e => upd({ todayStyle: e.target.value || undefined })}><option value="" ?selected=${!draft.todayStyle}>${t("balkjes per uur")}</option><option value="text" ?selected=${draft.todayStyle === "text"}>${t("tekst")}</option></select></label>` : nothing}
-    ${dom === "media_player" ? opt("noArt", t("Albumhoes tonen"), t("als achtergrond tijdens afspelen")) : nothing}
-    ${pop.type === "appliance" && pop.a.power && !pop.a.op ? html`<label class="f"><span>${t("Onderaan")}<small>${t("wat de kaart onderaan toont")}</small></span><select @change=${e => upd({ bottom: e.target.value || undefined })}><option value="" ?selected=${!draft.bottom}>${t("vermogenslijn")}</option><option value="timer" ?selected=${draft.bottom === "timer"}>${t("timer (15 / 30 / 60 min)")}</option><option value="cost" ?selected=${draft.bottom === "cost"}>${t("kosten")}</option><option value="bars" ?selected=${draft.bottom === "bars"}>${t("verbruik per uur")}</option><option value="none" ?selected=${draft.bottom === "none"}>${t("niets")}</option></select></label>` : nothing}
-    ${pop.type === "appliance" && pop.a.power ? html`<label class="f"><span>${t("Drempel (W)")}<small>${t("boven = bezig")}</small></span><input type="number" .value=${String(draft.threshold ?? 5)} @change=${e => upd({ threshold: e.target.value === "" || +e.target.value === 5 ? undefined : +e.target.value })}></label>` : nothing}
-    ${dom === "media_player" ? html`<label class="f"><span>${t("Gekoppelde speler")}<small>${t("titel en hoes van deze speler, bijv. de Chromecast van dezelfde tv")}</small></span>${select(p.hass, "media_player", draft.link, v => upd({ link: v || undefined }), { empty: t("automatisch"), filter: s => s.entity_id !== id })}</label>` : nothing}
-    ${dom === "media_player" ? opt("noIdleArt", t("Achtergrond bij stilstand"), t("de animatie uit Panel instellingen")) : nothing}
-    ${dom === "climate" ? html`<label class="f"><span>${t("Onderaan")}<small>${t("naast de doeltemperatuur; op telefoons alleen dit")}</small></span><select @change=${e => upd({ bottom: e.target.value || undefined })}>
-      <option value="" ?selected=${!draft.bottom}>${t("automatisch (vocht of preset)")}</option><option value="heating" ?selected=${draft.bottom === "heating"}>${t("vandaag verwarmd")}</option><option value="outside" ?selected=${draft.bottom === "outside"}>${t("buitentemperatuur")}</option><option value="none" ?selected=${draft.bottom === "none"}>${t("niets")}</option></select></label>` : nothing}
-    ${dom === "climate" ? opt("noMode", t("Modus-knoppen"), t("uit / verwarmen / auto op de kaart")) : nothing}
-    ${dom === "switch" && (applianceCapable(p, id) || draft.power) ? html`<label class="f"><span>${t("Apparaatfuncties")}<small>${t("bezig / klaar op basis van het vermogen")}</small></span><input type="checkbox" .checked=${!cur.noAppliance} @change=${e => p.setApplianceMode(id, e.target.checked)}></label>` : nothing}
-    ${pop.type === "appliance" ? html`<label class="f"><span>${t("Apparaatfuncties")}<small>${pop.a.op ? t("bezig / klaar volgens het apparaat zelf") : t("bezig / klaar op basis van het vermogen")}</small></span><input type="checkbox" .checked=${!pop.a.plain} @change=${e => p.setApplianceMode(pop.a.key, e.target.checked)}></label>` : nothing}
-    ${dom === "camera" ? html`<label class="f"><span>${t("Live beeld")}<small>${t("stream op de kaart i.p.v. een foto elke 10 s")}</small></span><input type="checkbox" .checked=${!!draft.live} @change=${e => upd({ live: e.target.checked || undefined })}></label>` : nothing}
-    ${batteryOf(p, pop.e || { id, reg: p.hass.entities?.[id] }) ? html`<label class="f"><span>${t("Batterij tonen")}<small>${t("percentage rechtsonder op de kaart")}</small></span><input type="checkbox" .checked=${!!draft.showBattery} @change=${e => upd({ showBattery: e.target.checked || undefined })}></label>` : nothing}
-    <label class="f"><span>${t("Verbergen")}</span><input type="checkbox" .checked=${!!draft.hidden} @change=${e => upd({ hidden: e.target.checked || undefined })}></label>
-    <div class="modes n3" style="margin-top:14px">
-      <button class="on" @click=${() => p.saveCardSettings(id, draft)}>${t("Opslaan")}</button>
-      <button @click=${() => p.saveCardSettings(id, null)}>${t("Herstel")}</button>
-      <button @click=${() => p.openPopup({ ...pop, form: false, draft: null })}>${t("Annuleren")}</button>
+  const dom = id.split(".")[0], defs = (p.config.cardDefaults || {})[cardType(p, id)] || {}, st = p.hass.states[id];
+  const appliance = pop.type === "appliance", canToggle = ["light", "switch", "input_boolean", "fan", "lock"].includes(dom) || (appliance && !!pop.a.switch);
+  const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player"].includes(dom) || appliance;
+  const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock"].includes(dom) || appliance;
+  // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders)
+  const pageKey = p.room?.id || "home";
+  let preview = null;
+  p._preview = { id, draft };
+  try { preview = (p.pageCards(pageKey).find(c => c.key === id) || p.rooms.flatMap(r => p.roomCards(r)).find(c => c.key === id))?.tpl || null; } catch (e) { preview = null; } finally { p._preview = null; }
+  const changed = Object.keys(draft).filter(k => draft[k] !== undefined && k !== "noAppliance").length;
+  const sh = (lbl, cnt) => html`<div class="sh">${lbl}${cnt ? html`<span class="cnt">${cnt}</span>` : nothing}</div>`;
+  const row = (lbl, ctrl, sub) => html`<div class="f"><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span>${ctrl}</div>`;
+  /** pill choice; `def` is what applies when nothing is chosen (built in, or Card defaults) and picking it stores nothing */
+  const seg = (key, opts, def) => html`<div class="seg">${opts.map(o => html`<button class=${(draft[key] ?? def) === o.v ? "on" : ""} @click=${() => upd({ [key]: o.v === def ? undefined : o.v })}>${o.icon ? html`<ha-icon icon=${o.icon}></ha-icon>` : nothing}${o.l}${o.v === def ? html`<sup>${t("std")}</sup>` : nothing}</button>`)}</div>`;
+  const opt = (key, lbl, sub) => row(lbl, html`<input type="checkbox" .checked=${!draft[key]} @change=${e => upd({ [key]: e.target.checked ? undefined : true })}>`, sub);
+  const inp = (key, ph) => html`<input type="text" .value=${draft[key] || ""} placeholder=${ph} @change=${e => upd({ [key]: e.target.value || undefined })}>`;
+  const PRESS = { toggle: t("schakelen"), popup: t("details openen"), more: t("Home Assistant-dialoog"), none: t("niets") };
+  const tapDef = defs.tap || (canToggle ? "toggle" : "popup"), holdDef = defs.hold || "popup";
+  const caps = dom === "light" ? lightCaps(st) : null;
+  // bottom line: "" is the automatic choice where the card has one (climate, plug); lights fall back to steps when dimmable
+  const bottomOpts = dom === "light" ? [{ v: "none", l: t("niets") }, ...(caps.dim ? [{ v: "steps", l: t("helderheid-stappen") }] : []), ...(caps.rgb || caps.ct ? [{ v: "colors", l: t("kleuren") }] : []), { v: "today", l: t("vandaag aan (uren)") }]
+    : dom === "binary_sensor" ? [{ v: "", l: t("niets") }, { v: "today", l: t("vandaag (uren)") }, { v: "graph", l: t("grafiek (aan/uit-lijn)") }]
+    : dom === "climate" ? [{ v: "", l: t("automatisch (vocht of preset)") }, { v: "heating", l: t("vandaag verwarmd") }, { v: "outside", l: t("buitentemperatuur") }, { v: "none", l: t("niets") }]
+    : appliance && pop.a.power && !pop.a.op ? [{ v: "", l: t("vermogenslijn") }, { v: "timer", l: t("timer (15 / 30 / 60 min)") }, { v: "cost", l: t("kosten") }, { v: "bars", l: t("verbruik per uur") }, { v: "none", l: t("niets") }] : null;
+  const bottomDef = dom === "light" ? (defs.bottom || (caps.dim ? "steps" : "none")) : (defs.bottom || "");
+  const bottom = draft.bottom ?? bottomDef;
+  // action buttons: one row each, the row being edited (pop.act) opens
+  const acts = draft.actions || [], setActs = list => upd({ actions: list.length ? list : undefined });
+  const setA = (i, patch) => setActs(acts.map((a, k) => k === i ? { ...a, ...patch } : a));
+  const services = Object.entries(p.hass.services || {}).flatMap(([d, s]) => Object.keys(s).map(k => `${d}.${k}`)).sort();
+  const jsonOk = s => { if (!s) return true; try { JSON.parse(s); return true; } catch { return false; } };
+  const tplCount = ["tplState", "tplSub", "tplFoot", "tplVisible"].filter(k => draft[k]).length;
+  const battery = batteryOf(p, pop.e || { id, reg: p.hass.entities?.[id] });
+  return html`<div class="fwrap">
+    <div class="pv">
+      <div class="ey">${t("Voorbeeld")}<span>${t("live")}</span></div>
+      <div class="pvc">${preview || html`<div class="sub">${t("Geen voorbeeld voor deze kaart")}</div>`}</div>
+      ${hasPress ? html`<div class="tip">${t("Tikken")}: <b>${PRESS[draft.tap || tapDef]}</b> · ${t("Vasthouden")}: <b>${PRESS[draft.hold || holdDef]}</b></div>` : nothing}
+      <div class="prow"><span>${t("Afwijkend van Kaartstandaarden")}</span><b>${changed}</b></div>
     </div>
-  </div>`;
+    <div class="form">
+      <div class="grp">${sh(t("Weergave"))}
+        ${row(t("Naam"), html`<div class="two">${inp("name", st?.attributes.friendly_name || (id.startsWith("device:") ? deviceName(p.hass, id.slice(7)) : ""))}${inp("icon", "mdi:lightbulb-outline")}</div>`, t("leeg = naam en icoon uit Home Assistant"))}
+        ${dom === "binary_sensor" ? row(t("Soort"), seg("kind", [{ v: "door", l: t("Deur"), icon: "mdi:door" }, { v: "window", l: t("Raam"), icon: "mdi:window-closed-variant" }, { v: "motion", l: t("Beweging"), icon: "mdi:motion-sensor" }, { v: "binary", l: t("Algemeen"), icon: "mdi:checkbox-blank-circle-outline" }], pop.kind || "binary"), t("bepaalt icoon en teksten; zichtbaar na opslaan")) : nothing}
+        ${row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ["hideSub", t("Ondertitel")], ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
+        ${bottomOpts ? row(t("Onderaan"), seg("bottom", bottomOpts, bottomDef), dom === "climate" ? t("naast de doeltemperatuur; op telefoons alleen dit") : t("wat de kaart onderaan toont")) : nothing}
+        ${(dom === "light" || dom === "binary_sensor") && bottom === "today" ? row(t("Weergave"), seg("todayStyle", [{ v: "", l: t("balkjes per uur") }, { v: "text", l: t("tekst") }], "")) : nothing}
+        ${dom === "light" && bottom === "colors" && caps.rgb ? row(t("Kleuren"), html`<input type="text" .value=${(draft.colors || []).join(", ")} placeholder="#ffb46e, #f27a5c, #7fb6ff, #9fcf8a" @change=${e => { const l = e.target.value.split(",").map(x => x.trim()).filter(x => /^#[0-9a-f]{6}$/i.test(x)); upd({ colors: l.length ? l : undefined }); }}>`, t("hex-kleuren, gescheiden door komma's")) : nothing}
+        ${dom === "light" ? opt("noColor", t("Kleur tonen"), t("kaart kleurt mee met de lamp")) : nothing}
+        ${dom === "media_player" ? opt("noArt", t("Albumhoes tonen"), t("als achtergrond tijdens afspelen")) : nothing}
+        ${dom === "media_player" ? row(t("Gekoppelde speler"), select(p.hass, "media_player", draft.link, v => upd({ link: v || undefined }), { empty: t("automatisch"), filter: s => s.entity_id !== id }), t("titel en hoes van deze speler, bijv. de Chromecast van dezelfde tv")) : nothing}
+        ${dom === "media_player" ? opt("noIdleArt", t("Achtergrond bij stilstand"), t("de animatie uit Panel instellingen")) : nothing}
+        ${dom === "climate" ? opt("noMode", t("Modus-knoppen"), t("uit / verwarmen / auto op de kaart")) : nothing}
+        ${dom === "camera" ? row(t("Live beeld"), html`<input type="checkbox" .checked=${!!draft.live} @change=${e => upd({ live: e.target.checked || undefined })}>`, t("stream op de kaart i.p.v. een foto elke 10 s")) : nothing}
+        ${dom === "switch" ? row(t("Vermogenssensor"), select(p.hass, "sensor", draft.power, v => upd({ power: v || undefined }), { empty: t("automatisch (zelfde apparaat)"), filter: s => s.attributes.unit_of_measurement === "W" }), t("maakt er een stekkerkaart van (watt, verbruik, timer)")) : nothing}
+        ${dom === "switch" && (applianceCapable(p, id) || draft.power) ? row(t("Apparaatfuncties"), html`<input type="checkbox" .checked=${!cur.noAppliance} @change=${e => p.setApplianceMode(id, e.target.checked)}>`, t("bezig / klaar op basis van het vermogen")) : nothing}
+        ${appliance ? row(t("Apparaatfuncties"), html`<input type="checkbox" .checked=${!pop.a.plain} @change=${e => p.setApplianceMode(pop.a.key, e.target.checked)}>`, pop.a.op ? t("bezig / klaar volgens het apparaat zelf") : t("bezig / klaar op basis van het vermogen")) : nothing}
+        ${appliance && pop.a.power ? row(t("Drempel (W)"), html`<input type="number" .value=${String(draft.threshold ?? 5)} @change=${e => upd({ threshold: e.target.value === "" || +e.target.value === 5 ? undefined : +e.target.value })}>`, t("boven = bezig")) : nothing}
+      </div>
+      ${hasPress ? html`<div class="grp">${sh(t("Gedrag"))}
+        ${row(t("Tikken"), seg("tap", [...(canToggle ? [{ v: "toggle", l: t("schakelen") }] : []), { v: "popup", l: t("details openen") }, { v: "more", l: t("Home Assistant-dialoog") }, { v: "none", l: t("niets") }], tapDef))}
+        ${row(t("Vasthouden"), seg("hold", [{ v: "popup", l: t("details openen") }, { v: "more", l: t("Home Assistant-dialoog") }, { v: "none", l: t("niets") }], holdDef))}
+      </div>
+      <div class="grp">${sh(t("Actieknoppen"), t("{n} van 3", { n: acts.length }))}
+        ${acts.map((a, i) => pop.act === i ? html`<div class="act open"><div class="ed">
+            <label>${t("Label")}<input type="text" .value=${a.label || ""} placeholder=${t("label")} @change=${e => setA(i, { label: e.target.value || undefined })}></label>
+            <label>${t("Icoon")}<input type="text" .value=${a.icon || ""} placeholder="mdi:…" @change=${e => setA(i, { icon: e.target.value || undefined })}></label>
+            <label class="full">${t("Actie")}<input type="text" list="hcn-services" .value=${a.service || ""} placeholder="light.turn_on" @change=${e => setA(i, { service: e.target.value || undefined })}></label>
+            <label class="full">${t("Gegevens (JSON)")}<i class=${jsonOk(a.data) ? "" : "bad"}>${a.data ? (jsonOk(a.data) ? t("geldig") : t("ongeldig")) : t("entity_id = deze kaart als je niets invult")}</i><input type="text" .value=${a.data || ""} placeholder='{"brightness_pct": 50}' @change=${e => setA(i, { data: e.target.value || undefined })}></label>
+            <div class="modes n2 full"><button class="on" @click=${() => p.openPopup({ ...pop, act: null })}>${t("Klaar")}</button><button @click=${() => p.openPopup({ ...pop, act: null, draft: { ...draft, actions: acts.filter((_, k) => k !== i).length ? acts.filter((_, k) => k !== i) : undefined } })}>${t("Verwijderen")}</button></div>
+          </div></div>`
+        : html`<div class="act"><span class="bx">${a.icon ? html`<ha-icon icon=${a.icon}></ha-icon>` : nothing}</span><div>${a.label || t("label")}<small>${a.service || "…"}${a.data ? ` · ${a.data}` : ""}</small></div><span class="ab"><button title=${t("Bewerken")} @click=${() => p.openPopup({ ...pop, act: i })}><ha-icon icon="mdi:pencil-outline"></ha-icon></button><button title=${t("Verwijderen")} @click=${() => setActs(acts.filter((_, k) => k !== i))}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button></span></div>`)}
+        ${acts.length < 3 ? html`<button class="addbtn" @click=${() => p.openPopup({ ...pop, draft: { ...draft, actions: [...acts, {}] }, act: acts.length })}>+ ${t("Actie toevoegen")}</button>` : nothing}
+        <datalist id="hcn-services">${services.map(s => html`<option value=${s}></option>`)}</datalist>
+      </div>` : nothing}
+      <div class="grp">${sh(t("Geavanceerd"))}
+        <div class=${pop.adv ? "coll open" : "coll"} @click=${() => p.openPopup({ ...pop, adv: !pop.adv })}><ha-icon icon="mdi:code-braces"></ha-icon><div>${t("Templates (Jinja)")}<small>${hasTpl ? t("staat · ondertitel · onderaan · zichtbaar") : t("zichtbaar")} — ${tplCount ? t("{n} ingesteld", { n: tplCount }) : t("niets ingesteld")}</small></div><ha-icon class="chev" icon="mdi:chevron-down"></ha-icon></div>
+        ${pop.adv ? html`
+          ${hasTpl ? row(t("Staat (template)"), inp("tplState", "{{ states('sensor.x') }} W"), t("tekst in de hoek")) : nothing}
+          ${hasTpl ? row(t("Ondertitel (template)"), inp("tplSub", "{{ relative_time(states.light.x.last_changed) }}")) : nothing}
+          ${hasTpl ? row(t("Onderaan (template)"), inp("tplFoot", ""), t("vervangt de keuze hierboven")) : nothing}
+          ${row(t("Zichtbaar (voorwaarde)"), html`${inp("tplVisible", "{{ states('sensor.x') | int < 30 }}")}<div class="seg" style="margin-top:6px">${[[false, t("tonen als waar")], [true, t("tonen als onwaar")]].map(([v, l]) => html`<button class=${!!draft.tplVisibleInvert === v ? "on" : ""} @click=${() => upd({ tplVisibleInvert: v || undefined })}>${l}</button>`)}</div>`, t("Jinja; onwaar = false, 0, no, off, none of leeg. Een verborgen kaart staat nog in Pagina instellen."))}` : nothing}
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="modes n3">
+    <button class="on" @click=${() => { const a = acts.filter(x => x && x.label && x.service); p.saveCardSettings(id, { ...draft, actions: a.length ? a : undefined }); }}>${t("Opslaan")}</button>
+    <button @click=${() => p.saveCardSettings(id, null)}>${t("Herstel")}</button>
+    <button @click=${() => p.openPopup({ ...pop, form: false, draft: null, act: null })}>${t("Annuleren")}</button>
+  </div></div>`;
 }
 
 export function renderPopup(p, pop) {
@@ -409,6 +450,7 @@ export function renderPopup(p, pop) {
           ${f(t("Plaats"), html`<select @change=${e => upd({ room: e.target.value || undefined })}><option value="" ?selected=${!tp.room}>${t("Thuis")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${tp.room === r.id}>${r.name}</option>`)}</select>`, t("startpagina of een kamer"))}
           ${f(t("Tekst"), txt("state", "{{ states('sensor.buiten_temperatuur') }} °C"), t("template voor de staat"))}
           ${f(t("Label"), txt("label", "{{ relative_time(states.sensor.x.last_changed) }} geleden"), "optioneel, kleine regel onderin")}
+          ${f(t("Zichtbaar (voorwaarde)"), html`<div class="two">${txt("visible", "{{ states('sensor.x') | int < 10 }}")}<select @change=${e => upd({ visibleInvert: e.target.value === "1" || undefined })}><option value="" ?selected=${!tp.visibleInvert}>${t("tonen als waar")}</option><option value="1" ?selected=${!!tp.visibleInvert}>${t("tonen als onwaar")}</option></select></div>`, t("Jinja; onwaar = false, 0, no, off, none of leeg"))}
           ${f(t("Entiteit"), txt("entity", "sensor.x"), t("voor details (vasthouden) en schakelen"))}
           ${f(t("Tikken"), html`<select @change=${e => upd({ tap: e.target.value || undefined })}><option value="" ?selected=${!tp.tap}>${t("details van de entiteit")}</option><option value="toggle" ?selected=${tp.tap === "toggle"}>${t("entiteit schakelen")}</option><option value="service" ?selected=${tp.tap === "service"}>${t("actie uitvoeren")}</option><option value="navigate" ?selected=${tp.tap === "navigate"}>${t("naar pad gaan")}</option></select>`)}
           ${tp.tap === "service" ? f(t("Actie"), txt("service", "light.turn_on"), "domein.service") : nothing}

@@ -6,7 +6,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
 import { styles } from "./styles.js";
 import { buildRooms, buildHome, name } from "./model.js";
-import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard } from "./cards.js";
+import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden } from "./cards.js";
 import { renderPopup } from "./popups.js";
 import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
 import { renderPage, PAGES } from "./pages.js";
@@ -113,13 +113,13 @@ class HacasaNova extends LitElement {
     const cards = (this.config.templates || []).map((x, i) => ({ ...x, id: x.id || "tpl" + i }));
     this.config.templates = cards;
     const lines = Object.entries(this.config.pages || {}).flatMap(([k, pc]) => (pc.lines || []).map((l, i) => ({ id: `line:${k}:${i}`, state: l.text })));
-    const overrides = Object.entries(this.config.cards || {}).filter(([, c]) => c.tplState || c.tplSub || c.tplFoot).map(([id, c]) => ({ id: "card:" + id, state: c.tplState, label: c.tplSub, foot: c.tplFoot }));
+    const overrides = Object.entries(this.config.cards || {}).filter(([, c]) => c.tplState || c.tplSub || c.tplFoot || c.tplVisible).map(([id, c]) => ({ id: "card:" + id, state: c.tplState, label: c.tplSub, foot: c.tplFoot, visible: c.tplVisible }));
     const list = [...cards, ...lines, ...overrides];
-    const key = JSON.stringify(list.map(x => [x.id, x.state, x.label, x.foot]));
+    const key = JSON.stringify(list.map(x => [x.id, x.state, x.label, x.foot, x.visible]));
     if (key === this._tplKey || !this.hass?.connection?.subscribeMessage) return;
     this._tplKey = key; (this._tplUnsubs || []).forEach(u => { try { u.then ? u.then(f => f(), () => {}) : u(); } catch {} }); this._tplUnsubs = [];
     this.templates = {};
-    for (const x of list) for (const field of ["state", "label", "foot"]) {
+    for (const x of list) for (const field of ["state", "label", "foot", "visible"]) {
       if (!x[field]) continue;
       try {
         const u = this.hass.connection.subscribeMessage(msg => { this.templates = { ...this.templates, [x.id]: { ...(this.templates[x.id] || {}), [field]: msg.result, error: msg.error ? true : undefined } }; }, { type: "render_template", template: x[field], report_errors: true });
@@ -219,7 +219,9 @@ class HacasaNova extends LitElement {
   pageCfg(key) { return this.config.pages?.[key] || {}; }
   /** cards in the configured order: keys listed in `order` first, the rest in their default position */
   orderCards(list, order = []) { const pos = k => { const i = order.indexOf(k); return i < 0 ? order.length + list.findIndex(c => c.key === k) : i; }; return [...list].sort((a, b) => pos(a.key) - pos(b.key)); }
-  applyPage(key, list) { const pc = this.pageCfg(key), hid = new Set(pc.hidden || []); return this.orderCards(list, pc.order).filter(c => !hid.has(c.key)); }
+  applyPage(key, list) { const pc = this.pageCfg(key), hid = new Set(pc.hidden || []); return this.orderCards(list, pc.order).filter(c => !hid.has(c.key) && !this.condHiddenCard(c.key)); }
+  /** card hidden by the visibility template in its card settings (template cards check their own `visible` field) */
+  condHiddenCard(key) { const c = cardCfg(this, key); return condHidden(this, "card:" + key, c.tplVisible, c.tplVisibleInvert); }
   tickerOn(key, items) {
     const pc = this.pageCfg(key), tk = pc.ticker || {};
     const custom = (pc.lines || []).map((l, i) => ({ k: "custom", icon: l.icon || "mdi:text", text: this.templates?.[`line:${key}:${i}`]?.state })).filter(x => x.text && String(x.text).trim());
@@ -536,7 +538,7 @@ class HacasaNova extends LitElement {
     add(v(e.vacuums), nm, x => vacuumCard(this, x));
     add(v(e.humidifiers), nm, x => humidifierCard(this, x));
     add(v(e.appliances), dn, x => applianceCard(this, x));
-    (this.config.templates || []).filter(tc => tc.room === r.id || tc.room === r.slug).forEach((tc, i) => list.push({ key: tc.id, label: tc.name || t("Template"), tpl: templateCard(this, tc, i) }));
+    (this.config.templates || []).filter(tc => (tc.room === r.id || tc.room === r.slug) && !condHidden(this, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => list.push({ key: tc.id, label: tc.name || t("Template"), tpl: templateCard(this, tc, i) }));
     (this.config.groups || []).filter(g => (g.room === r.id || g.room === r.slug) && g.members?.length).forEach(g => list.push({ key: "group:" + g.id, label: g.name || t("Groep"), tpl: groupCard(this, g) }));
     (this.config.graphs || []).filter(g => (g.room === r.id || g.room === r.slug) && g.entity).forEach(g => list.push({ key: "graph:" + g.id, label: g.name || t("Grafiek"), tpl: graphCard(this, g) }));
     if (v(e.scenes).length) list.push({ key: "scenes", label: t("Scènes"), tpl: roomScenesCard(this, v(e.scenes)) });

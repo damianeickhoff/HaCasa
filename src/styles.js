@@ -392,6 +392,50 @@ export const styles = css`
   }
   .popup.wide .form .f{grid-template-columns:160px 1fr}
   .popup .form .f{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;padding:10px 12px;margin-top:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-sm);font-size:13px;font-weight:600}
+  /* card form: live preview on the left, sections on the right, the Opslaan row stays in view */
+  .popup.cardf{padding-bottom:0}
+  .popup .fwrap{display:grid;grid-template-columns:320px 1fr;gap:28px;margin-top:8px}
+  .popup .pv{position:sticky;top:0;align-self:start}
+  .popup .pv .ey{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--fg-2);margin:0 0 8px 2px;display:flex;justify-content:space-between}
+  .popup .pv .ey span{color:var(--fg-3)}
+  .popup .pvc{pointer-events:none}
+  .popup .pvc .card{animation:none;width:var(--card-w);height:var(--card-h)}
+  .popup .pv .tip{margin-top:12px;font-size:12px;line-height:1.5;color:var(--fg-3)}
+  .popup .pv .tip b{color:var(--fg-2);font-weight:600}
+  .popup .sh{display:flex;align-items:center;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--fg-2);margin:0 0 8px 2px}
+  .popup .sh .cnt{margin-left:auto;color:var(--fg-3);font-size:11px;letter-spacing:1px}
+  .popup .grp{margin-bottom:18px}
+  .popup .form .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .popup .form .seg{display:flex;flex-wrap:wrap;gap:4px}
+  .popup .form .seg button{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap}
+  .popup .form .seg button ha-icon{--mdc-icon-size:15px}
+  .popup .form .seg button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
+  .popup .form .seg button sup{font-size:8.5px;letter-spacing:.5px;opacity:.55;margin-left:-3px}
+  .popup .form .f .chips{margin:0}
+  .popup .act{display:grid;grid-template-columns:34px 1fr max-content;gap:12px;align-items:center;padding:8px 12px;margin-top:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-sm);font-size:13px;font-weight:600}
+  .popup .act .bx{height:34px;width:34px;border-radius:var(--r-sm);background:rgba(255,255,255,.12);border:1px solid var(--line);display:grid;place-items:center}
+  .popup .act .bx ha-icon{--mdc-icon-size:16px}
+  .popup .act>div small{display:block;font-size:11px;color:var(--fg-3);font-weight:500;font-family:ui-monospace,Consolas,monospace;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .popup .act .ab{display:flex;gap:4px}
+  .popup .act .ab button{width:32px;height:32px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer}
+  .popup .act .ab button ha-icon{--mdc-icon-size:16px}
+  .popup .act.open{grid-template-columns:1fr;border-color:var(--line-on);background:rgba(255,255,255,.09);padding:12px}
+  .popup .act .ed{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .popup .act .ed .full{grid-column:1/-1}
+  .popup .act .ed label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--fg-3);font-weight:700;display:flex;flex-direction:column;gap:4px}
+  .popup .act .ed label i{font-style:normal;float:right;text-transform:none;letter-spacing:0;color:#8fd16a;font-weight:600}
+  .popup .act .ed label i.bad{color:#f27a5c}
+  .popup .act .ed .modes{margin-top:4px}
+  .popup .act .ed .modes button{padding:10px 0}
+  .popup .addbtn{margin-top:6px;width:100%;height:40px;border:1px dashed var(--line-on);border-radius:var(--r-sm);background:none;color:var(--fg-2);font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+  .popup .coll{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--r-sm);background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:15px;font-weight:600;cursor:pointer;user-select:none}
+  .popup .coll>ha-icon{--mdc-icon-size:24px;flex:none}
+  .popup .coll small{display:block;font-size:12px;font-weight:500;opacity:.7}
+  .popup .coll ha-icon.chev{margin-left:auto;--mdc-icon-size:18px;opacity:.6;transition:transform .2s}
+  .popup .coll.open ha-icon.chev{transform:rotate(180deg)}
+  .popup .foot{position:sticky;bottom:0;margin:4px -30px 0;padding:14px 30px 20px;border-top:1px solid var(--line);background:rgba(44,46,50,.6);backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border-radius:0 0 10px 10px}
+  .popup .foot .modes{margin:0}
+  @media (max-width:900px){ .popup h2 .rm{display:none} .popup .fwrap{grid-template-columns:1fr;gap:18px} .popup .pv{position:static} .popup .pvc .card{width:100%} .popup .foot{margin:4px -24px 0;padding:12px 24px 18px} .popup .act .ed{grid-template-columns:1fr} }
   .popup .form .chk3{display:flex;gap:14px;font-weight:600}
   .popup .form .chk3 label{display:inline-flex;align-items:center;gap:6px}
   .popup .form .f.acts{grid-template-columns:140px 1fr}

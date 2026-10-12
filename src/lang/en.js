@@ -114,6 +114,18 @@ export default {
   "Apparaat openen": "Open device",
   "Verbergen op deze pagina": "Hide on this page",
   "terug te vinden via Pagina instellen": "bring it back via Page settings",
+  // card form (3.1): preview, sections, visibility condition
+  "Zo ziet de kaart eruit met deze instellingen": "This is how the card looks with these settings",
+  "std": "std", "Voorbeeld": "Preview", "live": "live", "Geen voorbeeld voor deze kaart": "No preview for this card",
+  "Afwijkend van Kaartstandaarden": "Differs from Card defaults", "leeg = naam en icoon uit Home Assistant": "empty = name and icon from Home Assistant",
+  "Soort": "Kind", "Raam": "Window", "bepaalt icoon en teksten; zichtbaar na opslaan": "sets the icon and texts; shows after saving",
+  "Staat in de hoek": "State in the corner", "{n} van 3": "{n} of 3", "Gegevens (JSON)": "Data (JSON)", "geldig": "valid", "ongeldig": "invalid",
+  "entity_id = deze kaart als je niets invult": "entity_id = this card when left empty", "Actie toevoegen": "Add action", "Geavanceerd": "Advanced",
+  "Templates (Jinja)": "Templates (Jinja)", "staat · ondertitel · onderaan · zichtbaar": "state · subtitle · bottom · visible", "zichtbaar": "visible",
+  "{n} ingesteld": "{n} set", "niets ingesteld": "nothing set", "tekst in de hoek": "text in the corner", "Zichtbaar (voorwaarde)": "Visible (condition)",
+  "tonen als waar": "show when true", "tonen als onwaar": "show when false",
+  "Jinja; onwaar = false, 0, no, off, none of leeg. Een verborgen kaart staat nog in Pagina instellen.": "Jinja; false = false, 0, no, off, none or empty. A hidden card is still listed under Page settings.",
+  "Jinja; onwaar = false, 0, no, off, none of leeg": "Jinja; false = false, 0, no, off, none or empty",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)
