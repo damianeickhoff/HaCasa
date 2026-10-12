@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **••• in popups:** the options button now opens a small menu over the popup instead of replacing its contents: Card settings, Open in Home Assistant, Open device (when the entity belongs to a device) and Hide on this page. On phones it is a sheet at the bottom. Esc or a tap outside closes just the menu.
 - **Graph card:** Settings → Graphs adds a card with the line of one numeric sensor (temperature, humidity, power, …) over the last 3 hours to 7 days, on the home view or in a room. Current value in the corner, average and range under the name; tap opens the Home Assistant history dialog. Door, window and motion cards get the same layout with **Bottom → graph (on/off line)**.
 - **Bottom bar on phones and tablets:** the menu button and the search button in the top bar are replaced by a bar at the bottom: Home, the current room (opens the room list, or the floors when navigation is set to floors), More and a search button. Search opens in the bar itself, with the results above it.
 - **More on phone cards:** the waste card shows the pickup after the next one at the bottom, and the agenda card the appointment after the next one (on wider screens both were already in the side column).

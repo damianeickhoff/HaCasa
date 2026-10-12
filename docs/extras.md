@@ -4,7 +4,7 @@
 
 Every card opens a popup with the details: brightness, colour and colour temperature for lights, transport and volume for media, modes and presets for climate, position for covers, and the history of the last 24 hours for sensors.
 
-The **⋯** button next to close offers **Card settings** (see [Card settings](card-settings.md)) and **Open in Home Assistant**, Home Assistant's own dialog for the entity.
+The **⋯** button next to close opens a small menu over the popup (a sheet at the bottom on phones): **Card settings** (see [Card settings](card-settings.md)), **Open in Home Assistant** (Home Assistant's own dialog for the entity), **Open device** when the entity belongs to a device, and **Hide on this page** (bring it back under *Page settings*). Esc or a tap outside closes just the menu.
 
 <div class="grid2" markdown>
 ![Light popup](assets/screenshots/popup-light.png)

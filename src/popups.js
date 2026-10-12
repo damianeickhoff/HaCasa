@@ -2,7 +2,7 @@
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { icon, isOn, unavailable, num, relTime, shortDate, domain } from "./util.js";
-import { name } from "./model.js";
+import { name, deviceName } from "./model.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState } from "./extras2.js";
@@ -16,7 +16,21 @@ import { fetchHistory } from "./extras2.js";
 const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
 const entityOf = pop => pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
 /** header buttons: ⋯ (card options) when the popup belongs to an entity, and close */
-const hbtns = (p, pop) => html`<span class="hb">${entityOf(pop) ? html`<button title=${t("Opties")} @click=${() => p.openPopup({ ...pop, menu: !pop.menu, form: false })}><ha-icon icon="mdi:dots-horizontal"></ha-icon></button>` : nothing}<button data-close title=${t("Sluiten")}><img src=${icon("close")} alt="sluiten" data-close></button></span>`;
+const hbtns = (p, pop) => html`<span class="hb">${entityOf(pop) ? html`<button class=${pop.menu ? "on" : ""} title=${t("Opties")} @click=${ev => { ev.stopPropagation(); p.openPopup({ ...pop, menu: !pop.menu, form: false }); }}><ha-icon icon="mdi:dots-horizontal"></ha-icon></button>` : nothing}<button data-close title=${t("Sluiten")}><img src=${icon("close")} alt="sluiten" data-close></button></span>`;
+/** the ••• menu: a dropdown under the button (desktop) or a sheet at the bottom (phone), outside .popup so its scroll box can't clip it */
+function optionsMenu(p, pop) {
+  const id = entityOf(pop), dev = id.startsWith("device:") ? id.slice(7) : p.hass.entities?.[id]?.device_id;
+  const pageKey = p.room?.id || "home", onPage = p.pageCards(pageKey).some(c => c.key === id);
+  const item = (mdi, lbl, sub, go) => html`<a @click=${ev => { ev.stopPropagation(); go(); }}><ha-icon icon=${mdi}></ha-icon><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span></a>`;
+  return html`<div class="pmenu" @click=${ev => { ev.stopPropagation(); if (ev.target === ev.currentTarget) p.openPopup({ ...pop, menu: false }); }}>
+    <div class="who"><ha-icon icon=${pop.e?.state?.attributes?.icon || "mdi:tune-variant"}></ha-icon><div><b>${label(p, pop.e || { id, state: p.hass.states[id] })}</b><small>${p.room?.name || t("Thuis")} · ${id}</small></div></div>
+    ${item("mdi:tune", t("Kaart instellen"), t("naam, weergave, gedrag, knoppen"), () => p.openPopup({ ...pop, menu: false, form: true }))}
+    ${item("mdi:open-in-new", t("Openen in Home Assistant"), id.startsWith("device:") ? t("apparaatpagina") : id, () => { p.popup = null; id.startsWith("device:") ? p.goPath(`/config/devices/device/${dev}`) : p.moreInfo(id); })}
+    ${dev && !id.startsWith("device:") ? item("mdi:chip", t("Apparaat openen"), deviceName(p.hass, dev), () => { p.popup = null; p.goPath(`/config/devices/device/${dev}`); }) : nothing}
+    ${onPage ? html`<div class="sep"></div>${item("mdi:eye-off-outline", t("Verbergen op deze pagina"), t("terug te vinden via Pagina instellen"), () => { const pc = p.pageCfg(pageKey); p.savePage(pageKey, { ...pc, hidden: [...new Set([...(pc.hidden || []), id])] }); p.popup = null; })}` : nothing}
+    <button class="cancel" @click=${() => p.openPopup({ ...pop, menu: false })}>${t("Annuleren")}</button>
+  </div>`;
+}
 const li = (mdi, label, value, { on = false, sub = "", onclick = null, svg = null, img = null } = {}) =>
   html`<li class="${on ? "on" : ""} ${onclick ? "tap" : ""}" @click=${onclick || nothing}>${img ? html`<img class="avatar" src=${img} alt="">` : svg ? html`<img class="ico" src=${icon(svg)} alt="">` : html`<ha-icon icon=${mdi}></ha-icon>`}<div>${label}${sub ? html`<small>${sub}</small>` : nothing}</div><span class="st">${value}</span></li>`;
 const range = (label, v, oninput, { min = 0, max = 100, unit = "%" } = {}) =>
@@ -25,12 +39,9 @@ const modes = (items, cls = "") => html`<div class="modes ${cls}">${items.map(m 
 let CUR = null; // current {p, pop} while rendering, so wrap() can draw the header buttons
 const wrap = (title, big, sub, body) => {
   const { p, pop } = CUR;
-  if (pop.menu) body = html`<ul class="menu-list">
-    ${li("mdi:tune", t("Kaart instellen"), "", { sub: t("naam, icoon, gedrag, verbergen"), onclick: () => p.openPopup({ ...pop, menu: false, form: true }) })}
-    ${li("mdi:open-in-new", t("Openen in Home Assistant"), "", { sub: entityOf(pop), onclick: () => { p.popup = null; const id = entityOf(pop); id.startsWith("device:") ? p.goPath(`/config/devices/device/${id.slice(7)}`) : p.moreInfo(id); } })}
-  </ul>`;
-  else if (pop.form && entityOf(pop)) body = cardForm(p, pop);   // popups without an entity (presets) render their own form
-  return html`<div class="popup"><h2>${title} ${hbtns(p, pop)}</h2><div class="big">${big}</div><div class="sub">${sub}</div>${body}</div>`;
+  if (pop.form && entityOf(pop)) body = cardForm(p, pop);   // popups without an entity (presets) render their own form
+  // .pw: the popup plus its ••• menu; a click anywhere in it (outside the menu) closes the menu
+  return html`<div class="pw" @click=${() => { if (pop.menu) p.openPopup({ ...pop, menu: false }); }}><div class="popup"><h2>${title} ${hbtns(p, pop)}</h2><div class="big">${big}</div><div class="sub">${sub}</div>${body}</div>${pop.menu && entityOf(pop) ? optionsMenu(p, pop) : nothing}</div>`;
 };
 /** a switch whose device also has a power sensor or an operation-state sensor can be shown as an appliance (bezig / klaar) */
 const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$/.test(e.entity_id))); };

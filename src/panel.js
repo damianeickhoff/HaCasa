@@ -52,7 +52,7 @@ class HacasaNova extends LitElement {
     this.loadConfig();
     this._clock = setInterval(() => { this.now = clock(); }, 15000);
     this._ticker = setInterval(() => { this.tick++; }, 4000);
-    this._onKey = e => { if (e.key === "Escape") { this.popup = null; this.search = ""; this.searchOpen = false; } };
+    this._onKey = e => { if (e.key === "Escape") { if (this.popup?.menu) { this.popup = { ...this.popup, menu: false }; return; } this.popup = null; this.search = ""; this.searchOpen = false; } };
     addEventListener("keydown", this._onKey);
     // inside a Lovelace card the dashboard owns the URL path, so rooms are routed through the hash
     if (this.hashMode) { this._onHash = () => { this.route = { path: location.hash.replace(/^#/, "") || "/", prefix: "" }; }; addEventListener("hashchange", this._onHash); this._onHash(); }

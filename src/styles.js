@@ -368,8 +368,28 @@ export const styles = css`
   .popup h2 .hb button ha-icon{--mdc-icon-size:18px}
   .popup .big{font-size:clamp(26px,4vw,40px);font-weight:600;letter-spacing:-1.5px;margin:14px 0 2px;overflow-wrap:anywhere}
   .popup.wide{max-width:min(960px,calc(100vw - 32px));width:min(960px,calc(100vw - 32px))}
-  .popup .menu-list{list-style:none;margin-top:18px}
-  .popup .menu-list li{cursor:pointer}
+  .popup h2 .hb button.on{background:rgba(255,255,255,.3)}
+  /* ••• menu: the floor-nav dropdown glass, hung under the button; lives next to .popup (not inside: overflow:auto would clip it) */
+  .pw{position:relative;display:flex;justify-content:center;max-width:100%}
+  .pmenu{position:absolute;top:70px;right:68px;z-index:3;min-width:250px;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:var(--r);background:rgba(255,255,255,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.25);animation:downT .18s var(--ease) both}
+  .pmenu a{display:flex;align-items:center;gap:12px;min-height:40px;padding:6px 14px 6px 12px;border-radius:var(--r-sm);font-size:14px;font-weight:600;cursor:pointer;line-height:1.25}
+  .pmenu a:hover{background:rgba(255,255,255,.1)}
+  .pmenu a ha-icon{--mdc-icon-size:18px;flex:none}
+  .pmenu a small{display:block;font-size:11px;font-weight:500;opacity:.6;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px}
+  .pmenu .sep{height:1px;background:var(--line);margin:4px 8px}
+  .pmenu .who,.pmenu .cancel{display:none}
+  @media (max-width:900px){
+    .pw{position:static;width:100%}
+    .pmenu{position:fixed;top:auto;left:16px;right:16px;bottom:calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));min-width:0;animation:upT .22s var(--ease) both}
+    .pmenu::before{content:"";position:fixed;inset:-100vh 0 -100vh;background:rgba(20,20,20,.5);z-index:-1}   /* scrim over the popup; a tap on it closes the sheet */
+    .pmenu .who{display:flex;gap:12px;align-items:center;padding:10px 12px 12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+    .pmenu .who ha-icon{--mdc-icon-size:24px;flex:none}
+    .pmenu .who b{font-size:15px}
+    .pmenu .who small{display:block;font-size:11px;opacity:.6;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pmenu a{min-height:46px;font-size:15px}
+    .pmenu a small{display:none}
+    .pmenu .cancel{display:block;margin-top:4px;height:46px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+  }
   .popup.wide .form .f{grid-template-columns:160px 1fr}
   .popup .form .f{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;padding:10px 12px;margin-top:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-sm);font-size:13px;font-weight:600}
   .popup .form .chk3{display:flex;gap:14px;font-weight:600}

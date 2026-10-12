@@ -108,6 +108,12 @@ export default {
   "{v} beschikbaar": "{v} available",
   "Controleren op updates": "Check for updates",
   "melding op de startpagina als er een nieuwe HaCasa Nova is (alleen voor beheerders)": "a line on the home page when a new HaCasa Nova is out (administrators only)",
+  // ••• menu in popups (3.1)
+  "naam, weergave, gedrag, knoppen": "name, look, behaviour, buttons",
+  "apparaatpagina": "device page",
+  "Apparaat openen": "Open device",
+  "Verbergen op deze pagina": "Hide on this page",
+  "terug te vinden via Pagina instellen": "bring it back via Page settings",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)
