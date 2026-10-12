@@ -6,14 +6,13 @@ import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { t, locale } from "./i18n.js";
 import { domain, num, unavailable } from "./util.js";
-import { cardFor, homeCards, substEntity } from "./cards.js";
+import { cardFor, homeCards, findCard } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 
 export const canEdit = p => !!p.hass?.user?.is_admin;
 /** entity domains that have a card */
 export const ADD_DOMAINS = ["light", "switch", "input_boolean", "fan", "lock", "cover", "climate", "media_player", "vacuum", "humidifier", "camera", "binary_sensor", "sensor"];
 const DOM_ICON = { light: "mdi:lightbulb-outline", switch: "mdi:power-socket-eu", input_boolean: "mdi:toggle-switch-outline", media_player: "mdi:speaker", cover: "mdi:window-shutter", climate: "mdi:thermostat", fan: "mdi:fan", lock: "mdi:lock-outline", vacuum: "mdi:robot-vacuum", humidifier: "mdi:air-humidifier", camera: "mdi:cctv", binary_sensor: "mdi:radiobox-marked", sensor: "mdi:gauge" };
-const FILTERS = [["", "Alles", null], ["light", "Lampen", ["light"]], ["switch", "Schakelaars", ["switch", "input_boolean"]], ["sensor", "Sensoren", ["sensor", "binary_sensor"]], ["media", "Media", ["media_player"]], ["other", "Overig", ["fan", "lock", "cover", "climate", "vacuum", "humidifier", "camera"]]];
 /** keys of cards the panel makes itself (not an entity, device or template instance) */
 export const isBuiltin = key => !key.includes(".") && !key.startsWith("device:") && !key.startsWith("tpl:");
 /** template fields a template can ask for when it is placed */
@@ -94,11 +93,43 @@ async function addMade(p, pageKey, kind, item) {
   await p.saveUser({ [kind]: [...(p.userConfig?.[kind] || p.config[kind] || []), { ...item, id, room: pageKey }] });
   p.popup = null; setTimeout(() => p.openCardForm((kind === "groups" ? "group:" : "graph:") + id), 50);
 }
+/* ---------- card types, like Home Assistant's card picker: pick a type, then configure it ---------- */
+const DOOR_DC = ["door", "garage_door", "opening", "garage"], MOTION_DC = ["motion", "occupancy", "presence"];
+const dcOf = s => s.attributes?.device_class;
+/** group "dev": an entity of these domains (and device classes); "panel": one of the panel's own cards (key); "own": group / graph / template */
+export const CARD_TYPES = [
+  { id: "light", group: "dev", label: "Lamp", sub: "aan/uit, helderheid, kleur", icon: "mdi:lightbulb-outline", match: s => domain(s.entity_id) === "light" },
+  { id: "switch", group: "dev", label: "Schakelaar of stekker", sub: "ook met vermogensmeter", icon: "mdi:power-socket-eu", match: s => ["switch", "input_boolean"].includes(domain(s.entity_id)) },
+  { id: "door", group: "dev", label: "Deur of raam", sub: "open / dicht, sinds wanneer", icon: "mdi:door", match: s => domain(s.entity_id) === "binary_sensor" && [...DOOR_DC, "window"].includes(dcOf(s)) },
+  { id: "motion", group: "dev", label: "Beweging", sub: "laatste beweging", icon: "mdi:motion-sensor", match: s => domain(s.entity_id) === "binary_sensor" && MOTION_DC.includes(dcOf(s)) },
+  { id: "binary", group: "dev", label: "Sensor aan/uit", sub: "rook, lek, contact …", icon: "mdi:radiobox-marked", match: s => domain(s.entity_id) === "binary_sensor" && ![...DOOR_DC, "window", ...MOTION_DC].includes(dcOf(s)) },
+  { id: "value", group: "dev", label: "Waarde", sub: "temperatuur, vermogen, tekst", icon: "mdi:gauge", match: s => domain(s.entity_id) === "sensor" },
+  { id: "media", group: "dev", label: "Media", sub: "speler met hoes en bediening", icon: "mdi:speaker", match: s => domain(s.entity_id) === "media_player" },
+  { id: "climate", group: "dev", label: "Thermostaat", sub: "temperatuur en modus", icon: "mdi:thermostat", match: s => domain(s.entity_id) === "climate" },
+  { id: "cover", group: "dev", label: "Rolluik of gordijn", sub: "open, dicht, stand", icon: "mdi:window-shutter", match: s => domain(s.entity_id) === "cover" },
+  { id: "fan", group: "dev", label: "Ventilator", sub: "aan/uit en snelheid", icon: "mdi:fan", match: s => domain(s.entity_id) === "fan" },
+  { id: "lock", group: "dev", label: "Slot", sub: "open / op slot", icon: "mdi:lock-outline", match: s => domain(s.entity_id) === "lock" },
+  { id: "camera", group: "dev", label: "Camera", sub: "beeld op de kaart", icon: "mdi:cctv", match: s => domain(s.entity_id) === "camera" },
+  { id: "other", group: "dev", label: "Overig", sub: "stofzuiger, luchtbevochtiger", icon: "mdi:robot-vacuum", match: s => ["vacuum", "humidifier"].includes(domain(s.entity_id)) },
+  { id: "weather", group: "panel", label: "Weer", sub: "nu en de komende dagen", icon: "mdi:weather-partly-cloudy", key: "weather" },
+  { id: "agenda", group: "panel", label: "Agenda", sub: "volgende afspraken", icon: "mdi:calendar-blank-outline", key: "agenda" },
+  { id: "waste", group: "panel", label: "Afval", sub: "volgende ophaaldag", icon: "mdi:trash-can-outline", key: "waste" },
+  { id: "energy", group: "panel", label: "Energie", sub: "vermogen en verbruik vandaag", icon: "mdi:flash-outline", key: "energy" },
+  { id: "attention", group: "panel", label: "Aandacht", sub: "onbereikbaar, batterij, updates", icon: "mdi:alert-circle-outline", key: "attention" },
+  { id: "homeclimate", group: "panel", label: "Thermostaat (thuis)", sub: "de hoofdthermostaat", icon: "mdi:home-thermometer-outline", key: "climate" },
+  { id: "scenes", group: "panel", label: "Scènes", sub: "scèneknoppen van een ruimte", icon: "mdi:palette-outline", roomKey: "scenes" },
+  { id: "presets", group: "panel", label: "Lichtscènes", sub: "opgeslagen lichtstanden van een ruimte", icon: "mdi:lightbulb-group-outline", roomKey: "presets" },
+  { id: "group", group: "own", label: "Groep", sub: "meerdere lampen of stekkers als één kaart", icon: "mdi:shape-outline" },
+  { id: "graph", group: "own", label: "Grafiek", sub: "verloop van een sensor", icon: "mdi:chart-line" },
+  { id: "tpl", group: "own", label: "Template", sub: "uit je eigen bibliotheek", icon: "mdi:code-braces" },
+];
+const GROUPS = [["dev", "Apparaten"], ["panel", "Kaarten van het paneel"], ["own", "Eigen kaarten"]];
+
 export function addPopup(p, pop) {
   const key = pop.key, isHome = key === "home", room = isHome ? null : p.rooms.find(r => r.id === key), where = isHome ? t("Startpagina") : (room?.name || key);
   const upd = patch => p.openPopup({ ...pop, ...patch });
-  const step = pop.step || 1, kind = pop.kind || "entity";
-  const stepLabels = [t("Soort"), t("Kiezen"), kind === "entity" ? t("Plaatsen") : t("Invullen")];
+  const type = CARD_TYPES.find(x => x.id === pop.kind) || null, step = pop.step || 1;
+  const stepLabels = [t("Soort"), t("Kiezen"), type?.id === "tpl" || type?.group === "own" ? t("Invullen") : t("Plaatsen")];
   const steps = html`<div class="steps">${stepLabels.map((l, i) => html`${i ? html`<i class="ln"></i>` : nothing}<span class=${i + 1 === step ? "on" : i + 1 < step ? "done" : ""}><i>${i + 1 < step ? "✓" : i + 1}</i>${l}</span>`)}</div>`;
   const head = (big, sub) => html`<h2>${where}<span class="hb"><button data-close title=${t("Sluiten")}><ha-icon icon="mdi:close"></ha-icon></button></span></h2><div class="big">${big}</div><div class="sub">${sub}</div>${steps}`;
   /** the row of buttons stays in view (the lists above it can be long) */
@@ -107,27 +138,30 @@ export function addPopup(p, pop) {
   const f = (lbl, ctrl, sub) => html`<label class="f"><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span>${ctrl}</label>`;
   const have = new Set(p.pageCards(key).map(c => c.key));
 
-  if (step === 1) return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Wat wil je hier tonen?"))}
-    <div class="pages">
-      <a class="wide" @click=${() => upd({ step: 2, kind: "entity" })}><ha-icon icon="mdi:power-plug-outline"></ha-icon><div>${t("Apparaat of entiteit")}<small>${t("lamp, schakelaar, sensor, mediaspeler… alles uit Home Assistant")}</small></div></a>
-      <a @click=${() => upd({ step: 2, kind: "builtin" })}><ha-icon icon="mdi:view-grid-outline"></ha-icon><div>${t("HaCasa-kaart")}<small>${t("weer, agenda, scènes, een groep of grafiek …")}</small></div></a>
-      <a @click=${() => upd({ step: 2, kind: "tpl" })}><ha-icon icon="mdi:code-braces"></ha-icon><div>${t("Template")}<small>${t("uit je eigen bibliotheek")}</small></div></a>
-    </div>${foot(cancelBtn)}</div>`;
+  /** a panel card by key: unhide it when it is hidden here, add it when it exists elsewhere, else say what is missing */
+  const addPanel = async k => {
+    const pc = p.pageCfg(key);
+    if ((pc.hidden || []).includes(k)) { await p.setHidden(key, k, false); p.popup = null; return; }
+    if (have.has(k)) { p.showToast(t("Deze kaart staat al op deze pagina")); return; }
+    const exists = isHome ? homeCards(p, p.home).some(c => c.key === k) : !!findCard(p, k, key);
+    if (!exists) { p.showToast(t("Deze kaart is nog niet ingesteld: zie Instellingen → Startpagina")); return; }
+    await addKey(p, key, k);
+  };
 
-  if (kind === "builtin" && step === 2) {
-    // the panel's own cards of every page that are not on this one yet; room-bound ones (scenes, presets) carry the room
-    const items = [];
-    if (!isHome) for (const c of homeCards(p, p.home)) if (isBuiltin(c.key) && !have.has(c.key)) items.push({ key: c.key, label: c.label, where: t("Startpagina") });
-    for (const r of p.rooms) if (r.id !== key) for (const c of p.roomCards(r)) if (isBuiltin(c.key)) { const k = ["scenes", "presets"].includes(c.key) ? `room:${r.id}:${c.key}` : c.key; if (!have.has(k) && !items.some(i => i.key === k)) items.push({ key: k, label: c.label, where: r.name }); }
-    return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Een kaart van het paneel zelf"))}
-      <ul class="ents">
-        <li class="tap" @click=${() => upd({ step: 3, kind: "group", gd: { style: "tiles", members: [] } })}><ha-icon icon="mdi:shape-outline"></ha-icon><div>${t("Nieuwe groep")}<small>${t("meerdere lampen, schakelaars of stekkers als één kaart")}</small></div><ha-icon icon="mdi:chevron-right"></ha-icon></li>
-        <li class="tap" @click=${() => upd({ step: 3, kind: "graph", gd: { hours: 24 } })}><ha-icon icon="mdi:chart-line"></ha-icon><div>${t("Nieuwe grafiek")}<small>${t("verloop van een sensor")}</small></div><ha-icon icon="mdi:chevron-right"></ha-icon></li>
-      </ul>
-      ${items.length ? html`<div class="glbl">${t("Van andere pagina's")}<b>${items.length}</b></div><ul class="ents">${items.map(x => html`<li class="tap" @click=${() => addKey(p, key, x.key)}><ha-icon icon="mdi:view-grid-outline"></ha-icon><div>${x.label}<small>${x.where}</small></div><ha-icon icon="mdi:plus"></ha-icon></li>`)}</ul>` : nothing}
+  if (step === 1) return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Welk soort kaart?"))}
+    ${GROUPS.map(([g, lbl]) => html`<div class="glbl">${t(lbl)}</div><div class="pages types">${CARD_TYPES.filter(x => x.group === g).map(x => html`
+      <a @click=${() => x.key ? addPanel(x.key) : x.id === "group" ? upd({ step: 2, kind: x.id, gd: { style: "tiles", members: [] } }) : x.id === "graph" ? upd({ step: 2, kind: x.id, gd: { hours: 24 } }) : upd({ step: 2, kind: x.id, q: "" })}><ha-icon icon=${x.icon}></ha-icon><div>${t(x.label)}<small>${t(x.sub)}</small></div></a>`)}</div>`)}
+    ${foot(cancelBtn)}</div>`;
+
+  if (type?.roomKey && step === 2) {
+    // scenes / light scenes belong to a room: pick whose
+    const opts = [...(type.roomKey === "scenes" ? [{ k: "scenes", label: t("Startpagina"), ok: homeCards(p, p.home).some(c => c.key === "scenes") }] : []), ...p.rooms.map(r => ({ k: r.id === key ? type.roomKey : `room:${r.id}:${type.roomKey}`, label: r.name, ok: p.roomCards(r).some(c => c.key === type.roomKey) }))]
+      .map(o => ({ ...o, here: have.has(o.k) }));
+    return html`<div class="popup addp">${head(t(type.label), t("Van welke ruimte?"))}
+      <ul class="ents">${opts.map(o => html`<li class=${classMap({ tap: o.ok && !o.here, dim: !o.ok || o.here })} @click=${() => { if (o.ok && !o.here) addPanel(o.k); }}><ha-icon icon=${type.icon}></ha-icon><div>${o.label}<small>${o.here ? t("staat al op deze pagina") : o.ok ? "" : t("niets beschikbaar")}</small></div><ha-icon icon="mdi:plus"></ha-icon></li>`)}</ul>
       ${foot(backBtn(1), cancelBtn)}</div>`;
   }
-  if (kind === "group") {
+  if (type?.id === "group") {
     const gd = pop.gd || { style: "tiles", members: [] }, g = patch => upd({ gd: { ...gd, ...patch } }), cands = groupCandidates(p), ok = !!(gd.name && gd.members.length);
     return html`<div class="popup addp">${head(t("Nieuwe groep"), t("Eén kaart voor meerdere lampen, schakelaars of stekkers"))}
       <div class="form">
@@ -136,9 +170,9 @@ export function addPopup(p, pop) {
         ${f(t("Stijl"), html`<div class="seg">${[["tiles", t("tegels (tikken schakelt)")], ["list", t("lijst")]].map(([v, l]) => html`<button class=${(gd.style || "tiles") === v ? "on" : ""} @click=${() => g({ style: v })}>${l}</button>`)}</div>`)}
         ${f(t("Onderdelen"), html`<div class="chips">${cands.map(c => html`<button class=${gd.members.includes(c.id) ? "on" : ""} @click=${() => g({ members: gd.members.includes(c.id) ? gd.members.filter(x => x !== c.id) : [...gd.members, c.id] })}>${c.name}</button>`)}</div>`, t("{n} gekozen", { n: gd.members.length }))}
       </div>
-      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addMade(p, key, "groups", gd)}>${t("Toevoegen en instellen")}</button>`, backBtn(2), cancelBtn)}</div>`;
+      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addMade(p, key, "groups", gd)}>${t("Toevoegen en instellen")}</button>`, backBtn(1), cancelBtn)}</div>`;
   }
-  if (kind === "graph") {
+  if (type?.id === "graph") {
     const gd = pop.gd || { hours: 24 }, g = patch => upd({ gd: { ...gd, ...patch } }), ok = !!gd.entity;
     return html`<div class="popup addp">${head(t("Nieuwe grafiek"), t("De lijn van een sensor over de laatste uren of dagen"))}
       <div class="form">
@@ -146,16 +180,16 @@ export function addPopup(p, pop) {
         ${f(t("Naam"), html`<input type="text" .value=${gd.name || ""} placeholder=${gd.entity ? (p.hass.states[gd.entity]?.attributes.friendly_name || "") : ""} @change=${e => g({ name: e.target.value || undefined })}>`, t("leeg = naam van de sensor"))}
         ${f(t("Periode"), html`<div class="seg">${GRAPH_HOURS.map(n => html`<button class=${(+gd.hours || 24) === n ? "on" : ""} @click=${() => g({ hours: n })}>${hoursLabel(n)}</button>`)}</div>`)}
       </div>
-      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addMade(p, key, "graphs", gd)}>${t("Toevoegen en instellen")}</button>`, backBtn(2), cancelBtn)}</div>`;
+      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addMade(p, key, "graphs", gd)}>${t("Toevoegen en instellen")}</button>`, backBtn(1), cancelBtn)}</div>`;
   }
-  if (kind === "tpl" && step === 2) {
+  if (type?.id === "tpl" && step === 2) {
     const list = p.config.templates || [];
     return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Een templatekaart uit je bibliotheek"))}
       <ul class="ents">${list.map(tc => html`<li class="tap" @click=${() => upd({ step: 3, pick: tc.id, fields: {} })}><ha-icon icon=${tc.icon || "mdi:code-braces"}></ha-icon><div>${tc.name || t("Naamloos")}<small>${tc.state || ""}</small></div><ha-icon icon="mdi:chevron-right"></ha-icon></li>`)}</ul>
       ${!list.length ? html`<div class="sub" style="margin-top:16px">${t("Nog geen templatekaarten. Maak er een onder Instellingen → Templatekaarten.")}</div>` : nothing}
       ${foot(backBtn(1), cancelBtn)}</div>`;
   }
-  if (kind === "tpl" && step === 3) {
+  if (type?.id === "tpl" && step === 3) {
     const tc = (p.config.templates || []).find(x => x.id === pop.pick); if (!tc) return nothing;
     const fields = pop.fields || {}, setF = (k, v) => upd({ fields: { ...fields, [k]: v } }), ask = TPL_ASK.filter(([k]) => (tc.ask || []).includes(k));
     const ok = ask.every(([k]) => fields[k]);
@@ -166,25 +200,24 @@ export function addPopup(p, pop) {
       </div>
       ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addKey(p, key, `tpl:${tc.id}:${Date.now().toString(36)}`, { cardCfg: { fields } })}>${t("Toevoegen en instellen")}</button>`, backBtn(2), cancelBtn)}</div>`;
   }
-  if (step === 2) {
-    const q = (pop.q || "").toLowerCase().trim(), flt = FILTERS.find(x => x[0] === (pop.flt || ""))?.[2];
+  if (type?.match && step === 2) {
+    const q = (pop.q || "").toLowerCase().trim();
     const roomName = a => p.rooms.find(r => r.id === a)?.name || p.hass.areas?.[a]?.name || a;
-    const all = Object.values(p.hass.states).filter(s => ADD_DOMAINS.includes(domain(s.entity_id)) && !p.hass.entities?.[s.entity_id]?.hidden && (!flt || flt.includes(domain(s.entity_id))))
+    const all = Object.values(p.hass.states).filter(s => type.match(s) && !p.hass.entities?.[s.entity_id]?.hidden)
       .map(s => { const a = areaOf(p, s.entity_id); return { s, id: s.entity_id, name: s.attributes.friendly_name || s.entity_id, area: a, areaName: a ? roomName(a) : "", here: have.has(s.entity_id) || a === key }; })
       .filter(x => !q || x.name.toLowerCase().includes(q) || x.id.includes(q) || x.areaName.toLowerCase().includes(q))
       .sort((a, b) => a.name.localeCompare(b.name, locale()));
     const groups = [[t("Zonder ruimte"), all.filter(x => !x.area)], [t("In een andere ruimte"), all.filter(x => x.area && x.area !== key)], [isHome ? t("Al op de startpagina") : t("Al in deze ruimte"), all.filter(x => x.area === key || (x.here && !x.area))]].filter(g => g[1].length);
     const row = x => html`<li class=${classMap({ tap: !x.here, dim: x.here })} @click=${() => { if (!x.here) upd({ step: 3, pick: x.id, other: x.area && x.area !== key && p.rooms.some(r => r.id === x.area) ? x.area : null, place: "hacasa" }); }}>
-      <ha-icon icon=${x.s.attributes.icon || DOM_ICON[domain(x.id)]}></ha-icon><div>${x.name}${x.area && x.area !== key ? html`<span class="tag">${x.areaName}</span>` : nothing}<small>${x.id}</small></div><span class="val">${stateText(x.s)}</span></li>`;
-    return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Kies een apparaat of entiteit"))}
+      <ha-icon icon=${x.s.attributes.icon || type.icon}></ha-icon><div>${x.name}${x.area && x.area !== key ? html`<span class="tag">${x.areaName}</span>` : nothing}<small>${x.id}</small></div><span class="val">${stateText(x.s)}</span></li>`;
+    return html`<div class="popup addp">${head(t(type.label), t("Kies een apparaat of entiteit"))}
       <div class="sinput"><ha-icon icon="mdi:magnify"></ha-icon><input type="search" .value=${pop.q || ""} placeholder=${t("Zoek op naam, id of ruimte")} autofocus @input=${e => upd({ q: e.target.value })}></div>
-      <div class="chips">${FILTERS.map(([v, l]) => html`<button class=${(pop.flt || "") === v ? "on" : ""} @click=${() => upd({ flt: v })}>${t(l)}</button>`)}</div>
-      ${groups.map(([lbl, list]) => html`<div class="glbl">${lbl}<b>${list.length}</b></div><ul class="ents">${list.slice(0, 30).map(row)}</ul>`)}
+      ${groups.map(([lbl, list]) => html`<div class="glbl">${lbl}<b>${list.length}</b></div><ul class="ents">${list.slice(0, 40).map(row)}</ul>`)}
       ${!all.length ? html`<div class="sub" style="margin-top:16px">${t("Niets gevonden")}</div>` : nothing}
       ${foot(backBtn(1), cancelBtn)}</div>`;
   }
   const id = pop.pick, s = p.hass.states[id], e = { id, state: s, reg: p.hass.entities?.[id] || {} }, otherName = pop.other ? (p.rooms.find(r => r.id === pop.other)?.name || pop.other) : null;
-  const preview = cardFor(p, e);
+  const preview = s ? cardFor(p, e) : null;
   return html`<div class="popup addp">${head(s?.attributes.friendly_name || id, t("Waar hoort de kaart?"))}
     <ul class="place">
       <li class=${pop.place === "hacasa" ? "on tap" : "tap"} @click=${() => upd({ place: "hacasa" })}><ha-icon icon=${pop.place === "hacasa" ? "mdi:radiobox-marked" : "mdi:radiobox-blank"}></ha-icon><div>${t("Alleen in HaCasa")}<small>${isHome ? t("De kaart komt op de startpagina; in Home Assistant verandert niets.") : otherName ? t("De kaart komt in {room}. In Home Assistant blijft de entiteit in {other}.", { room: where, other: otherName }) : t("De kaart komt in {room}; in Home Assistant verandert niets.", { room: where })}</small></div><span class="st">${t("aanbevolen")}</span></li>

@@ -165,6 +165,19 @@ export default {
   "Bij het plaatsen invullen": "Filled in when placing", "deze velden vraagt de kaart als je hem op een pagina zet; wat je hier invult is dan het voorbeeld": "the card asks for these fields when you put it on a page; what you enter here is the example",
   "Wordt gekozen als je de kaart op een pagina zet. In de templates en de actie-data schrijf je $entity.": "Chosen when you put the card on a page. Write $entity in the templates and the action data.",
   "sjablonen met Jinja; plaatsen doe je per pagina via Bewerken → Kaart toevoegen": "Jinja templates; place them per page via Edit → Add card",
+  // card type picker (edit mode → Kaart toevoegen); labels pass through t() at runtime
+  "Deze kaart staat al op deze pagina": "This card is already on this page", "Deze kaart is nog niet ingesteld: zie Instellingen → Startpagina": "This card is not set up yet: see Settings → Home page",
+  "Welk soort kaart?": "What kind of card?", "Van welke ruimte?": "From which room?", "staat al op deze pagina": "already on this page", "niets beschikbaar": "nothing available",
+  "Apparaten": "Devices", "Kaarten van het paneel": "Panel cards", "Eigen kaarten": "Your own cards",
+  "Lamp": "Light", "aan/uit, helderheid, kleur": "on/off, brightness, colour", "Schakelaar of stekker": "Switch or plug", "ook met vermogensmeter": "also with a power meter",
+  "Deur of raam": "Door or window", "open / dicht, sinds wanneer": "open / closed, since when", "laatste beweging": "last motion", "Sensor aan/uit": "On/off sensor", "rook, lek, contact …": "smoke, leak, contact …",
+  "Waarde": "Value", "temperatuur, vermogen, tekst": "temperature, power, text", "speler met hoes en bediening": "player with artwork and controls", "Thermostaat": "Thermostat", "temperatuur en modus": "temperature and mode",
+  "Rolluik of gordijn": "Shutter or curtain", "open, dicht, stand": "open, close, position", "Ventilator": "Fan", "aan/uit en snelheid": "on/off and speed", "Slot": "Lock", "open / op slot": "unlocked / locked",
+  "beeld op de kaart": "picture on the card", "Overig": "Other", "stofzuiger, luchtbevochtiger": "vacuum, humidifier",
+  "Weer": "Weather", "nu en de komende dagen": "now and the next days", "volgende afspraken": "next appointments", "Afval": "Waste", "volgende ophaaldag": "next collection day",
+  "vermogen en verbruik vandaag": "power and use today", "Aandacht": "Attention", "onbereikbaar, batterij, updates": "unavailable, battery, updates", "Thermostaat (thuis)": "Thermostat (home)", "de hoofdthermostaat": "the main thermostat",
+  "scèneknoppen van een ruimte": "a room's scene buttons", "Lichtscènes": "Light scenes", "opgeslagen lichtstanden van een ruimte": "a room's saved light settings",
+  "meerdere lampen of stekkers als één kaart": "several lights or plugs as one card",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)

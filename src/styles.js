@@ -525,7 +525,13 @@ export const styles = css`
   .card.value .nm{grid-area:s;font-size:13px;font-weight:500;color:var(--fg-3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card.value.noname .nm{display:none}
   /* "Kaart toevoegen" popup */
-  .popup.addp{width:min(640px,calc(100vw - 32px));max-width:none;padding-bottom:0}
+  .popup.addp{width:min(680px,calc(100vw - 32px));max-width:none;padding-bottom:0}
+  .popup .pages.types{grid-template-columns:repeat(3,1fr);margin-top:0;margin-bottom:6px}
+  .popup .pages.types a{padding:12px 12px;gap:10px;font-size:13px;align-items:flex-start}
+  .popup .pages.types a ha-icon{--mdc-icon-size:22px;margin-top:1px}
+  .popup .pages.types a small{font-size:11px;line-height:1.3}
+  .popup .glbl+.pages.types{margin-top:0}
+  @media (max-width:900px){ .popup .pages.types{grid-template-columns:1fr 1fr} }
   .popup .foot .modes button:disabled{opacity:.4;cursor:default}
   .popup .steps{display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--fg-3);margin:-6px 0 14px}
   .popup .steps span{display:flex;gap:6px;align-items:center}
