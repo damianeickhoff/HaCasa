@@ -15,6 +15,7 @@ import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } fr
 import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon } from "./cards.js";
 import { quickRow, watchTriggers, presetCard, selfUpdate } from "./features.js";
 import { searchBar } from "./search.js";
+import { graphCard } from "./graph.js";
 import { fetchNumeric, batteryEta, modeList } from "./extras3.js";
 import { deviceName } from "./model.js";
 import { BASE, TAG, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
@@ -36,7 +37,7 @@ class HacasaNova extends LitElement {
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
     config: { state: true }, popup: { state: true }, drawer: { state: true }, tick: { state: true }, now: { state: true },
-    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true },
+    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true },
   };
 
   constructor() {
@@ -60,6 +61,7 @@ class HacasaNova extends LitElement {
     for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) addEventListener(ev, this._activity, { passive: true });
     this._lastActivity = Date.now();
     this._onResize = () => { clearTimeout(this._rsT); this._rsT = setTimeout(() => this.requestUpdate(), 150); }; addEventListener("resize", this._onResize);
+    this._mq = matchMedia("(max-width:900px)"); this._mq.addEventListener("change", this._onResize);   // phone ⇄ desktop layout is decided in render()
     this._idleT = setInterval(() => { const m = +(this.config.idleMinutes ?? 0); if (m > 0 && !this.idle && Date.now() - this._lastActivity > m * 60000) this.idle = true; }, 5000);
     // swipe between rooms (touch only, outside the card strip)
     this._swipeDown = e => { if (e.pointerType !== "touch" || e.composedPath().some(el => el.classList && (el.classList.contains("strip") || el.classList.contains("overlay") || el.classList.contains("page") || el.classList.contains("settings") || el.classList.contains("nav")))) { this._sw = null; return; } this._sw = { x: e.clientX, y: e.clientY, t: Date.now() }; };
@@ -67,8 +69,9 @@ class HacasaNova extends LitElement {
     this.addEventListener("pointerdown", this._swipeDown); this.addEventListener("pointerup", this._swipeUp);
     // floor dropdown: a tap anywhere else closes it
     this.addEventListener("pointerdown", e => { if (this.navFloor != null && !this.drawer && !e.composedPath().some(el => el.classList?.contains("fl"))) this.navFloor = null; });
+    this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab"))) this.drawer = false; });
   }
-  disconnectedCallback() { super.disconnectedCallback(); clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
+  disconnectedCallback() { super.disconnectedCallback(); clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
   wake() { this.idle = false; this._lastActivity = Date.now(); }
   /** go to the previous/next room in nav order (home is before the first room) */
   swipe(dir) { const order = [null, ...this.rooms]; const i = order.findIndex(r => (r?.id || null) === (this.room?.id || null)); const n = order[i + dir]; if (n !== undefined) this.go(n); }
@@ -327,15 +330,28 @@ class HacasaNova extends LitElement {
     (this._lhBusy ||= new Set()).add(id);
     const rows = (await fetchHistory(this.hass, id, 24)) || [];
     rows.sort((a, b) => a.t - b.t);
-    const now = Date.now(), start = now - 24 * 3600000, bars = Array(24).fill(0); let onMin = 0, count = 0;
+    const now = Date.now(), start = now - 24 * 3600000, bars = Array(24).fill(0), steps = Array(96).fill(0); let onMin = 0, count = 0;
     for (let i = 0; i < rows.length; i++) {
       if (rows[i].s !== "on") continue;
       if (i && rows[i - 1].s !== "on") count++; else if (!i && rows[i].t > start) count++;
       const a = Math.max(start, rows[i].t.getTime()), b = Math.min(now, rows[i + 1] ? rows[i + 1].t.getTime() : now);
-      for (let x = a; x < b; x += 60000) { bars[new Date(x).getHours()] += 1; onMin++; }
+      for (let x = a; x < b; x += 60000) { bars[new Date(x).getHours()] += 1; steps[Math.min(95, Math.floor((x - start) / 900000))] += 1 / 15; onMin++; }
     }
-    this.lightHist = { ...(this.lightHist || {}), [id]: { at: Date.now(), bars: bars.map(m => m / 60), onMin, count } };
+    this.lightHist = { ...(this.lightHist || {}), [id]: { at: Date.now(), bars: bars.map(m => m / 60), steps: steps.map(v => Math.min(1, v)), onMin, count } };
     this._lhBusy.delete(id);
+  }
+  /** minutes a thermostat actively heated / cooled since midnight (hvac_action history) for the climate card bottom */
+  async loadClimateHist(id) {
+    const cur = this.climateHist?.[id]; if (cur && Date.now() - cur.at < 10 * 60000) return; if (this._chBusy?.has(id)) return;
+    (this._chBusy ||= new Set()).add(id);
+    const start = new Date(); start.setHours(0, 0, 0, 0); const from = start.getTime(), now = Date.now(), min = { heating: 0, cooling: 0 }; let known = false;
+    try {
+      const r = await this.hass.callWS({ type: "history/history_during_period", start_time: start.toISOString(), entity_ids: [id], minimal_response: false, no_attributes: false, significant_changes_only: false });
+      const rows = (r?.[id] || []).map(x => ({ act: x.a?.hvac_action, t: (x.lu || x.lc) * 1000 }));
+      rows.forEach((x, i) => { if (x.act != null) known = true; if (!(x.act in min)) return; const a = Math.max(from, x.t), b = rows[i + 1]?.t ?? now; if (b > a) min[x.act] += (b - a) / 60000; });
+    } catch (e) { console.warn("[hacasa-nova] climate history failed", e); }
+    this.climateHist = { ...(this.climateHist || {}), [id]: { at: Date.now(), heat: Math.round(min.heating), cool: Math.round(min.cooling), known } };
+    this._chBusy.delete(id);
   }
   _stripDown(e) { if (e.pointerType !== "mouse") return; const st = e.currentTarget; this._down = { x: e.clientX, s: st.scrollLeft, st }; this._drag = 0; st.classList.add("drag");
     const move = ev => { if (!this._down) return; const dx = ev.clientX - this._down.x; this._drag = Math.max(this._drag, Math.abs(dx)); this._down.st.scrollLeft = this._down.s - dx; };
@@ -382,10 +398,8 @@ class HacasaNova extends LitElement {
         ${h.persons.length ? html`<div class="people pill" title=${t("Wie is thuis")} @click=${() => this.openPopup({ type: "people" })}><ha-icon icon="mdi:account-group-outline"></ha-icon><span class="pc">${h.home}<small>/${h.persons.length}</small></span></div>` : nothing}
         ${alarm ? html`<div class=${classMap({ alarm: true, pill: true, armed, [alarmCls]: true })} @click=${() => this.openPopup({ type: "alarm" })}><ha-icon icon=${alarm.state === "triggered" ? "mdi:shield-alert" : alarm.state === "arming" || alarm.state === "pending" ? "mdi:shield-sync" : armed ? "mdi:shield-home" : "mdi:shield-home-outline"}></ha-icon><span class="al">${alarmLbl}</span><i></i></div>` : html`<span></span>`}
         <div class="time"><b>${this.now}</b></div>
-        <button class=${classMap({ sbtn: true, on: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; }}><img src=${icon(this.searchOpen ? "close" : "search")} alt=""></button>
-        <button class="menu" @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img src=${icon(this.drawer ? "close" : "menu")} alt="menu"></button>
-        ${matchMedia("(max-width:900px)").matches ? searchBar(this) : nothing}
       </nav>
+      ${matchMedia("(max-width:900px)").matches ? this.renderBottomNav(room, isPage) : nothing}
       ${keyed(this.settings ? "settings" : this.page || (room ? room.id : "home"), this.settings ? renderSettings(this) : this.page ? renderPage(this, this.page) : room ? this.renderRoom(room) : this.renderHome(h))}
       ${this.hass.connected === false ? html`<div class="offline"><ha-icon icon="mdi:lan-disconnect"></ha-icon>${t("Geen verbinding met Home Assistant")}</div>` : nothing}
       ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info" })}>${this.toast}</div>` : nothing}
@@ -411,6 +425,20 @@ class HacasaNova extends LitElement {
     return rest.length ? [...groups, { id: "_none", name: t("Overig"), rooms: rest }] : groups;
   }
   floorOf(room) { return room ? (this.floorGroups.find(g => g.rooms.includes(room))?.id ?? null) : null; }
+  /** phones and tablets: glass pill at the bottom (home · rooms · more) plus a detached search button; the rooms tab opens the room sheet (renderLinks) above it */
+  renderBottomNav(room, isPage) {
+    const srch = this.searchOpen && !this.settings;
+    const toggleSearch = () => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; this.drawer = false; };
+    return html`<div class=${classMap({ bnav: true, srch })}>
+      ${srch ? searchBar(this) : html`<div class="btabs pill">
+        <a class=${classMap({ ic: true, active: !room && !isPage && !this.drawer })} title=${t("Thuis")} @click=${() => this.go(null)}><img class="ico" src=${icon("home")} alt=""></a>
+        <a class=${classMap({ rtab: true, active: !!room || this.drawer })} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><span>${room ? room.name : t("Kamers")}</span><ha-icon icon=${this.drawer ? "mdi:chevron-down" : "mdi:chevron-up"}></ha-icon></a>
+        <span class="sep"></span>
+        <a class=${classMap({ ic: true, more: true, active: !!isPage })} title=${t("Meer")} @click=${() => this.openPopup({ type: "more" })}><ha-icon icon="mdi:dots-horizontal"></ha-icon></a>
+      </div>`}
+      <button class=${classMap({ sbtn: true, on: srch })} title=${t("Zoeken")} @click=${toggleSearch}><img src=${icon(srch ? "close" : "search")} alt=""></button>
+    </div>`;
+  }
   /** navigation: one pill per room, or (config.navMode "floors") one per floor with a room dropdown — hover on desktop, tap on touch/mobile */
   renderLinks(room, isPage) {
     if (this.searchOpen && !this.drawer && !matchMedia("(max-width:900px)").matches) return html`<div class="links pill srch">${searchBar(this)}</div>`;
@@ -510,6 +538,7 @@ class HacasaNova extends LitElement {
     add(v(e.appliances), dn, x => applianceCard(this, x));
     (this.config.templates || []).filter(tc => tc.room === r.id || tc.room === r.slug).forEach((tc, i) => list.push({ key: tc.id, label: tc.name || t("Template"), tpl: templateCard(this, tc, i) }));
     (this.config.groups || []).filter(g => (g.room === r.id || g.room === r.slug) && g.members?.length).forEach(g => list.push({ key: "group:" + g.id, label: g.name || t("Groep"), tpl: groupCard(this, g) }));
+    (this.config.graphs || []).filter(g => (g.room === r.id || g.room === r.slug) && g.entity).forEach(g => list.push({ key: "graph:" + g.id, label: g.name || t("Grafiek"), tpl: graphCard(this, g) }));
     if (v(e.scenes).length) list.push({ key: "scenes", label: t("Scènes"), tpl: roomScenesCard(this, v(e.scenes)) });
     if (e.lights.length && !this.config.noPresets) list.push({ key: "presets", label: t("Lichtscènes"), tpl: presetCard(this, r) });
     add(v(e.cameras), nm, x => roomCameraCard(this, x));

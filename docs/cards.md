@@ -83,11 +83,11 @@ Artwork as the card background, title and artist, and previous / play-pause / ne
 <div class="grid2" markdown>
 <figure markdown>
 ![Climate card](assets/cards/climate.webp)
-<figcaption>Target, current temperature, modes and the rail</figcaption>
+<figcaption>Current temperature, target, modes and the rail</figcaption>
 </figure>
 </div>
 
-The target temperature big, current temperature below it, and a rail on the right to drag the target up and down. HVAC modes and presets sit in a row at the bottom. The popup lists every room's temperature.
+The current temperature big, the name below it, and a rail on the right to drag the target up and down (the knob shows the target). Under the name: the target, plus one extra item you pick under **Bottom line** in the card settings: humidity or the active preset (automatic), the time spent heating today, the outside temperature (from the weather entity), or nothing. On phones only that extra item is shown, at the bottom. HVAC modes sit in a row at the bottom. The popup lists every room's temperature.
 
 ## Covers and fans
 
@@ -182,6 +182,12 @@ Waste pickups work with the Afvalbeheer and Afvalwijzer integrations and any sen
 ## Groups
 
 **Settings → Groups** combines several lights, switches or plugs into one card, placed in a room or on the home view. Style *tiles* shows a master switch with a chip per member; *list* shows the members as rows.
+
+## Graphs
+
+**Settings → Graphs** adds a card with a line of one numeric sensor (temperature, humidity, power, …) over the last 3 hours to 7 days, placed in a room or on the home view. The corner shows the current value, the line under it the trend, and the subtitle the average and the range for the period. Tapping opens the Home Assistant history dialog of the sensor. Name, icon and tap behaviour can be changed per card like on any other card.
+
+Door, window and motion cards can take the same layout: set **Bottom** to *graph (on/off line)* in the card's ⋯ settings (or for all of them under **Settings → Card defaults**). The line then steps between off and on over the last 24 hours, with today's total on the bottom line.
 
 ## Light scenes
 

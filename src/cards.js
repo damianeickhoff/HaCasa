@@ -6,6 +6,7 @@ import { icon, isOn, unavailable, num, relTime, shortDate, sinceText } from "./u
 import { name, deviceName } from "./model.js";
 import { applianceState, applianceEnd, eventWhen, nextEvent } from "./extras2.js";
 import { spark } from "./extras3.js";
+import { graphCard, stepGraph } from "./graph.js";
 import "./camsnap.js";
 
 const HOLD_MS = 500;
@@ -89,7 +90,7 @@ const toggleOrPopup = (p, id, toggle, popup) => pressFor(p, id, toggle, popup);
 /** small centred dot between two parts of a line */
 export const dot = () => html`<i class="dt"></i>`;
 const Cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-const ua = () => html`<span class="ua" title=${t("Onbereikbaar")}><ha-icon icon="mdi:alert-circle-outline"></ha-icon></span>`;
+export const ua = () => html`<span class="ua" title=${t("Onbereikbaar")}><ha-icon icon="mdi:alert-circle-outline"></ha-icon></span>`;
 /** card background tint for a coloured light (rgb or colour temperature) */
 function lightTint(s) {
   const a = s?.attributes || {}, mode = a.color_mode;
@@ -109,7 +110,7 @@ export const lightCaps = s => { const m = s?.attributes?.supported_color_modes |
 /** 24 hourly bars (or a text line) from the entity's on/off history; loads on first use */
 export function todayBottom(p, id, cfg) {
   const h = p.lightHist?.[id]; if (!h) { p.loadLightHist(id); return html`<div class="lbl"><span>…</span></div>`; }
-  const dur = `${Math.floor(h.onMin / 60) ? `${Math.floor(h.onMin / 60)} u ` : ""}${h.onMin % 60} min`;
+  const dur = `${Math.floor(h.onMin / 60) ? `${Math.floor(h.onMin / 60)} ${t("u")} ` : ""}${h.onMin % 60} min`;
   if (cfg.todayStyle === "text") return html`<div class="lbl today"><span>${t("Vandaag")} <b>${dur}</b> ${t("aan")}${dot()}<b>${h.count}×</b></span></div>`;
   const nowH = new Date().getHours(), order = Array.from({ length: 24 }, (_, i) => (nowH + 1 + i) % 24);
   return html`<div class="lbl bars" title=${t("Vandaag {t} aan", { t: dur })}>${order.map(i => html`<i class=${classMap({ on: h.bars[i] > 0 })} style="height:${Math.max(9, h.bars[i] * 100)}%"></i>`)}</div>`;
@@ -259,6 +260,19 @@ export function coverCard(p, e) {
   </div>`;
 }
 
+/** climate bottom line (phones hide .tg, the rail knob shows it): setpoint (when the big number is the current temperature) · the per-card "bottom" choice:
+ *  heating = time spent heating/cooling today, outside = weather temperature, none, or (default) humidity / active preset */
+const durText = m => m >= 60 ? t("{h}u {m}m", { h: Math.floor(m / 60), m: m % 60 }) : t("{m} min", { m });
+const climateFoot = (p, s, target, mode) => {
+  const a = s.attributes, hum = num(a.current_humidity), pm = a.preset_mode && a.preset_mode !== "none" ? a.preset_mode : null;
+  const PL = { home: t("Thuis"), away: t("Weg"), sleep: t("Slaap"), eco: t("Eco"), boost: t("Boost"), comfort: t("Comfort") };
+  let extra;
+  if (mode === "heating") { const h = p.climateHist?.[s.entity_id]; if (!h) { p.loadClimateHist(s.entity_id); extra = "…"; } else if (h.known) { const cool = h.cool > h.heat; extra = html`<ha-icon icon=${cool ? "mdi:snowflake" : "mdi:fire"}></ha-icon>${durText(cool ? h.cool : h.heat)}<span class="lng"> ${cool ? t("gekoeld vandaag") : t("verwarmd vandaag")}</span>`; } }
+  else if (mode === "outside") { const v = num(p.home?.weather?.attributes?.temperature); if (v != null) extra = t("{v} buiten", { v: Math.round(v) + "°" }); }
+  if (extra === undefined && mode !== "none") extra = hum != null ? t("{n}% vocht", { n: Math.round(hum) }) : pm ? (PL[pm] || Cap(pm)) : null;
+  const bits = [target != null && s.state !== "off" ? html`<span class="tg">${t("Doel {v}", { v: target.toFixed(1) + "°" })}</span>` : null, extra].filter(Boolean);
+  return bits.map((b, i) => html`${i ? dot() : nothing}${b}`);
+};
 export function climateCard(p, s, title = t("Verwarming")) {
   if (!s) return nothing;
   title = cardCfg(p, s.entity_id).name || title;
@@ -279,7 +293,7 @@ export function climateCard(p, s, title = t("Verwarming")) {
     ${un ? ua() : nothing}
     <div class="i">${icoFor(p, s.entity_id, "mdi:radiator", "heating")}</div>
     <div class="c">${un ? t("Onbereikbaar") : action}</div>
-    <div class="s big">${un ? t("Onbereikbaar") : target != null ? `${target.toFixed(1)}°` : s.state}</div>
+    <div class="s big">${un ? t("Onbereikbaar") : cur != null ? `${cur.toFixed(1)}°` : target != null ? `${target.toFixed(1)}°` : s.state}</div>
     <div class="n">${title}</div>
     ${modes.length > 1 ? html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>
       ${modes.length > 1 ? modes.slice(0, 4).map(m => html`<button class=${classMap({ mode: true, on: s.state === m })} title=${m} @click=${() => p.call("climate", "set_hvac_mode", { entity_id: s.entity_id, hvac_mode: m })}><ha-icon icon=${MI[m] || "mdi:thermostat"}></ha-icon></button>`) : nothing}
@@ -287,7 +301,7 @@ export function climateCard(p, s, title = t("Verwarming")) {
     ${target != null ? html`<div class="rail" style="--v:${v.toFixed(1)}" @pointerdown=${ev => railDrag(ev, lo, hi, step, setTo)}>
       <em class="up" @click=${set(step)}>+</em><i></i><b data-v=${target.toFixed(1)}></b><em class="dn" @click=${set(-step)}>−</em>
     </div>` : nothing}
-    <div class="lbl">${cur != null ? t("Nu {v}", { v: cur.toFixed(1) + "°" }) : ""}</div>
+    <div class="lbl"><span>${climateFoot(p, s, cur != null ? target : null, cfg.bottom)}</span></div>
   </div>`;
 }
 
@@ -298,13 +312,14 @@ export function sensorCard(p, e, kind) {
   const mdi = kind === "door" ? "mdi:door" : kind === "window" ? "mdi:window-closed-variant" : kind === "motion" ? "mdi:motion-sensor"
     : dc === "smoke" ? "mdi:smoke-detector-outline" : dc === "moisture" ? "mdi:water-alert-outline" : "mdi:checkbox-blank-circle-outline";
   const line = un ? t("Onbereikbaar") : kind === "motion" ? html`${t("Laatste beweging")}${dot()}${on ? t("nu") : relTime(s?.last_changed)}` : html`${txt}${dot()}${sinceText(s?.last_changed)}`;
-  return html`<div class=${classMap({ card: true, on, unavailable: un, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })} ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "sensor", e, kind })))}>
-    ${un ? ua() : nothing}
+  const graph = cardCfg(p, e.id).bottom === "graph";
+  return html`<div class=${classMap({ card: true, on, unavailable: un, graph, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })} ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "sensor", e, kind })))}>
+    ${un ? ua() : nothing}${graph ? stepGraph(p, e.id) : nothing}
     <div class="i">${icoFor(p, e.id, mdi, kind === "door" ? "door" : kind === "window" ? "window" : kind === "motion" ? "motion" : null)}</div>
     <div class="c">${ovr(p, e.id, "state") ?? (un ? t("Onbereikbaar") : kind === "motion" ? (on ? t("Nu") : t("Rustig")) : txt)}</div>
     <div class="n">${label(p, e)}</div>
     <div class="s">${ovr(p, e.id, "label") ?? line}</div>
-    ${ovr(p, e.id, "foot") != null ? html`<div class="lbl"><span>${ovr(p, e.id, "foot")}</span></div>` : cardCfg(p, e.id).bottom === "today" ? todayBottom(p, e.id, cardCfg(p, e.id)) : nothing}${batteryCorner(p, e)}${customActions(p, e.id)}
+    ${ovr(p, e.id, "foot") != null ? html`<div class="lbl"><span>${ovr(p, e.id, "foot")}</span></div>` : cardCfg(p, e.id).bottom === "today" ? todayBottom(p, e.id, cardCfg(p, e.id)) : graph ? todayBottom(p, e.id, { todayStyle: "text" }) : nothing}${batteryCorner(p, e)}${customActions(p, e.id)}
   </div>`;
 }
 
@@ -534,7 +549,7 @@ export function homeCards(p, h) {
     add("waste", t("Afval"), html`<div class=${classMap({ card: true, hassub: later.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "waste" }) })}>
     <div class="i">${ico("mdi:trash-can-outline", wasteIcon(w.label))}</div>
     <div class="n">${w.label}</div><div class="s">${t("Ophalen")}${dot()}${w.days === 0 ? t("vandaag") : w.days === 1 ? t("morgen") : wasteWhen(w)}</div>
-    ${later.length ? html`<div class="subc">${later.map(x => html`<div><b>${wasteWhen(x)}</b><span>${x.label}</span></div>`)}</div>` : nothing}</div>`); }
+    ${later.length ? html`<div class="subc">${later.map(x => html`<div><b>${wasteWhen(x)}</b><span>${x.label}</span></div>`)}</div><div class="lbl mob"><span>${later[0].label}${dot()}${wasteWhen(later[0])}</span></div>` : nothing}</div>`); }
   if (h.scenes.length) add("scenes", t("Scènes"), html`<div class="card scenes" ${pressDir(p, {})}>
     <div class="i">${ico("mdi:shape-outline", "shapes")}</div>
     <div class="n">${t("Scènes")}</div><div class="s">${h.scenes.slice(0, 4).map(s => html`<button title=${s.attributes.friendly_name} @click=${ev => { ev.stopPropagation(); p.call("scene", "turn_on", { entity_id: s.entity_id }); }}><ha-icon icon=${s.attributes.icon || "mdi:palette-outline"}></ha-icon><small>${s.attributes.friendly_name}</small></button>`)}</div></div>`);
@@ -544,10 +559,11 @@ export function homeCards(p, h) {
     add("agenda", t("Agenda"), html`<div class=${classMap({ card: true, hassub: later.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "agenda" }) })}>
     <div class="i">${ico("mdi:calendar-blank-outline", "calendar")}</div>
     <div class="n">${ev ? ev.summary : t("Niets gepland")}</div><div class="s">${ev ? eventWhen(ev) : t("vandaag en morgen")}</div>
-    ${later.length ? html`<div class="subc">${later.map(x => html`<div><b>${when(x)}</b><span>${x.summary}</span></div>`)}</div>` : nothing}</div>`); }
+    ${later.length ? html`<div class="subc">${later.map(x => html`<div><b>${when(x)}</b><span>${x.summary}</span></div>`)}</div><div class="lbl mob"><span>${later[0].allDay ? when(later[0]).replace(t("hele dag"), "").trim() || t("Vandaag") : when(later[0])}${dot()}${later[0].summary}</span></div>` : nothing}</div>`); }
   // appliances that are busy or just finished (all of them live on their room page)
   for (const a of p.rooms.flatMap(r => r.ents.appliances)) { if (a.plain) continue; const st = applianceState(p.hass, a, cardCfg(p, a.id).threshold ?? 5); if (APPLIANCE_ACTIVE.includes(st.st)) add(a.id, cardCfg(p, a.id).name || deviceName(p.hass, a.device), applianceCard(p, a)); }
   for (const g of (p.config.groups || []).filter(g => (!g.room || g.room === "home") && g.members?.length)) add("group:" + g.id, g.name || t("Groep"), groupCard(p, g));
+  for (const g of (p.config.graphs || []).filter(g => (!g.room || g.room === "home") && g.entity)) add("graph:" + g.id, g.name || t("Grafiek"), graphCard(p, g));
   // template cards placed on the home view
   (p.config.templates || []).filter(tc => !tc.room || tc.room === "home").forEach((tc, i) => add(tc.id, tc.name || t("Template"), templateCard(p, tc, i)));
   if (h.energy.power) add("energy", t("Energie"), html`<div class="card" ${pressDir(p, { tap: () => p.openPopup({ type: "energy" }) })}>

@@ -16,6 +16,7 @@ Open **More → Panel settings**. Changes are a draft until you press **Save**; 
 | **Calendar & waste** | calendars for the agenda card and notification line; waste sensors and their labels |
 | **Energy** | power, consumption, solar return, gas and the price per kWh |
 | **Groups** | cards that combine several lights, switches or plugs |
+| **Graphs** | a card with the line of one numeric sensor over the last hours or days |
 | **Template cards** | your own cards with Jinja templates |
 | **More menu** | your own links next to the built-in pages |
 | **Modes** | guest, vacation and other modes linked to an `input_boolean` or switch |

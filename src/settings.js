@@ -5,6 +5,7 @@ import { t, locale, LANGUAGES } from "./i18n.js";
 import { html, nothing } from "lit";
 import { domain, slug, SUFFIX, VERSION } from "./util.js";
 import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates, selfUpdate } from "./features.js";
+import { GRAPH_HOURS } from "./graph.js";
 
 export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
 
@@ -62,6 +63,7 @@ export const TABS = [
   { id: "agenda", label: t("Agenda & afval"), sub: t("kalenders en ophaaldagen"), icon: "mdi:calendar-blank-outline" },
   { id: "energie", label: t("Energie"), sub: t("vermogen, verbruik, gas"), icon: "mdi:lightning-bolt-outline" },
   { id: "groepen", label: t("Groepen"), sub: t("meerdere lampen of stekkers op één kaart"), icon: "mdi:shape-outline" },
+  { id: "grafieken", label: t("Grafieken"), sub: t("lijn van een sensor op een kaart"), icon: "mdi:chart-line" },
   { id: "templates", label: t("Templatekaarten"), sub: t("eigen kaarten met Jinja"), icon: "mdi:code-braces" },
   { id: "meer", label: t("Meer-menu"), sub: t("eigen links"), icon: "mdi:dots-horizontal-circle-outline" },
   { id: "modi", label: t("Modi"), sub: t("gast, vakantie, …"), icon: "mdi:account-switch-outline" },
@@ -145,8 +147,8 @@ export function renderSettings(p) {
           return html`<button class=${on ? "on" : ""} @click=${() => { const cur = chosen || scenes.slice(0, 4).map(x => x.entity_id); setHome("scenes", on ? cur.filter(x => x !== s.entity_id) : [...cur, s.entity_id]); }}>${s.attributes.friendly_name}</button>`; })}${!scenes.length ? html`<small>${t("Geen scènes gevonden")}</small>` : nothing}</div>`, t("op de scèneskaart"))}`)}`,
 
     standaard: (() => {
-      const types = [["light", t("Lampen"), ["steps", "colors", "today"]], ["switch", t("Schakelaars"), ["today"]], ["appliance", t("Stekkers & apparaten"), ["timer", "cost", "bars"]], ["binary_sensor", t("Deuren, ramen, beweging"), ["today"]], ["fan", t("Ventilatoren"), []], ["lock", t("Sloten"), []], ["cover", t("Rolluiken"), []], ["media_player", t("Media"), []], ["climate", t("Thermostaten"), []]];
-      const BL = { steps: t("helderheid-stappen"), colors: t("kleuren"), today: t("vandaag (uren)"), timer: t("timer"), cost: t("kosten"), bars: t("verbruik per uur") };
+      const types = [["light", t("Lampen"), ["steps", "colors", "today"]], ["switch", t("Schakelaars"), ["today"]], ["appliance", t("Stekkers & apparaten"), ["timer", "cost", "bars"]], ["binary_sensor", t("Deuren, ramen, beweging"), ["today", "graph"]], ["fan", t("Ventilatoren"), []], ["lock", t("Sloten"), []], ["cover", t("Rolluiken"), []], ["media_player", t("Media"), []], ["climate", t("Thermostaten"), ["heating", "outside"]]];
+      const BL = { steps: t("helderheid-stappen"), colors: t("kleuren"), today: t("vandaag (uren)"), graph: t("grafiek (aan/uit-lijn)"), timer: t("timer"), cost: t("kosten"), bars: t("verbruik per uur"), heating: t("vandaag verwarmd"), outside: t("buitentemperatuur") };
       const all = d.cardDefaults || {}, setT = (type, patch) => { const cur = { ...(all[type] || {}), ...patch }; for (const k of Object.keys(cur)) if (cur[k] === undefined) delete cur[k]; const next = { ...all }; if (Object.keys(cur).length) next[type] = cur; else delete next[type]; set("cardDefaults", Object.keys(next).length ? next : undefined); };
       const canToggle = type => ["light", "switch", "fan", "lock", "appliance"].includes(type);
       return sec(t("Kaartstandaarden"), t("standaardgedrag per soort kaart; per kaart aan te passen via ⋯ in de popup"), html`${types.map(([type, label, bottoms]) => { const c = all[type] || {}; return html`
@@ -171,6 +173,19 @@ export function renderSettings(p) {
           ${field(t("Onderdelen"), html`<select multiple size="6" @change=${e => setG(i, { members: [...e.target.selectedOptions].map(o => o.value) })}>${cands.map(c => html`<option value=${c.id} ?selected=${(g.members || []).includes(c.id)}>${c.name}</option>`)}</select>`, t("Ctrl/Cmd-klik voor meerdere"))}
         </div>`)}
         <button class="add" @click=${() => set("groups", [...groups, { id: "grp" + Date.now().toString(36), name: "", members: [], style: "tiles", room: "home" }])}>${t("+ groep")}</button>`);
+    })(),
+    grafieken: (() => {
+      const graphs = d.graphs || [], setG = (i, patch) => set("graphs", graphs.map((g, k) => k === i ? { ...g, ...patch } : g));
+      const numeric = s => domain(s.entity_id) === "sensor" && Number.isFinite(parseFloat(s.state)) && !["timestamp", "date", "enum"].includes(s.attributes.device_class);
+      return sec(t("Grafieken"), t("één kaart per sensor met een lijn van de laatste uren; tikken opent de Home Assistant-grafiek"), html`
+        ${graphs.map((g, i) => html`<div class="dsec">
+          <h4>${g.name || p.hass.states[g.entity]?.attributes?.friendly_name || t("Nieuwe grafiek")}<button class="link" @click=${() => set("graphs", graphs.filter((_, k) => k !== i))}>${t("verwijderen")}</button></h4>
+          ${field(t("Sensor"), select(hass, "sensor", g.entity, v => setG(i, { entity: v || undefined }), { empty: t("kies"), filter: numeric }), t("elke numerieke sensor: temperatuur, vochtigheid, vermogen, …"))}
+          ${field(t("Naam"), html`<input type="text" .value=${g.name || ""} placeholder=${p.hass.states[g.entity]?.attributes?.friendly_name || ""} @change=${e => setG(i, { name: e.target.value || undefined })}>`)}
+          ${field(t("Plaats"), html`<select @change=${e => setG(i, { room: e.target.value })}><option value="home" ?selected=${!g.room || g.room === "home"}>${t("startpagina")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${g.room === r.id}>${r.name}</option>`)}</select>`)}
+          ${field(t("Periode"), html`<select @change=${e => setG(i, { hours: +e.target.value })}>${GRAPH_HOURS.map(n => html`<option value=${n} ?selected=${(+g.hours || 24) === n}>${n % 24 ? t("{n} uur", { n }) : n === 24 ? t("24 uur") : t("{n} dagen", { n: n / 24 })}</option>`)}</select>`)}
+        </div>`)}
+        <button class="add" @click=${() => set("graphs", [...graphs, { id: "gr" + Date.now().toString(36), room: "home", hours: 24 }])}>${t("+ grafiek")}</button>`);
     })(),
     acties: sec(t("Snelle acties"), t("knoppen onder de begroeting op de startpagina"), html`
       ${quick.map((q, i) => html`<div class="row quick">${text(q.label, v => setQuick(i, "label", v), "label")}${text(q.icon, v => setQuick(i, "icon", v), t("mdi:icon (optioneel)"))}

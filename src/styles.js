@@ -6,6 +6,7 @@ import { extra2Styles } from "./extras2.js";
 import { featureStyles } from "./features.js";
 import { searchStyles } from "./search.js";
 import { extra3Styles } from "./extras3.js";
+import { graphStyles } from "./graph.js";
 
 // Started from our own Homio-style mockup; scoped to the panel host.
 export const styles = css`
@@ -227,6 +228,7 @@ export const styles = css`
   .card.climate:not(.on) .rail b{background:rgba(255,255,255,.6)}
   .card.climate .seg button{height:30px;padding:0 10px;font-size:10px}
   .card.climate .n{margin-top:4px}
+  .card.climate .lbl ha-icon{--mdc-icon-size:14px;margin-right:4px;vertical-align:-2px;opacity:.8}
   .card.climate .lbl{font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--fg-3);margin-top:3px}
   .card .seg{display:inline-flex;border-radius:999px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);padding:3px;width:max-content}
   .card .seg button{border:0;border-radius:999px;background:transparent;color:var(--fg-3);font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;height:32px;padding:0 14px;cursor:pointer}
@@ -327,6 +329,7 @@ export const styles = css`
   /* sub-card: a glass tile inside a card listing what comes next (agenda, weather, waste) */
   .card.hassub{padding-right:calc(var(--card-w) * .42 + 16px)}
   .card .subc{position:absolute;right:var(--cp);top:var(--cp);bottom:var(--cp);width:calc(var(--card-w) * .40);border-left:1px solid var(--line);padding-left:16px;display:flex;flex-direction:column;justify-content:center;gap:12px;overflow:hidden}
+  .card .lbl.mob{display:none}   /* phones only: stands in for the hidden sub-card */
   .card .subc div{min-width:0}
   .card .subc div b{display:block;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--fg-3);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card .subc div span{display:block;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
@@ -431,10 +434,8 @@ export const styles = css`
     :host(.in-card){position:relative;height:100%}
     :host{--pad:20px;--u:1px;--card-h:132px;position:fixed;inset:0;height:auto;max-height:none;overflow:hidden;overscroll-behavior:none;touch-action:none;display:flex;flex-direction:column}
     .strip,.page,.settings,.popup,.nav.open .links{touch-action:pan-y}
-    .nav{top:calc(20px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));display:grid;grid-template-columns:minmax(0,1fr) 0 max-content max-content max-content max-content;height:46px;grid-column-gap:10px;animation:none}
+    .nav{top:calc(20px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));display:grid;grid-template-columns:minmax(0,1fr) 0 max-content max-content;height:46px;grid-column-gap:10px;animation:none}
     .nav .links + *{margin-left:0}
-    .nav .searchbar{position:absolute;top:calc(100% + 8px);left:0;right:0;transform:none;width:auto;animation:none;z-index:8}
-    .sbtn{display:grid}
     .nav.open .links .sep,.nav.open .links a.search{display:none}
     .logo{font-size:17px;flex:1;min-width:0}
     @media (max-width:400px){.logo .bt{display:none}}   /* small phones: the pills need the room, the home mark stays */
@@ -447,18 +448,41 @@ export const styles = css`
     .alarm{min-width:44px;padding:0 13px 0 12px;justify-content:center;gap:7px}
     .alarm .al{display:none}
     .alarm i{width:7px;height:7px}
-    .menu{display:grid}
     .links{display:none}
-    .nav.open .links{display:flex;flex-direction:column;align-items:stretch;gap:4px;position:fixed;top:0;left:0;bottom:0;transform:none;max-width:none;width:260px;height:auto;padding:calc(90px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 20px 30px;border-radius:0;background:rgba(28,28,32,.55);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border:0;border-right:1px solid var(--line);box-shadow:20px 0 60px rgba(0,0,0,.35);z-index:40;overflow:auto}
-    .nav.open .links a{height:46px;font-size:17px;border-radius:var(--r-sm)}
-    .nav.open .links.floors{position:fixed;overflow:auto;background:rgba(28,28,32,.55);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border-right:1px solid var(--line);box-shadow:20px 0 60px rgba(0,0,0,.35)}
+    /* ===== bottom bar: glass pill (home · rooms · more) + detached search; the room sheet opens above it ===== */
+    .bnav{position:fixed;left:var(--pad);right:var(--pad);bottom:calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));z-index:41;display:flex;gap:8px;align-items:flex-end;animation:upT .5s var(--ease) both}
+    :host(.in-card) .bnav{position:absolute}
+    .btabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:54px;padding:4px}
+    .btabs a{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;height:46px;padding:0 14px;border-radius:999px;color:var(--fg-2);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
+    .btabs a.active{background:rgba(255,255,255,.26);color:#fff;font-weight:700}
+    .btabs a.ic{width:46px;padding:0}
+    .btabs a img.ico{width:20px;height:20px}
+    .btabs a ha-icon{--mdc-icon-size:18px;width:18px;height:18px;opacity:.7;flex:none}
+    .btabs a.rtab{flex:1;min-width:0;padding:0 10px 0 16px}
+    .btabs a.rtab span{overflow:hidden;text-overflow:ellipsis}
+    .btabs .sep{width:1px;height:20px;background:var(--line);margin:0 4px;flex:none}
+    .bnav .sbtn{display:grid;width:54px;height:54px}
+    .bnav .sbtn img{width:20px;height:20px}
+    .bnav .sbtn.on img{width:16px;height:16px}
+    /* search: the pill becomes the field, results stack above it (close = the detached button) */
+    .bnav .searchbar{flex:1;min-width:0;display:flex;flex-direction:column-reverse}
+    .bnav .sinput{height:54px;padding-left:18px}
+    .bnav .sinput input{font-size:16px}
+    .bnav .sinput button{display:none}
+    .bnav .sres{margin:0 0 8px;max-height:min(50vh,420px)}
+    /* room sheet (the desktop room pill, restyled) sits above the bar */
+    .nav.open .links{display:flex;flex-direction:column;align-items:stretch;gap:2px;position:fixed;top:auto;left:var(--pad);right:var(--pad);bottom:calc(78px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));transform:none;max-width:none;width:auto;height:auto;max-height:55vh;padding:6px;border-radius:var(--r);background:rgba(255,255,255,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.25);z-index:40;overflow:auto;animation:upT .2s var(--ease) both}
+    .nav.open .links a{height:44px;font-size:16px;padding:0 12px;border-radius:var(--r-sm);justify-content:flex-start}
+    .nav.open .links a.active{background:rgba(255,255,255,.14)}
+    .nav.open .links a.more{display:none}
+    .nav.open .links.floors{position:fixed;overflow:auto;background:rgba(255,255,255,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.25)}
     .nav.open .links.floors::before{display:none}
     .nav.open .links .fl{flex-direction:column;align-items:stretch}
     .nav.open .links .fl>a{justify-content:space-between;gap:10px}
     .nav.open .links .fl>a small{margin-left:auto;opacity:.5}
     .nav.open .links .fl>a ha-icon{margin:0;opacity:.6;flex:none}
-    .nav.open .links .dd{position:static;transform:none;min-width:0;margin:0 0 8px 16px;padding:0 0 0 12px;border:0;border-left:1px solid var(--line);border-radius:0;background:none;box-shadow:none;animation:none;backdrop-filter:none;-webkit-backdrop-filter:none}
-    .nav.open .links .dd a{height:42px;font-size:16px;font-weight:600;padding:0 10px;color:var(--fg-2)}
+    .nav.open .links .dd{position:static;transform:none;min-width:0;margin:0 0 6px 14px;padding:0 0 0 10px;border:0;border-left:1px solid var(--line);border-radius:0;background:none;box-shadow:none;animation:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+    .nav.open .links .dd a{height:40px;font-size:15px;font-weight:600;padding:0 10px;color:var(--fg-2)}
     .nav.open .links .dd a.active{color:#fff;background:rgba(255,255,255,.14)}
     .nav.open .links.expanded .fl>a{cursor:default;font-size:13px;letter-spacing:1px;text-transform:uppercase;opacity:.6;height:34px;background:none}
     .nav.open .links.expanded .fl>a small{display:none}
@@ -474,6 +498,7 @@ export const styles = css`
     .wx.wxm{display:flex}
     .card.hassub{padding-right:var(--cp)}
     .card .subc{display:none}
+    .card .lbl.mob{display:flex}
     .card.climate{--bt:26px;--rw:34px;padding-right:calc(var(--rw) + var(--cp) + 10px);padding-bottom:var(--cp)}
     .card.climate .ctl.row{display:none}
     .card.climate .c{right:calc(var(--rw) + var(--cp) + 8px)}
@@ -515,7 +540,10 @@ export const styles = css`
     .card .ctl button ha-icon{--mdc-icon-size:18px}
     .card .ctl.modes{display:none}
     .card.wide{padding-right:52px}
-    .card.climate .lbl{display:none}
+    .card.climate{grid-template-areas:"i c" ". ." "s s" "n n" ". ." "l l"}
+    .card.climate .lbl{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:600;margin-top:0}
+    .card.climate .lbl .tg,.card.climate .lbl .tg+.dt,.card.climate .lbl .lng{display:none}
+    .card.climate .lbl ha-icon{--mdc-icon-size:12px;margin-right:3px}
     .card .s.big{font-size:22px}
     .card .seg{padding:2px}
     .card .seg button{height:24px;padding:0 9px;font-size:9px}
@@ -559,7 +587,7 @@ export const styles = css`
     .popup.wide{width:calc(100% - 32px);max-width:none}
     .banner{position:absolute;padding:14px}
     .empty{position:static;padding:0 var(--pad) 40px}
-    .page,.settings{position:static;flex:1;min-height:0;overflow:auto;padding-top:calc(88px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))}
+    .page,.settings{position:static;flex:1;min-height:0;overflow:auto;padding-top:calc(88px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));padding-bottom:calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))}
   }
   @media (min-width:600px) and (max-width:900px){ .strip{grid-template-columns:1fr 1fr 1fr} }
   ${unsafeCSS(pageStyles)}
@@ -569,6 +597,7 @@ export const styles = css`
   ${unsafeCSS(featureStyles)}
   ${unsafeCSS(searchStyles)}
   ${unsafeCSS(extra3Styles)}
+  ${unsafeCSS(graphStyles)}
   /* unavailable: controls are hidden, so center what is left */
   .card.unavailable{grid-template-columns:1fr;grid-template-rows:1fr max-content max-content 1fr;grid-template-areas:"." "n" "s" ".";justify-items:center;text-align:center;padding:0 40px}
   .card.unavailable .i,.card.unavailable .c,.card.unavailable .lbl,.card.unavailable .prog,.card.unavailable hcn-cam-snap{display:none}

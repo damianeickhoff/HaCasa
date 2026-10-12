@@ -4,7 +4,7 @@
 
 The pill at the top lists your rooms and **More** (the built-in pages and settings). The search icon finds rooms, pages and devices. On the right: who is home, the alarm state and the clock.
 
-On phones the rooms move behind the menu button, and the cards become a two-column grid.
+On phones and tablets the rooms live in the bar at the bottom: *Home*, the current room (tap it for the list of rooms, or the floors with their rooms when navigation is set to floors), *More* and a search button. The cards become a two-column grid.
 
 - **Swipe** left or right on a room page (outside the cards) for the next or previous room.
 - **Scroll** the card strip with the mouse wheel, by dragging, or by touch.

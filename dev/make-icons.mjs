@@ -25,6 +25,7 @@ const icons = {
   clock: `<circle cx="25" cy="25" r="20"/><path d="M25 12v13l8 5"/>`,
   close: `<path d="M12 12l26 26M38 12L12 38"/>`,
   console: `<path d="M14 18h22a9 9 0 0 1 8.5 12l-2.6 8a5 5 0 0 1-8.6 1.2L30 35H20l-3.3 4.2A5 5 0 0 1 8.1 38l-2.6-8A9 9 0 0 1 14 18Z"/><path d="M17 24.5v8M13 28.5h8"/><circle cx="33" cy="26.5" r="1.6"/><circle cx="37.5" cy="30.5" r="1.6"/>`,
+  chart: `<path d="M7 8v34h36"/><path d="M13 33l8-10 7 6 12-14"/>`,
   increase: `<path d="M19 11l14 14-14 14"/>`,
   decrease: `<path d="M31 11L17 25l14 14"/>`,
   dehumidifier: `<rect x="10" y="6" width="30" height="38" rx="4"/><path d="M25 15c-4 5.5-6 8.5-6 11.5a6 6 0 0 0 12 0c0-3-2-6-6-11.5Z"/><path d="M16 38h18"/>`,

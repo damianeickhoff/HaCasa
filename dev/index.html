@@ -35,6 +35,7 @@
       waste: [{ entity: "sensor.waste_bio", label: "Bio" }, { entity: "sensor.waste_plastic", label: "Plastic" }, { entity: "sensor.waste_paper", label: "Paper" }] },
     more: [],
     templates: [{ id: "tpl1", name: "Outside", icon: "mdi:thermometer", state: "{{ states('weather.home') }}", label: "example", room: undefined }],
+    graphs: [{ id: "gr1", entity: "sensor.living_room_temperature", room: "home", hours: 24 }, { id: "gr2", entity: "sensor.living_room_humidity", room: "living_room", hours: 24 }],
   };
   el.loadConfig = async () => { el.applyConfig(); };   // keep the dev config (acts as config.json)
   el.hass = makeHass(h => { el.hass = { ...h }; });
