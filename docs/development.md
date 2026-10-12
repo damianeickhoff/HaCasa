@@ -6,8 +6,10 @@ HaCasa Nova is written with [Lit](https://lit.dev) and bundled with [esbuild](ht
 git clone https://github.com/damianeickhoff/HaCasa.git
 cd HaCasa
 npm install
-npm run watch            # rebuilds dist/hacasa-nova.js on every change
+npm run watch            # rebuilds dev/build/hacasa-nova.js on every change
 ```
+
+`npm run dev` builds once into `dev/build/` (git-ignored), which the dev pages load. `npm run build` is the release build into `dist/`, which is only committed with a release; it is copied to `dev/build/` as well.
 
 ## Run it outside Home Assistant
 
@@ -55,7 +57,7 @@ Room photos are looked up under `/images/rooms/` of the served folder; without t
 
 3. After every change: `npm run deploy:dev` and reload the browser. The loader picks up the new build by itself, no restart needed.
 
-Releases go the normal way: `npm run build`, commit `dist/hacasa-nova.js`, publish a GitHub release, and update your own install through HACS like any other user.
+Releases go the normal way (see [Releasing](#releasing)), and you update your own install through HACS like any other user.
 
 ## Layout
 
@@ -71,10 +73,10 @@ src/
   features.js   quick actions, doorbell, updates, light scenes
   extras*.js    keypad, idle screen, history, statistics, calendar
   i18n.js       t(), the language list and fallbacks (the Dutch text is the key)
-  lang/         one dictionary per language (en.js, …)
+  lang/         one file per language (en.js, de.js, …), found by build.mjs
   styles.js     all CSS
 icons/          SVG icons, drawn by dev/make-icons.mjs, inlined by build.mjs
-dist/           the built file Home Assistant loads (committed for HACS)
+dist/           the built file Home Assistant loads (committed with each release, for HACS)
 docs/           this site (MkDocs Material)
 ```
 
@@ -82,16 +84,19 @@ docs/           this site (MkDocs Material)
 
 All text goes through `t()` from `src/i18n.js`. The Dutch text is the key; each other language is one file in `src/lang/` (`en.js` holds the English). To add a language:
 
-1. Copy `src/lang/en.js` to `src/lang/<code>.js` (`de`, `fr`, … as Home Assistant names the language) and translate the values. The keys are the Dutch text used in the source; leave them as they are.
-2. Add one line to `LANGS` in `src/i18n.js`: `de: { name: "Deutsch", locale: "de-DE", dict: de }`, plus the matching `import`.
-3. Run `npm run i18n:check`. It shows how many keys are translated, and fails on a `{placeholder}` that differs from the key. `npm run i18n:check -- <code>` prints the keys still missing, ready to paste into your file.
+1. Copy `src/lang/en.js` to `src/lang/<code>.js`, where `<code>` is the Home Assistant language code in lower case (`fr.js`, `pt-br.js`).
+2. Set the first line to your language: `export const meta = { name: "Français", locale: "fr-FR" };`. Add `keepCase: true` when room names keep their capital inside a sentence, as German nouns do.
+3. Translate the values. The keys are the Dutch text used in the source; leave them as they are.
+4. Run `npm run i18n:check` and open `dev/index.html?lang=<code>` after `npm run dev` to look for long words.
 
-A missing or empty key falls back to English, so a partial translation works. The panel picks the language from the Home Assistant profile (`de-CH` uses `de`); users can override it in the panel settings. Check long words with `?lang=<code>` in `dev/index.html`.
+That one file is the whole pull request: the build finds every file in `src/lang/`, the panel picks the language from the Home Assistant profile (`fr-CA` uses `fr`) and lists it under Settings → General → Language. No other files, no `dist/`, no docs; the maintainer adds the language to the docs with the release.
+
+`npm run i18n:check` (also run by CI) shows how many keys are translated and fails on a `{placeholder}` that differs from the key, or on anything in the file that isn't text: language files ship to every user, so they may not contain code. `npm run i18n:check -- <code>` prints the keys still missing, ready to paste. A missing or empty key falls back to English, so a partial translation works.
 
 Pull requests are welcome.
 
 ## Releasing
 
-1. Bump `version` in `package.json` and add the changes to `CHANGELOG.md`.
-2. `npm run build` and commit `dist/hacasa-nova.js`.
-3. Tag `vX.Y.Z` and publish a GitHub release; HACS picks it up.
+1. Bump `version` in `package.json` and add the changes to `CHANGELOG.md`. New languages: add them to [Language](extras.md#language).
+2. `npm run build` and commit `dist/hacasa-nova.js` (pull requests don't touch it, so this is where it catches up).
+3. Tag `vX.Y.Z` and publish a GitHub release with `dist/hacasa-nova.js` attached; HACS picks it up. CI checks that a release tag's `dist/` matches the source.

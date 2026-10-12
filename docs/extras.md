@@ -45,4 +45,10 @@ When the connection to Home Assistant drops, a red pill at the top says so until
 
 ## Language
 
-English, Dutch and German. **Settings → General → Language**: automatic (follows your Home Assistant profile), English, Nederlands or Deutsch. Other Home Assistant languages fall back to English.
+HaCasa Nova speaks:
+
+- English
+- Nederlands (Dutch)
+- Deutsch (German), translated by [mlo-Tek](https://github.com/mlo-Tek)
+
+**Settings → General → Language**: automatic (follows your Home Assistant profile) or one of the languages above. Other Home Assistant languages fall back to English. Want to add yours? It's one file, see [Translations](development.md#translations).

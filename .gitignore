@@ -10,6 +10,7 @@ dev/private/
 FORUM_POST.md
 REDDIT_POST.md
 
-# dev build and the per-machine deploy target
+# local builds (npm run dev / watch; dist/ is only committed with a release) and the per-machine deploy target
+dev/build/
 dist-dev/
 deploy.local.json

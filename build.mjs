@@ -1,18 +1,23 @@
-// Bundles src/panel.js into one self-contained file, dist/hacasa-nova.js (HACS serves a single file),
-// with the SVG icons from icons/ inlined as data: URLs. Also writes version.json for cache-busting.
-// `node build.mjs --watch` rebuilds on change.
+// Bundles src/panel.js into one self-contained file (HACS serves a single file), with the SVG icons from icons/
+// inlined as data: URLs and every language file in src/lang/ gathered as "hcn:langs". Also writes version.json.
+// `node build.mjs` is the release build: dist/hacasa-nova.js, committed only with a release (HACS reads it from
+// the release commit). It is copied to dev/build/ too, so the dev pages always load the newest build.
+// `node build.mjs --local` (npm run dev) and `--watch` build into dev/build/ only (git-ignored), for working on the code.
 // `node build.mjs --dev` builds the dev variant into dist-dev/hacasa-nova-dev.js: element <hacasa-nova-dev>,
 // card custom:hacasa-nova-dev-card and its own settings key, so it runs next to the HACS install.
 import * as esbuild from "esbuild";
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const watch = process.argv.includes("--watch");
 const dev = process.argv.includes("--dev");
+const local = watch || process.argv.includes("--local");
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 const version = pkg.version + (dev ? "-dev" : "");
-const outdir = dev ? "dist-dev" : "dist";
+const outdir = dev ? "dist-dev" : local ? "dev/build" : "dist";
 const name = dev ? "hacasa-nova-dev" : "hacasa-nova";
 mkdirSync(outdir, { recursive: true });
+mkdirSync("dev/build", { recursive: true });
 
 const icons = {
   name: "icons",
@@ -27,6 +32,20 @@ const icons = {
   },
 };
 
+// "hcn:langs" = { de: { meta, default }, en: … } from src/lang/<code>.js, sorted so the build stays deterministic.
+const langs = {
+  name: "langs",
+  setup(build) {
+    build.onResolve({ filter: /^hcn:langs$/ }, () => ({ path: "langs", namespace: "hcn-langs" }));
+    build.onLoad({ filter: /.*/, namespace: "hcn-langs" }, () => {
+      const files = readdirSync("src/lang").filter(f => /^[a-z]{2,3}(-[a-z0-9]+)*\.js$/.test(f)).sort();
+      const code = files.map((f, i) => `import * as l${i} from "./${f}";`).join("\n")
+        + `\nexport default { ${files.map((f, i) => `${JSON.stringify(f.slice(0, -3))}: l${i}`).join(", ")} };`;
+      return { contents: code, loader: "js", resolveDir: resolve("src/lang"), watchDirs: ["src/lang"] };
+    });
+  },
+};
+
 const stamp = {
   name: "version-stamp",
   setup(build) {
@@ -34,6 +53,7 @@ const stamp = {
       if (result.errors.length) return;
       const v = Date.now().toString(36);
       writeFileSync(`${outdir}/version.json`, JSON.stringify({ v, version, built: new Date().toISOString() }));
+      if (outdir === "dist") copyFileSync(`dist/${name}.js`, `dev/build/${name}.js`);
       console.log(`[hacasa-nova] built ${version} v=${v}`);
     });
   },
@@ -50,7 +70,7 @@ const ctx = await esbuild.context({
   outfile: `${outdir}/${name}.js`,
   legalComments: "eof",
   banner: { js: `/*! HaCasa Nova ${version} · MIT · https://github.com/damianeickhoff/HaCasa */` },
-  plugins: [icons, stamp],
+  plugins: [icons, langs, stamp],
 });
 
 if (watch) await ctx.watch();

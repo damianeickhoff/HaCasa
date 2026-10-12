@@ -24,7 +24,7 @@
     });
   }
   import { makeHass } from "./mock-hass.js";
-  await import("../dist/hacasa-nova.js?v=" + Date.now());
+  await import("./build/hacasa-nova.js?v=" + Date.now()); // npm run dev, watch or build
   if (new URLSearchParams(location.search).has("fresh")) ["hacasa_nova", "kamer_panel", "homio_panel"].forEach(k => localStorage.removeItem("mock:" + k));
   const card = document.createElement("hacasa-nova-card");
   card.setConfig({ type: "custom:hacasa-nova-card" });           // no config: like a brand-new install

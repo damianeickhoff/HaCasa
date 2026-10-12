@@ -1,4 +1,5 @@
 // English. Keys are the Dutch text used in the source; see src/i18n.js for how to add a language.
+export const meta = { name: "English", locale: "en-GB" };
 export default {
   // states and short words
   "Aan": "On", "Uit": "Off", "Open": "Open", "Dicht": "Closed", "Onbereikbaar": "Unavailable", "Onreachable": "Unavailable", "Offline": "Offline", "Live": "Live",
