@@ -577,7 +577,7 @@ export const styles = css`
     .btabs.edit{padding:4px 4px 4px 18px;gap:10px}
     .btabs.edit .lbl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--fg-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .btabs.edit .lbl ha-icon{--mdc-icon-size:16px;flex:none}
-    .btabs.edit a.done{background:rgba(255,255,255,.9);color:#1d1d1f;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:0 18px}
+    .btabs.edit a.done{width:auto;flex:none;background:rgba(255,255,255,.9);color:#1d1d1f;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:0 18px}
     .popup .pvrow{flex-direction:column;align-items:stretch}
     .popup .pvrow .pvc .card{width:100%}
   }
@@ -592,6 +592,11 @@ export const styles = css`
     .nav.topnav.open .links.floors{position:fixed;background:rgba(28,28,32,.55);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border:0;border-right:1px solid var(--line);box-shadow:20px 0 60px rgba(0,0,0,.35)}
     .btabs a.ic ha-icon{opacity:.85}
   }
+
+  /* one look for every choice button: the pill from the card settings (also the chip lists in popups and settings) */
+  .popup .chips button,.popup .form .f .chips button,.settings .chips button,.settings .f .chips button{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:1;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .popup .chips button.on,.popup .form .f .chips button.on,.settings .chips button.on,.settings .f .chips button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent;opacity:1}
+  .popup .chips,.settings .chips{gap:4px}
 
   /* ===== tablet portrait & phone ===== */
   @media (max-width:900px){
@@ -617,18 +622,17 @@ export const styles = css`
     .bnav{position:fixed;left:var(--pad);right:var(--pad);bottom:calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));z-index:41;display:flex;gap:8px;align-items:flex-end;animation:upT .5s var(--ease) both}
     :host(.in-card) .bnav{position:absolute}
     .btabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:54px;padding:4px}
-    .btabs a{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;height:46px;padding:0 14px;border-radius:999px;color:var(--fg-2);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
-    .btabs a.active{background:rgba(255,255,255,.26);color:#fff;font-weight:700}
-    .btabs a.ic{width:42px;padding:0}
-    .btabs:has(a.ic + a.ic) .sep{margin:0 2px}
-    .btabs:has(a.ic + a.ic + .sep) a.ic{width:36px}
-    .btabs:has(a.ic + a.ic + .sep) a.rtab{padding:0 6px 0 10px}
-    .btabs:has(a.ic + a.ic + .sep) a.rtab ha-icon{--mdc-icon-size:16px;width:16px;height:16px}
-    .btabs a img.ico{width:20px;height:20px}
-    .btabs a ha-icon{--mdc-icon-size:18px;width:18px;height:18px;opacity:.7;flex:none}
-    .btabs a.rtab{flex:1;min-width:0;padding:0 8px 0 12px;gap:4px}
-    .btabs a.rtab span{overflow:hidden;text-overflow:ellipsis}
-    .btabs .sep{width:1px;height:20px;background:var(--line);margin:0 4px;flex:none}
+    /* icon tabs; only the active one slides open to icon + name (nav option 1 + 3) */
+    .btabs a{flex:none;width:42px;min-width:0;display:flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0;border-radius:999px;color:var(--fg-2);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
+    .btabs a span{display:none;overflow:hidden;text-overflow:ellipsis}
+    .nav.open .links a.home{gap:10px}
+    .nav.open .links a.home img.ico{width:18px;height:18px}
+    .btabs a.active{flex:1;width:auto;justify-content:flex-start;padding:0 14px 0 12px;background:rgba(255,255,255,.26);color:#fff;font-weight:700}
+    .btabs a.active span{display:inline}
+    .btabs a img.ico{width:20px;height:20px;flex:none}
+    .btabs a ha-icon{--mdc-icon-size:18px;width:18px;height:18px;opacity:.8;flex:none}
+    .btabs a.active ha-icon{opacity:1}
+    .btabs .sep{width:1px;height:20px;background:var(--line);margin:0 2px;flex:none}
     .bnav .sbtn{display:grid;width:54px;height:54px}
     .bnav .sbtn img{width:20px;height:20px}
     .bnav .sbtn.on img{width:16px;height:16px}

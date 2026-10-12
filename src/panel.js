@@ -461,16 +461,15 @@ class HacasaNova extends LitElement {
   floorOf(room) { return room ? (this.floorGroups.find(g => g.rooms.includes(room))?.id ?? null) : null; }
   /** phones and tablets: glass pill at the bottom (home · rooms · more) plus a detached search button; the rooms tab opens the room sheet (renderLinks) above it */
   renderBottomNav(room, isPage) {
-    const srch = this.searchOpen && !this.settings;
+    const srch = this.searchOpen && !this.settings, shortcuts = (this.config.bottomTabs || ["sensoren", "energie"]).filter(k => PAGES[k]);
     const toggleSearch = () => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; this.drawer = false; };
     if (this.edit && !this.settings) return html`<div class="bnav"><div class="btabs pill edit"><span class="lbl"><ha-icon icon="mdi:pencil-outline"></ha-icon>${this.editKey === "home" ? t("Startpagina bewerken") : t("Kamer bewerken")}</span><a class="done" @click=${() => this.stopEdit()}>${t("Klaar")}</a></div></div>`;
     return html`<div class=${classMap({ bnav: true, srch })}>
       ${srch ? searchBar(this) : html`<div class="btabs pill">
-        <a class=${classMap({ ic: true, active: !room && !isPage && !this.drawer })} title=${t("Thuis")} @click=${() => this.go(null)}><img class="ico" src=${icon("home")} alt=""></a>
-        <a class=${classMap({ rtab: true, active: !!room || this.drawer })} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><span>${room ? room.name : t("Kamers")}</span><ha-icon icon=${this.drawer ? "mdi:chevron-down" : "mdi:chevron-up"}></ha-icon></a>
-        ${(this.config.bottomTabs || ["sensoren", "energie"]).filter(k => PAGES[k]).map(k => html`<a class=${classMap({ ic: true, active: this.page === k })} title=${t(PAGES[k].label)} @click=${() => { this.drawer = false; this.goPath("__" + k + "__"); }}><ha-icon icon=${PAGES[k].icon}></ha-icon></a>`)}
+        <a class=${classMap({ rtab: true, active: !!room || this.drawer })} title=${t("Kamers")} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img class="ico" src=${icon("floorplan")} alt=""><span>${room ? room.name : t("Kamers")}</span></a>
+        ${shortcuts.map(k => html`<a class=${classMap({ active: this.page === k })} title=${t(PAGES[k].label)} @click=${() => { this.drawer = false; this.goPath("__" + k + "__"); }}><ha-icon icon=${PAGES[k].icon}></ha-icon><span>${t(PAGES[k].label)}</span></a>`)}
         <span class="sep"></span>
-        <a class=${classMap({ ic: true, more: true, active: !!isPage })} title=${t("Meer")} @click=${() => this.openPopup({ type: "more" })}><ha-icon icon="mdi:dots-horizontal"></ha-icon></a>
+        <a class=${classMap({ more: true, active: !!isPage && !shortcuts.includes(this.page) })} title=${t("Meer")} @click=${() => this.openPopup({ type: "more" })}><ha-icon icon="mdi:dots-horizontal"></ha-icon><span>${t("Meer")}</span></a>
       </div>`}
       <button class=${classMap({ sbtn: true, on: srch })} title=${t("Zoeken")} @click=${toggleSearch}><img src=${icon(srch ? "close" : "search")} alt=""></button>
     </div>`;
@@ -480,10 +479,11 @@ class HacasaNova extends LitElement {
     if (this.searchOpen && !this.drawer && !matchMedia("(max-width:900px)").matches) return html`<div class="links pill srch">${searchBar(this)}</div>`;
     const more = html`<a class=${classMap({ more: true, active: !!isPage })} @click=${() => this.openPopup({ type: "more" })}>${t("Meer")}</a><span class="sep"></span><a class=${classMap({ search: true, active: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; }}><img class="ico" src=${icon("search")} alt=""></a>`;
     const groups = this.config.navMode === "floors" ? this.floorGroups : [];
-    if (groups.length < 2) return html`<div class="links pill">
+    const homeLink = this.drawer ? html`<a class=${classMap({ home: true, active: !room && !isPage })} @click=${() => this.go(null)}><img class="ico" src=${icon("home")} alt="">${t("Thuis")}</a>` : nothing;   // the phone sheet lists home too (the bar has no home tab)
+    if (groups.length < 2) return html`<div class="links pill">${homeLink}
       ${this.rooms.map(r => html`<a class=${classMap({ active: room?.id === r.id })} @click=${() => this.go(r)}>${r.name}</a>`)}${more}</div>`;
     const all = this.drawer && this.config.navExpand;   // mobile menu: every floor open, headers are just headings
-    return html`<div class=${classMap({ links: true, pill: true, floors: true, expanded: all })}>
+    return html`<div class=${classMap({ links: true, pill: true, floors: true, expanded: all })}>${homeLink}
       ${groups.map(g => { const here = g.rooms.includes(room);
         return html`<div class=${classMap({ fl: true, open: all || this.navFloor === g.id })} @mouseleave=${() => { if (!this.drawer && this.navFloor === g.id) this.navFloor = null; }}>
           <a class=${classMap({ active: here })} @click=${() => { if (!all) this.navFloor = this.navFloor === g.id ? null : g.id; }}>${g.name}${here ? html`<small>${room.name}</small>` : nothing}${all ? nothing : html`<ha-icon icon="mdi:chevron-down"></ha-icon>`}</a>
