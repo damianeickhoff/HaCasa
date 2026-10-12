@@ -407,9 +407,11 @@ export const styles = css`
   .popup .grp{margin-bottom:18px}
   .popup .form .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
   .seg{display:flex;flex-wrap:wrap;gap:4px}
-  .seg button{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap}
+  .seg.two{display:grid;grid-template-columns:1fr 1fr}
+  .seg.two button{justify-content:center}
+  .seg button,.popup .form .f .seg button{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap}
   .seg button ha-icon{--mdc-icon-size:15px}
-  .seg button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
+  .seg button.on,.popup .form .f .seg button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
   .seg button sup{font-size:8.5px;letter-spacing:.5px;opacity:.55;margin-left:-3px}
   .popup .form .f .chips{margin:0}
   .popup .act{display:grid;grid-template-columns:34px 1fr max-content;gap:12px;align-items:center;padding:8px 12px;margin-top:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-sm);font-size:13px;font-weight:600}

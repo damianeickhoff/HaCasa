@@ -184,6 +184,10 @@ export default {
   "Tekst en label zijn Jinja-templates; Home Assistant rendert ze live": "Text and label are Jinja templates; Home Assistant renders them live", "bv. Filter vervangen": "e.g. Replace filter",
   "optioneel, kleine regel onderin": "optional, small line at the bottom", "Bewaren": "Keep", "eenmalig, alleen hier": "once, only here", "ook in mijn bibliotheek": "in my library too",
   "een bewaarde template plaats je later opnieuw via Eigen kaarten": "a kept template can be placed again later via Your own cards", "Jinja, live gerenderd": "Jinja, rendered live",
+  // condition section
+  "Zichtbaar": "Visible", "Voorwaarde": "Condition", "een verborgen kaart vind je terug in de bewerkmodus": "a hidden card is back in edit mode", "Vergelijking": "Comparison",
+  "de staat van de entiteit, bv. on, off, 21.5": "the entity's state, e.g. on, off, 21.5", "Jinja; onwaar is false, 0, no, off, none of leeg, alles anders is waar": "Jinja; false is false, 0, no, off, none or empty, anything else is true",
+  "Tonen als": "Show when", "waar": "true", "onwaar": "false", "de kaart staat er als de voorwaarde dit oplevert": "the card is shown when the condition gives this",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)
