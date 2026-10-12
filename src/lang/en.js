@@ -126,6 +126,23 @@ export default {
   "tonen als waar": "show when true", "tonen als onwaar": "show when false",
   "Jinja; onwaar = false, 0, no, off, none of leeg. Een verborgen kaart staat nog in Pagina instellen.": "Jinja; false = false, 0, no, off, none or empty. A hidden card is still listed under Page settings.",
   "Jinja; onwaar = false, 0, no, off, none of leeg": "Jinja; false = false, 0, no, off, none or empty",
+  // edit mode and "Kaart toevoegen" (3.1)
+  "Verborgen · voorwaarde": "Hidden · condition", "Verborgen": "Hidden", "Kaart toevoegen": "Add card",
+  "Startpagina bewerken": "Edit home view", "Kamer bewerken": "Edit room", "kaarten toevoegen, verbergen en ordenen": "add, hide and reorder cards",
+  "sleep om te ordenen · × verbergt · tik opent de kaartinstellingen": "drag to reorder · × hides · tap opens the card settings",
+  "Kiezen": "Choose", "Plaatsen": "Place", "Wat wil je hier tonen?": "What do you want to show here?",
+  "Apparaat of entiteit": "Device or entity", "lamp, schakelaar, sensor, mediaspeler… alles uit Home Assistant": "light, switch, sensor, media player… anything from Home Assistant",
+  "meerdere als één kaart": "several as one card", "verloop van een sensor": "a sensor over time", "eigen tekst met Jinja": "your own text with Jinja",
+  "In een andere ruimte": "In another area", "Al op de startpagina": "Already on the home view", "Al in deze ruimte": "Already in this room",
+  "Kies een apparaat of entiteit": "Pick a device or entity", "Zoek op naam, id of ruimte": "Search by name, id or area", "Waar hoort de kaart?": "Where does the card belong?",
+  "Alleen in HaCasa": "Only in HaCasa", "De kaart komt op de startpagina; in Home Assistant verandert niets.": "The card goes on the home view; nothing changes in Home Assistant.",
+  "De kaart komt in {room}. In Home Assistant blijft de entiteit in {other}.": "The card goes in {room}. In Home Assistant the entity stays in {other}.",
+  "De kaart komt in {room}; in Home Assistant verandert niets.": "The card goes in {room}; nothing changes in Home Assistant.",
+  "aanbevolen": "recommended", "Ruimte in Home Assistant wijzigen": "Change the area in Home Assistant",
+  "Verplaatst de entiteit naar {room} — ook in andere dashboards, automatiseringen en spraakassistenten.": "Moves the entity to {room} — in other dashboards, automations and voice assistants too.",
+  "beheerder": "administrator", "Verbergen in {room}": "Hide in {room}", "anders staat hij in beide": "otherwise it shows in both",
+  "Na het toevoegen open je meteen de kaartinstellingen voor naam, icoon en onderkant.": "After adding, the card settings open right away for name, icon and bottom line.",
+  "Toevoegen en instellen": "Add and set up",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)

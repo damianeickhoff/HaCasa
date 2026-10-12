@@ -12,6 +12,7 @@ import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check } from "./settings.js";
 import { LANGUAGES } from "./i18n.js";
 import { fetchHistory } from "./extras2.js";
+import { addPopup, canEdit } from "./edit.js";
 
 const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
 const entityOf = pop => pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
@@ -466,10 +467,16 @@ export function renderPopup(p, pop) {
         <div class="modes n2"><button @click=${() => m.forEach(x => p.call(svc(x.id), "turn_on", { entity_id: x.id }))}>${t("Alles aan")}</button><button @click=${() => m.forEach(x => p.call(svc(x.id), "turn_off", { entity_id: x.id }))}>${t("Alles uit")}</button></div>
         <ul>${m.map(x => li(x.id.startsWith("light.") ? "mdi:lightbulb-outline" : x.id.startsWith("fan.") ? "mdi:fan" : "mdi:power-socket-eu", x.name, x.on ? t("Aan") : t("Uit"), { on: x.on, svg: x.id.startsWith("light.") ? "lamp" : x.id.startsWith("fan.") ? "fan" : "plug", onclick: () => p.call(svc(x.id), "toggle", { entity_id: x.id }) }))}</ul>`);
     }
+    case "add": return addPopup(p, pop);
+    case "value": {
+      const s = hass.states[pop.e.id] || pop.e.state, v = num(s?.state), unit = s?.attributes?.unit_of_measurement || "";
+      return wrap(roomName, label(p, pop.e), unavailable(s) ? t("Onbereikbaar") : v != null ? `${s.state} ${unit}`.trim() : (s?.state || ""), html`
+        <ul>${li("mdi:history", t("Laatst gewijzigd"), relTime(s?.last_changed))}${s?.attributes?.device_class ? li("mdi:tag-outline", t("Soort"), s.attributes.device_class.replace(/_/g, " ")) : nothing}</ul>`);
+    }
     case "more":
       return wrap(t("Meer"), t("Overzichten"), t("Pagina's die niet bij een kamer horen"), html`
         ${modeList(p).length ? html`<div class="prow" style="margin-top:14px"><span>${t("Modi")}</span><b>${modeList(p).filter(m => m.on).map(m => m.label).join(", ") || ""}</b></div><ul style="margin-top:8px">${modeList(p).map(m => li(m.icon || "mdi:account-switch-outline", m.label, m.on ? t("Actief") : t("Uit"), { on: m.on, sub: m.s.attributes.friendly_name, onclick: () => toggleMode(p, m) }))}</ul>` : nothing}
-        <div class="pages">${[...Object.entries(PAGES).map(([k, v]) => ({ label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("Panel instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a @click=${() => m.action ? m.action() : p.goPath(m.path)}><ha-icon icon=${m.icon}></ha-icon><div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
+        <div class="pages">${[...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...Object.entries(PAGES).map(([k, v]) => ({ label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("Panel instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}><ha-icon icon=${m.icon}></ha-icon><div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
     default: return nothing;
   }
 }

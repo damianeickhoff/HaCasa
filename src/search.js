@@ -10,7 +10,7 @@ const QUIET = new Set(["zone", "sun", "event", "tts", "stt", "conversation", "de
 const stateText = s => unavailable(s) ? t("Onbereikbaar") : s.state === "on" ? t("Aan") : s.state === "off" ? t("Uit") : num(s.state) != null ? `${s.state}${s.attributes.unit_of_measurement ? " " + s.attributes.unit_of_measurement : ""}` : s.state.length <= 14 ? s.state : "";
 
 /** open the panel's own popup for an entity when it has one, otherwise HA's more-info */
-function openFor(p, s, m) {
+export function openFor(p, s, m) {
   const id = s.entity_id, d = domain(id), e = m?.e || { id, state: s, reg: p.hass.entities?.[id] || {} }, r = m?.r;
   if (r) { const st = r.ents.strips.find(x => x.switches.some(w => w.id === id)); if (st) return p.openPopup({ type: "strip", st }); const a = r.ents.appliances.find(x => x.switch?.id === id || x.power?.id === id || x.op?.id === id || x.extra?.some(w => w.id === id)); if (a) return p.openPopup({ type: "appliance", a }); }
   switch (d) {
@@ -23,6 +23,7 @@ function openFor(p, s, m) {
     case "scene": return p.call("scene", "turn_on", { entity_id: id });
     case "script": return p.call("script", "turn_on", { entity_id: id });
     case "binary_sensor": { const dc = s.attributes.device_class, kind = ["door", "garage_door", "opening", "garage"].includes(dc) ? "door" : dc === "window" ? "window" : ["motion", "occupancy", "presence"].includes(dc) ? "motion" : "binary"; return r ? p.openPopup({ type: "sensor", e, kind }) : p.moreInfo(id); }
+    case "sensor": return p.openPopup({ type: "value", e });
     default: return p.moreInfo(id);
   }
 }

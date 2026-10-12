@@ -37,9 +37,10 @@ function wasteDate(s) {
 const isOpState = e => e.reg.translation_key === "operation_state" || /_operation_state$/.test(e.id);
 
 function classify(list, config = {}, hass = {}) {
-  const r = { lights: [], switches: [], strips: [], media: [], covers: [], climate: [], fans: [], locks: [], vacuums: [], humidifiers: [], scenes: [], cameras: [], appliances: [], power: [], opstate: [], doors: [], windows: [], motion: [], temp: [], hum: [], battery: [], other: [], all: list };
+  const r = { lights: [], switches: [], strips: [], media: [], covers: [], climate: [], fans: [], locks: [], vacuums: [], humidifiers: [], scenes: [], cameras: [], appliances: [], power: [], opstate: [], doors: [], windows: [], motion: [], temp: [], hum: [], battery: [], other: [], values: [], all: list };
   for (const e of list) {
     const d = domain(e.id), dc = e.state?.attributes?.device_class, cat = e.reg.entity_category;
+    if (e.added && d === "sensor") r.values.push(e);                      // a plain sensor added by hand gets a value card (and still counts below)
     if (cat === "diagnostic" || cat === "config") { if (dc === "battery") r.battery.push(e); continue; }
     if (d === "light") r.lights.push(e);
     else if (d === "switch" || d === "input_boolean") r.switches.push(e);
@@ -134,7 +135,10 @@ export function buildRooms(hass, config) {
   const byArea = entitiesByArea(hass);
   const areas = Object.values(hass.areas || {});
   let rooms = areas.map(a => {
-    const ents = classify(byArea.get(a.area_id) || [], config, hass);
+    // entities added to this room in edit mode (pages[area].add) join the area's own, marked so the cards know
+    const own = byArea.get(a.area_id) || [];
+    const extra = (config.pages?.[a.area_id]?.add || []).filter(id => hass.states[id] && !own.some(e => e.id === id)).map(id => ({ id, reg: hass.entities?.[id] || {}, state: hass.states[id], added: true }));
+    const ents = classify([...own, ...extra], config, hass);
     ents.media = linkMedia(hass, ents.media, config);
     const s = slug(a.name), pg = config.pages?.[a.area_id] || {};
     return {
@@ -159,7 +163,7 @@ export function buildRooms(hass, config) {
     }).filter(Boolean);
   } else {
     const ex = new Set(config.excludeAreas || []);
-    rooms = rooms.filter(r => !ex.has(r.id) && !ex.has(r.slug) && ROOM_DOMAINS.some(d => r.ents.all.some(e => domain(e.id) === d && !e.reg.entity_category)))
+    rooms = rooms.filter(r => !ex.has(r.id) && !ex.has(r.slug) && (ROOM_DOMAINS.some(d => r.ents.all.some(e => domain(e.id) === d && !e.reg.entity_category)) || r.ents.all.some(e => e.added)))
       .sort((a, b) => a.name.localeCompare(b.name, locale()));
     if (config.maxRooms) rooms = rooms.slice(0, config.maxRooms);
   }

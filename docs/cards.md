@@ -135,7 +135,9 @@ The current temperature big, the name below it, and a rail on the right to drag 
 </figure>
 </div>
 
-Doors, windows, motion, smoke, leak and other binary sensors show their state and how long it has been that way ("Closed · since 08:51"). Their bottom line can show **today**: when they were active, as bars. Battery-powered sensors can show the battery level in the corner.
+Doors, windows, motion, smoke, leak and other binary sensors show their state and how long it has been that way ("Closed · since 08:51"). Their bottom line can show **today**: when they were active, as bars. Battery-powered sensors can show the battery level in the corner. A sensor with a missing or wrong device class gets the right card through **Kind** in its card settings.
+
+**Value cards.** A plain sensor (temperature, humidity, power, a percentage, a text) does not get a card by itself; add one in [edit mode](rooms.md#edit-mode) → *Add card*. The number is shown large with its unit, the name under it, the kind in the corner and the last change at the bottom. Text sensors show their text instead. Tap for the details, hold for Home Assistant's dialog; action buttons and the template overrides work as on other cards.
 
 ## Cameras
 

@@ -31,9 +31,30 @@ From top to bottom:
 
 Each room shows its photo, its temperature and humidity, a notification line for that room (lights on, open windows, what is playing) and a card for every device in the area. See [Cards](cards.md) for each type.
 
+## Edit mode
+
+Administrators can rearrange a page in place: **More → Edit room** (or *Edit home view*), or hold the page title. The strip then shows every card of the page, including hidden ones:
+
+- **drag** a card by its grip to change the order;
+- **×** hides a card; a hidden card stays in the row, dimmed, with an eye to bring it back; a card hidden by its visibility condition shows a gear to its settings instead;
+- a **tap** on a card opens its [card settings](card-settings.md);
+- **Add card** at the end adds something new (below);
+- **Page settings** in the bar at the bottom opens the title, photo and notification-line settings; **Done** leaves edit mode (so does Esc).
+
+On phones the bar at the bottom becomes the edit bar; drag with a short hold.
+
+### Adding a card
+
+**Add card** asks what you want: a **device or entity**, or a new **group**, **graph** or **template card** (those open their settings tab with the room already filled in). For an entity you search by name, id or area; entities without an area come first, entities from other rooms carry their room name, and what is already on this page is greyed out. Then you choose where it belongs:
+
+- **Only in HaCasa** (default): the card is added to this page; nothing changes in Home Assistant. When the entity lives in another room you can hide it there at the same time.
+- **Change the area in Home Assistant** (administrators): moves the entity to this area for every dashboard, automation and voice assistant.
+
+The card settings of the new card open right away. A plain sensor (temperature, power, a text) becomes a **value card**: the number large, the name under it, the last change at the bottom, a tap for its details.
+
 ## Per-page settings
 
-Hold the title of any page (or go to **Settings → Pages**) to change:
+Open **Page settings** from the edit bar, hold the page title as a non-administrator, or go to **Settings → Pages** to change:
 
 - the **title** and **photo**,
 - which **cards** are shown and in which **order**,

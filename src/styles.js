@@ -493,6 +493,75 @@ export const styles = css`
   .popup .swatches button{flex:1;height:34px;border:0;border-radius:999px;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
   .popup .swatches button.on{box-shadow:inset 0 0 0 3px #fff}
 
+  /* ===== edit mode: card wrappers with hide/restore, grip and drag state; the bar at the bottom; the add tile ===== */
+  .ecard{position:relative;flex:none;scroll-snap-align:start;--cp:22px}
+  .ecard>.card{pointer-events:none;animation:none;transition:transform .2s var(--ease),box-shadow .2s,background .2s}
+  .ecard .shield{position:absolute;inset:0;z-index:2;cursor:grab;touch-action:pan-x;border-radius:var(--r)}
+  .ecard>.card .ctl,.ecard>.card .vslider,.ecard>.card .socks,.ecard>.card .rail,.ecard>.card .lbl.steps,.ecard>.card .lbl.cols,.ecard>.card .lbl.chips,.ecard>.card .seg{visibility:hidden}   /* controls rest while editing */
+  .ecard>.card .c,.ecard>.card .ua{visibility:hidden}                 /* the × takes the corner */
+  .ecard.hid>.card{background:rgba(255,255,255,.04);border-style:dashed}
+  .ecard.hid>.card>*{opacity:.45}
+  .ecard.lift>.card{transform:translateY(-10px) rotate(-1.5deg);box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 26px 50px rgba(0,0,0,.45);background:rgba(255,255,255,.2);border-color:var(--line-on)}
+  .ecard .x{position:absolute;top:14px;right:14px;z-index:3;width:30px;height:30px;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer}
+  .ecard .x ha-icon{--mdc-icon-size:16px}
+  .ecard .x.eye{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
+  .ecard .grip{position:absolute;right:var(--cp);bottom:var(--cp);height:28px;display:flex;align-items:center;color:var(--fg-3);pointer-events:none}
+  .ecard .grip ha-icon{--mdc-icon-size:20px}
+  .ecard .why{position:absolute;left:var(--cp);right:var(--cp);bottom:var(--cp);height:28px;display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;font-weight:600;color:var(--fg-2);pointer-events:none;white-space:nowrap;overflow:hidden}
+  .ecard .why ha-icon{--mdc-icon-size:14px;flex:none}
+  .card.add{background:rgba(255,255,255,.04);border-style:dashed;box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--fg-3);animation:none}
+  .card.add .plus{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.1);display:grid;place-items:center;color:#fff}
+  .card.add .plus ha-icon{--mdc-icon-size:20px}
+  .card.add b{font-size:11px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--fg-2)}
+  .banner.ebar{justify-content:flex-start;gap:12px;padding:0 var(--pad);height:58px;text-align:left}
+  .banner.ebar ha-icon{--mdc-icon-size:18px;flex:none}
+  .banner.ebar small{font-weight:600;color:var(--fg-3);letter-spacing:1.6px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .banner.ebar button{height:36px;padding:0 18px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;flex:none}
+  .banner.ebar .ghost{margin-left:auto}
+  .banner.ebar .done{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
+  /* value card: the number where the name sits, the name under it (as on the thermostat card) */
+  .card.value .s.big{grid-area:n}
+  .card.value .s.big small{font-size:16px;letter-spacing:0;font-weight:600;color:var(--fg-2);margin-left:3px}
+  .card.value .nm{grid-area:s;font-size:13px;font-weight:500;color:var(--fg-3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card.value.noname .nm{display:none}
+  /* "Kaart toevoegen" popup */
+  .popup.addp{width:min(560px,calc(100vw - 32px));max-width:none}
+  .popup .steps{display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--fg-3);margin:-6px 0 14px}
+  .popup .steps span{display:flex;gap:6px;align-items:center}
+  .popup .steps span i{width:18px;height:18px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:10px;letter-spacing:0}
+  .popup .steps span.on{color:#fff}.popup .steps span.on i{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
+  .popup .steps span.done i{background:rgba(255,255,255,.25);border-color:transparent}
+  .popup .steps i.ln{width:18px;height:1px;background:var(--line)}
+  .popup .sinput{display:flex;align-items:center;gap:10px;height:46px;padding:0 18px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid var(--line)}
+  .popup .sinput ha-icon{--mdc-icon-size:18px;opacity:.8}
+  .popup .sinput input{flex:1;min-width:0;background:none;border:0;outline:0;font:inherit;font-size:16px;color:#fff}
+  .popup .glbl{display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--fg-3);margin:16px 2px 6px}
+  .popup ul.ents{margin-top:0}
+  .popup ul.ents li{padding:10px 12px 10px 16px;font-size:14px}
+  .popup ul.ents li.dim{opacity:.45}
+  .popup ul.ents li small{font-family:ui-monospace,Consolas,monospace;font-size:11px}
+  .popup ul.ents li .val{font-size:13px;font-weight:700;color:var(--fg-2);white-space:nowrap}
+  .popup ul.ents li .tag{display:inline-flex;align-items:center;height:20px;padding:1px 8px 0;line-height:1;border-radius:999px;background:rgba(255,255,255,.12);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--fg-2);margin-left:8px;vertical-align:2px}
+  .popup ul.place li{align-items:start}
+  .popup ul.place li ha-icon,.popup li.chk ha-icon{margin-top:1px}
+  .popup ul.place li small{font-size:12px;line-height:1.4;margin-top:3px;opacity:.75}
+  .popup ul.place li .st{align-self:start;margin-top:4px}
+  .popup ul.place li .st.adm{opacity:.5}
+  .popup .pvrow{display:flex;gap:16px;align-items:center;margin-top:18px}
+  .popup .pvrow .cap{font-size:12px;line-height:1.45;color:var(--fg-3)}
+  .popup .pvrow .pvc .card{width:280px;height:175px}
+  @media (max-width:900px){
+    .banner.ebar{display:none}
+    .ecard{--cp:14px}
+    .ecard .x{top:10px;right:10px;width:28px;height:28px}
+    .btabs.edit{padding:4px 4px 4px 18px;gap:10px}
+    .btabs.edit .lbl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--fg-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .btabs.edit .lbl ha-icon{--mdc-icon-size:16px;flex:none}
+    .btabs.edit a.done{background:rgba(255,255,255,.9);color:#1d1d1f;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:0 18px}
+    .popup .pvrow{flex-direction:column;align-items:stretch}
+    .popup .pvrow .pvc .card{width:100%}
+  }
+
   /* ===== tablet portrait & phone ===== */
   @media (max-width:900px){
     :host(.in-card){position:relative;height:100%}

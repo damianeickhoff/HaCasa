@@ -2,7 +2,7 @@
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { icon, isOn, unavailable, num, relTime, shortDate, sinceText } from "./util.js";
+import { icon, isOn, unavailable, num, relTime, shortDate, sinceText, domain } from "./util.js";
 import { name, deviceName } from "./model.js";
 import { applianceState, applianceEnd, eventWhen, nextEvent } from "./extras2.js";
 import { spark } from "./extras3.js";
@@ -521,6 +521,35 @@ export function pickAttention(list) {
 }
 
 /* ---------- home cards: [{ key, label, tpl }] so the page config can hide/reorder them ---------- */
+/* ---------- value card: a plain sensor added to a page (temperature, power, text …) ---------- */
+const DC_LABEL = { temperature: "Temperatuur", humidity: "Vochtigheid", power: "Vermogen", energy: "Energie", battery: "Batterij", illuminance: "Licht", pressure: "Druk", voltage: "Spanning", current: "Stroom" };
+const fmtVal = v => v.toLocaleString(locale(), { maximumFractionDigits: Math.abs(v) >= 100 ? 0 : 1 });
+export function valueCard(p, e) {
+  const s = e.state, un = unavailable(s), v = num(s?.state), unit = s?.attributes?.unit_of_measurement || "", dc = s?.attributes?.device_class;
+  const mdi = s?.attributes?.icon || (dc === "temperature" ? "mdi:thermometer" : dc === "humidity" ? "mdi:water-percent" : ["power", "energy"].includes(dc) ? "mdi:flash-outline" : dc === "battery" ? "mdi:battery" : dc === "illuminance" ? "mdi:brightness-6" : "mdi:gauge");
+  const corner = ovr(p, e.id, "state") ?? (DC_LABEL[dc] ? t(DC_LABEL[dc]) : "");
+  return html`<div class=${classMap({ card: true, value: true, unavailable: un, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })} ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "value", e })))}>
+    ${un ? ua() : nothing}
+    <div class="i">${icoFor(p, e.id, mdi)}</div>
+    ${corner ? html`<div class="c">${corner}</div>` : nothing}
+    ${un ? html`<div class="n">${label(p, e)}</div><div class="s">${t("Onbereikbaar")}</div>`
+      : v != null ? html`<div class="s big">${fmtVal(v)}<small>${unit}</small></div><div class="nm">${label(p, e)}</div>`
+      : html`<div class="n">${label(p, e)}</div><div class="s">${ovr(p, e.id, "label") ?? s?.state ?? ""}</div>`}
+    <div class="lbl"><span>${ovr(p, e.id, "foot") ?? sinceText(s?.last_changed)}</span></div>
+    ${customActions(p, e.id)}${batteryCorner(p, e)}
+  </div>`;
+}
+/** card kind of a binary sensor: the "Soort" card setting, else the device class */
+export const kindOf = (p, e) => cardCfg(p, e.id).kind || (() => { const dc = e.state?.attributes?.device_class; return ["door", "garage_door", "opening", "garage"].includes(dc) ? "door" : dc === "window" ? "window" : ["motion", "occupancy", "presence"].includes(dc) ? "motion" : "binary"; })();
+/** the card for an entity picked by hand (home view additions, the add-card preview), by domain */
+export function cardFor(p, e) {
+  switch (domain(e.id)) {
+    case "light": return lightCard(p, e); case "switch": case "input_boolean": return switchCard(p, e); case "fan": return fanCard(p, e); case "lock": return lockCard(p, e); case "cover": return coverCard(p, e);
+    case "climate": return climateCard(p, e.state, name(p.hass, e)); case "media_player": return mediaCard(p, { linked: [], ...e }); case "vacuum": return vacuumCard(p, e); case "humidifier": return humidifierCard(p, e);
+    case "camera": return roomCameraCard(p, e); case "binary_sensor": return sensorCard(p, e, kindOf(p, e)); case "sensor": return valueCard(p, e); default: return null;
+  }
+}
+
 export function homeCards(p, h) {
   const cards = [], add = (key, label, tpl) => cards.push({ key, label, tpl });
   if (h.climate) add("climate", t("Thermostaat"), climateCard(p, h.climate));
@@ -576,6 +605,8 @@ export function homeCards(p, h) {
   for (const g of (p.config.graphs || []).filter(g => (!g.room || g.room === "home") && g.entity)) add("graph:" + g.id, g.name || t("Grafiek"), graphCard(p, g));
   // template cards placed on the home view
   (p.config.templates || []).filter(tc => (!tc.room || tc.room === "home") && !condHidden(p, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => add(tc.id, tc.name || t("Template"), templateCard(p, tc, i)));
+  // entities added to the home view by hand (edit mode → Kaart toevoegen)
+  for (const id of (p.config.pages?.home?.add || [])) { const s = p.hass.states[id]; if (!s) continue; const e = { id, state: s, reg: p.hass.entities?.[id] || {} }; const tpl = cardFor(p, e); if (tpl) add(id, label(p, e), tpl); }
   if (h.energy.power) add("energy", t("Energie"), html`<div class="card" ${pressDir(p, { tap: () => p.openPopup({ type: "energy" }) })}>
     <div class="n">${t("Energie")}</div><div class="s">${Math.round(num(h.energy.power.state) ?? 0)} W</div>
     <div class="lbl">${h.energy.today ? t("Vandaag {n} kWh", { n: num(h.energy.today.state)?.toFixed(1) }) : ""}</div><div class="i">${ico("mdi:flash-outline", "electric")}</div></div>`);
