@@ -1211,7 +1211,7 @@ var is=Object.defineProperty;var ss=(t,e,a)=>e in t?is(t,e,{enumerable:!0,config
     .btabs a span{display:none;overflow:hidden;text-overflow:ellipsis}
     .nav.open .links a.home{gap:10px}
     .nav.open .links a.home img.ico{width:18px;height:18px}
-    .btabs a.active{flex:2.6;justify-content:flex-start;padding:0 14px 0 13px;background:rgba(255,255,255,.26);color:#fff;font-weight:700}
+    .btabs a.active{flex:2.6;padding:0 14px;background:rgba(255,255,255,.26);color:#fff;font-weight:700}
     .btabs a.active span{display:inline}
     .btabs a img.ico{width:20px;height:20px;flex:none;opacity:.9}
     .btabs a ha-icon{--mdc-icon-size:21px;width:21px;height:21px;opacity:.9;flex:none}
