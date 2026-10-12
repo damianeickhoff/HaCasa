@@ -40,7 +40,7 @@ let CUR = null; // current {p, pop} while rendering, so wrap() can draw the head
 const wrap = (title, big, sub, body) => {
   const { p, pop } = CUR;
   const form = !!(pop.form && entityOf(pop));                // popups without an entity (presets) render their own form
-  if (form) { body = cardForm(p, pop); title = html`${t("Kaart instellen")}<span class="rm"> · ${title}</span>`; sub = t("Zo ziet de kaart eruit met deze instellingen"); }
+  if (form) { body = cardForm(p, pop); title = html`<span>${t("Kaart instellen")}<span class="rm"> · ${title}</span></span>`; sub = t("Zo ziet de kaart eruit met deze instellingen"); }
   // .pw: the popup plus its ••• menu; a click anywhere in it (outside the menu) closes the menu
   return html`<div class="pw" @click=${() => { if (pop.menu) p.openPopup({ ...pop, menu: false }); }}><div class=${form ? "popup wide cardf" : "popup"}><h2>${title} ${hbtns(p, pop)}</h2><div class="big">${big}</div><div class="sub">${sub}</div>${body}</div>${pop.menu && entityOf(pop) ? optionsMenu(p, pop) : nothing}</div>`;
 };
