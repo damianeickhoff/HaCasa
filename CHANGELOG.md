@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.0-beta.2 (beta)
 
 - **Non-admin users** (#144): template cards say *only for administrators* instead of showing an error, the System page says why host and core figures are missing, the Template cards settings carry the same note, and *install* on an update opens Home Assistant's dialog instead of failing silently.
 - **Room cap gone** (#146): automatic room mode no longer stops at nine rooms. **Settings → Rooms → Maximum** sets a limit if you want one.
