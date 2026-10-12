@@ -525,7 +525,8 @@ export const styles = css`
   .card.value .nm{grid-area:s;font-size:13px;font-weight:500;color:var(--fg-3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card.value.noname .nm{display:none}
   /* "Kaart toevoegen" popup */
-  .popup.addp{width:min(640px,calc(100vw - 32px));max-width:none}
+  .popup.addp{width:min(640px,calc(100vw - 32px));max-width:none;padding-bottom:0}
+  .popup .foot .modes button:disabled{opacity:.4;cursor:default}
   .popup .steps{display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--fg-3);margin:-6px 0 14px}
   .popup .steps span{display:flex;gap:6px;align-items:center}
   .popup .steps span i{width:18px;height:18px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:10px;letter-spacing:0}

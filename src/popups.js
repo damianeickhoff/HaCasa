@@ -12,8 +12,9 @@ import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check } from "./settings.js";
 import { LANGUAGES } from "./i18n.js";
 import { fetchHistory } from "./extras2.js";
-import { addPopup, canEdit, isBuiltin } from "./edit.js";
+import { addPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
 import { templateOf } from "./cards.js";
+import { GRAPH_HOURS } from "./graph.js";
 
 const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
 const entityOf = pop => pop.type === "cardcfg" ? pop.key : pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
@@ -63,6 +64,10 @@ function cardForm(p, pop) {
   const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player"].includes(dom) || appliance;
   const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock"].includes(dom) || appliance;
   const builtin = isBuiltin(id), inst = id.startsWith("tpl:"), tc = inst ? templateOf(p, id) : null;   // a panel card / a template instance: settings only
+  // a group or graph: its definition is edited right here (pop.gd) and saved with the card settings
+  const grp = id.startsWith("group:") ? (p.config.groups || []).find(g => g.id === id.slice(6)) : null, grf = id.startsWith("graph:") ? (p.config.graphs || []).find(g => g.id === id.slice(6)) : null;
+  const gd = pop.gd || (grp ? { ...grp } : grf ? { ...grf } : null), gupd = patch => p.openPopup({ ...pop, gd: { ...gd, ...patch } });
+  const saveMade = async () => { if (gd) await p.saveUser({ [grp ? "groups" : "graphs"]: (p.userConfig?.[grp ? "groups" : "graphs"] || p.config[grp ? "groups" : "graphs"] || []).map(x => x.id === gd.id ? gd : x) }); };
   // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders)
   const pageKey = p.room?.id || "home";
   let preview = null;
@@ -101,9 +106,16 @@ function cardForm(p, pop) {
     </div>
     <div class="form">
       <div class="grp">${sh(t("Weergave"))}
-        ${builtin ? row(t("Kaart van het paneel"), html`<span class="note">${t("Naam en inhoud volgen de instellingen van het paneel; hieronder kun je de kaart op voorwaarde verbergen.")}</span>`) : nothing}
+        ${builtin && !gd ? row(t("Kaart van het paneel"), html`<span class="note">${t("Naam en inhoud volgen de instellingen van het paneel; hieronder kun je de kaart op voorwaarde verbergen.")}</span>`) : nothing}
+        ${grp ? html`${row(t("Naam"), html`<div class="two"><input type="text" .value=${gd.name || ""} @change=${e => gupd({ name: e.target.value || undefined })}><input type="text" .value=${gd.icon || ""} placeholder="mdi:shape-outline" @change=${e => gupd({ icon: e.target.value || undefined })}></div>`)}
+          ${row(t("Stijl"), html`<div class="seg">${[["tiles", t("tegels (tikken schakelt)")], ["list", t("lijst")]].map(([v, l]) => html`<button class=${(gd.style || "tiles") === v ? "on" : ""} @click=${() => gupd({ style: v })}>${l}</button>`)}</div>`)}
+          ${row(t("Onderdelen"), html`<div class="chips">${groupCandidates(p).map(c => html`<button class=${(gd.members || []).includes(c.id) ? "on" : ""} @click=${() => gupd({ members: (gd.members || []).includes(c.id) ? gd.members.filter(x => x !== c.id) : [...(gd.members || []), c.id] })}>${c.name}</button>`)}</div>`, t("{n} gekozen", { n: (gd.members || []).length }))}` : nothing}
+        ${grf ? html`${row(t("Sensor"), html`<input type="text" list="hcn-numeric" .value=${gd.entity || ""} placeholder="sensor.x" @change=${e => gupd({ entity: e.target.value || undefined })}><datalist id="hcn-numeric">${graphCandidates(p).map(x => html`<option value=${x}></option>`)}</datalist>`)}
+          ${row(t("Naam"), html`<input type="text" .value=${gd.name || ""} placeholder=${p.hass.states[gd.entity]?.attributes.friendly_name || ""} @change=${e => gupd({ name: e.target.value || undefined })}>`, t("leeg = naam van de sensor"))}
+          ${row(t("Periode"), html`<div class="seg">${GRAPH_HOURS.map(n => html`<button class=${(+gd.hours || 24) === n ? "on" : ""} @click=${() => gupd({ hours: n })}>${hoursLabel(n)}</button>`)}</div>`)}` : nothing}
         ${!builtin ? row(t("Naam"), html`<div class="two">${inp("name", inst ? (tc?.name || "") : st?.attributes.friendly_name || (id.startsWith("device:") ? deviceName(p.hass, id.slice(7)) : ""))}${inp("icon", inst ? (tc?.icon || "mdi:code-braces") : "mdi:lightbulb-outline")}</div>`, inst ? t("leeg = zoals in de template") : t("leeg = naam en icoon uit Home Assistant")) : nothing}
-        ${inst && tc?.inputs?.length ? tc.inputs.filter(f => f.key).map(f => row(f.label || f.key, f.type === "number" ? html`<input type="number" .value=${draft.inputs?.[f.key] ?? ""} placeholder=${f.default ?? ""} @change=${e => upd({ inputs: { ...(draft.inputs || {}), [f.key]: e.target.value === "" ? undefined : +e.target.value } })}>` : html`<input type="text" list=${f.type === "entity" ? "hcn-entities" : nothing} .value=${draft.inputs?.[f.key] ?? ""} placeholder=${f.default ?? (f.type === "entity" ? "sensor.x" : "")} @change=${e => upd({ inputs: { ...(draft.inputs || {}), [f.key]: e.target.value || undefined } })}>`, t("invulveld van de template"))) : nothing}
+        ${inst ? html`${row(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${draft.fields?.entity || ""} placeholder="sensor.x" @change=${e => upd({ fields: { ...(draft.fields || {}), entity: e.target.value || undefined } })}>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
+          ${TPL_ASK.filter(([k]) => (tc?.ask || []).includes(k)).map(([k, l]) => row(t(l), html`<input type="text" .value=${draft.fields?.[k] || ""} placeholder=${tc?.[k] || ""} @change=${e => upd({ fields: { ...(draft.fields || {}), [k]: e.target.value || undefined } })}>`, t("door de template gevraagd")))}` : nothing}
         ${dom === "binary_sensor" ? row(t("Soort"), seg("kind", [{ v: "door", l: t("Deur"), icon: "mdi:door" }, { v: "window", l: t("Raam"), icon: "mdi:window-closed-variant" }, { v: "motion", l: t("Beweging"), icon: "mdi:motion-sensor" }, { v: "binary", l: t("Algemeen"), icon: "mdi:checkbox-blank-circle-outline" }], pop.kind || "binary"), t("bepaalt icoon en teksten; zichtbaar na opslaan")) : nothing}
         ${builtin || inst ? nothing : row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ["hideSub", t("Ondertitel")], ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
         ${bottomOpts ? row(t("Onderaan"), seg("bottom", bottomOpts, bottomDef), dom === "climate" ? t("naast de doeltemperatuur; op telefoons alleen dit") : t("wat de kaart onderaan toont")) : nothing}
@@ -152,7 +164,7 @@ function cardForm(p, pop) {
     </div>
   </div>
   <div class="foot"><div class="modes n3">
-    <button class="on" @click=${() => { const a = acts.filter(x => x && x.label && x.service); p.saveCardSettings(id, { ...draft, actions: a.length ? a : undefined }); }}>${t("Opslaan")}</button>
+    <button class="on" @click=${async () => { const a = acts.filter(x => x && x.label && x.service); await saveMade(); p.saveCardSettings(id, { ...draft, actions: a.length ? a : undefined }); }}>${t("Opslaan")}</button>
     <button @click=${() => p.saveCardSettings(id, null)}>${t("Herstel")}</button>
     <button @click=${() => p.openPopup({ ...pop, form: false, draft: null, act: null })}>${t("Annuleren")}</button>
   </div></div>`;
@@ -453,21 +465,15 @@ export function renderPopup(p, pop) {
       const upd = patch => { p.draft = { ...p.draft, templates: list.map((x, j) => j === pop.index ? { ...x, ...patch } : x) }; };
       const f = (lbl, ctrl, sub) => html`<label class="f"><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span>${ctrl}</label>`;
       const txt = (k, ph) => html`<input type="text" .value=${tp[k] || ""} placeholder=${ph} @change=${e => upd({ [k]: e.target.value || undefined })}>`;
-      return html`<div class="popup wide"><h2>${t("Templatekaart")} ${hbtns(p, pop)}</h2><div class="big">${tp.name || t("Nieuwe kaart")}</div><div class="sub">${t("Tekst en label zijn Jinja-templates; Home Assistant rendert ze live. Opslaan gebeurt met de knop op de instellingenpagina.")}</div>
+      return html`<div class="popup wide"><h2>${t("Templatekaart")} ${hbtns(p, pop)}</h2><div class="big">${tp.name || t("Nieuwe kaart")}</div><div class="sub">${t("Een sjabloon in je bibliotheek: plaats het via Bewerken → Kaart toevoegen → Template, zo vaak je wilt. Tekst en label zijn Jinja-templates; Home Assistant rendert ze live. Opslaan gebeurt met de knop op de instellingenpagina.")}</div>
         <div class="form">
           ${f(t("Naam"), txt("name", "bv. Buiten"))}
           ${f(t("Icoon"), txt("icon", "mdi:thermometer"))}
-          ${f(t("Plaats"), html`<select @change=${e => upd({ room: e.target.value || undefined })}><option value="none" ?selected=${tp.room === "none"}>${t("bibliotheek — plaatsen via Bewerken → Kaart toevoegen")}</option><option value="" ?selected=${!tp.room}>${t("Thuis")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${tp.room === r.id}>${r.name}</option>`)}</select>`, t("vast op een pagina, of als sjabloon dat je meerdere keren kunt plaatsen"))}
-          <div class="prow" style="margin-top:12px"><span>${t("Invulvelden")}</span><b>${t("$sleutel in de teksten wordt bij het plaatsen vervangen")}</b></div>
-          ${(tp.inputs || []).map((fld, i) => { const setIn = patch => upd({ inputs: (tp.inputs || []).map((x, j) => j === i ? { ...x, ...patch } : x) }); return html`<div class="irow">
-            <input type="text" placeholder=${t("sleutel")} .value=${fld.key || ""} @change=${e => setIn({ key: e.target.value.replace(/[^\w]/g, "") || undefined })}><input type="text" placeholder=${t("label")} .value=${fld.label || ""} @change=${e => setIn({ label: e.target.value || undefined })}>
-            <select @change=${e => setIn({ type: e.target.value || undefined })}><option value="" ?selected=${!fld.type}>${t("tekst")}</option><option value="entity" ?selected=${fld.type === "entity"}>${t("entiteit")}</option><option value="number" ?selected=${fld.type === "number"}>${t("getal")}</option></select>
-            <input type="text" placeholder=${t("standaard")} .value=${fld.default ?? ""} @change=${e => setIn({ default: e.target.value || undefined })}><button @click=${() => upd({ inputs: (tp.inputs || []).filter((_, j) => j !== i) })}>×</button></div>`; })}
-          <button class="addline" @click=${() => upd({ inputs: [...(tp.inputs || []), {}] })}>${t("+ veld")}</button>
+          ${f(t("Bij het plaatsen invullen"), html`<div class="chips">${TPL_ASK.map(([k, l]) => html`<button class=${(tp.ask || []).includes(k) ? "on" : ""} @click=${() => upd({ ask: (tp.ask || []).includes(k) ? (tp.ask || []).filter(x => x !== k) : [...(tp.ask || []), k] })}>${t(l)}</button>`)}</div>`, t("deze velden vraagt de kaart als je hem op een pagina zet; wat je hier invult is dan het voorbeeld"))}
           ${f(t("Tekst"), txt("state", "{{ states('sensor.buiten_temperatuur') }} °C"), t("template voor de staat"))}
           ${f(t("Label"), txt("label", "{{ relative_time(states.sensor.x.last_changed) }} geleden"), "optioneel, kleine regel onderin")}
           ${f(t("Zichtbaar (voorwaarde)"), html`<div class="two">${txt("visible", "{{ states('sensor.x') | int < 10 }}")}<select @change=${e => upd({ visibleInvert: e.target.value === "1" || undefined })}><option value="" ?selected=${!tp.visibleInvert}>${t("tonen als waar")}</option><option value="1" ?selected=${!!tp.visibleInvert}>${t("tonen als onwaar")}</option></select></div>`, t("Jinja; onwaar = false, 0, no, off, none of leeg"))}
-          ${f(t("Entiteit"), txt("entity", "sensor.x"), t("voor details (vasthouden) en schakelen"))}
+          ${f(t("Entiteit"), html`<span class="note">${t("Wordt gekozen als je de kaart op een pagina zet. In de templates en de actie-data schrijf je $entity.")}</span>`)}
           ${f(t("Tikken"), html`<select @change=${e => upd({ tap: e.target.value || undefined })}><option value="" ?selected=${!tp.tap}>${t("details van de entiteit")}</option><option value="toggle" ?selected=${tp.tap === "toggle"}>${t("entiteit schakelen")}</option><option value="service" ?selected=${tp.tap === "service"}>${t("actie uitvoeren")}</option><option value="navigate" ?selected=${tp.tap === "navigate"}>${t("naar pad gaan")}</option></select>`)}
           ${tp.tap === "service" ? f(t("Actie"), txt("service", "light.turn_on"), "domein.service") : nothing}
           ${tp.tap === "service" ? f(t("Data"), txt("data", '{"entity_id": "light.x", "brightness_pct": 50}'), "JSON") : nothing}

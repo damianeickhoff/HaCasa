@@ -156,6 +156,15 @@ export default {
   "Jinja; onwaar = false, 0, no, off, none of leeg. Een verborgen kaart vind je terug in de bewerkmodus.": "Jinja; false = false, 0, no, off, none or empty. A hidden card is back in edit mode.",
   "bibliotheek — plaatsen via Bewerken → Kaart toevoegen": "library — place it via Edit → Add card", "vast op een pagina, of als sjabloon dat je meerdere keren kunt plaatsen": "fixed on one page, or a template you can place several times",
   "Invulvelden": "Fields", "$sleutel in de teksten wordt bij het plaatsen vervangen": "$key in the texts is replaced when placing", "sleutel": "key", "entiteit": "entity", "getal": "number", "+ veld": "+ field", "bibliotheek": "library",
+  // edit mode round 3: groups/graphs made while adding, template fields asked at placement
+  "weer, agenda, scènes, een groep of grafiek …": "weather, agenda, scenes, a group or graph …", "meerdere lampen, schakelaars of stekkers als één kaart": "several lights, switches or plugs as one card",
+  "Van andere pagina's": "From other pages", "Eén kaart voor meerdere lampen, schakelaars of stekkers": "One card for several lights, switches or plugs", "bv. Sfeerlampen": "e.g. Mood lights", "{n} gekozen": "{n} chosen",
+  "De lijn van een sensor over de laatste uren of dagen": "A sensor's line over the last hours or days", "leeg = naam van de sensor": "empty = the sensor's name",
+  "voor $entity in de templates, details (vasthouden) en schakelen": "for $entity in the templates, details (hold) and toggling", "door de template gevraagd": "asked by the template",
+  "Een sjabloon in je bibliotheek: plaats het via Bewerken → Kaart toevoegen → Template, zo vaak je wilt. Tekst en label zijn Jinja-templates; Home Assistant rendert ze live. Opslaan gebeurt met de knop op de instellingenpagina.": "A template in your library: place it via Edit → Add card → Template, as often as you like. Text and label are Jinja templates, rendered live by Home Assistant. Save with the button on the settings page.",
+  "Bij het plaatsen invullen": "Filled in when placing", "deze velden vraagt de kaart als je hem op een pagina zet; wat je hier invult is dan het voorbeeld": "the card asks for these fields when you put it on a page; what you enter here is the example",
+  "Wordt gekozen als je de kaart op een pagina zet. In de templates en de actie-data schrijf je $entity.": "Chosen when you put the card on a page. Write $entity in the templates and the action data.",
+  "sjablonen met Jinja; plaatsen doe je per pagina via Bewerken → Kaart toevoegen": "Jinja templates; place them per page via Edit → Add card",
   // same word in English, listed so the check sees them as translated
   "kWh": "kWh", "Update": "Update",
   // graph card, thermostat bottom line (3.1)

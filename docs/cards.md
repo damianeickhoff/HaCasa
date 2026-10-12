@@ -211,14 +211,14 @@ Every room with lights gets a **Light scenes** card. Save the current state of t
 </figure>
 </div>
 
-**Settings → Template cards** is a **library** of cards whose text, label and visibility condition are **Jinja templates**, rendered live by Home Assistant. A template gets a name, an icon and a tap action (details, toggle, a service call or navigation), and can define **fields**: a key, a label, a type (text, entity or number) and a default. In the templates you write `$key` where a field goes:
+**Settings → Template cards** is a **library** of cards whose text, label and visibility condition are **Jinja templates**, rendered live by Home Assistant. A template gets a name, an icon and a tap action (details, toggle, a service call or navigation). The entity is not part of the template: you pick it when you place the card, and write `$entity` wherever it goes:
 
 ```jinja
-{{ states('$entity') | int }} days   ← text
-{{ states('$entity') | int < $days }} ← visible
+{{ states('$entity') | int }} days        ← text
+{{ states('$entity') | int < 10 }}        ← visible
 ```
 
-You place a template through [edit mode](rooms.md#edit-mode) → **Add card → Template**, fill in its fields, and can place the same template as often as you like; each copy keeps its own values and can be renamed in its card settings. A template can also be pinned to one page under **Place** (that is how template cards worked before 3.1, and those keep working).
+Under **Filled in when placing** you mark which fields (text, label, visibility) the card asks for when it is placed; what you type in the template is then the example. You place a template through [edit mode](rooms.md#edit-mode) → **Add card → Template**: pick the entity, fill in the asked fields, done. The same template can be placed as often as you like; each copy keeps its own values, name and icon in its card settings. Template cards that were pinned to a page before 3.1 are moved to that page's cards automatically.
 
 !!! note
     Templates are rendered by Home Assistant's template websocket, which needs an administrator account.

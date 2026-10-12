@@ -6,7 +6,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
 import { styles } from "./styles.js";
 import { buildRooms, buildHome, name } from "./model.js";
-import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateOf } from "./cards.js";
+import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateInstance } from "./cards.js";
 import { editStrip, editBar, canEdit } from "./edit.js";
 import { renderPopup } from "./popups.js";
 import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
@@ -97,7 +97,7 @@ class HacasaNova extends LitElement {
     }
     this.userConfig = u; this.applyConfig();
   }
-  applyConfig() { this.config = mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.userConfig); this.subscribeTemplates(); }
+  applyConfig() { this.config = mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.userConfig); this.subscribeTemplates(); if (this.userConfig && !this._tplMigrated) { this._tplMigrated = true; this.migrateTemplates(); } }
   /** settings as a downloadable JSON file (the old config.json role) */
   exportSettings() {
     const blob = new Blob([JSON.stringify(this.userConfig || {}, null, 2)], { type: "application/json" });
@@ -232,11 +232,23 @@ class HacasaNova extends LitElement {
       return c.tplVisibleInvert ? ok : !ok;
     }
     if (c.tplVisible) return condHidden(this, "card:" + key, c.tplVisible, c.tplVisibleInvert);
-    if (key.startsWith("tpl:")) { const tc = templateOf(this, key); return tc ? condHidden(this, key, tc.visible, tc.visibleInvert) : false; }
+    if (key.startsWith("tpl:")) { const m = templateInstance(this, key); return m ? condHidden(this, key, m.visible, m.visibleInvert) : false; }
     return false;
   }
-  /** take a hand-added card off its page again (a template instance also drops its settings) */
-  async removeAdded(pageKey, key) { const pc = this.pageCfg(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null); }
+  /** take a hand-added card off its page again: an add-list entry (a template instance also drops its settings), or a group / graph made for this page */
+  async removeAdded(pageKey, key) {
+    if (key.startsWith("group:") || key.startsWith("graph:")) { const kind = key.startsWith("group:") ? "groups" : "graphs", id = key.slice(6); await this.saveUser({ [kind]: (this.userConfig?.[kind] || this.config[kind] || []).filter(g => g.id !== id) }); await this.saveCardSettings(key, null); return; }
+    const pc = this.pageCfg(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null);
+  }
+  /** template cards used to be pinned to a page (room); since 3.1 they are a library placed through edit mode: move the pins into the pages' add lists once */
+  migrateTemplates() {
+    const tpls = this.userConfig?.templates; if (!tpls || !tpls.some(x => x.room !== "none")) return;
+    const pages = { ...(this.userConfig.pages || {}) };
+    const next = tpls.map(x => { if (x.room === "none") return x; const page = x.room || "home", pc = { ...(pages[page] || {}) }, key = `tpl:${x.id}:legacy`;
+      pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, room: "none" }; });
+    console.info("[hacasa-nova] template cards moved to the pages' add lists");
+    this.saveUser({ templates: next, pages });
+  }
   tickerOn(key, items) {
     const pc = this.pageCfg(key), tk = pc.ticker || {};
     const custom = (pc.lines || []).map((l, i) => ({ k: "custom", icon: l.icon || "mdi:text", text: this.templates?.[`line:${key}:${i}`]?.state })).filter(x => x.text && String(x.text).trim());
@@ -537,7 +549,7 @@ class HacasaNova extends LitElement {
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen kaarten: wijs entiteiten toe aan ruimtes in Home Assistant.")}</div>` : nothing}
       ${editing ? editBar(this, "home") : nothing}
-      <div class=${classMap({ banner: true, show: h.motion.length > 0 })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => roomWord(r.name)).join(", ") })}</div>`;
+      <div class=${classMap({ banner: true, show: h.motion.length > 0 && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => roomWord(r.name)).join(", ") })}</div>`;
   }
 
   /** every card of a room as { key, label, tpl } (key = entity/device id or a fixed name) */

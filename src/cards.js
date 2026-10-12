@@ -551,26 +551,24 @@ export function cardFor(p, e) {
 }
 
 /* ---------- cards added to a page by hand (pages[key].add) ---------- */
-/** `$key` placeholders in a template card's texts, filled from the instance inputs (or the field defaults) */
-export const substInputs = (str, tc, inputs = {}) => !str ? str : (tc.inputs || []).reduce((s, f) => f.key ? s.replace(new RegExp("\\$" + f.key + "(?![\\w])", "g"), String(inputs[f.key] ?? f.default ?? "")) : s, str);
+/** `$entity` in a template card's texts and action = the entity it was placed with */
+export const substEntity = (str, entity) => !str || !entity ? str : str.replace(/\$entity(?![\w])/g, entity);
 export const templateOf = (p, key) => (p.config.templates || []).find(x => x.id === key.split(":")[1]) || null;
+/** a placed template card: the template with the fields filled in at placement (cards[key].fields) on top */
+export function templateInstance(p, key) {
+  const tc = templateOf(p, key); if (!tc) return null;
+  const c = cardCfg(p, key), fl = c.fields || {}, m = { ...tc, ...Object.fromEntries(Object.entries(fl).filter(([, v]) => v)) }, sub = s => substEntity(s, fl.entity);
+  return { ...m, id: key, name: c.name || m.name, icon: c.icon || m.icon, state: sub(m.state), label: sub(m.label), visible: sub(m.visible), entity: fl.entity || null, data: sub(m.data), path: sub(m.path), ask: undefined, room: undefined };
+}
 /** template card instances on every page ("tpl:<template>:<n>") with their texts filled in, for subscribeTemplates */
 export function templateInstances(p) {
   const out = [];
-  for (const pc of Object.values(p.config.pages || {})) for (const key of (pc.add || [])) {
-    if (!key.startsWith("tpl:")) continue; const tc = templateOf(p, key); if (!tc) continue;
-    const inputs = cardCfg(p, key).inputs || {}, sub = s => substInputs(s, tc, inputs);
-    out.push({ id: key, state: sub(tc.state), label: sub(tc.label), visible: sub(tc.visible) });
-  }
+  for (const pc of Object.values(p.config.pages || {})) for (const key of (pc.add || [])) { if (!key.startsWith("tpl:")) continue; const m = templateInstance(p, key); if (m) out.push({ id: key, state: m.state, label: m.label, visible: m.visible }); }
   return out;
 }
 /** { label, tpl } for a key in pages[page].add: an entity, a template instance, or one of the panel's own cards */
 export function addedCard(p, key, pageKey) {
-  if (key.startsWith("tpl:")) {
-    const tc = templateOf(p, key); if (!tc) return null;
-    const c = cardCfg(p, key), inputs = c.inputs || {}, sub = s => substInputs(s, tc, inputs);
-    return { label: c.name || tc.name || t("Template"), tpl: templateCard(p, { ...tc, id: key, name: c.name || tc.name, icon: c.icon || tc.icon, entity: sub(tc.entity), service: sub(tc.service), data: sub(tc.data), path: sub(tc.path) }, 0) };
-  }
+  if (key.startsWith("tpl:")) { const m = templateInstance(p, key); return m ? { label: m.name || t("Template"), tpl: templateCard(p, m, 0) } : null; }
   if (key.includes(".")) { const s = p.hass.states[key]; if (!s) return null; const e = { id: key, state: s, reg: p.hass.entities?.[key] || {} }; const tpl = cardFor(p, e); return tpl ? { label: label(p, e), tpl } : null; }
   const c = findCard(p, key, pageKey); return c ? { label: c.label, tpl: c.tpl } : null;
 }
