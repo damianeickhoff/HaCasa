@@ -501,7 +501,11 @@ export const styles = css`
   .ecard>.card .c,.ecard>.card .ua{visibility:hidden}                 /* the × takes the corner */
   .ecard.hid>.card{background:rgba(255,255,255,.04);border-style:dashed}
   .ecard.hid>.card>*{opacity:.45}
-  .ecard.lift>.card{transform:translateY(-10px) rotate(-1.5deg);box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 26px 50px rgba(0,0,0,.45);background:rgba(255,255,255,.2);border-color:var(--line-on)}
+  .ecard.lift>.card{background:rgba(255,255,255,.03);border:1px dashed var(--line-on);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}   /* the slot the dragged card will land in */
+  .ecard.lift>.card>*{visibility:hidden}
+  .ecard.lift .grip,.ecard.lift .x{visibility:hidden}
+  .card.dragghost{position:fixed;left:0;top:0;z-index:60;pointer-events:none;margin:0;animation:none;transition:box-shadow .2s,scale .2s,rotate .2s;scale:1;rotate:0deg;background:rgba(255,255,255,.22);border-color:var(--line-on)}
+  .card.dragghost.up{box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 34px 70px rgba(0,0,0,.55);scale:1.04;rotate:-2deg}
   .ecard .x{position:absolute;top:14px;right:14px;z-index:3;width:30px;height:30px;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer}
   .ecard .x ha-icon{--mdc-icon-size:16px}
   .ecard .x.eye{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
@@ -526,6 +530,7 @@ export const styles = css`
   .card.value.noname .nm{display:none}
   /* "Kaart toevoegen" popup */
   .popup.addp{width:min(680px,calc(100vw - 32px));max-width:none;padding-bottom:0}
+  .popup.addp .foot{margin-top:22px}
   .popup .pages.types{grid-template-columns:repeat(3,1fr);margin-top:0;margin-bottom:6px}
   .popup .pages.types a{padding:12px 12px;gap:10px;font-size:13px;align-items:flex-start}
   .popup .pages.types a ha-icon{--mdc-icon-size:22px;margin-top:1px}

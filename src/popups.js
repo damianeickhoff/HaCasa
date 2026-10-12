@@ -163,10 +163,9 @@ function cardForm(p, pop) {
       </div>
     </div>
   </div>
-  <div class="foot"><div class="modes n3">
+  <div class="foot"><div class="modes n2">
     <button class="on" @click=${async () => { const a = acts.filter(x => x && x.label && x.service); await saveMade(); p.saveCardSettings(id, { ...draft, actions: a.length ? a : undefined }); }}>${t("Opslaan")}</button>
     <button @click=${() => p.saveCardSettings(id, null)}>${t("Herstel")}</button>
-    <button @click=${() => p.openPopup({ ...pop, form: false, draft: null, act: null })}>${t("Annuleren")}</button>
   </div></div>`;
 }
 

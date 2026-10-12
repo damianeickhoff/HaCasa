@@ -28,12 +28,21 @@ function editDown(p, key, ev) {
   if (ev.button) return;
   ev.stopPropagation();                                                  // not the strip's own drag-to-scroll
   const shield = ev.currentTarget, touch = ev.pointerType !== "mouse", x0 = ev.clientX, y0 = ev.clientY;
-  let dragging = false, moved = false, timer = null;
-  const start = () => { dragging = true; p.editDrag = key; try { shield.setPointerCapture(ev.pointerId); } catch {} };
+  let dragging = false, moved = false, timer = null, ghost = null, ox = 0, oy = 0;
+  // the card itself turns into a dashed slot; a copy of it follows the pointer (slightly lifted and tilted)
+  const start = () => {
+    dragging = true; p.editDrag = key; try { shield.setPointerCapture(ev.pointerId); } catch {}
+    const card = shield.parentElement.querySelector(".card"), r = card.getBoundingClientRect();
+    ox = x0 - r.left; oy = y0 - r.top;
+    ghost = card.cloneNode(true); ghost.classList.add("dragghost"); ghost.style.width = r.width + "px"; ghost.style.height = r.height + "px";
+    ghost.style.transform = `translate(${r.left}px,${r.top}px)`; shield.getRootNode().appendChild(ghost);
+    requestAnimationFrame(() => ghost && ghost.classList.add("up"));
+  };
   if (touch) timer = setTimeout(() => { if (!moved) start(); }, 300);
   const move = e => {
     if (!dragging) { if (Math.abs(e.clientX - x0) > 6 || Math.abs(e.clientY - y0) > 6) { moved = true; clearTimeout(timer); if (!touch) start(); } if (!dragging) return; }
     e.preventDefault();
+    if (ghost) ghost.style.transform = `translate(${e.clientX - ox}px,${e.clientY - oy}px)`;
     const strip = shield.closest(".strip"), cards = [...strip.querySelectorAll(".ecard")], keys = cards.map(c => c.dataset.key);
     // drop slot: the card nearest to the pointer (a row on desktop, a grid on phones), after it when the pointer is past its centre
     let near = -1, best = Infinity, rects = cards.map(c => c.getBoundingClientRect());
@@ -48,6 +57,7 @@ function editDown(p, key, ev) {
     if (e.clientY > sr.bottom - 70) strip.scrollTop += 14; else if (e.clientY < sr.top + 70) strip.scrollTop -= 14;
   };
   const up = () => { clearTimeout(timer); removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up);
+    if (ghost) { ghost.remove(); ghost = null; }
     if (dragging) { p.editDrag = null; p.saveOrder(); } else if (!moved) p.openCardForm(key); };
   addEventListener("pointermove", move); addEventListener("pointerup", up); addEventListener("pointercancel", up);
 }
@@ -134,7 +144,7 @@ export function addPopup(p, pop) {
   const head = (big, sub) => html`<h2>${where}<span class="hb"><button data-close title=${t("Sluiten")}><ha-icon icon="mdi:close"></ha-icon></button></span></h2><div class="big">${big}</div><div class="sub">${sub}</div>${steps}`;
   /** the row of buttons stays in view (the lists above it can be long) */
   const foot = (...btns) => html`<div class="foot"><div class=${`modes n${btns.length}`}>${btns}</div></div>`;
-  const backBtn = to => html`<button @click=${() => upd({ step: to, gd: undefined })}>${t("Terug")}</button>`, cancelBtn = html`<button data-close>${t("Annuleren")}</button>`;
+  const backBtn = to => html`<button @click=${() => upd({ step: to, gd: undefined })}>${t("Terug")}</button>`;
   const f = (lbl, ctrl, sub) => html`<label class="f"><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span>${ctrl}</label>`;
   const have = new Set(p.pageCards(key).map(c => c.key));
 
@@ -151,7 +161,7 @@ export function addPopup(p, pop) {
   if (step === 1) return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Welk soort kaart?"))}
     ${GROUPS.map(([g, lbl]) => html`<div class="glbl">${t(lbl)}</div><div class="pages types">${CARD_TYPES.filter(x => x.group === g).map(x => html`
       <a @click=${() => x.key ? addPanel(x.key) : x.id === "group" ? upd({ step: 2, kind: x.id, gd: { style: "tiles", members: [] } }) : x.id === "graph" ? upd({ step: 2, kind: x.id, gd: { hours: 24 } }) : upd({ step: 2, kind: x.id, q: "" })}><ha-icon icon=${x.icon}></ha-icon><div>${t(x.label)}<small>${t(x.sub)}</small></div></a>`)}</div>`)}
-    ${foot(cancelBtn)}</div>`;
+    </div>`;
 
   if (type?.roomKey && step === 2) {
     // scenes / light scenes belong to a room: pick whose
@@ -159,7 +169,7 @@ export function addPopup(p, pop) {
       .map(o => ({ ...o, here: have.has(o.k) }));
     return html`<div class="popup addp">${head(t(type.label), t("Van welke ruimte?"))}
       <ul class="ents">${opts.map(o => html`<li class=${classMap({ tap: o.ok && !o.here, dim: !o.ok || o.here })} @click=${() => { if (o.ok && !o.here) addPanel(o.k); }}><ha-icon icon=${type.icon}></ha-icon><div>${o.label}<small>${o.here ? t("staat al op deze pagina") : o.ok ? "" : t("niets beschikbaar")}</small></div><ha-icon icon="mdi:plus"></ha-icon></li>`)}</ul>
-      ${foot(backBtn(1), cancelBtn)}</div>`;
+      ${foot(backBtn(1))}</div>`;
   }
   if (type?.id === "group") {
     const gd = pop.gd || { style: "tiles", members: [] }, g = patch => upd({ gd: { ...gd, ...patch } }), cands = groupCandidates(p), ok = !!(gd.name && gd.members.length);
@@ -170,7 +180,7 @@ export function addPopup(p, pop) {
         ${f(t("Stijl"), html`<div class="seg">${[["tiles", t("tegels (tikken schakelt)")], ["list", t("lijst")]].map(([v, l]) => html`<button class=${(gd.style || "tiles") === v ? "on" : ""} @click=${() => g({ style: v })}>${l}</button>`)}</div>`)}
         ${f(t("Onderdelen"), html`<div class="chips">${cands.map(c => html`<button class=${gd.members.includes(c.id) ? "on" : ""} @click=${() => g({ members: gd.members.includes(c.id) ? gd.members.filter(x => x !== c.id) : [...gd.members, c.id] })}>${c.name}</button>`)}</div>`, t("{n} gekozen", { n: gd.members.length }))}
       </div>
-      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addMade(p, key, "groups", gd)}>${t("Toevoegen en instellen")}</button>`, backBtn(1), cancelBtn)}</div>`;
+      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addMade(p, key, "groups", gd)}>${t("Toevoegen en instellen")}</button>`, backBtn(1))}</div>`;
   }
   if (type?.id === "graph") {
     const gd = pop.gd || { hours: 24 }, g = patch => upd({ gd: { ...gd, ...patch } }), ok = !!gd.entity;
@@ -180,14 +190,14 @@ export function addPopup(p, pop) {
         ${f(t("Naam"), html`<input type="text" .value=${gd.name || ""} placeholder=${gd.entity ? (p.hass.states[gd.entity]?.attributes.friendly_name || "") : ""} @change=${e => g({ name: e.target.value || undefined })}>`, t("leeg = naam van de sensor"))}
         ${f(t("Periode"), html`<div class="seg">${GRAPH_HOURS.map(n => html`<button class=${(+gd.hours || 24) === n ? "on" : ""} @click=${() => g({ hours: n })}>${hoursLabel(n)}</button>`)}</div>`)}
       </div>
-      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addMade(p, key, "graphs", gd)}>${t("Toevoegen en instellen")}</button>`, backBtn(1), cancelBtn)}</div>`;
+      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addMade(p, key, "graphs", gd)}>${t("Toevoegen en instellen")}</button>`, backBtn(1))}</div>`;
   }
   if (type?.id === "tpl" && step === 2) {
     const list = p.config.templates || [];
     return html`<div class="popup addp">${head(t("Kaart toevoegen"), t("Een templatekaart uit je bibliotheek"))}
       <ul class="ents">${list.map(tc => html`<li class="tap" @click=${() => upd({ step: 3, pick: tc.id, fields: {} })}><ha-icon icon=${tc.icon || "mdi:code-braces"}></ha-icon><div>${tc.name || t("Naamloos")}<small>${tc.state || ""}</small></div><ha-icon icon="mdi:chevron-right"></ha-icon></li>`)}</ul>
       ${!list.length ? html`<div class="sub" style="margin-top:16px">${t("Nog geen templatekaarten. Maak er een onder Instellingen → Templatekaarten.")}</div>` : nothing}
-      ${foot(backBtn(1), cancelBtn)}</div>`;
+      ${foot(backBtn(1))}</div>`;
   }
   if (type?.id === "tpl" && step === 3) {
     const tc = (p.config.templates || []).find(x => x.id === pop.pick); if (!tc) return nothing;
@@ -198,7 +208,7 @@ export function addPopup(p, pop) {
         ${f(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${fields.entity || ""} placeholder="sensor.x" @change=${e => setF("entity", e.target.value || undefined)}><datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
         ${ask.map(([k, l]) => f(t(l), html`<input type="text" .value=${fields[k] || ""} placeholder=${tc[k] || ""} @change=${e => setF(k, e.target.value || undefined)}>`, t("door de template gevraagd")))}
       </div>
-      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addKey(p, key, `tpl:${tc.id}:${Date.now().toString(36)}`, { cardCfg: { fields } })}>${t("Toevoegen en instellen")}</button>`, backBtn(2), cancelBtn)}</div>`;
+      ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addKey(p, key, `tpl:${tc.id}:${Date.now().toString(36)}`, { cardCfg: { fields } })}>${t("Toevoegen en instellen")}</button>`, backBtn(2))}</div>`;
   }
   if (type?.match && step === 2) {
     const q = (pop.q || "").toLowerCase().trim();
@@ -214,7 +224,7 @@ export function addPopup(p, pop) {
       <div class="sinput"><ha-icon icon="mdi:magnify"></ha-icon><input type="search" .value=${pop.q || ""} placeholder=${t("Zoek op naam, id of ruimte")} autofocus @input=${e => upd({ q: e.target.value })}></div>
       ${groups.map(([lbl, list]) => html`<div class="glbl">${lbl}<b>${list.length}</b></div><ul class="ents">${list.slice(0, 40).map(row)}</ul>`)}
       ${!all.length ? html`<div class="sub" style="margin-top:16px">${t("Niets gevonden")}</div>` : nothing}
-      ${foot(backBtn(1), cancelBtn)}</div>`;
+      ${foot(backBtn(1))}</div>`;
   }
   const id = pop.pick, s = p.hass.states[id], e = { id, state: s, reg: p.hass.entities?.[id] || {} }, otherName = pop.other ? (p.rooms.find(r => r.id === pop.other)?.name || pop.other) : null;
   const preview = s ? cardFor(p, e) : null;
@@ -225,5 +235,5 @@ export function addPopup(p, pop) {
     </ul>
     ${pop.other && pop.place !== "ha" ? html`<ul style="margin-top:4px"><li class="tap chk" @click=${() => upd({ hideOther: !pop.hideOther })}><ha-icon icon=${pop.hideOther ? "mdi:checkbox-marked-outline" : "mdi:checkbox-blank-outline"}></ha-icon><div>${t("Verbergen in {room}", { room: otherName })}<small>${t("anders staat hij in beide")}</small></div><span></span></li></ul>` : nothing}
     ${preview ? html`<div class="pvrow"><div class="pvc">${preview}</div><p class="cap">${t("Na het toevoegen open je meteen de kaartinstellingen voor naam, icoon en onderkant.")}</p></div>` : nothing}
-    ${foot(html`<button class="on" @click=${() => addKey(p, key, id, { haArea: pop.place === "ha" && !isHome, hideIn: pop.hideOther && pop.place !== "ha" ? pop.other : null })}>${t("Toevoegen en instellen")}</button>`, backBtn(2), cancelBtn)}</div>`;
+    ${foot(html`<button class="on" @click=${() => addKey(p, key, id, { haArea: pop.place === "ha" && !isHome, hideIn: pop.hideOther && pop.place !== "ha" ? pop.other : null })}>${t("Toevoegen en instellen")}</button>`, backBtn(2))}</div>`;
 }
