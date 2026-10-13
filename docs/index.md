@@ -5,8 +5,7 @@ hide:
 
 <div class="hero" markdown>
 
-![HaCasa](assets/logo/hacasa-white.svg#only-dark){ width="300" }
-![HaCasa](assets/logo/hacasa-color.svg#only-light){ width="300" }
+![HaCasa Nova](assets/header.webp){ .header }
 
 # HaCasa Nova
 

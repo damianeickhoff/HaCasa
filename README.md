@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/logo/hacasa-banner.svg" alt="HaCasa" width="280">
+<img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/header.webp" alt="HaCasa Nova: a modern, room-first panel for your Home Assistant" width="100%">
 
 # HaCasa Nova
 
@@ -13,11 +13,13 @@
 
 [Documentation](https://damianeickhoff.github.io/HaCasa/) · [Demo video](https://damianeickhoff.github.io/HaCasa/#demo) · [Install](#install) · [Discussions](https://github.com/damianeickhoff/HaCasa/discussions) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
 
-<a href="https://damianeickhoff.github.io/HaCasa/#demo"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/demo/poster-play.webp" alt="HaCasa Nova: watch the 40-second demo" width="100%"></a>
-
-<sub>▶ Click to watch the 40-second demo</sub>
-
 </div>
+
+<details>
+<summary><b>▶ Watch the 40-second demo</b></summary>
+<br>
+<a href="https://damianeickhoff.github.io/HaCasa/#demo"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/demo/poster-play.webp" alt="HaCasa Nova: watch the 40-second demo" width="100%"></a>
+</details>
 
 > ⚠️ **HaCasa Nova is a work in progress and needs testing.** This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
 

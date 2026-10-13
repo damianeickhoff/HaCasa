@@ -177,6 +177,8 @@ export default {
   "beeld op de kaart": "picture on the card", "Overig": "Other", "stofzuiger, luchtbevochtiger": "vacuum, humidifier",
   "Weer": "Weather", "nu en de komende dagen": "now and the next days", "volgende afspraken": "next appointments", "Afval": "Waste", "volgende ophaaldag": "next collection day",
   "vermogen en verbruik vandaag": "power and use today", "Aandacht": "Attention", "onbereikbaar, batterij, updates": "unavailable, battery, updates", "Thermostaat (thuis)": "Thermostat (home)", "de hoofdthermostaat": "the main thermostat",
+  "alarm, deuren, sloten, camera's": "alarm, doors, locks, cameras", "wie thuis is": "who is home", "boodschappen of to-do": "shopping or to-do", "timer-helpers met aftelling": "timer helpers counting down",
+  "accu, bereik, laden": "battery, range, charging", "opwek nu en vandaag": "yield now and today", "sproeizones": "watering zones", "CO₂, fijnstof, vocht van een ruimte": "CO₂, fine dust, humidity of a room",
   "scèneknoppen van een ruimte": "a room's scene buttons", "Lichtscènes": "Light scenes", "opgeslagen lichtstanden van een ruimte": "a room's saved light settings",
   "meerdere lampen of stekkers als één kaart": "several lights or plugs as one card",
   // one-time template cards written in the picker

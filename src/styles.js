@@ -636,7 +636,7 @@ export const styles = css`
 
   /* phone bar at the top (config.phoneNav "top"): search + menu buttons in the top bar, the room list as a left drawer, as in 3.0 */
   @media (max-width:900px){
-    .nav.topnav{grid-template-columns:minmax(0,1fr) 0 max-content max-content max-content max-content}
+    .nav.topnav{grid-template-columns:minmax(0,1fr) max-content max-content max-content max-content}
     .nav.topnav .sbtn,.nav.topnav .menu{display:grid}
     .nav.topnav .searchbar{position:absolute;top:calc(100% + 8px);left:0;right:0;transform:none;width:auto;animation:none;z-index:8}
     .nav.topnav.open .links{position:fixed;top:0;left:0;right:auto;bottom:0;width:260px;max-height:none;padding:calc(90px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 20px 30px;border-radius:0;gap:4px;background:rgba(28,28,32,.55);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border:0;border-right:1px solid var(--line);box-shadow:20px 0 60px rgba(0,0,0,.35);animation:none}
@@ -655,7 +655,8 @@ export const styles = css`
     :host(.in-card){position:relative;height:100%}
     :host{--pad:20px;--u:1px;--card-h:132px;position:fixed;inset:0;height:auto;max-height:none;overflow:hidden;overscroll-behavior:none;touch-action:none;display:flex;flex-direction:column}
     .strip,.page,.settings,.popup,.nav.open .links{touch-action:pan-y}
-    .nav{top:calc(20px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));display:grid;grid-template-columns:minmax(0,1fr) 0 max-content max-content;height:46px;grid-column-gap:10px;animation:none}
+    .nav{top:calc(20px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));display:grid;grid-template-columns:minmax(0,1fr) max-content max-content;height:46px;grid-column-gap:10px;animation:none}   /* hidden links and time take no column, so the pills end at the right padding */
+    .nav > span:empty{display:none}
     .nav .links + *{margin-left:0}
     .nav.open .links .sep,.nav.open .links a.search{display:none}
     .logo{font-size:17px;flex:1;min-width:0}
@@ -756,7 +757,8 @@ export const styles = css`
     .card .s{font-size:11px;margin-top:2px}
     .card .s.big{font-size:24px;letter-spacing:-1px}
     .card .lbl{font-size:9px;letter-spacing:1.4px;height:24px}
-    .card .lbl.steps button{height:24px;padding:0 8px;font-size:9px}
+    .card .lbl.steps{gap:3px;overflow:hidden}
+    .card .lbl.steps button{height:24px;flex:1 1 0;min-width:0;padding:0 2px;font-size:9px;letter-spacing:0;text-align:center;overflow:hidden}   /* four steps fit next to the slider */
     .card .lbl.cols button{width:20px;height:20px}
     .card .lbl.bars{padding-top:6px}
     .card.plug .spk{display:none}
@@ -776,11 +778,12 @@ export const styles = css`
     .card .s.big{font-size:22px}
     .card .seg{padding:2px}
     .card .seg button{height:24px;padding:0 9px;font-size:9px}
-    .card.media{padding:var(--cp) var(--cp) 46px}
+    .card.media{padding:var(--cp) var(--cp) 44px}
+    .card.media .prog{margin-top:6px}   /* keeps clear of the buttons below */
     .card.appart .appi{display:none !important}
     .card.appart::before{left:0;box-shadow:none;background:rgba(20,20,24,.35)}
     .card.art::before{left:0;box-shadow:none;background:rgba(20,20,24,.5)}
-    .card.media .ctl{left:var(--cp);right:var(--cp);bottom:var(--cp);gap:4px}
+    .card.media .ctl{left:var(--cp);right:var(--cp);bottom:10px;gap:4px}
     .card.media .ctl button{height:30px}
     .card .slider{height:6px}
     .card.vs{padding-right:calc(var(--cp) + 20px)}
