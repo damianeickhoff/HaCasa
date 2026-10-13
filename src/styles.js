@@ -1,5 +1,6 @@
 import { css, unsafeCSS } from "lit";
 import { settingsStyles } from "./settings.js";
+import { iconPickerStyles } from "./iconpicker.js";
 import { pageStyles } from "./pages.js";
 import { extraStyles } from "./extras.js";
 import { extra2Styles } from "./extras2.js";
@@ -7,6 +8,10 @@ import { featureStyles } from "./features.js";
 import { searchStyles } from "./search.js";
 import { extra3Styles } from "./extras3.js";
 import { graphStyles } from "./graph.js";
+import { motionStyles } from "./motion.js";
+import { calendarStyles } from "./calendar.js";
+import { cards2Styles } from "./cards2.js";
+import { popup2Styles } from "./popups2.js";
 
 // Started from our own Homio-style mockup; scoped to the panel host.
 export const styles = css`
@@ -36,6 +41,8 @@ export const styles = css`
   button{font:inherit;color:inherit}
   ha-icon{--mdc-icon-size:30px;display:inline-flex}
   img.ico{width:30px;height:30px;display:block}
+  /* a HaCasa icon the user picked (hacasa:<name>): sized by --mdc-icon-size like any ha-icon, drawn in the text colour */
+  ha-icon.own{display:inline-block;width:var(--mdc-icon-size,30px);height:var(--mdc-icon-size,30px);flex:none;background:currentColor;-webkit-mask:var(--own) center/contain no-repeat;mask:var(--own) center/contain no-repeat}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -109,6 +116,7 @@ export const styles = css`
   .title{position:absolute;left:var(--pad);right:var(--pad);top:44%;transform:translateY(-50%);display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:end;gap:40px}
   .title>*{animation:upT .6s var(--ease) both;animation-delay:.1s}
   .title .tl{min-width:0}
+  @media (min-width:901px){ .title{transition:translate .25s var(--ease)} .title.editing{translate:0 -52px} }   /* room for the edit toolbar above the strip (translate stacks with the transform rules) */
   .title .temp{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--fg-2);min-height:18px}
   .title .temp .dt{margin:0 -3px}
   .title h1{font-size:clamp(48px,6.6vw,92px);font-weight:600;letter-spacing:-3.2px;line-height:1;margin:12px 0 6px;text-shadow:0 2px 24px rgba(0,0,0,.25)}
@@ -118,6 +126,8 @@ export const styles = css`
   .pills{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0 2px}
   .pills button{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px 0 10px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--fg-2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s}
   .pills button.on{background:rgba(255,255,255,.18);color:#fff}
+  .pills button.cond{opacity:.45;border-style:dashed}
+  .pills button span{white-space:nowrap}
   .pills button:active{background:rgba(255,255,255,.3)}
   .pills button img.ico,.pills button ha-icon{width:17px;height:17px;--mdc-icon-size:17px}
   .title .pills + .quick{margin-top:10px}
@@ -138,6 +148,10 @@ export const styles = css`
   .wx{text-align:right;padding-bottom:6px;cursor:pointer;animation-name:upT;animation-delay:.25s}
   .wx .big{display:flex;align-items:flex-start;justify-content:flex-end;gap:6px}
   .wx .big img.ico,.wx .big ha-icon{width:52px;height:52px;--mdc-icon-size:52px;margin-top:6px;opacity:.95}
+  .wxe{font-style:normal;display:inline-block;line-height:1}
+  .wx .big .wxe{font-size:46px;margin-top:9px}
+  .wx .hours div .wxe{display:block;font-size:22px;margin:6px auto}
+  .card .i .wxe{font-size:32px;line-height:36px}
   .wx .t{font-size:72px;font-weight:500;letter-spacing:-3px;line-height:1}
   .wx .t sup{font-size:28px;font-weight:600;vertical-align:top;margin-left:2px;line-height:1.6}
   .wx .cnd{font-size:15px;font-weight:600;color:var(--fg-2);margin-top:2px}
@@ -169,10 +183,10 @@ export const styles = css`
   .card.unavailable{background:rgba(255,255,255,.04);border-style:dashed;color:var(--fg-3)}
   .card.unavailable .i,.card.unavailable .ua{opacity:.5}
   .card.unavailable .i{filter:grayscale(1)}
-  .card.unavailable .ctl,.card.unavailable .seg,.card.unavailable .socks,.card.unavailable .slider{display:none}
+  .card.unavailable .ctl,.card.unavailable .seg,.card.unavailable .socks,.card.unavailable .slider,.card.unavailable .vslider,.card.unavailable .rail{display:none}
   .card.unavailable .s{font-style:italic}
   .card .i{grid-area:i;width:36px;height:36px;margin-left:-3px;align-self:center}
-  .card .i img.ico{width:100%;height:100%;display:block}
+  .card .i img.ico,.card .i ha-icon.own{width:100%;height:100%;display:block}
   .card .i ha-icon{--mdc-icon-size:40px;margin:-2px}
   .card .c{position:absolute;top:var(--cp);right:var(--cp);height:36px;display:flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--fg-2);white-space:nowrap;max-width:calc(var(--card-w) * .55);overflow:hidden;text-overflow:ellipsis}
   .card .n{grid-area:n;font-size:17px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -312,6 +326,7 @@ export const styles = css`
   .card .lbl.cost b{color:#fff;font-weight:700}
   /* attention list */
   .card.list .s{white-space:normal;display:flex;flex-direction:column;gap:6px;margin-top:10px;overflow:hidden}
+  .card.list.calm .s span{white-space:normal;line-height:1.35}
   .card.list .s span{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--fg-2);white-space:nowrap;min-width:0}
   .card.list .s span img.ico,.card.list .s span ha-icon{width:16px;height:16px;--mdc-icon-size:16px;opacity:.8;flex:none}
   .card.list .s span b{font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis}
@@ -348,6 +363,17 @@ export const styles = css`
   .card.group .glist div span{overflow:hidden;text-overflow:ellipsis}
   .card.group .glist div b{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--fg-3);flex:none}
   .card.group .glist div.on b{color:#fff}
+  /* a bottom lane (brightness steps, colours) under the members: compact tiles / rows and a guaranteed gap */
+  .card.group.lane .gtiles{margin:6px 0 10px}
+  .card.group.lane .gtiles button{height:calc(40 * var(--u));gap:2px}
+  .card.group.lane .gtiles button img.ico{width:18px;height:18px}
+  .card.group.lane .glist{gap:3px;margin:4px 0 10px}
+  .card.group.lane .s.big{margin-bottom:10px}
+  .card.group.count .s.big small{font-size:17px;font-weight:600;letter-spacing:0;color:var(--fg-3);margin-left:3px}
+  .card.group .lbl.track{display:block;overflow:visible}
+  .card.group .lbl.track>span{display:block;margin-bottom:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card.group .lbl.track i{display:block;height:3px;border-radius:999px;background:rgba(255,255,255,.18);position:relative;overflow:hidden}
+  .card.group .lbl.track i::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--v,0%);background:#fff;border-radius:999px;transition:width .3s}
   .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
   .empty{position:absolute;left:var(--pad);bottom:120px;font-size:14px;opacity:.6}
 
@@ -363,6 +389,9 @@ export const styles = css`
   .overlay{animation:fadeIn .2s ease-out}
   .popup h2{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.8;display:flex;justify-content:space-between;align-items:center;gap:16px}
   .popup h2 .hb{display:flex;gap:6px;flex:none}
+  .popup h2 .bk{display:flex;align-items:center;gap:10px;min-width:0}
+  .popup h2 button.back{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;display:grid;place-items:center;flex:none;margin-left:-6px}
+  .popup h2 button.back ha-icon{--mdc-icon-size:18px}
   .popup h2 .hb button{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;display:grid;place-items:center}
   .popup h2 .hb button img{width:14px;height:14px}
   .popup h2 .hb button ha-icon{--mdc-icon-size:18px}
@@ -451,7 +480,12 @@ export const styles = css`
   .popup ul{list-style:none;display:flex;flex-direction:column;gap:4px;margin-top:18px}
   .popup li{border-radius:var(--r-sm);display:grid;grid-template-columns:30px 1fr max-content;gap:16px;align-items:center;padding:14px 16px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:15px;font-weight:600}
   .popup li.on{background:rgba(255,255,255,.3);border-color:var(--line-on)}
-  .popup li.tap{cursor:pointer}
+  .popup li.tap{cursor:pointer;user-select:none;-webkit-user-select:none}
+  .popup li.dim{grid-template-rows:auto auto;row-gap:8px}
+  .popup li .slider{grid-column:1/-1;display:flex}
+  .popup li .slider input[type=range]{margin:0;height:6px}
+  .popup .prow .seg{justify-self:end}
+  .popup .prow .seg button{height:28px;padding:0 11px;font-size:10px}
   .popup li small{display:block;font-size:12px;font-weight:500;opacity:.7;margin-top:2px}
   .popup li .st{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.8;white-space:nowrap}
   .popup li ha-icon{--mdc-icon-size:26px}
@@ -519,11 +553,29 @@ export const styles = css`
   .card.add .plus{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.1);display:grid;place-items:center;color:#fff}
   .card.add .plus ha-icon{--mdc-icon-size:20px}
   .card.add b{font-size:11px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--fg-2)}
+  /* edit mode: toolbar above the strip (hidden cards, add a card) */
+  .etools{position:absolute;left:var(--pad);bottom:calc(85px + var(--card-h) + 24px);z-index:3;display:flex;gap:8px}
+  .etools button{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px 0 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.1);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#fff;font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .etools button ha-icon{--mdc-icon-size:17px}
+  .etools button i{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.9);color:#1d1d1f;font-size:11px;letter-spacing:0;display:inline-grid;place-items:center;margin-right:-6px}
+  .etools button.none{color:var(--fg-3)}
+  .etools button.none i{background:rgba(255,255,255,.14);color:var(--fg-2)}
+  .etools button.on{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
+  .popup.hidp{width:min(720px,calc(100vw - 32px))}
+  .popup .hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--card-w) * .55 + 20px),1fr));gap:10px;margin-top:16px}
+  .popup .htile{padding:10px;border-radius:var(--r-sm);background:rgba(255,255,255,.06);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+  .popup .hpv{position:relative;width:calc(var(--card-w) * .55);height:calc(var(--card-h) * .55);overflow:hidden;border-radius:6px;pointer-events:none}
+  .popup .hsc{position:absolute;top:0;left:0;width:var(--card-w);height:var(--card-h);transform:scale(.55);transform-origin:0 0}
+  .popup .hsc .card{animation:none;width:var(--card-w);height:var(--card-h)}
+  .popup .htile .hl{display:flex;align-items:center;gap:8px;min-width:0}
+  .popup .htile .hl b{flex:1;min-width:0;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .popup .htile .hl button{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 9px;border:0;border-radius:999px;background:rgba(255,255,255,.9);color:#1d1d1f;font:inherit;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;flex:none}
+  .popup .htile .hl button ha-icon{--mdc-icon-size:15px}
   .banner.ebar{justify-content:flex-start;gap:12px;padding:0 var(--pad);height:58px;text-align:left}
   .banner.ebar ha-icon{--mdc-icon-size:18px;flex:none}
   .banner.ebar small{font-weight:600;color:var(--fg-3);letter-spacing:1.6px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-  .banner.ebar button{height:36px;padding:0 18px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;flex:none}
-  .banner.ebar .ghost{margin-left:auto}
+  .banner.ebar button{flex:none;white-space:nowrap;height:36px;padding:0 18px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;flex:none}
+  .banner.ebar .pgs{margin-left:auto}
   .banner.ebar .done{background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
   /* value card: the number where the name sits, the name under it (as on the thermostat card) */
   .card.value .s.big{grid-area:n}
@@ -682,6 +734,8 @@ export const styles = css`
     .card.climate .seg{margin-right:2px}
     .wx .big{justify-content:flex-start;gap:4px}
     .wx .big img.ico,.wx .big ha-icon{width:36px;height:36px;--mdc-icon-size:36px;margin-top:0}
+    .wx .big .wxe{font-size:32px;margin-top:2px}
+    .card .i .wxe{font-size:26px;line-height:30px}
     .wx .t{font-size:40px;letter-spacing:-2px}
     .wx .t sup{font-size:16px;line-height:1.4}
     .wx .cnd{margin:0}
@@ -689,10 +743,13 @@ export const styles = css`
     .wx .hours{display:none}
     .strip{position:static;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:6px;padding:4px var(--pad) calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));scroll-snap-type:none;scrollbar-width:none}
     .strip::after{display:none}
+    .etools{position:static;padding:8px var(--pad) 6px;flex:none}
+    .etools button{height:34px;padding:0 14px 0 10px;font-size:10px}
+    .popup .hgrid{grid-template-columns:1fr 1fr}
     .sfade{display:none}
     .card{--cp:14px;width:auto;height:var(--card-h);padding:var(--cp);grid-template-rows:max-content 1fr max-content max-content 1fr 24px}
     .card .i{width:26px;height:26px;margin-left:-2px}
-    .card .i img.ico{width:26px;height:26px}
+    .card .i img.ico,.card .i ha-icon.own{width:26px;height:26px}
     .card .i ha-icon{--mdc-icon-size:30px;margin:-2px}
     .card .c{font-size:9px;letter-spacing:1.2px;height:26px}
     .card .n{font-size:14px}
@@ -751,6 +808,7 @@ export const styles = css`
     .card.group .gtiles button small{display:none}
     .card.group .glist{gap:3px;margin-top:4px}
     .card.group .glist div{font-size:11px}
+    .card.group .lbl.track>span{margin-bottom:5px}
     .card.people .s span{width:36px;height:36px}
     .card.cam{padding-bottom:12px}
     .popup{width:calc(100% - 32px);min-width:0;max-height:85vh;padding:26px 24px 22px}
@@ -766,13 +824,18 @@ export const styles = css`
   ${unsafeCSS(extraStyles)}
   ${unsafeCSS(extra2Styles)}
   ${unsafeCSS(settingsStyles)}
+  ${unsafeCSS(iconPickerStyles)}
   ${unsafeCSS(featureStyles)}
   ${unsafeCSS(searchStyles)}
   ${unsafeCSS(extra3Styles)}
   ${unsafeCSS(graphStyles)}
+  ${unsafeCSS(calendarStyles)}
+  ${unsafeCSS(cards2Styles)}
+  ${unsafeCSS(popup2Styles)}
   /* unavailable: controls are hidden, so center what is left */
   .card.unavailable{grid-template-columns:1fr;grid-template-rows:1fr max-content max-content 1fr;grid-template-areas:"." "n" "s" ".";justify-items:center;text-align:center;padding:0 40px}
   .card.unavailable .i,.card.unavailable .c,.card.unavailable .lbl,.card.unavailable .prog,.card.unavailable hcn-cam-snap{display:none}
   .card.unavailable .n{margin-bottom:6px}
   @media (max-width:900px){ .card.unavailable{padding:0 16px} }
+  ${unsafeCSS(motionStyles)}
 `;

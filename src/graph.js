@@ -54,7 +54,8 @@ export function stepGraph(p, id) {
 
 export const fmtVal = (v, unit) => v == null ? "–" : `${(Math.abs(v) >= 100 ? Math.round(v) : Math.round(v * 10) / 10).toLocaleString(locale())}${unit === "°C" || unit === "°F" ? "°" : unit === "%" ? " %" : unit ? " " + unit : ""}`;
 
-export function graphCard(p, g) {
+export function graphCard(p, g0) {
+  const g = p._preview?.id === "graph:" + g0.id && p._preview.gd ? p._preview.gd : g0;   // the card form edits the definition itself; its preview shows the draft
   const id = "graph:" + g.id, cfg = cardCfg(p, id), s = p.hass.states[g.entity], un = unavailable(s), unit = s?.attributes?.unit_of_measurement || "", dc = s?.attributes?.device_class;
   const hours = +g.hours || 24, h = p.graphHist?.[g.id];
   if (s && (!h || Date.now() - h.at > 5 * 60000 || h.hours !== hours)) loadGraph(p, { ...g, hours });

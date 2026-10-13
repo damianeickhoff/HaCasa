@@ -1,6 +1,6 @@
 # First run
 
-The first time a user opens HaCasa Nova, a four-step setup appears. Every step can be skipped, and everything can be changed later under **More → Panel settings**.
+The first time a user opens HaCasa Nova, a four-step setup appears. Every step can be skipped, and everything can be changed later under **More → HaCasa settings**.
 
 ![Setup wizard](assets/screenshots/wizard.png)
 

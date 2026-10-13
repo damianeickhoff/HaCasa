@@ -5,9 +5,18 @@ import { num, relTime, clock } from "./util.js";
 import { condText, condIcon } from "./cards.js";
 
 /* ---------- persistent notifications (live subscription) ---------- */
+/** Home Assistant sends the full set once ("current"), then only what changed ("added", "updated", "removed"),
+    so keep our own map; treating every message as the full list kept a dismissed notification on screen */
 export function subscribeNotifications(hass, cb) {
   if (!hass?.connection?.subscribeMessage) return () => {};
-  return hass.connection.subscribeMessage(msg => cb(Object.values(msg?.notifications || msg || {})), { type: "persistent_notification/subscribe" });
+  let all = {};
+  return hass.connection.subscribeMessage(msg => {
+    const changed = msg?.notifications || {};
+    if (msg?.type === "removed") { all = { ...all }; for (const id of Object.keys(changed)) delete all[id]; }
+    else if (msg?.type === "added" || msg?.type === "updated") all = { ...all, ...changed };
+    else all = { ...(msg?.notifications || msg || {}) };   // "current" (and older cores without a type)
+    cb(Object.values(all));
+  }, { type: "persistent_notification/subscribe" });
 }
 
 /* ---------- hourly energy for today from the recorder ---------- */

@@ -5,7 +5,7 @@ import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { domain, num, isOn, unavailable, isDown, relTime } from "./util.js";
 
-import { pressDir, label, cardCfg, camStream, ico, energyOf } from "./cards.js";
+import { pressDir, label, cardCfg, camStream, ico, anyIco, energyOf } from "./cards.js";
 import { spark } from "./extras3.js";
 import { name, deviceName } from "./model.js";
 import { pendingUpdates, installUpdate } from "./features.js";
@@ -43,8 +43,8 @@ export function renderPage(p, key) {
 const kpi = ({ icon, svg, em = "", v, unit = "", n = "", on = false, bar = null, spark: sp = null, tap = null }) => html`<div class=${classMap({ kpi: true, on })} @click=${tap}>
   <div class="top">${ico(icon, svg)}${em ? html`<em>${em}</em>` : nothing}</div><div class="v">${v}${unit ? html`<small>${unit}</small>` : nothing}</div><div class="n">${n}</div>
   ${bar != null ? html`<div class="bar"><i style="--v:${Math.max(0, Math.min(100, bar))}%"></i></div>` : nothing}${sp && sp.length > 1 ? html`<div class="spk">${spark(sp, 70, 26)}</div>` : nothing}</div>`;
-const srow = ({ icon, svg, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, toggle = null, on = false, dim = false, err = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim, err })} @click=${tap}>
-  ${ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
+const srow = ({ icon, svg, raw = false, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, toggle = null, on = false, dim = false, err = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim, err })} @click=${tap}>
+  ${raw ? anyIco(icon) : ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
   ${toggle ? html`<span class="tog" @click=${ev => { ev.stopPropagation(); toggle(); }}></span>` : pill != null ? html`<span class="st">${pill}</span>` : html`<div class=${classMap({ val: true, dim })}>${val}${unit ? html`<small>${unit}</small>` : nothing}</div>`}</div>`;
 const sblock = (title, rows, meta = "") => rows.length ? html`<div class="sblk"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3>${rows}</div>` : nothing;
 const pillbar = (list, cur, set) => html`<div class="ppills">${list.map(([k, l, icon, svg, n]) => html`<button class=${classMap({ on: cur === k })} @click=${() => set(k)}>${ico(icon, svg)}${n != null ? `${n} ${l}` : l}</button>`)}</div>`;
@@ -94,7 +94,7 @@ function energy(p) {
     price && val(en.today) != null ? kpi({ icon: "mdi:counter", svg: "counter", em: t("Kosten"), v: "€ " + fmt(val(en.today) * price, 2), n: t("vandaag · € {p} / kWh", { p: fmt(price, 2) }) }) : null,
   ].filter(Boolean);
   const plugs = p.rooms.flatMap(r => r.ents.appliances.filter(a => a.power && !a.op)).map(a => { const h = p.plugHist?.[a.id]; if (!h) p.loadPlug(a.id, a.power.id, energyOf(p, a.device)?.entity_id); return { a, h }; }).filter(x => x.h?.today != null).sort((x, y) => y.h.today - x.h.today);
-  return { sub: en.power ? t("{v} nu · {k} vandaag", { v: `${fmt(val(en.power), 0)} W`, k: `${fmt(val(en.today))} kWh` }) : t("Kies de energiesensoren bij Panel instellingen"),
+  return { sub: en.power ? t("{v} nu · {k} vandaag", { v: `${fmt(val(en.power), 0)} W`, k: `${fmt(val(en.today))} kWh` }) : t("Kies de energiesensoren bij HaCasa instellingen"),
     body: html`
       <div class="kpis">${kpis}</div>
       ${use.length ? html`<div class="chart"><h3>${t("Per uur")}<b>${t("verbruik en opwek")}</b></h3>
@@ -103,7 +103,7 @@ function energy(p) {
         <div class="legend"><span><i style="background:rgba(255,255,255,.3)"></i>${t("verbruik")}</span>${sun.length ? html`<span><i style="background:rgba(255,220,130,.75)"></i>${t("zon")}</span>` : nothing}<span><i style="background:#fff"></i>${t("nu")}</span></div></div>` : nothing}
       <div class="sblks">
         ${sblock(t("Grootverbruikers nu"), watts.slice(0, 10).map(s => srow({ icon: s.attributes.icon || "mdi:power-plug-outline", svg: s.attributes.icon ? null : "plug", name: s.attributes.friendly_name || s.entity_id, val: fmt(num(s.state), 0), unit: "W", on: num(s.state) > 100, tap: () => p.moreInfo(s.entity_id) })), `${watts.length}`)}
-        ${sblock(t("Vandaag per apparaat"), plugs.map(({ a, h }) => srow({ icon: cardCfg(p, a.id).icon || "mdi:power-plug-outline", svg: cardCfg(p, a.id).icon ? null : "plug", name: cardCfg(p, a.id).name || deviceName(p.hass, a.device), sub: h.peak ? t("piek {w} W", { w: h.peak.v }) : "", tr: h.rows ? html`<div class="tr">${h.rows.filter((_, i) => i % 3 === 0).map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(10, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : nothing, val: fmt(h.today), unit: "kWh", tap: () => p.openPopup({ type: "appliance", a }) })), t("kWh"))}
+        ${sblock(t("Vandaag per apparaat"), plugs.map(({ a, h }) => srow({ icon: cardCfg(p, a.id).icon || "mdi:power-plug-outline", svg: cardCfg(p, a.id).icon ? null : "plug", raw: !!cardCfg(p, a.id).icon, name: cardCfg(p, a.id).name || deviceName(p.hass, a.device), sub: h.peak ? t("piek {w} W", { w: h.peak.v }) : "", tr: h.rows ? html`<div class="tr">${h.rows.filter((_, i) => i % 3 === 0).map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(10, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : nothing, val: fmt(h.today), unit: "kWh", tap: () => p.openPopup({ type: "appliance", a }) })), t("kWh"))}
       </div>` };
 }
 
@@ -161,7 +161,7 @@ function sensors(p) {
   const eta = p.battEta || {}, more = id => () => p.moreInfo(id);
   const trend = e => { const h = p.lightHist?.[e.id]; if (!h) { p.loadLightHist(e.id); return html`<div class="tr"></div>`; } const g = Array.from({ length: 8 }, (_, i) => (h.bars[(new Date().getHours() + 1 + i * 3) % 24] + h.bars[(new Date().getHours() + 2 + i * 3) % 24] + h.bars[(new Date().getHours() + 3 + i * 3) % 24]) / 3); return html`<div class="tr">${g.map(v => html`<i class=${classMap({ on: v > 0 })} style="height:${Math.max(10, v * 100)}%"></i>`)}</div>`; };
   const row = ({ icon, svg, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, on = false, dim = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim })} @click=${tap}>
-    ${ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
+    ${raw ? anyIco(icon) : ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
     ${pill != null ? html`<span class="st">${pill}</span>` : html`<div class=${classMap({ val: true, dim })}>${val}${unit ? html`<small>${unit}</small>` : nothing}</div>`}</div>`;
   const R = {
     temp: (e, r, withRoom) => row({ icon: "mdi:thermometer", svg: "thermometer", name: label(p, e), sub: withRoom ? r.name : "", val: num(e.state?.state)?.toFixed(1) ?? "?", unit: "°", tap: more(e.id) }),

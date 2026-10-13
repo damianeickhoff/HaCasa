@@ -132,7 +132,7 @@ Inside a card the rooms are routed through the URL hash (`#/kitchen`), so the da
 
 Put a photo per room in `/config/www/images/rooms/`, named after the area: `Living room` → `living-room.jpg` (`.jpeg`, `.png` and `.webp` work too). The home view uses `home.jpg`. You can also set a picture on the area in Home Assistant, or choose a photo per page in the panel settings. Rooms without a photo get a calm gradient.
 
-That's it. Everything else lives in the panel: **More → Panel settings**.
+That's it. Everything else lives in the panel: **More → HaCasa settings**.
 
 > 💡 **For the best experience**, make HaCasa Nova your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://damianeickhoff.github.io/HaCasa/best-experience/) in the docs, which also has tips for wall tablets.
 

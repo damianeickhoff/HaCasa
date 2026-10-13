@@ -6,8 +6,9 @@ import { t, locale } from "./i18n.js";
 const DOOR = ["door", "garage_door", "opening", "garage"];
 const WINDOW = ["window"];
 const MOTION = ["motion", "occupancy", "presence"];
+const AIR = ["carbon_dioxide", "volatile_organic_compounds", "volatile_organic_compounds_parts", "pm25", "pm10", "pm1", "aqi", "nitrogen_dioxide", "ozone"];
 const APPLIANCE_RE = /(was|wash|droger|dryer|vaatwas|dish|oven|koffie|coffee|magnetron|microwave|airfryer|stofzuig|pomp|pump|boiler|warmtepomp|heatpump)/i;
-const ROOM_DOMAINS = ["light", "switch", "media_player", "cover", "climate", "fan", "lock", "vacuum", "humidifier", "input_boolean"];
+
 
 /** All entities with their resolved area, skipping hidden/disabled ones. */
 export function entitiesByArea(hass) {
@@ -37,7 +38,7 @@ function wasteDate(s) {
 const isOpState = e => e.reg.translation_key === "operation_state" || /_operation_state$/.test(e.id);
 
 function classify(list, config = {}, hass = {}) {
-  const r = { lights: [], switches: [], strips: [], media: [], covers: [], climate: [], fans: [], locks: [], vacuums: [], humidifiers: [], scenes: [], cameras: [], appliances: [], power: [], opstate: [], doors: [], windows: [], motion: [], temp: [], hum: [], battery: [], other: [], values: [], all: list };
+  const r = { lights: [], switches: [], strips: [], media: [], covers: [], climate: [], fans: [], locks: [], vacuums: [], humidifiers: [], scenes: [], cameras: [], appliances: [], power: [], opstate: [], doors: [], windows: [], motion: [], temp: [], hum: [], battery: [], air: [], other: [], values: [], all: list };
   for (const e of list) {
     const d = domain(e.id), dc = e.state?.attributes?.device_class, cat = e.reg.entity_category;
     if (e.added && d === "sensor") r.values.push(e);                      // a plain sensor added by hand gets a value card (and still counts below)
@@ -61,6 +62,7 @@ function classify(list, config = {}, hass = {}) {
       if (dc === "temperature") r.temp.push(e); else if (dc === "humidity") r.hum.push(e);
       else if (dc === "battery") r.battery.push(e);
       else if (dc === "power" || e.state?.attributes?.unit_of_measurement === "W") r.power.push(e);
+      else if (AIR.includes(dc)) r.air.push(e);                           // CO₂, VOC, fine dust …: the room's air quality card
       else if (isOpState(e)) r.opstate.push(e);
     }
   }
@@ -163,7 +165,10 @@ export function buildRooms(hass, config) {
     }).filter(Boolean);
   } else {
     const ex = new Set(config.excludeAreas || []);
-    rooms = rooms.filter(r => !ex.has(r.id) && !ex.has(r.slug) && (ROOM_DOMAINS.some(d => r.ents.all.some(e => domain(e.id) === d && !e.reg.entity_category)) || r.ents.all.some(e => e.added)))
+    // a room is listed when it has something to show by default (a reachable light, plug or motion sensor) or something the user put there
+    const own = r => { const e = r.ents, ok = x => !isDown(x); return e.lights.some(ok) || e.switches.some(ok) || e.motion.some(ok) || e.strips.some(st => st.switches.some(ok)) || e.appliances.some(a => a.power && !a.op && !isDown(a.power)); };
+    const made = r => r.ents.all.some(e => e.added) || (config.pages?.[r.id]?.add || []).length > 0 || [...(config.groups || []), ...(config.graphs || []), ...(config.templates || [])].some(g => g.room === r.id || g.room === r.slug);
+    rooms = rooms.filter(r => !ex.has(r.id) && !ex.has(r.slug) && (own(r) || made(r)))
       .sort((a, b) => a.name.localeCompare(b.name, locale()));
     if (config.maxRooms) rooms = rooms.slice(0, config.maxRooms);
   }

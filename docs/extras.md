@@ -6,6 +6,14 @@ Every card opens a popup with the details: brightness, colour and colour tempera
 
 The **⋯** button next to close opens a small menu over the popup (a sheet at the bottom on phones): **Card settings** (see [Card settings](card-settings.md)), **Open in Home Assistant** (Home Assistant's own dialog for the entity), **Open device** when the entity belongs to a device, and **Hide on this page** (bring it back under *Page settings*). Esc or a tap outside closes just the menu.
 
+A few popups do more than show details:
+
+- **Agenda**: a week grid with a colour per calendar, an all-day row, a now-line and a side column with what is on now, what is next and the calendars to hide; *Day* and *List* (a list per day, the default on phones) sit next to *Week*. Tap an event for its time, location and description.
+- **Lights** (the lights pill): every lamp that is on, per room, with a brightness slider on its row, an off per room, *All off*, and a hint when a lamp has been on for a while in a room where nothing moved. *Hide sliders* makes it a plain list again.
+- **Weather**: rain for the next two hours (Buienradar's minute forecast when you have it, the hourly forecast otherwise) with "rain from 16:20, about 25 min", eight hours, the week as a temperature bar per day and the details as tiles.
+- **Energy**: where the power comes from and goes (solar, house, battery, grid) when a solar sensor is set under *Settings → Energy*, today per hour with the solar share in yellow, and the biggest consumers right now with a switch for the plugs among them.
+- **Media**: every player in the house with a volume slider each, grouping (join a player to the one you opened, *Everywhere*, *Ungroup*) for players that support it, a seek bar and *Stop all*.
+
 <div class="grid2" markdown>
 ![Light popup](assets/screenshots/popup-light.png)
 ![Climate popup](assets/screenshots/popup-climate.png)

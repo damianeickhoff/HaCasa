@@ -1,5 +1,6 @@
 // Bundles src/panel.js into one self-contained file (HACS serves a single file), with the SVG icons from icons/
-// inlined as data: URLs and every language file in src/lang/ gathered as "hcn:langs". Also writes version.json.
+// inlined as data: URLs, every language file in src/lang/ gathered as "hcn:langs" and the Material Design Icons names
+// (from @mdi/svg, the version Home Assistant ships) as "hcn:mdi" for the icon picker. Also writes version.json.
 // `node build.mjs` is the release build: dist/hacasa-nova.js, committed only with a release (HACS reads it from
 // the release commit). It is copied to dev/build/ too, so the dev pages always load the newest build.
 // `node build.mjs --local` (npm run dev) and `--watch` build into dev/build/ only (git-ignored), for working on the code.
@@ -46,6 +47,21 @@ const langs = {
   },
 };
 
+// "hcn:mdi" = one line per icon: name|extra alias words|categories as one character each (char code - 65 = index into TAGS); deprecated icons left out
+const mdi = {
+  name: "mdi",
+  setup(build) {
+    build.onResolve({ filter: /^hcn:mdi$/ }, () => ({ path: "mdi", namespace: "hcn-mdi" }));
+    build.onLoad({ filter: /.*/, namespace: "hcn-mdi" }, () => {
+      const meta = JSON.parse(readFileSync("node_modules/@mdi/svg/meta.json", "utf8")).filter(x => !x.deprecated).sort((a, b) => a.name.localeCompare(b.name));
+      const tags = [...new Set(meta.flatMap(x => x.tags))].sort();
+      const lines = meta.map(x => { const own = new Set(x.name.split("-")), extra = [...new Set(x.aliases.flatMap(a => a.split("-")))].filter(w => !own.has(w));
+        return [x.name, extra.join(" "), x.tags.map(tg => String.fromCharCode(65 + tags.indexOf(tg))).join("")].join("|").replace(/\|+$/, ""); });
+      return { contents: `export const TAGS = ${JSON.stringify(tags)};\nexport default ${JSON.stringify(lines.join("\n"))};`, loader: "js" };
+    });
+  },
+};
+
 const stamp = {
   name: "version-stamp",
   setup(build) {
@@ -70,7 +86,7 @@ const ctx = await esbuild.context({
   outfile: `${outdir}/${name}.js`,
   legalComments: "eof",
   banner: { js: `/*! HaCasa Nova ${version} · MIT · https://github.com/damianeickhoff/HaCasa */` },
-  plugins: [icons, langs, stamp],
+  plugins: [icons, langs, mdi, stamp],
 });
 
 if (watch) await ctx.watch();

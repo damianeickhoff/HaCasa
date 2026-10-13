@@ -1,20 +1,20 @@
 # Settings
 
-Open **More → Panel settings**. Changes are a draft until you press **Save**; **Reset everything** clears all settings of the current user. Settings are stored per Home Assistant user.
+Open **More → HaCasa settings**. Changes are a draft until you press **Save**; **Reset everything** clears all settings of the current user. Settings are stored per Home Assistant user.
 
 ![Settings](assets/screenshots/settings.png)
 
 | tab | what you set there |
 |---|---|
 | **General** | export and import the settings file, language, title, navigation per room or per floor, photo paths, media background, light scenes on or off, idle screen, battery limit for Attention, run the setup wizard, make the panel Home Assistant's start page |
-| **Pages** | per page: title, photo, which cards and in which order, notification lines and your own lines |
-| **Card defaults** | tap, hold and the bottom line per card type (lights, switches, plugs, sensors …) |
+| **Pages** | per page: title, photo, which cards and in which order (drag or arrows), notification lines, your own lines and the status pills (hide, edit, reorder, add your own, show on a condition) |
+| **Card defaults** | a preview per card type (lights, switches, plugs, sensors …); tap it to set tap, hold, the bottom line and what the card shows, with a live preview |
 | **Rooms** | which areas are rooms and their order in the navigation |
-| **Home page** | temperature and humidity sensors for the header, weather, climate, alarm, scenes, media cards |
+| **Home page** | temperature and humidity sensors for the header, weather, climate, alarm and the scenes of the scenes card |
 | **Quick actions** | the buttons under the greeting: scene, script, toggle, all lights off, media off, with optional confirmation |
 | **Motion & doorbell** | which motion sensors drive the motion bar; doorbell triggers and the camera that pops up |
 | **Calendar & waste** | calendars for the agenda card and notification line; waste sensors and their labels |
-| **Energy** | power, consumption, solar return, gas and the price per kWh |
+| **Energy** | power, consumption, solar return, gas, the price per kWh, solar power and the home battery |
 | **Groups** | cards that combine several lights, switches or plugs |
 | **Graphs** | a card with the line of one numeric sensor over the last hours or days |
 | **Template cards** | your own cards with Jinja templates |
@@ -40,7 +40,8 @@ When you use the [dashboard card](installation.md#2b-dashboard-card), its `confi
 | `home.temperature`, `home.humidity` | sensors for the header (default: average of the rooms) |
 | `home.scenes` | list of scene ids |
 | `home.waste` | list of `{entity, label}` |
-| `home.energy` | `{power, today, returned, gas}` sensor ids |
+| `home.energy` | `{power, today, returned, gas, solar, solarToday, battery, batteryPower, powerIs}` sensor ids; `powerIs` is `grid` (default) or `house` |
+| `cards.todo`, `cards.ev`, `cards.garden` | `{entity}`; `{name, battery, range, power, charging, plug, finish, switch}`; `{zones, next, rain}` (the card settings of those cards) |
 | `home.lowBattery` | battery percentage that counts as low (default 20) |
 | `more` | extra links: `{label, sub, icon, path}` |
 

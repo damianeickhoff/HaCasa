@@ -1,5 +1,6 @@
 // Search bar under the navigation: rooms, pages and entities. Tap = open the matching popup (or HA's dialog).
 import { html, nothing } from "lit";
+import { anyIco } from "./cards.js";
 import { t } from "./i18n.js";
 import { domain, num, isOn, unavailable, icon } from "./util.js";
 import { PAGES } from "./pages.js";
@@ -39,7 +40,7 @@ export function searchResults(p, q) {
     const n = s.attributes.friendly_name || s.entity_id;
     if (!hit(n) && !hit(s.entity_id)) continue;
     const m = inRoom.get(s.entity_id);
-    hits.push({ label: n, sub: m ? m.r.name : d.replace(/_/g, " "), icon: s.attributes.icon || DOM_ICON[d] || "mdi:circle-outline", state: stateText(s), rank: (starts(n) ? 0 : 2) + (m ? 0 : 1), go: () => { p.search = ""; openFor(p, s, m); } });
+    hits.push({ label: n, sub: m ? m.r.name : d.replace(/_/g, " "), icon: (p.config.cards || {})[s.entity_id]?.icon || s.attributes.icon || DOM_ICON[d] || "mdi:circle-outline", state: stateText(s), rank: (starts(n) ? 0 : 2) + (m ? 0 : 1), go: () => { p.search = ""; openFor(p, s, m); } });
   }
   return hits.sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label, "nl"));
 }
@@ -51,7 +52,7 @@ export function searchBar(p) {
     <div class="sinput pill"><ha-icon icon="mdi:magnify"></ha-icon>
       <input type="text" autofocus .value=${p.search} placeholder=${t("Zoek kamers, apparaten, pagina's…")} @input=${e => { p.search = e.target.value; }} @keydown=${e => { if (e.key === "Enter" && res[0]) res[0].go(); }}>
       <button title=${t("Sluiten")} @click=${() => { p.search = ""; p.searchOpen = false; }}><img src=${icon("close")} alt=""></button></div>
-    ${q ? html`<ul class="sres">${res.map(r => html`<li @click=${r.go}><ha-icon icon=${r.icon}></ha-icon><div>${r.label}<small>${r.sub}</small></div>${r.state ? html`<span class="st">${r.state}</span>` : nothing}</li>`)}
+    ${q ? html`<ul class="sres">${res.map(r => html`<li @click=${r.go}>${anyIco(r.icon)}<div>${r.label}<small>${r.sub}</small></div>${r.state ? html`<span class="st">${r.state}</span>` : nothing}</li>`)}
       ${!res.length ? html`<li class="none">${t("Niets gevonden")}</li>` : nothing}</ul>` : nothing}
   </div>`;
 }

@@ -1,51 +1,72 @@
 // Popup renderers. `pop` is the panel's open popup descriptor {type, ...}; `p` the panel.
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 import { icon, isOn, unavailable, num, relTime, shortDate, domain } from "./util.js";
 import { name, deviceName } from "./model.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState } from "./extras2.js";
-import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
+import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, groupKind, groupCaps, cardType, anyIco, cardCfg } from "./cards.js";
 import { roomPresets, snapshot, applyPreset, presetMatches, installUpdate, pendingUpdates } from "./features.js";
 import { modeList, toggleMode } from "./extras3.js";
-import { field, text, select, check } from "./settings.js";
+import { field, text, select, check, condFields } from "./settings.js";
+import { pillEditor } from "./pills.js";
+import { dragRows } from "./drag.js";
+import { defaultsForm, DEFAULT_TYPES } from "./defaults.js";
 import { LANGUAGES } from "./i18n.js";
 import { fetchHistory } from "./extras2.js";
-import { addPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
-import { templateOf } from "./cards.js";
+import { addPopup, hiddenPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
+import { templateOf, pressDir, lightState } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
+import { iconInput } from "./iconpicker.js";
+import { lightsPopup, weatherPopup, energyPopup, mediaPopup, agendaPopup } from "./popups2.js";
+import { securityPopup, todoPopup, airPopup, evPopup, timersPopup, gardenPopup, panelCardFields, personTravel } from "./cards2.js";
 
 const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
 const entityOf = pop => pop.type === "cardcfg" ? pop.key : pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
-/** header buttons: ⋯ (card options) when the popup belongs to an entity, and close */
-const hbtns = (p, pop) => html`<span class="hb">${entityOf(pop) && pop.type !== "cardcfg" ? html`<button class=${pop.menu ? "on" : ""} title=${t("Opties")} @click=${ev => { ev.stopPropagation(); p.openPopup({ ...pop, menu: !pop.menu, form: false }); }}><ha-icon icon="mdi:dots-horizontal"></ha-icon></button>` : nothing}<button data-close title=${t("Sluiten")}><img src=${icon("close")} alt="sluiten" data-close></button></span>`;
+/** the page card a popup belongs to: groups and light scenes by their key, the panel's own cards (agenda, waste, …) by type */
+const PANEL_POPUPS = ["agenda", "attention", "waste", "energy", "weather", "climate", "security", "people", "timers", "ev", "garden", "air"];
+/** the helpers the 3.2 popups (popups2.js, cards2.js) draw with */
+const UI = () => ({ wrap, li, modes, range });
+const cardKeyOf = (p, pop) => {
+  if (pop.type === "group" && pop.g) return "group:" + pop.g.id;
+  if (pop.type === "presets") return "presets";
+  const keys = p.pageCards(p.room?.id || "home").map(c => c.key), id = entityOf(pop);
+  return id && keys.includes(id) ? id : PANEL_POPUPS.includes(pop.type) && keys.includes(pop.type) ? pop.type : null;
+};
+/** popups that get the ⋯ menu: an entity, or a card on the page */
+const hasMenu = (p, pop) => pop.type !== "cardcfg" && !!(entityOf(pop) || cardKeyOf(p, pop));
+/** header buttons: ⋯ (card options) when the popup belongs to an entity or a card, and close */
+const hbtns = (p, pop) => html`<span class="hb">${hasMenu(p, pop) ? html`<button class=${pop.menu ? "on" : ""} title=${t("Opties")} @click=${ev => { ev.stopPropagation(); p.openPopup({ ...pop, menu: !pop.menu, form: false }); }}><ha-icon icon="mdi:dots-horizontal"></ha-icon></button>` : nothing}<button data-close title=${t("Sluiten")}><img src=${icon("close")} alt="sluiten" data-close></button></span>`;
 /** the ••• menu: a dropdown under the button (desktop) or a sheet at the bottom (phone), outside .popup so its scroll box can't clip it */
 function optionsMenu(p, pop) {
-  const id = entityOf(pop), dev = id.startsWith("device:") ? id.slice(7) : p.hass.entities?.[id]?.device_id;
-  const pageKey = p.room?.id || "home", onPage = p.pageCards(pageKey).some(c => c.key === id);
+  const id = entityOf(pop), ck = cardKeyOf(p, pop), dev = !id ? null : id.startsWith("device:") ? id.slice(7) : p.hass.entities?.[id]?.device_id;
+  const pageKey = p.room?.id || "home", card = ck && p.pageCards(pageKey).find(c => c.key === ck), onPage = !!card;
+  const settings = id ? () => p.openPopup({ ...pop, menu: false, form: true }) : () => p.openCardForm(ck);   // panel cards: the card settings by key (a group also edits its members there)
   const item = (mdi, lbl, sub, go) => html`<a @click=${ev => { ev.stopPropagation(); go(); }}><ha-icon icon=${mdi}></ha-icon><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span></a>`;
   return html`<div class="pmenu" @click=${ev => { ev.stopPropagation(); if (ev.target === ev.currentTarget) p.openPopup({ ...pop, menu: false }); }}>
-    <div class="who"><ha-icon icon=${pop.e?.state?.attributes?.icon || "mdi:tune-variant"}></ha-icon><div><b>${label(p, pop.e || { id, state: p.hass.states[id] })}</b><small>${p.room?.name || t("Thuis")} · ${id}</small></div></div>
-    ${item("mdi:tune", t("Kaart instellen"), t("naam, weergave, gedrag, knoppen"), () => p.openPopup({ ...pop, menu: false, form: true }))}
-    ${item("mdi:open-in-new", t("Openen in Home Assistant"), id.startsWith("device:") ? t("apparaatpagina") : id, () => { p.popup = null; id.startsWith("device:") ? p.goPath(`/config/devices/device/${dev}`) : p.moreInfo(id); })}
+    <div class="who">${anyIco(cardCfg(p, id || "").icon || pop.e?.state?.attributes?.icon || pop.g?.icon || "mdi:tune-variant")}<div><b>${id ? label(p, pop.e || { id, state: p.hass.states[id] }) : card?.label || pop.g?.name || ck}</b><small>${p.room?.name || t("Thuis")} · ${id || ck}</small></div></div>
+    ${item("mdi:tune", t("Kaart instellen"), id ? t("naam, weergave, gedrag, knoppen") : ck?.startsWith("group:") ? t("naam, onderdelen, voorwaarde") : t("voorwaarde"), settings)}
+    ${id ? item("mdi:open-in-new", t("Openen in Home Assistant"), id.startsWith("device:") ? t("apparaatpagina") : id, () => { p.popup = null; id.startsWith("device:") ? p.goPath(`/config/devices/device/${dev}`) : p.moreInfo(id); }) : nothing}
     ${dev && !id.startsWith("device:") ? item("mdi:chip", t("Apparaat openen"), deviceName(p.hass, dev), () => { p.popup = null; p.goPath(`/config/devices/device/${dev}`); }) : nothing}
-    ${onPage ? html`<div class="sep"></div>${item("mdi:eye-off-outline", t("Verbergen op deze pagina"), t("terug te vinden via Pagina instellen"), () => { const pc = p.pageCfg(pageKey); p.savePage(pageKey, { ...pc, hidden: [...new Set([...(pc.hidden || []), id])] }); p.popup = null; })}` : nothing}
+    ${onPage ? html`<div class="sep"></div>${item("mdi:eye-off-outline", t("Verbergen op deze pagina"), t("terug te halen via Verborgen kaarten in de bewerkmodus"), () => { const pc = p.pageCfg(pageKey); p.savePage(pageKey, { ...pc, hidden: [...new Set([...(pc.hidden || []), ck])] }); p.popup = null; })}` : nothing}
     <button class="cancel" @click=${() => p.openPopup({ ...pop, menu: false })}>${t("Annuleren")}</button>
   </div>`;
 }
 const li = (mdi, label, value, { on = false, sub = "", onclick = null, svg = null, img = null } = {}) =>
-  html`<li class="${on ? "on" : ""} ${onclick ? "tap" : ""}" @click=${onclick || nothing}>${img ? html`<img class="avatar" src=${img} alt="">` : svg ? html`<img class="ico" src=${icon(svg)} alt="">` : html`<ha-icon icon=${mdi}></ha-icon>`}<div>${label}${sub ? html`<small>${sub}</small>` : nothing}</div><span class="st">${value}</span></li>`;
+  html`<li class="${on ? "on" : ""} ${onclick ? "tap" : ""}" @click=${onclick || nothing}>${img ? html`<img class="avatar" src=${img} alt="">` : svg ? html`<img class="ico" src=${icon(svg)} alt="">` : anyIco(mdi)}<div>${label}${sub ? html`<small>${sub}</small>` : nothing}</div><span class="st">${value}</span></li>`;
 const range = (label, v, oninput, { min = 0, max = 100, unit = "%" } = {}) =>
   html`<div class="prow"><span>${label}</span><b>${v}${unit}</b><input type="range" min=${min} max=${max} .value=${String(v)} @change=${e => oninput(+e.target.value)}></div>`;
 const modes = (items, cls = "") => html`<div class="modes ${cls}">${items.map(m => html`<button class=${m.on ? "on" : ""} @click=${m.go}>${m.label}</button>`)}</div>`;
 let CUR = null; // current {p, pop} while rendering, so wrap() can draw the header buttons
-const wrap = (title, big, sub, body) => {
+const wrap = (title, big, sub, body, cls = "") => {
   const { p, pop } = CUR;
   const form = !!(pop.form && entityOf(pop));                // popups without an entity (presets) render their own form
   if (form) { body = cardForm(p, pop); title = html`<span>${t("Kaart instellen")}<span class="rm"> · ${title}</span></span>`; sub = t("Zo ziet de kaart eruit met deze instellingen"); }
   // .pw: the popup plus its ••• menu; a click anywhere in it (outside the menu) closes the menu
-  return html`<div class="pw" @click=${() => { if (pop.menu) p.openPopup({ ...pop, menu: false }); }}><div class=${form ? "popup wide cardf" : "popup"}><h2>${title} ${hbtns(p, pop)}</h2><div class="big">${big}</div><div class="sub">${sub}</div>${body}</div>${pop.menu && entityOf(pop) ? optionsMenu(p, pop) : nothing}</div>`;
+  if (pop.back && !form) title = html`<span class="bk"><button class="back" title=${t("Terug")} @click=${ev => { ev.stopPropagation(); p.openPopup(pop.back); }}><ha-icon icon="mdi:arrow-left"></ha-icon></button>${title}</span>`;   // opened from another popup (a light from its group): arrow back
+  return html`<div class="pw" @click=${() => { if (pop.menu) p.openPopup({ ...pop, menu: false }); }}><div class=${form ? "popup wide cardf" : "popup " + cls}><h2>${title} ${hbtns(p, pop)}</h2><div class="big">${big}</div><div class="sub">${sub}</div>${body}</div>${pop.menu && hasMenu(p, pop) ? optionsMenu(p, pop) : nothing}</div>`;
 };
 /** a switch whose device also has a power sensor or an operation-state sensor can be shown as an appliance (bezig / klaar) */
 const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$/.test(e.entity_id))); };
@@ -60,20 +81,21 @@ function cardForm(p, pop) {
   const id = entityOf(pop), cur = (p.config.cards || {})[id] || {}, draft = pop.draft || { ...cur };
   const upd = patch => p.openPopup({ ...pop, draft: { ...draft, ...patch } });
   const dom = id.split(".")[0], defs = (p.config.cardDefaults || {})[cardType(p, id)] || {}, st = p.hass.states[id];
-  const appliance = pop.type === "appliance", canToggle = ["light", "switch", "input_boolean", "fan", "lock"].includes(dom) || (appliance && !!pop.a.switch);
-  const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player"].includes(dom) || appliance;
-  const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock"].includes(dom) || appliance;
-  const builtin = isBuiltin(id), inst = id.startsWith("tpl:"), once = id.startsWith("tpl:once:"), tc = once ? cur.once : inst ? templateOf(p, id) : null;   // a panel card / a template instance: settings only
-  const askList = once ? ["state", "label", "visible"] : (tc?.ask || []);                                   // a one-time template edits all its texts here
   // a group or graph: its definition is edited right here (pop.gd) and saved with the card settings
   const grp = id.startsWith("group:") ? (p.config.groups || []).find(g => g.id === id.slice(6)) : null, grf = id.startsWith("graph:") ? (p.config.graphs || []).find(g => g.id === id.slice(6)) : null;
   const gd = pop.gd || (grp ? { ...grp } : grf ? { ...grf } : null), gupd = patch => p.openPopup({ ...pop, gd: { ...gd, ...patch } });
   const saveMade = async () => { if (gd) await p.saveUser({ [grp ? "groups" : "graphs"]: (p.userConfig?.[grp ? "groups" : "graphs"] || p.config[grp ? "groups" : "graphs"] || []).map(x => x.id === gd.id ? gd : x) }); };
-  // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders)
+  const gkind = grp ? groupKind(gd) : null, gm = grp ? groupMembers(p, gd) : [];                              // a light group gets the light card's bottom lane
+  const appliance = pop.type === "appliance", canToggle = ["light", "switch", "input_boolean", "fan", "lock"].includes(dom) || (appliance && !!pop.a.switch) || !!grp;
+  const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player"].includes(dom) || appliance || !!grp;
+  const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock"].includes(dom) || appliance;
+  const builtin = isBuiltin(id), inst = id.startsWith("tpl:"), once = id.startsWith("tpl:once:"), tc = once ? cur.once : inst ? templateOf(p, id) : null;   // a panel card / a template instance: settings only
+  const askList = once ? ["state", "label", "visible"] : (tc?.ask || []);                                   // a one-time template edits all its texts here
+  // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders; a group or graph card reads the definition draft gd too)
   const pageKey = p.room?.id || "home";
   let preview = null;
-  p._preview = { id, draft };
-  try { preview = (p.pageCards(pageKey).find(c => c.key === id) || p.rooms.flatMap(r => p.roomCards(r)).find(c => c.key === id))?.tpl || null; } catch (e) { preview = null; } finally { p._preview = null; }
+  p._preview = { id, draft, gd };
+  try { preview = (p.pageCards(pageKey).find(c => c.key === id) || p.rooms.flatMap(r => p.roomCards(r, true)).find(c => c.key === id))?.tpl || null; } catch (e) { preview = null; } finally { p._preview = null; }
   const changed = Object.keys(draft).filter(k => draft[k] !== undefined && k !== "noAppliance").length;
   const sh = (lbl, cnt) => html`<div class="sh">${lbl}${cnt ? html`<span class="cnt">${cnt}</span>` : nothing}</div>`;
   const row = (lbl, ctrl, sub) => html`<div class="f"><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span>${ctrl}</div>`;
@@ -82,14 +104,15 @@ function cardForm(p, pop) {
   const opt = (key, lbl, sub) => row(lbl, html`<input type="checkbox" .checked=${!draft[key]} @change=${e => upd({ [key]: e.target.checked ? undefined : true })}>`, sub);
   const inp = (key, ph) => html`<input type="text" .value=${draft[key] || ""} placeholder=${ph} @change=${e => upd({ [key]: e.target.value || undefined })}>`;
   const PRESS = { toggle: t("schakelen"), popup: t("details openen"), more: t("Home Assistant-dialoog"), none: t("niets") };
-  const tapDef = defs.tap || (canToggle ? "toggle" : "popup"), holdDef = defs.hold || "popup";
-  const caps = dom === "light" ? lightCaps(st) : null;
+  const tapDef = grp ? "popup" : defs.tap || (canToggle ? "toggle" : "popup"), holdDef = defs.hold || "popup";   // a group's tap opens its list unless told to toggle all
+  const caps = dom === "light" ? lightCaps(st) : gkind === "light" ? groupCaps(gm) : null;
   // bottom line: "" is the automatic choice where the card has one (climate, plug); lights fall back to steps when dimmable
   const bottomOpts = dom === "light" ? [{ v: "none", l: t("niets") }, ...(caps.dim ? [{ v: "steps", l: t("helderheid-stappen") }] : []), ...(caps.rgb || caps.ct ? [{ v: "colors", l: t("kleuren") }] : []), { v: "today", l: t("vandaag aan (uren)") }]
+    : gkind === "light" && (caps.dim || caps.rgb || caps.ct) ? [{ v: "none", l: t("niets") }, ...(caps.dim ? [{ v: "steps", l: t("helderheid-stappen") }] : []), ...(caps.rgb || caps.ct ? [{ v: "colors", l: t("kleuren") }] : [])]
     : dom === "binary_sensor" ? [{ v: "", l: t("niets") }, { v: "today", l: t("vandaag (uren)") }, { v: "graph", l: t("grafiek (aan/uit-lijn)") }]
     : dom === "climate" ? [{ v: "", l: t("automatisch (vocht of preset)") }, { v: "heating", l: t("vandaag verwarmd") }, { v: "outside", l: t("buitentemperatuur") }, { v: "none", l: t("niets") }]
     : appliance && pop.a.power && !pop.a.op ? [{ v: "", l: t("vermogenslijn") }, { v: "timer", l: t("timer (15 / 30 / 60 min)") }, { v: "cost", l: t("kosten") }, { v: "bars", l: t("verbruik per uur") }, { v: "none", l: t("niets") }] : null;
-  const bottomDef = dom === "light" ? (defs.bottom || (caps.dim ? "steps" : "none")) : (defs.bottom || "");
+  const bottomDef = dom === "light" ? (defs.bottom || (caps.dim ? "steps" : "none")) : gkind === "light" ? "none" : (defs.bottom || "");
   const bottom = draft.bottom ?? bottomDef;
   // action buttons: one row each, the row being edited (pop.act) opens
   const acts = draft.actions || [], setActs = list => upd({ actions: list.length ? list : undefined });
@@ -107,25 +130,27 @@ function cardForm(p, pop) {
     </div>
     <div class="form">
       <div class="grp">${sh(t("Weergave"))}
-        ${builtin && !gd ? row(t("Kaart van het paneel"), html`<span class="note">${t("Naam en inhoud volgen de instellingen van het paneel; hieronder kun je de kaart op voorwaarde verbergen.")}</span>`) : nothing}
-        ${grp ? html`${row(t("Naam"), html`<div class="two"><input type="text" .value=${gd.name || ""} @change=${e => gupd({ name: e.target.value || undefined })}><input type="text" .value=${gd.icon || ""} placeholder="mdi:shape-outline" @change=${e => gupd({ icon: e.target.value || undefined })}></div>`)}
-          ${row(t("Stijl"), html`<div class="seg">${[["tiles", t("tegels (tikken schakelt)")], ["list", t("lijst")]].map(([v, l]) => html`<button class=${(gd.style || "tiles") === v ? "on" : ""} @click=${() => gupd({ style: v })}>${l}</button>`)}</div>`)}
-          ${row(t("Onderdelen"), html`<div class="chips">${groupCandidates(p).map(c => html`<button class=${(gd.members || []).includes(c.id) ? "on" : ""} @click=${() => gupd({ members: (gd.members || []).includes(c.id) ? gd.members.filter(x => x !== c.id) : [...(gd.members || []), c.id] })}>${c.name}</button>`)}</div>`, t("{n} gekozen", { n: (gd.members || []).length }))}` : nothing}
+        ${builtin && !gd && !["ev", "garden", "todo"].includes(id) ? row(t("Kaart van het paneel"), html`<span class="note">${t("Naam en inhoud volgen de instellingen van het paneel; hieronder kun je de kaart op voorwaarde verbergen.")}</span>`) : nothing}
+        ${builtin ? panelCardFields(p, id, draft, upd, row) : nothing}
+        ${grp ? html`${row(t("Naam"), html`<div class="two"><input type="text" .value=${gd.name || ""} @change=${e => gupd({ name: e.target.value || undefined })}>${iconInput(p, gd.icon, v => gupd({ icon: v }), "mdi:shape-outline")}</div>`)}
+          ${row(t("Soort"), html`<div class="seg">${[["light", t("Lampen")], ["plug", t("Stekkers & schakelaars")]].map(([v, l]) => html`<button class=${gkind === v ? "on" : ""} @click=${() => gupd({ kind: v, members: (gd.members || []).filter(x => x.startsWith("light.") === (v === "light")) })}>${l}</button>`)}</div>`, gkind === "light" ? t("helderheid-stappen of kleuren onderaan, zoals op een lampkaart") : t("schakelaars, stekkers en ventilatoren"))}
+          ${row(t("Stijl"), html`<div class="seg">${[["tiles", t("tegels (tikken schakelt)")], ["list", t("lijst")], ["count", t("teller")]].map(([v, l]) => html`<button class=${(gd.style || "tiles") === v ? "on" : ""} @click=${() => gupd({ style: v })}>${l}</button>`)}</div>`)}
+          ${row(t("Onderdelen"), html`<div class="chips">${groupCandidates(p, gkind).map(c => html`<button class=${(gd.members || []).includes(c.id) ? "on" : ""} @click=${() => gupd({ members: (gd.members || []).includes(c.id) ? gd.members.filter(x => x !== c.id) : [...(gd.members || []), c.id] })}>${c.name}</button>`)}</div>`, t("{n} gekozen", { n: (gd.members || []).length }))}` : nothing}
         ${grf ? html`${row(t("Sensor"), html`<input type="text" list="hcn-numeric" .value=${gd.entity || ""} placeholder="sensor.x" @change=${e => gupd({ entity: e.target.value || undefined })}><datalist id="hcn-numeric">${graphCandidates(p).map(x => html`<option value=${x}></option>`)}</datalist>`)}
           ${row(t("Naam"), html`<input type="text" .value=${gd.name || ""} placeholder=${p.hass.states[gd.entity]?.attributes.friendly_name || ""} @change=${e => gupd({ name: e.target.value || undefined })}>`, t("leeg = naam van de sensor"))}
           ${row(t("Periode"), html`<div class="seg">${GRAPH_HOURS.map(n => html`<button class=${(+gd.hours || 24) === n ? "on" : ""} @click=${() => gupd({ hours: n })}>${hoursLabel(n)}</button>`)}</div>`)}` : nothing}
-        ${!builtin ? row(t("Naam"), html`<div class="two">${inp("name", inst ? (tc?.name || "") : st?.attributes.friendly_name || (id.startsWith("device:") ? deviceName(p.hass, id.slice(7)) : ""))}${inp("icon", inst ? (tc?.icon || "mdi:code-braces") : "mdi:lightbulb-outline")}</div>`, inst ? t("leeg = zoals in de template") : t("leeg = naam en icoon uit Home Assistant")) : nothing}
+        ${!builtin || ["ev", "garden", "todo"].includes(id) ? row(t("Naam"), html`<div class="two">${inp("name", inst ? (tc?.name || "") : st?.attributes.friendly_name || (id.startsWith("device:") ? deviceName(p.hass, id.slice(7)) : ""))}${iconInput(p, draft.icon, v => upd({ icon: v }), inst ? (tc?.icon || "mdi:code-braces") : (st?.attributes.icon || "mdi:lightbulb-outline"))}</div>`, inst ? t("leeg = zoals in de template") : t("leeg = naam en icoon uit Home Assistant")) : nothing}
         ${inst ? html`${row(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${draft.fields?.entity || ""} placeholder="sensor.x" @change=${e => upd({ fields: { ...(draft.fields || {}), entity: e.target.value || undefined } })}>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
           ${TPL_ASK.filter(([k]) => askList.includes(k)).map(([k, l]) => row(t(l), html`<input type="text" .value=${draft.fields?.[k] || ""} placeholder=${tc?.[k] || ""} @change=${e => upd({ fields: { ...(draft.fields || {}), [k]: e.target.value || undefined } })}>`, once ? t("Jinja, live gerenderd") : t("door de template gevraagd")))}` : nothing}
         ${dom === "binary_sensor" ? row(t("Soort"), seg("kind", [{ v: "door", l: t("Deur"), icon: "mdi:door" }, { v: "window", l: t("Raam"), icon: "mdi:window-closed-variant" }, { v: "motion", l: t("Beweging"), icon: "mdi:motion-sensor" }, { v: "binary", l: t("Algemeen"), icon: "mdi:checkbox-blank-circle-outline" }], pop.kind || "binary"), t("bepaalt icoon en teksten; zichtbaar na opslaan")) : nothing}
         ${builtin || inst ? nothing : row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ["hideSub", t("Ondertitel")], ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
         ${bottomOpts ? row(t("Onderaan"), seg("bottom", bottomOpts, bottomDef), dom === "climate" ? t("naast de doeltemperatuur; op telefoons alleen dit") : t("wat de kaart onderaan toont")) : nothing}
         ${(dom === "light" || dom === "binary_sensor") && bottom === "today" ? row(t("Weergave"), seg("todayStyle", [{ v: "", l: t("balkjes per uur") }, { v: "text", l: t("tekst") }], "")) : nothing}
-        ${dom === "light" && bottom === "colors" && caps.rgb ? row(t("Kleuren"), html`<input type="text" .value=${(draft.colors || []).join(", ")} placeholder="#ffb46e, #f27a5c, #7fb6ff, #9fcf8a" @change=${e => { const l = e.target.value.split(",").map(x => x.trim()).filter(x => /^#[0-9a-f]{6}$/i.test(x)); upd({ colors: l.length ? l : undefined }); }}>`, t("hex-kleuren, gescheiden door komma's")) : nothing}
+        ${(dom === "light" || gkind === "light") && bottom === "colors" && caps.rgb ? row(t("Kleuren"), html`<input type="text" .value=${(draft.colors || []).join(", ")} placeholder="#ffb46e, #f27a5c, #7fb6ff, #9fcf8a" @change=${e => { const l = e.target.value.split(",").map(x => x.trim()).filter(x => /^#[0-9a-f]{6}$/i.test(x)); upd({ colors: l.length ? l : undefined }); }}>`, t("hex-kleuren, gescheiden door komma's")) : nothing}
         ${dom === "light" ? opt("noColor", t("Kleur tonen"), t("kaart kleurt mee met de lamp")) : nothing}
         ${dom === "media_player" ? opt("noArt", t("Albumhoes tonen"), t("als achtergrond tijdens afspelen")) : nothing}
         ${dom === "media_player" ? row(t("Gekoppelde speler"), select(p.hass, "media_player", draft.link, v => upd({ link: v || undefined }), { empty: t("automatisch"), filter: s => s.entity_id !== id }), t("titel en hoes van deze speler, bijv. de Chromecast van dezelfde tv")) : nothing}
-        ${dom === "media_player" ? opt("noIdleArt", t("Achtergrond bij stilstand"), t("de animatie uit Panel instellingen")) : nothing}
+        ${dom === "media_player" ? opt("noIdleArt", t("Achtergrond bij stilstand"), t("de animatie uit HaCasa instellingen")) : nothing}
         ${dom === "climate" ? opt("noMode", t("Modus-knoppen"), t("uit / verwarmen / auto op de kaart")) : nothing}
         ${dom === "camera" ? row(t("Live beeld"), html`<input type="checkbox" .checked=${!!draft.live} @change=${e => upd({ live: e.target.checked || undefined })}>`, t("stream op de kaart i.p.v. een foto elke 10 s")) : nothing}
         ${dom === "switch" ? row(t("Vermogenssensor"), select(p.hass, "sensor", draft.power, v => upd({ power: v || undefined }), { empty: t("automatisch (zelfde apparaat)"), filter: s => s.attributes.unit_of_measurement === "W" }), t("maakt er een stekkerkaart van (watt, verbruik, timer)")) : nothing}
@@ -140,12 +165,12 @@ function cardForm(p, pop) {
       <div class="grp">${sh(t("Actieknoppen"), t("{n} van 3", { n: acts.length }))}
         ${acts.map((a, i) => pop.act === i ? html`<div class="act open"><div class="ed">
             <label>${t("Label")}<input type="text" .value=${a.label || ""} placeholder=${t("label")} @change=${e => setA(i, { label: e.target.value || undefined })}></label>
-            <label>${t("Icoon")}<input type="text" .value=${a.icon || ""} placeholder="mdi:…" @change=${e => setA(i, { icon: e.target.value || undefined })}></label>
+            <label>${t("Icoon")}${iconInput(p, a.icon, v => setA(i, { icon: v }), "mdi:gesture-tap-button")}</label>
             <label class="full">${t("Actie")}<input type="text" list="hcn-services" .value=${a.service || ""} placeholder="light.turn_on" @change=${e => setA(i, { service: e.target.value || undefined })}></label>
             <label class="full">${t("Gegevens (JSON)")}<i class=${jsonOk(a.data) ? "" : "bad"}>${a.data ? (jsonOk(a.data) ? t("geldig") : t("ongeldig")) : t("entity_id = deze kaart als je niets invult")}</i><input type="text" .value=${a.data || ""} placeholder='{"brightness_pct": 50}' @change=${e => setA(i, { data: e.target.value || undefined })}></label>
             <div class="modes n2 full"><button class="on" @click=${() => p.openPopup({ ...pop, act: null })}>${t("Klaar")}</button><button @click=${() => p.openPopup({ ...pop, act: null, draft: { ...draft, actions: acts.filter((_, k) => k !== i).length ? acts.filter((_, k) => k !== i) : undefined } })}>${t("Verwijderen")}</button></div>
           </div></div>`
-        : html`<div class="act"><span class="bx">${a.icon ? html`<ha-icon icon=${a.icon}></ha-icon>` : nothing}</span><div>${a.label || t("label")}<small>${a.service || "…"}${a.data ? ` · ${a.data}` : ""}</small></div><span class="ab"><button title=${t("Bewerken")} @click=${() => p.openPopup({ ...pop, act: i })}><ha-icon icon="mdi:pencil-outline"></ha-icon></button><button title=${t("Verwijderen")} @click=${() => setActs(acts.filter((_, k) => k !== i))}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button></span></div>`)}
+        : html`<div class="act"><span class="bx">${a.icon ? anyIco(a.icon) : nothing}</span><div>${a.label || t("label")}<small>${a.service || "…"}${a.data ? ` · ${a.data}` : ""}</small></div><span class="ab"><button title=${t("Bewerken")} @click=${() => p.openPopup({ ...pop, act: i })}><ha-icon icon="mdi:pencil-outline"></ha-icon></button><button title=${t("Verwijderen")} @click=${() => setActs(acts.filter((_, k) => k !== i))}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button></span></div>`)}
         ${acts.length < 3 ? html`<button class="addbtn" @click=${() => p.openPopup({ ...pop, draft: { ...draft, actions: [...acts, {}] }, act: acts.length })}>+ ${t("Actie toevoegen")}</button>` : nothing}
         <datalist id="hcn-services">${services.map(s => html`<option value=${s}></option>`)}</datalist>
       </div>` : nothing}
@@ -156,13 +181,7 @@ function cardForm(p, pop) {
           ${hasTpl ? row(t("Ondertitel (template)"), inp("tplSub", "{{ relative_time(states.light.x.last_changed) }}")) : nothing}
           ${hasTpl ? row(t("Onderaan (template)"), inp("tplFoot", ""), t("vervangt de keuze hierboven")) : nothing}
           <div class="sh" style="margin-top:14px">${t("Zichtbaar")}</div>
-          ${row(t("Voorwaarde"), html`<div class="seg">${[["simple", t("Eenvoudig")], ["tpl", t("Template")]].map(([v, l]) => html`<button class=${visMode === v ? "on" : ""} @click=${() => p.openPopup({ ...pop, visMode: v, draft: { ...draft, ...(v === "simple" ? { tplVisible: undefined } : { visEntity: undefined, visOp: undefined, visValue: undefined }) } })}>${l}</button>`)}</div>`, t("een verborgen kaart vind je terug in de bewerkmodus"))}
-          ${visMode === "simple" ? html`
-            ${row(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${draft.visEntity || ""} placeholder="sensor.x" @change=${e => upd({ visEntity: e.target.value || undefined })}>`)}
-            ${row(t("Vergelijking"), html`<div class="seg">${[["", t("is")], ["ne", t("is niet")], ["gt", t("groter dan")], ["lt", t("kleiner dan")]].map(([v, l]) => html`<button class=${(draft.visOp || "") === v ? "on" : ""} @click=${() => upd({ visOp: v || undefined })}>${l}</button>`)}</div>`)}
-            ${row(t("Waarde"), html`<input type="text" .value=${draft.visValue ?? ""} placeholder="on" @change=${e => upd({ visValue: e.target.value === "" ? undefined : e.target.value })}>`, t("de staat van de entiteit, bv. on, off, 21.5"))}`
-          : row(t("Template"), inp("tplVisible", "{{ states('sensor.x') | int < 30 }}"), t("Jinja; onwaar is false, 0, no, off, none of leeg, alles anders is waar"))}
-          ${row(t("Tonen als"), html`<div class="seg two">${[[false, t("waar")], [true, t("onwaar")]].map(([v, l]) => html`<button class=${!!draft.tplVisibleInvert === v ? "on" : ""} @click=${() => upd({ tplVisibleInvert: v || undefined })}>${l}</button>`)}</div>`, t("de kaart staat er als de voorwaarde dit oplevert"))}` : nothing}
+          ${condFields(draft, upd, visMode, (v, ch) => p.openPopup({ ...pop, visMode: v, draft: { ...draft, ...ch } }), row, t("een verborgen kaart vind je terug in de bewerkmodus"))}` : nothing}
         <datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>
       </div>
     </div>
@@ -239,19 +258,7 @@ export function renderPopup(p, pop) {
         ${target != null ? range(t("Doelvochtigheid"), target, v => call("set_humidity", { humidity: v }), { min: s.attributes.min_humidity || 0, max: s.attributes.max_humidity || 100 }) : nothing}
         ${ms.length ? modes(ms.slice(0, 4).map(m => ({ label: m, on: s.attributes.mode === m, go: () => call("set_mode", { mode: m }) })), ms.length < 4 ? "n" + ms.length : "") : nothing}`);
     }
-    case "media": {
-      const v = mediaView(p, pop.e), s = v.main, vol = Math.round((s.attributes.volume_level ?? 0) * 100), on = v.playing;
-      const call = (svc, data = {}) => p.call("media_player", svc, { entity_id: pop.e.id, ...data }), ctl = svc => p.call("media_player", svc, { entity_id: v.ctl });
-      const big = v.title ? `${v.title}${v.artist ? " · " + v.artist : ""}` : v.app && !v.off ? v.app.name : v.off ? t("Uit") : s.state;
-      return wrap(roomName, label(p, pop.e), big, html`
-        ${v.art && !v.off ? html`<div class="mart" style=${`background-image:url("${v.art}")`}></div>` : nothing}
-        ${modes([{ label: t("Vorige"), go: () => ctl("media_previous_track") }, { label: on ? t("Pauze") : t("Speel"), on, go: () => ctl("media_play_pause") }, { label: t("Volgende"), go: () => ctl("media_next_track") }, { label: v.off ? t("Aan") : t("Uit"), go: () => call(v.off ? "turn_on" : "turn_off") }])}
-        ${s.attributes.volume_level != null ? range(t("Volume"), vol, v => call("volume_set", { volume_level: v / 100 })) : nothing}
-        <ul>${s.attributes.source_list ? s.attributes.source_list.slice(0, 8).map(src => li("mdi:import", src, "", { on: src === s.attributes.source, onclick: () => call("select_source", { source: src }) })) : nothing}
-        ${v.app && !v.off ? li(v.app.icon, t("App"), v.app.name) : nothing}
-        ${v.info && v.info !== s ? li("mdi:link-variant", t("Info van"), v.info.attributes.friendly_name || v.info.entity_id, { sub: t("gekoppelde speler"), onclick: () => p.moreInfo(v.info.entity_id) }) : nothing}
-        ${li("mdi:history", t("Laatst gewijzigd"), relTime(s.last_changed))}</ul>`);
-    }
+    case "media": return mediaPopup(p, pop, UI());
     case "cover": {
       const s = hass.states[pop.e.id], pos = num(s.attributes.current_position);
       const call = (svc, data = {}) => p.call("cover", svc, { entity_id: pop.e.id, ...data });
@@ -281,13 +288,9 @@ export function renderPopup(p, pop) {
       return wrap(roomName, label(p, pop.e), pop.kind === "motion" ? (on ? t("Beweging") : t("Geen beweging")) : on ? t("Open") : t("Dicht"), html`
         <ul>${li("mdi:history", t("Laatst gewijzigd"), relTime(s.last_changed))}${batt ? li("mdi:battery", t("Batterij"), `${batt.state.state}%`) : nothing}</ul>
         <div class="prow" style="margin-top:18px"><span>${t("Laatste 24 uur")}</span><b>${pop.history?.filter?.(r => r.s === "on").length ?? "…"}×</b></div>
-        ${pop.history === undefined || pop.history === null && !pop.loaded ? html`<div class="sub">${t("Laden…")}</div>` : timeline(pop.history, pop.kind)}`);
+        ${pop.history === undefined || pop.history === null && !pop.loaded ? html`<div class="skel" aria-label=${t("Laden…")}><i class="tl"></i></div>` : timeline(pop.history, pop.kind)}`);
     }
-    case "agenda": {
-      const evs = p.events || [];
-      return wrap(t("Agenda"), evs.length ? t("{n} afspraken", { n: evs.length }) : t("Niets gepland"), t("Vandaag en morgen"), html`
-        <ul>${evs.map(ev => li("mdi:calendar-blank-outline", ev.summary, "", { sub: `${eventWhen(ev)}${ev.location ? " · " + ev.location : ""}`, on: ev.start <= new Date() && ev.end > new Date() }))}</ul>`);
-    }
+    case "agenda": return agendaPopup(p, pop, UI());
     case "appliance": {
       const a = pop.a, cfg = (p.config.cards || {})[a.id] || {}, thr = cfg.threshold ?? 5;
       const st = applianceState(hass, a, thr), sw = a.switch ? hass.states[a.switch.id] : null, title = cfg.name || (hass.devices?.[a.device]?.name_by_user || hass.devices?.[a.device]?.name || t("Apparaat"));
@@ -329,49 +332,25 @@ export function renderPopup(p, pop) {
       return wrap(pop.type === "doors" ? (home.windows.length && home.doors.length ? t("Deuren & ramen") : home.doors.length ? t("Deuren") : t("Ramen")) : t("Ramen"), open.length ? t("{n} open", { n: open.length }) : t("Alles dicht"), t("{n} met sensor", { n: list.length }), html`
         <ul>${list.map(e => li(isDoor(e) ? "mdi:door" : "mdi:window-closed-variant", name(hass, e), isOn(e.state) ? t("Open") : t("Dicht"), { on: isOn(e.state), sub: `${e.room.name} · ${relTime(e.state?.last_changed)}`, svg: isDoor(e) ? "door" : "window", onclick: () => p.go(e.room) }))}</ul>`);
     }
-    case "lights":
-      return wrap(t("Lampen"), home.lightsOn.length ? t("{n} aan", { n: home.lightsOn.length }) : t("Alles uit"), t("van {n} lampen", { n: home.lights.length }), html`
-        ${home.lightsOn.length ? modes([{ label: t("Alles uit"), go: () => p.call("light", "turn_off", { entity_id: home.lightsOn.map(e => e.id) }) }], "n2") : nothing}
-        <ul>${[...home.lightsOn, ...home.lights.filter(e => !isOn(e.state))].map(e => li("mdi:lightbulb-outline", name(hass, e), isOn(e.state) ? `${Math.round((e.state.attributes.brightness || 255) / 2.55)}%` : t("Uit"), { on: isOn(e.state), sub: e.room.name, svg: "lamp", onclick: () => p.call("light", "toggle", { entity_id: e.id }) }))}</ul>`);
+    case "lights": return lightsPopup(p, UI());
     case "waste":
       return wrap(t("Afval"), home.waste[0] ? `${home.waste[0].label} ${wasteWhen(home.waste[0])}` : t("Geen data"), t("Ophaaldagen"), html`
         <ul>${home.waste.map((w, i) => li("mdi:trash-can-outline", html`<i class="dot" style="background:${wasteColor(w.label)}"></i>${w.label}`, wasteWhen(w), { on: i === 0, sub: w.days > 7 && w.date ? new Date(w.date).toLocaleDateString(locale(), { weekday: "long" }) : "" }))}</ul>`);
     case "people":
       return wrap(t("Wie is thuis"), t("{n} van {m}", { n: home.home, m: home.persons.length }), home.persons.filter(s => s.state === "home").map(s => s.attributes.friendly_name).join(", ") || t("Niemand thuis"), html`
-        <ul>${home.persons.map(s => li("mdi:account-outline", s.attributes.friendly_name, s.state === "home" ? t("Thuis") : s.state === "not_home" ? t("Weg") : s.state, { on: s.state === "home", sub: relTime(s.last_changed), img: s.attributes.entity_picture || null }))}</ul>`);
-    case "weather": {
-      const w = home.weather, a = w.attributes, fc = pop.forecast || [], dfc = (pop.dailyForecast || []).slice(0, 7);
-      const hourly = fc.filter(f => f.datetime && (new Date(f.datetime) - Date.now()) < 36e5 * 30).slice(0, 8);
-      const wxi = c => html`<img class="ico" src=${icon(condSvg(c))} alt="">`;
-      const rain = f => f.precipitation_probability != null ? `${Math.round(f.precipitation_probability)}%` : f.precipitation ? `${f.precipitation} mm` : "";
-      const hours = hourly.length ? html`<div class="prow" style="margin-top:6px"><span>${t("Komende uren")}</span><b>${a.precipitation_unit && hourly.some(f => f.precipitation_probability != null) ? t("kans op neerslag") : ""}</b></div>
-        <div class="fc hours">${hourly.map(f => html`<div>${new Date(f.datetime).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })}${wxi(f.condition)}<b>${Math.round(f.temperature)}°</b>${rain(f) ? html`<em>${rain(f)}</em>` : nothing}</div>`)}</div>` : nothing;
-      const todayKey = new Date().toDateString();
-      const week = dfc.length ? html`<div class="prow" style="margin-top:18px"><span>${t("Deze week")}</span><b></b></div><div class="fc week">${dfc.map(f => { const d = new Date(f.datetime), isT = d.toDateString() === todayKey;
-        return html`<div class=${isT ? "today" : ""}>${isT ? t("Vandaag") : d.toLocaleDateString(locale(), { weekday: "short" })}${wxi(f.condition)}<b>${Math.round(f.temperature)}°</b>${f.templow != null ? html`<small>${Math.round(f.templow)}°</small>` : nothing}${rain(f) ? html`<em>${rain(f)}</em>` : nothing}</div>`; })}</div>` : nothing;
-      const bearing = b => typeof b === "number" ? ["N", "NO", "O", "ZO", "Z", "ZW", "W", "NW"][Math.round(b / 45) % 8] : b;
-      const sun = home.sun, hm = iso => new Date(iso).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
-      const details = [
-        a.apparent_temperature != null ? li("mdi:thermometer", t("Gevoelstemperatuur"), `${Math.round(a.apparent_temperature)}°`) : null,
-        a.humidity != null ? li("mdi:water-outline", t("Luchtvochtigheid"), `${a.humidity}%`) : null,
-        a.wind_speed != null ? li("mdi:weather-windy", t("Wind"), `${Math.round(a.wind_speed)} ${a.wind_speed_unit || t("km/u")}${a.wind_bearing != null ? " · " + bearing(a.wind_bearing) : ""}`) : null,
-        a.pressure != null ? li("mdi:gauge", t("Luchtdruk"), `${Math.round(a.pressure)} ${a.pressure_unit || "hPa"}`) : null,
-        a.uv_index != null ? li("mdi:sun-wireless-outline", t("UV-index"), `${a.uv_index}`) : null,
-        a.visibility != null ? li("mdi:eye-outline", t("Zicht"), `${a.visibility} ${a.visibility_unit || "km"}`) : null,
-        sun ? li("mdi:weather-sunset-up", t("Zonsopkomst"), hm(sun.attributes.next_rising)) : null,
-        sun ? li("mdi:weather-sunset-down", t("Zonsondergang"), hm(sun.attributes.next_setting)) : null,
-      ].filter(Boolean);
-      return wrap(t("Weer"), `${Math.round(num(a.temperature) ?? 0)}° · ${condText(w.state)}`, a.attribution || "", html`
-        ${hours}${week}
-        ${!hourly.length && !dfc.length ? html`<div class="sub">${pop.loading ? t("Laden…") : t("Geen verwachting beschikbaar")}</div>` : nothing}
-        ${details.length ? html`<ul>${details}</ul>` : nothing}`);
+        <ul>${home.persons.map(s => li("mdi:account-outline", s.attributes.friendly_name, s.state === "home" ? t("Thuis") : s.state === "not_home" ? t("Weg") : s.state, { on: s.state === "home", sub: personTravel(p, s) || relTime(s.last_changed), img: s.attributes.entity_picture || null }))}</ul>`);
+    case "weather": return weatherPopup(p, pop, UI());
+    case "defaults": {
+      const def = DEFAULT_TYPES.find(x => x.type === pop.ctype); if (!def) return nothing;
+      return html`<div class="popup wide cardf"><h2><span>${t("Kaartstandaard")}<span class="rm"> · ${t(def.label)}</span></span> ${hbtns(p, pop)}</h2><div class="big">${t(def.label)}</div><div class="sub">${t("Zo zien deze kaarten eruit; bewaren met Opslaan bovenaan de instellingen")}</div>${defaultsForm(p, pop)}</div>`;
     }
     case "page": {
       const key = pop.key, isHome = key === "home", r = isHome ? null : p.rooms.find(x => x.id === key); if (!isHome && !r) return nothing;
-      const cur = p.pageCfg(key), d = pop.draft || { ...cur, hidden: [...(cur.hidden || [])], order: [...(cur.order || [])], ticker: { ...(cur.ticker || {}) }, lines: (cur.lines || []).map(l => ({ ...l })) };
+      const cur = p.pageCfg(key), d = pop.draft || { ...cur, hidden: [...(cur.hidden || [])], order: [...(cur.order || [])], ticker: { ...(cur.ticker || {}) }, lines: (cur.lines || []).map(l => ({ ...l })), pills: cur.pills ? cur.pills.map(x => ({ ...x })) : undefined };
       const upd = patch => p.openPopup({ ...pop, draft: { ...d, ...patch } });
       const all = p.orderCards(p.pageCards(key), d.order), hid = new Set(d.hidden);
       const move = (i, dir) => { const keys = all.map(c => c.key), j = i + dir; if (j < 0 || j >= keys.length) return; [keys[i], keys[j]] = [keys[j], keys[i]]; upd({ order: keys }); };
+      const drag = (ev, k) => dragRows(ev, k, order => p.openPopup({ ...pop, draft: { ...d, order }, drag: k }), order => p.openPopup({ ...pop, draft: { ...d, order }, drag: undefined }));
       const kinds = TICKER_KINDS[isHome ? "home" : "room"];
       const defImage = isHome ? (p.config.homeImage || "") : ((p.config.roomImage || "").replace("{slug}", r.slug));
       return html`<div class="popup wide"><h2>${t("Pagina instellen")} ${hbtns(p, pop)}</h2><div class="big">${isHome ? t("Startpagina") : r.name}</div><div class="sub">${t("Titel, foto, kaarten en de meldingenregel van deze pagina")}</div>
@@ -380,16 +359,17 @@ export function renderPopup(p, pop) {
           <label class="f"><span>${t("Foto")}<small>${t("pad of URL")}</small></span><input type="text" .value=${d.image || ""} placeholder=${defImage} @change=${e => upd({ image: e.target.value || undefined })}></label>
         </div>
         <div class="prow" style="margin-top:18px"><span>${t("Kaarten")}</span><b>${t("{a} van {b} zichtbaar", { a: all.length - hid.size, b: all.length })}</b></div>
-        <ul class="plist">${all.map((c, i) => html`<li class=${hid.has(c.key) ? "off" : ""}><ha-icon icon=${hid.has(c.key) ? "mdi:eye-off-outline" : "mdi:eye-outline"}></ha-icon><div>${c.label}<small>${c.key.includes(".") || c.key.startsWith("device:") ? c.key : ""}</small></div>
+        <ul class="plist" data-drag>${all.map((c, i) => html`<li data-k=${c.key} class=${[hid.has(c.key) ? "off" : "", pop.drag === c.key ? "drag" : ""].join(" ")}><span class="grip" title=${t("Sleep om te verplaatsen")} @pointerdown=${ev => drag(ev, c.key)}><ha-icon icon="mdi:drag"></ha-icon></span><div>${c.label}<small>${c.key.includes(".") || c.key.startsWith("device:") ? c.key : ""}</small></div>
           <span class="btns"><button title=${hid.has(c.key) ? t("Tonen") : t("Verbergen")} @click=${() => upd({ hidden: hid.has(c.key) ? d.hidden.filter(k => k !== c.key) : [...d.hidden, c.key] })}><ha-icon icon=${hid.has(c.key) ? "mdi:eye-outline" : "mdi:eye-off-outline"}></ha-icon></button><button title=${t("Omhoog")} ?disabled=${i === 0} @click=${() => move(i, -1)}>↑</button><button title=${t("Omlaag")} ?disabled=${i === all.length - 1} @click=${() => move(i, 1)}>↓</button></span></li>`)}
           ${!all.length ? html`<li><div>${t("Geen kaarten op deze pagina")}</div></li>` : nothing}</ul>
         <div class="prow" style="margin-top:18px"><span>${t("Meldingenregel")}</span><b>${t("tik om uit/aan te zetten")}</b></div>
         <div class="chips">${Object.entries(kinds).map(([k, l]) => html`<button class=${d.ticker[k] === false ? "" : "on"} @click=${() => upd({ ticker: { ...d.ticker, [k]: d.ticker[k] === false ? undefined : false } })}>${t(l)}</button>`)}</div>
         <div class="prow" style="margin-top:18px"><span>${t("Eigen regels")}</span><b>Jinja</b></div>
-        <div class="form lines">${(d.lines || []).map((l, i) => html`<div class="lrow"><input type="text" .value=${l.icon || ""} placeholder="mdi:text" @change=${e => upd({ lines: d.lines.map((x, j) => j === i ? { ...x, icon: e.target.value || undefined } : x) })}><input type="text" .value=${l.text || ""} placeholder=${t("template, bv. {{ states('sensor.x') }} °C")} @change=${e => upd({ lines: d.lines.map((x, j) => j === i ? { ...x, text: e.target.value } : x) })}><button @click=${() => upd({ lines: d.lines.filter((_, j) => j !== i) })}>×</button></div>`)}
+        <div class="form lines">${(d.lines || []).map((l, i) => html`<div class="lrow">${iconInput(p, l.icon, v => upd({ lines: d.lines.map((x, j) => j === i ? { ...x, icon: v } : x) }), "mdi:text")}<input type="text" .value=${l.text || ""} placeholder=${t("template, bv. {{ states('sensor.x') }} °C")} @change=${e => upd({ lines: d.lines.map((x, j) => j === i ? { ...x, text: e.target.value } : x) })}><button @click=${() => upd({ lines: d.lines.filter((_, j) => j !== i) })}>×</button></div>`)}
           <button class="addline" @click=${() => upd({ lines: [...(d.lines || []), { icon: "mdi:text", text: "" }] })}>${t("+ eigen regel")}</button></div>
+        ${pillEditor(p, pop, key, d, upd)}
         <div class="modes n3" style="margin-top:18px">
-          <button class="on" @click=${() => p.savePage(key, { title: d.title, image: d.image, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined })}>${t("Opslaan")}</button>
+          <button class="on" @click=${() => p.savePage(key, { title: d.title, image: d.image, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined, add: d.add, pills: d.pills })}>${t("Opslaan")}</button>
           <button @click=${() => p.savePage(key, null)}>${t("Herstel")}</button>
           <button data-close>${t("Annuleren")}</button></div></div>`;
     }
@@ -400,7 +380,7 @@ export function renderPopup(p, pop) {
       const goStep = s => p.openPopup({ ...pop, draft: d, step: s });
       const areas = Object.values(hass.areas || {}).sort((a, b) => a.name.localeCompare(b.name, "nl"));
       const steps = [
-        { title: t("Welkom"), body: html`<div class="sub">${t("In vier stappen staat het panel klaar. Alles is later aan te passen bij Panel instellingen.")}</div><div class="form">
+        { title: t("Welkom"), body: html`<div class="sub">${t("In vier stappen staat het panel klaar. Alles is later aan te passen bij HaCasa instellingen.")}</div><div class="form">
             ${field(t("Taal"), html`<select @change=${e => { upd({ language: e.target.value || undefined }); }}><option value="" ?selected=${!d.language}>${t("automatisch (taal van Home Assistant)")}</option>${Object.entries(LANGUAGES).map(([k, l]) => html`<option value=${k} ?selected=${d.language === k}>${l}</option>`)}</select>`)}
             ${field(t("Titel"), text(d.title, v => upd({ title: v || undefined }), t("Thuis") + "."), t("linksboven in de navigatie"))}</div>` },
         { title: t("Kamers"), body: html`<div class="sub">${t("Kies de ruimtes die als kamer in de navigatie komen. De volgorde pas je later aan bij Kamers.")}</div>
@@ -433,7 +413,7 @@ export function renderPopup(p, pop) {
       const upd = patch => p.openPopup({ ...pop, draft: { ...d, ...patch } });
       const body = pop.form ? html`<div class="form">
           <label class="f"><span>${t("Naam")}</span><input type="text" .value=${d.name ?? editing?.name ?? ""} placeholder=${t("bv. Film, Lezen, Gezellig")} @change=${e => upd({ name: e.target.value })}></label>
-          <label class="f"><span>${t("Icoon")}</span><input type="text" .value=${d.icon ?? editing?.icon ?? ""} placeholder="mdi:movie-open-outline" @change=${e => upd({ icon: e.target.value })}></label>
+          <label class="f"><span>${t("Icoon")}</span>${iconInput(p, d.icon ?? editing?.icon, v => upd({ icon: v || "" }), "mdi:movie-open-outline")}</label>
           <div class="sub" style="margin-top:12px">${editing ? t("Bewaart de opgeslagen lampstanden; alleen naam en icoon wijzigen.") : t("Slaat de huidige stand van {n} lampen op: aan/uit, helderheid en kleur.", { n: r.ents.lights.length })}</div>
           <div class="modes n2" style="margin-top:14px">
             <button class="on" @click=${() => p.savePreset(r, { id: editing?.id || Date.now().toString(36), name: (d.name ?? editing?.name) || t("Scène"), icon: (d.icon ?? editing?.icon) || undefined, states: editing ? editing.states : snapshot(p, r) })}>${t("Opslaan")}</button>
@@ -443,11 +423,7 @@ export function renderPopup(p, pop) {
           ${pop.manage && list.length ? html`<ul>${list.map(pr => li("mdi:content-save-outline", pr.name, t("Overschrijven"), { sub: t("met de huidige lampstand"), onclick: () => p.savePreset(r, { ...pr, states: snapshot(p, r) }) }))}${list.map(pr => li("mdi:delete-outline", pr.name, t("Verwijderen"), { onclick: () => p.deletePreset(r, pr.id) }))}</ul>` : nothing}`;
       return wrap(r.name, t("Lichtscènes"), list.length ? t("{n} opgeslagen · tik = activeren", { n: list.length }) : t("Opgeslagen lampstanden voor deze kamer"), body);
     }
-    case "energy": {
-      const en = home.energy, r = (s, u) => s ? `${num(s.state)?.toLocaleString(locale())} ${u}` : "–";
-      if (en.today && pop.hourly === undefined) p.loadHourly(pop);
-      return wrap(t("Energie"), r(en.power, "W"), t("Nu"), html`${en.today ? html`<div class="prow" style="margin-top:6px"><span>${t("Vandaag per uur")}</span><b>${r(en.today, "kWh")}</b></div>${bars(pop.hourly === undefined ? null : pop.hourly)}` : nothing}<ul>${li("mdi:home-import-outline", t("Verbruik vandaag"), r(en.today, "kWh"))}${li("mdi:solar-power-variant-outline", t("Teruggeleverd"), r(en.returned, "kWh"))}${li("mdi:fire", t("Gas"), r(en.gas, "m³"))}</ul>`);
-    }
+    case "energy": return energyPopup(p, pop, UI());
     case "camera": {
       const s = hass.states[pop.s.entity_id] || pop.s;
       const src = camStream(s);
@@ -471,7 +447,7 @@ export function renderPopup(p, pop) {
       return html`<div class="popup wide"><h2>${t("Templatekaart")} ${hbtns(p, pop)}</h2><div class="big">${tp.name || t("Nieuwe kaart")}</div><div class="sub">${t("Een sjabloon in je bibliotheek: plaats het via Bewerken → Kaart toevoegen → Template, zo vaak je wilt. Tekst en label zijn Jinja-templates; Home Assistant rendert ze live. Opslaan gebeurt met de knop op de instellingenpagina.")}</div>
         <div class="form">
           ${f(t("Naam"), txt("name", "bv. Buiten"))}
-          ${f(t("Icoon"), txt("icon", "mdi:thermometer"))}
+          ${f(t("Icoon"), iconInput(p, tp.icon, v => upd({ icon: v }), "mdi:thermometer"))}
           ${f(t("Bij het plaatsen invullen"), html`<div class="chips">${TPL_ASK.map(([k, l]) => html`<button class=${(tp.ask || []).includes(k) ? "on" : ""} @click=${() => upd({ ask: (tp.ask || []).includes(k) ? (tp.ask || []).filter(x => x !== k) : [...(tp.ask || []), k] })}>${t(l)}</button>`)}</div>`, t("deze velden vraagt de kaart als je hem op een pagina zet; wat je hier invult is dan het voorbeeld"))}
           ${f(t("Tekst"), txt("state", "{{ states('sensor.buiten_temperatuur') }} °C"), t("template voor de staat"))}
           ${f(t("Label"), txt("label", "{{ relative_time(states.sensor.x.last_changed) }} geleden"), "optioneel, kleine regel onderin")}
@@ -486,14 +462,26 @@ export function renderPopup(p, pop) {
         </div></div>`;
     }
     case "group": {
-      const g = pop.g, m = groupMembers(p, g), on = m.filter(x => x.on).length;
+      const g = pop.g, m = groupMembers(p, g), on = m.filter(x => x.on).length, light = groupKind(g) === "light";
       const svc = id => id.split(".")[0] === "input_boolean" ? "input_boolean" : id.split(".")[0] === "light" ? "light" : id.split(".")[0] === "fan" ? "fan" : "switch";
-      return wrap(g.name, on ? t("{n} van {m} aan", { n: on, m: m.length }) : t("Alles uit"), t("tik op een onderdeel om te schakelen"), html`
+      // brightness: one slider for the whole group ("all", the average of the lit members) or one under every dimmable light ("each")
+      const dimIds = light ? m.filter(x => lightCaps(x.s).dim).map(x => x.id) : [], each = pop.sliders === "each", lit = m.filter(x => x.on && dimIds.includes(x.id));
+      const avg = lit.length ? Math.round(lit.reduce((a, x) => a + lightState(x.s).pct, 0) / lit.length) : 0;
+      // hold on a member: its own popup (light, fan or switch), with an arrow back to the group
+      const ent = x => p.rooms.flatMap(r => r.ents.all).find(e => e.id === x.id) || { id: x.id, state: x.s };
+      const open = x => p.openPopup({ type: x.id.startsWith("light.") ? "light" : x.id.startsWith("fan.") ? "fan" : "switch", e: ent(x), back: pop });
+      const row = x => html`<li class=${classMap({ on: x.on, tap: true, dim: each && dimIds.includes(x.id) })} ${pressDir(p, { tap: () => p.call(svc(x.id), "toggle", { entity_id: x.id }), hold: () => open(x) })}>
+        <img class="ico" src=${icon(x.id.startsWith("light.") ? "lamp" : x.id.startsWith("fan.") ? "fan" : "plug")} alt=""><div>${x.name}</div><span class="st">${x.on ? (dimIds.includes(x.id) && x.on ? `${lightState(x.s).pct}%` : t("Aan")) : t("Uit")}</span>
+        ${each && dimIds.includes(x.id) ? html`<div class="slider"><input type="range" min="1" max="100" .value=${String(lightState(x.s).pct)} @change=${e => p.call("light", "turn_on", { entity_id: x.id, brightness_pct: +e.target.value })}></div>` : nothing}</li>`;
+      return wrap(g.name, on ? t("{n} van {m} aan", { n: on, m: m.length }) : t("Alles uit"), t("tik op een onderdeel om te schakelen, houd vast voor details"), html`
         <div class="modes n2"><button @click=${() => m.forEach(x => p.call(svc(x.id), "turn_on", { entity_id: x.id }))}>${t("Alles aan")}</button><button @click=${() => m.forEach(x => p.call(svc(x.id), "turn_off", { entity_id: x.id }))}>${t("Alles uit")}</button></div>
-        <ul>${m.map(x => li(x.id.startsWith("light.") ? "mdi:lightbulb-outline" : x.id.startsWith("fan.") ? "mdi:fan" : "mdi:power-socket-eu", x.name, x.on ? t("Aan") : t("Uit"), { on: x.on, svg: x.id.startsWith("light.") ? "lamp" : x.id.startsWith("fan.") ? "fan" : "plug", onclick: () => p.call(svc(x.id), "toggle", { entity_id: x.id }) }))}</ul>`);
+        ${dimIds.length ? html`<div class="prow"><span>${t("Helderheid")}</span><div class="seg">${[["all", t("samen")], ["each", t("per lamp")]].map(([v, l]) => html`<button class=${(pop.sliders || "all") === v ? "on" : ""} @click=${() => p.openPopup({ ...pop, sliders: v })}>${l}</button>`)}</div>
+          ${each ? nothing : html`<span>${lit.length ? t("{n} lampen aan", { n: lit.length }) : t("Alles uit")}</span><b>${avg}%</b><input type="range" min="1" max="100" .value=${String(avg)} @change=${e => p.call("light", "turn_on", { entity_id: dimIds, brightness_pct: +e.target.value })}>`}</div>` : nothing}
+        <ul>${m.map(row)}</ul>`);
     }
     case "add": return addPopup(p, pop);
-    case "cardcfg": return wrap(roomName, p.pageCards(p.room?.id || "home").find(c => c.key === pop.key)?.label || pop.key, "", nothing);
+    case "hidden": return hiddenPopup(p, pop);
+    case "cardcfg": return wrap(roomName, p.pageCards(p.room?.id || "home").find(c => c.key === pop.key)?.label || ({ ev: t("Auto"), garden: t("Tuin"), todo: t("Lijst") })[pop.key] || pop.key, "", nothing);
     case "value": {
       const s = hass.states[pop.e.id] || pop.e.state, v = num(s?.state), unit = s?.attributes?.unit_of_measurement || "";
       return wrap(roomName, label(p, pop.e), unavailable(s) ? t("Onbereikbaar") : v != null ? `${s.state} ${unit}`.trim() : (s?.state || ""), html`
@@ -502,7 +490,13 @@ export function renderPopup(p, pop) {
     case "more":
       return wrap(t("Meer"), t("Overzichten"), t("Pagina's die niet bij een kamer horen"), html`
         ${modeList(p).length ? html`<div class="prow" style="margin-top:14px"><span>${t("Modi")}</span><b>${modeList(p).filter(m => m.on).map(m => m.label).join(", ") || ""}</b></div><ul style="margin-top:8px">${modeList(p).map(m => li(m.icon || "mdi:account-switch-outline", m.label, m.on ? t("Actief") : t("Uit"), { on: m.on, sub: m.s.attributes.friendly_name, onclick: () => toggleMode(p, m) }))}</ul>` : nothing}
-        <div class="pages">${[...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...Object.entries(PAGES).map(([k, v]) => ({ label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("Panel instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}><ha-icon icon=${m.icon}></ha-icon><div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
+        <div class="pages">${[...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...Object.entries(PAGES).map(([k, v]) => ({ label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("HaCasa instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}>${anyIco(m.icon)}<div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
+    case "security": return securityPopup(p, pop, wrap, li, modes);
+    case "todo": return todoPopup(p, pop, wrap, li, modes);
+    case "air": return airPopup(p, pop, wrap, li);
+    case "ev": return evPopup(p, wrap, li, modes);
+    case "timers": return timersPopup(p, wrap, li, modes);
+    case "garden": return gardenPopup(p, wrap, li, modes);
     default: return nothing;
   }
 }

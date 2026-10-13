@@ -4,14 +4,16 @@ import { html, nothing } from "lit";
 import { num, relTime, isOn, unavailable } from "./util.js";
 
 /* ---------- agenda (calendar.get_events with response) ---------- */
-export async function fetchEvents(hass, calendars, days = 2) {
+export async function fetchEvents(hass, calendars, days = 2, from = null) {
   if (!calendars?.length) return [];
-  const start = new Date(); start.setHours(0, 0, 0, 0);
+  const start = from || new Date(); if (!from) start.setHours(0, 0, 0, 0);
   const end = new Date(start.getTime() + days * 86400000);
   try {
     const r = await hass.callWS({ type: "call_service", domain: "calendar", service: "get_events", service_data: { start_date_time: start.toISOString(), end_date_time: end.toISOString() }, target: { entity_id: calendars }, return_response: true });
     const out = [];
-    for (const [cal, v] of Object.entries(r?.response || {})) for (const ev of v.events || []) out.push({ ...ev, cal, start: new Date(ev.start), end: new Date(ev.end), allDay: !ev.start.includes("T") });
+    // an all-day event comes as a date (no time); its end is the day after, which in local time means midnight
+    const parse = v => v.includes("T") ? new Date(v) : new Date(+v.slice(0, 4), +v.slice(5, 7) - 1, +v.slice(8, 10));
+    for (const [cal, v] of Object.entries(r?.response || {})) for (const ev of v.events || []) out.push({ ...ev, cal, start: parse(ev.start), end: parse(ev.end), allDay: !ev.start.includes("T") });
     return out.sort((a, b) => a.start - b.start);
   } catch (e) { console.warn("[hacasa-nova] calendar.get_events failed", e); return []; }
 }

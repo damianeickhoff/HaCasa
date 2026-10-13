@@ -7,19 +7,23 @@ import { keyed } from "lit/directives/keyed.js";
 import { styles } from "./styles.js";
 import { buildRooms, buildHome, name } from "./model.js";
 import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateInstance } from "./cards.js";
-import { editStrip, editBar, canEdit } from "./edit.js";
+import { editStrip, editBar, editTools, canEdit } from "./edit.js";
 import { renderPopup } from "./popups.js";
 import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
 import { renderPage, PAGES } from "./pages.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
-import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon } from "./cards.js";
+import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, anyIco, wxEmoji } from "./cards.js";
+import { renderPills, pillTemplates } from "./pills.js";
+import { iconPicker } from "./iconpicker.js";
 import { quickRow, watchTriggers, presetCard, selfUpdate } from "./features.js";
 import { searchBar, openFor } from "./search.js";
 import { graphCard } from "./graph.js";
 import { fetchNumeric, batteryEta, modeList } from "./extras3.js";
+import { airCard } from "./cards2.js";
 import { deviceName } from "./model.js";
-import { BASE, TAG, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
+import { BASE, TAG, icon, slug, isOn, unavailable, isDown, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
+import { ghost, tw, afterRender, setMotion } from "./motion.js";
 
 /** numbers with their unit (6,8 kWh · 50% · 12 min · 14:02) rendered white inside a notice */
 const emph = text => { const parts = String(text ?? "").split(/(\d+(?:[.,:]\d+)?(?:\s?(?:%|kWh|W|kW|°C?|min|uur|u|×))?)/g); return parts.map((x, i) => i % 2 ? html`<b>${x}</b>` : x); };
@@ -37,8 +41,8 @@ class HacasaNova extends LitElement {
   static styles = styles;
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
-    config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, tick: { state: true }, now: { state: true },
-    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true },
+    config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, iconPick: { state: true }, tick: { state: true }, now: { state: true },
+    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true }, todo: { state: true },
   };
 
   constructor() {
@@ -53,7 +57,7 @@ class HacasaNova extends LitElement {
     this.loadConfig();
     this._clock = setInterval(() => { this.now = clock(); }, 15000);
     this._ticker = setInterval(() => { this.tick++; }, 4000);
-    this._onKey = e => { if (e.key === "Escape") { if (this.popup?.menu) { this.popup = { ...this.popup, menu: false }; return; } if (!this.popup && this.edit) { this.stopEdit(); return; } this.popup = null; this.search = ""; this.searchOpen = false; } };
+    this._onKey = e => { if (e.key === "Escape") { if (this.iconPick) { this.iconPick = null; return; } if (this.popup?.menu) { this.popup = { ...this.popup, menu: false }; return; } if (!this.popup && this.edit) { this.stopEdit(); return; } this.popup = null; this.search = ""; this.searchOpen = false; } };
     addEventListener("keydown", this._onKey);
     // inside a Lovelace card the dashboard owns the URL path, so rooms are routed through the hash
     if (this.hashMode) { this._onHash = () => { this.route = { path: location.hash.replace(/^#/, "") || "/", prefix: "" }; }; addEventListener("hashchange", this._onHash); this._onHash(); }
@@ -76,10 +80,11 @@ class HacasaNova extends LitElement {
   wake() { this.idle = false; this._lastActivity = Date.now(); }
   /** go to the previous/next room in nav order (home is before the first room) */
   swipe(dir) { const order = [null, ...this.rooms]; const i = order.findIndex(r => (r?.id || null) === (this.room?.id || null)); const n = order[i + dir]; if (n !== undefined) this.go(n); }
-  async loadEvents() { this._eventsAt = Date.now(); this.events = await fetchEvents(this.hass, this.home?.calendars || []); }
+  /** a window from last week to five weeks ahead: enough for the week view to page through without refetching */
+  async loadEvents() { this._eventsAt = Date.now(); const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (from.getDay() + 6) % 7 - 7); this.events = await fetchEvents(this.hass, this.home?.calendars || [], 42, from); }
   async loadHistory(pop) { this.popup = { ...pop, history: null }; const rows = await fetchHistory(this.hass, pop.e.id); if (this.popup?.type === "sensor" && this.popup.e?.id === pop.e.id) this.popup = { ...this.popup, history: rows, loaded: true }; }
   showIdle() { this.idle = true; }
-  async loadHourly(pop) { const id = this.config.home?.energy?.today; this.popup = { ...pop, hourly: null }; const rows = await hourlyToday(this.hass, id); if (this.popup?.type === "energy") this.popup = { ...this.popup, hourly: rows }; }
+  async loadHourly(pop) { const en = this.config.home?.energy || {}; this.popup = { ...pop, hourly: null }; const [rows, sol] = await Promise.all([hourlyToday(this.hass, en.today), en.solarToday ? hourlyToday(this.hass, en.solarToday) : null]); if (this.popup?.type === "energy") this.popup = { ...this.popup, hourly: rows, solarHourly: sol }; }
 
   async loadConfig() {
     try {
@@ -106,7 +111,7 @@ class HacasaNova extends LitElement {
   /** merge a JSON file (export or an old config.json) into the settings */
   importSettings(file) {
     const rd = new FileReader();
-    rd.onload = async () => { try { const data = JSON.parse(rd.result); if (!data || typeof data !== "object") throw 0; const u = { ...mergeConfig(this.userConfig || {}, data), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; this.applyConfig(); this.draft = JSON.parse(JSON.stringify(this.config)); this.showToast(t("Instellingen geïmporteerd")); } catch { this.showToast(t("Geen geldig instellingenbestand")); } };
+    rd.onload = async () => { try { const data = JSON.parse(rd.result); if (!data || typeof data !== "object") throw 0; const u = { ...mergeConfig(this.userConfig || {}, data), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; this.applyConfig(); this.draft = JSON.parse(JSON.stringify(this.config)); this.showToast(t("Instellingen geïmporteerd"), 3000, "ok"); } catch { this.showToast(t("Geen geldig instellingenbestand")); } };
     rd.readAsText(file);
   }
   /** one render_template subscription per template card field; re-subscribed when the config changes */
@@ -115,7 +120,7 @@ class HacasaNova extends LitElement {
     this.config.templates = cards;
     const lines = Object.entries(this.config.pages || {}).flatMap(([k, pc]) => (pc.lines || []).map((l, i) => ({ id: `line:${k}:${i}`, state: l.text })));
     const overrides = Object.entries(this.config.cards || {}).filter(([, c]) => c.tplState || c.tplSub || c.tplFoot || c.tplVisible).map(([id, c]) => ({ id: "card:" + id, state: c.tplState, label: c.tplSub, foot: c.tplFoot, visible: c.tplVisible }));
-    const list = [...cards.filter(x => x.room !== "none"), ...lines, ...overrides, ...templateInstances(this)];   // room "none" = library only, rendered per instance
+    const list = [...cards.filter(x => x.room !== "none"), ...lines, ...overrides, ...templateInstances(this), ...pillTemplates(this.config)];   // room "none" = library only, rendered per instance
     const key = JSON.stringify(list.map(x => [x.id, x.state, x.label, x.foot, x.visible]));
     if (key === this._tplKey || !this.hass?.connection?.subscribeMessage) return;
     this._tplKey = key; (this._tplUnsubs || []).forEach(u => { try { u.then ? u.then(f => f(), () => {}) : u(); } catch {} }); this._tplUnsubs = [];
@@ -131,14 +136,16 @@ class HacasaNova extends LitElement {
     }
   }
   get settingsPath() { return `${this.basePath()}/instellingen`; }
-  async saveSettings() { await saveUserConfig(this.hass, this.draft); this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); }
+  async saveSettings() { try { await saveUserConfig(this.hass, this.draft); } catch (e) { console.warn("[hacasa-nova] save failed", e); this.showToast(t("Opslaan mislukt")); return; } this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); this.showToast(t("Instellingen opgeslagen"), 2500, "ok"); }
   /** back to the defaults (a config.json next to the panel is imported again on the next load) */
   async resetSettings() { await saveUserConfig(this.hass, null); this.userConfig = null; this.applyConfig(); this.draft = mergeConfig(DEFAULT_CONFIG, this.cardConfig); }
 
   /* ---------- derived model ---------- */
-  willUpdate() {
+  willUpdate(changed) {
     if (!this.hass) return;
     setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
+    const still = !!this.config.noMotion || matchMedia("(prefers-reduced-motion: reduce)").matches; this.classList.toggle("still", still); setMotion(!still);
+    if (changed.has("popup")) { const was = changed.get("popup"); if (was && !this.popup) ghost(this, ".overlay", "pop-out", 200); else if (was?.menu && this.popup && !this.popup.menu && this.popup.type === was.type) ghost(this, ".pmenu", "menu-out", 170, (c, el) => { const r = el.getBoundingClientRect(); c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;right:auto;bottom:auto;width:${r.width}px`; }); }
     if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this._unsubNotif = subscribeNotifications(this.hass, list => { this.notifications = list; }); this.subscribeTemplates(); }
     this.rooms = buildRooms(this.hass, this.config);
     this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
@@ -157,11 +164,14 @@ class HacasaNova extends LitElement {
     const bg = this.settings || this.page ? "" : this.bgUrl(this.room);   // Meer pages: plain background, no photo
     if (bg !== this._bg) { if (this._bg && this._bgCache?.get(this._bg) !== false) { this._prevBg = this._bg; clearTimeout(this._bgT); this._bgT = setTimeout(() => { this._prevBg = null; this.requestUpdate(); }, 500); } this._bg = bg; }
     if (this.popup?.type === "weather" && !this.popup.forecast && !this.popup.loading) this.loadForecast();
+    const key = this.settings ? "settings" : this.page || (this.room ? this.room.id : "home");
+    if (this._viewKey && key !== this._viewKey) ghost(this, ".title,.strip,.sfade,.page,.empty", "view-out", 240);
+    this._viewSwitch = key !== this._viewKey; this._viewKey = key;
   }
 
-  updated(changed) {
-    const key = this.settings ? "settings" : this.page || (this.room ? this.room.id : "home");
-    if (key !== this._viewKey) { this._viewKey = key; requestAnimationFrame(() => { this.style.transform = "translateZ(0)"; requestAnimationFrame(() => { this.style.transform = ""; }); }); }
+  updated() {
+    if (this._viewSwitch) { this._viewSwitch = false; requestAnimationFrame(() => { this.style.transform = "translateZ(0)"; requestAnimationFrame(() => { this.style.transform = ""; }); }); }
+    afterRender(this);
   }
 
   /* ---------- actions ---------- */
@@ -170,8 +180,10 @@ class HacasaNova extends LitElement {
     try { return await this.hass.callService(domain, service, data); }
     catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
   }
-  showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; clearTimeout(this._toastT); this._toastT = setTimeout(() => { this.toast = null; }, ms); }
+  showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; this.toastOut = false; clearTimeout(this._toastT); clearTimeout(this._toastT2); this._toastT = setTimeout(() => { this.toastOut = true; this.requestUpdate(); this._toastT2 = setTimeout(() => { this.toast = null; }, 260); }, ms); }
   openPopup(pop) { this.popup = pop; }
+  /** open the icon picker over everything; `set` gets the chosen "mdi:…" (or undefined for no icon) */
+  pickIcon(cur, set, ph) { this.iconPick = { cur, set, ph, q: "" }; this.updateComplete.then(() => this.shadowRoot?.querySelector(".ipick input")?.focus()); }
   /** navigate inside the panel: hash in card mode, history otherwise */
   nav(path) { if (this.hashMode) location.hash = "#" + (path || "/"); else navigate(path); }
   go(room) { this.drawer = false; this.nav(`${this.basePath()}/${room ? room.slug : ""}`); this.scrollStrip(0); }
@@ -203,7 +215,7 @@ class HacasaNova extends LitElement {
   async finishWizard(d) {
     const clean = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""));
     const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.userConfig?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.userConfig?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true } : { setupDone: true };
-    await this.saveUser(patch); this.popup = null; if (d) this.showToast(t("Het panel is ingesteld"));
+    await this.saveUser(patch); this.popup = null; if (d) this.showToast(t("Het panel is ingesteld"), 3000, "ok");
   }
   async savePreset(r, pr) {
     const all = { ...(this.userConfig?.presets || {}) }, list = all[r.id] || [];
@@ -225,13 +237,7 @@ class HacasaNova extends LitElement {
       template instances fall back to the `visible` field of their template */
   condHiddenCard(key) {
     const c = cardCfg(this, key);
-    if (c.visEntity) {
-      const s = this.hass.states[c.visEntity]; if (!s) return false;
-      const v = s.state, w = String(c.visValue ?? ""), n = num(v), m = num(w);
-      const ok = c.visOp === "ne" ? v !== w : c.visOp === "gt" ? (n != null && m != null && n > m) : c.visOp === "lt" ? (n != null && m != null && n < m) : v === w;
-      return c.tplVisibleInvert ? ok : !ok;
-    }
-    if (c.tplVisible) return condHidden(this, "card:" + key, c.tplVisible, c.tplVisibleInvert);
+    if (c.visEntity || c.tplVisible) return condHiddenBy(this, c, "card:" + key);
     if (key.startsWith("tpl:")) { const m = templateInstance(this, key); return m ? condHidden(this, key, m.visible, m.visibleInvert) : false; }
     return false;
   }
@@ -251,7 +257,7 @@ class HacasaNova extends LitElement {
   }
   tickerOn(key, items) {
     const pc = this.pageCfg(key), tk = pc.ticker || {};
-    const custom = (pc.lines || []).map((l, i) => ({ k: "custom", icon: l.icon || "mdi:text", text: this.templates?.[`line:${key}:${i}`]?.state })).filter(x => x.text && String(x.text).trim());
+    const custom = (pc.lines || []).map((l, i) => ({ k: "custom", uicon: l.icon || "mdi:text", text: this.templates?.[`line:${key}:${i}`]?.state })).filter(x => x.text && String(x.text).trim());
     return [...custom, ...items.filter(it => tk[it.k] !== false)];
   }
   /** appliance features on/off for a plug; the popup stays open on the matching card form */
@@ -339,10 +345,11 @@ class HacasaNova extends LitElement {
   /** energy page: today's use and return per hour, power peak and a 3 h sparkline */
   async loadEnergyToday() {
     const en = this.home.energy; this.energyHist = { ...(this.energyHist || {}), at: Date.now() };
-    const [use, sun, pw] = await Promise.all([en.today ? hourlyToday(this.hass, en.today.entity_id) : null, en.returned ? hourlyToday(this.hass, en.returned.entity_id) : null, en.power ? fetchNumeric(this.hass, [en.power.entity_id], 24) : null]);
+    const solarId = this.config.home?.energy?.solarToday;
+    const [use, sun, pw, sol] = await Promise.all([en.today ? hourlyToday(this.hass, en.today.entity_id) : null, en.returned ? hourlyToday(this.hass, en.returned.entity_id) : null, en.power ? fetchNumeric(this.hass, [en.power.entity_id], 24) : null, solarId ? hourlyToday(this.hass, solarId) : null]);
     const rows = pw?.[en.power?.entity_id] || [], peak = rows.length ? rows.reduce((a, b) => b.v > a.v ? b : a) : null;
     if (en.power) this.netHist = { ...(this.netHist || {}), [en.power.entity_id]: rows.filter(r => r.t > Date.now() - 3 * 3600000) };
-    this.energyHist = { at: Date.now(), use: use || [], sun: sun || [], peak: peak ? { v: peak.v, t: new Date(peak.t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) } : null };
+    this.energyHist = { at: Date.now(), use: use || [], sun: sun || [], sol: sol || [], peak: peak ? { v: peak.v, t: new Date(peak.t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) } : null };
   }
   /** plug with a meter: 3 h of power for the sparkline, today's kWh per hour from the recorder */
   async loadPlug(id, powerId, energyId) {
@@ -435,7 +442,7 @@ class HacasaNova extends LitElement {
         <a class="logo" @click=${() => this.go(null)}><span class="mark"><img class="ico logo" src=${icon("hacasa")} alt="HaCasa"></span>${brandTitle(this.config.title || t("Thuis") + ".")}</a>
         ${this.renderLinks(room, isPage)}
         ${h.persons.length ? html`<div class="people pill" title=${t("Wie is thuis")} @click=${() => this.openPopup({ type: "people" })}><ha-icon icon="mdi:account-group-outline"></ha-icon><span class="pc">${h.home}<small>/${h.persons.length}</small></span></div>` : nothing}
-        ${alarm ? html`<div class=${classMap({ alarm: true, pill: true, armed, [alarmCls]: true })} @click=${() => this.openPopup({ type: "alarm" })}><ha-icon icon=${alarm.state === "triggered" ? "mdi:shield-alert" : alarm.state === "arming" || alarm.state === "pending" ? "mdi:shield-sync" : armed ? "mdi:shield-home" : "mdi:shield-home-outline"}></ha-icon><span class="al">${alarmLbl}</span><i></i></div>` : html`<span></span>`}
+        ${alarm ? html`<div class=${classMap({ alarm: true, pill: true, armed, [alarmCls]: true })} @click=${() => this.openPopup({ type: "security" })}><ha-icon icon=${alarm.state === "triggered" ? "mdi:shield-alert" : alarm.state === "arming" || alarm.state === "pending" ? "mdi:shield-sync" : armed ? "mdi:shield-home" : "mdi:shield-home-outline"}></ha-icon><span class="al">${alarmLbl}</span><i></i></div>` : html`<span></span>`}
         <div class="time"><b>${this.now}</b></div>
         ${phone && this.config.phoneNav === "top" ? html`
           <button class=${classMap({ sbtn: true, on: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; this.drawer = false; }}><img src=${icon(this.searchOpen ? "close" : "search")} alt=""></button>
@@ -445,9 +452,10 @@ class HacasaNova extends LitElement {
       ${phone && (this.config.phoneNav !== "top" || this.edit) ? this.renderBottomNav(room, isPage) : nothing}
       ${keyed(this.settings ? "settings" : this.page || (room ? room.id : "home"), this.settings ? renderSettings(this) : this.page ? renderPage(this, this.page) : room ? this.renderRoom(room) : this.renderHome(h))}
       ${this.hass.connected === false ? html`<div class="offline"><ha-icon icon="mdi:lan-disconnect"></ha-icon>${t("Geen verbinding met Home Assistant")}</div>` : nothing}
-      ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info" })}>${this.toast}</div>` : nothing}
+      ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info", ok: this.toastCls === "ok", out: !!this.toastOut })}>${this.toastCls === "ok" ? html`<ha-icon icon="mdi:check-circle-outline"></ha-icon>` : nothing}${this.toast}</div>` : nothing}
       ${this.idle ? idleScreen(this) : nothing}
       ${this.popup ? html`<div class="overlay" @click=${e => { if ((e.target.classList.contains("overlay") && this.popup?.type !== "wizard") || e.target.closest?.("[data-close]")) this.popup = null; }}>${this.safePopup()}</div>` : nothing}
+      ${iconPicker(this)}
     `;
   }
 
@@ -504,14 +512,14 @@ class HacasaNova extends LitElement {
   renderTitle(temp, title, sub, items, extra = nothing, pageKey = "home", aside = nothing, hum = null) {
     const i = items.length ? this.tick % items.length : 0;
     const date = new Date().toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
-    const eyebrow = [date, temp != null ? t("{t}° binnen", { t: temp.toFixed(1) }) : "", hum != null ? t("{h}% luchtvochtigheid", { h: Math.round(hum) }) : ""].filter(Boolean);
-    return html`<section class=${classMap({ title: true, aside: aside !== nothing })} ${pressDir(this, { tap: () => {}, hold: () => canEdit(this) ? this.startEdit(pageKey) : this.openPopup({ type: "page", key: pageKey }) })}>
+    const eyebrow = [date, temp != null ? tw(t("{t}° binnen", { t: temp.toFixed(1) })) : "", hum != null ? t("{h}% luchtvochtigheid", { h: Math.round(hum) }) : ""].filter(Boolean);
+    return html`<section class=${classMap({ title: true, aside: aside !== nothing, editing: this.editing(pageKey) })} ${pressDir(this, { tap: () => {}, hold: () => canEdit(this) ? this.startEdit(pageKey) : this.openPopup({ type: "page", key: pageKey }) })}>
       <div class="tl">
         <div class="temp">${eyebrow.map((x, k) => html`${k ? html`<i class="dt"></i>` : nothing}<span>${x}</span>`)}</div>
         <h1>${title}</h1>
         ${sub ? html`<div class="sub">${sub}</div>` : nothing}
         ${items.length ? html`<div class="ticker">
-          ${items.map((it, k) => { const body = html`${ico(it.icon)}${it.title ? html`<b class="tt">${it.title}</b><i class="dt"></i>` : nothing}<span>${emph(it.text)}</span>`;
+          ${items.map((it, k) => { const body = html`${it.uicon ? anyIco(it.uicon) : ico(it.icon)}${it.title ? html`<b class="tt">${it.title}</b><i class="dt"></i>` : nothing}<span>${emph(it.text)}</span>`;
             return html`<div class=${k === i ? "show" : ""}>${it.tap ? html`<button class="tk" @click=${e => { e.stopPropagation(); it.tap(); }}>${body}</button>` : body}</div>`; })}
         </div>` : nothing}
         ${extra}
@@ -520,17 +528,8 @@ class HacasaNova extends LitElement {
     </section>`;
   }
 
-  /** one line under the greeting: what needs attention (or "all quiet"), then today's energy use */
-  /** status pills under the greeting: lights, doors & windows, attention; each opens its popup */
-  renderPills(h) {
-    const pills = [];
-    if (h.lights.length) pills.push({ icon: "mdi:lightbulb-outline", svg: "lamp", on: h.lightsOn.length > 0, text: h.lightsOn.length ? t("{n} aan", { n: h.lightsOn.length }) : t("Lampen uit"), pop: "lights" });
-    const open = h.doorsOpen.length + h.windowsOpen.length;
-    if (h.doors.length || h.windows.length) pills.push({ icon: "mdi:door", svg: "door", on: open > 0, text: open ? t("{n} open", { n: open }) : t("Alles dicht"), pop: "doors" });
-    if (h.attention.length) pills.push({ icon: "mdi:alert-circle-outline", svg: "sparkles", on: true, text: `${h.attention.length} ${h.attention.length === 1 ? t("melding") : t("meldingen")}`, pop: "attention" });
-    if (!pills.length) return nothing;
-    return html`<div class="pills">${pills.map(x => html`<button class=${classMap({ on: x.on })} @click=${ev => { ev.stopPropagation(); this.openPopup({ type: x.pop }); }}>${ico(x.icon, x.svg)}${x.text}</button>`)}</div>`;
-  }
+  /** status pills under the greeting (see pills.js): built-in lights, doors & windows, attention plus the user's own */
+  renderPills(h, key = "home") { return renderPills(this, key, h); }
   /** weather block next to the greeting: temperature, condition, high/low, wind and the next hours */
   renderWx(w) {
     if (!w) return nothing;
@@ -540,10 +539,10 @@ class HacasaNova extends LitElement {
     const hi = num(today.temperature), lo = num(today.templow);
     const line = [hi != null && lo != null ? `H ${Math.round(hi)}° · L ${Math.round(lo)}°` : "", a.wind_speed != null ? t("Wind {n}", { n: `${Math.round(a.wind_speed)} ${a.wind_speed_unit || t("km/u")}` }) : ""].filter(Boolean).join(" · ");
     return html`<div class=${classMap({ wx: true, wxm: !!this.config.home?.wxMobile })} @click=${ev => { ev.stopPropagation(); this.openPopup({ type: "weather" }); }}>
-      <div class="big">${ico(condIcon(w.state), condSvg(w.state))}<div class="t">${Math.round(num(a.temperature) ?? 0)}<sup>°</sup></div></div>
+      <div class="big">${wxEmoji(w.state)}<div class="t">${tw(String(Math.round(num(a.temperature) ?? 0)))}<sup>°</sup></div></div>
       <div class="cnd">${condText(w.state)}${wxExpect(this) ? html`<i class="dt"></i>${wxExpect(this)}` : nothing}</div>
       ${line ? html`<div class="hl">${line}</div>` : nothing}
-      ${hours.length ? html`<div class="hours">${hours.map(f => html`<div>${t("{h}u", { h: new Date(f.datetime).getHours() })}${ico(condIcon(f.condition), condSvg(f.condition))}<b>${Math.round(num(f.temperature) ?? 0)}°</b></div>`)}</div>` : nothing}
+      ${hours.length ? html`<div class="hours">${hours.map(f => html`<div>${t("{h}u", { h: new Date(f.datetime).getHours() })}${wxEmoji(f.condition)}<b>${Math.round(num(f.temperature) ?? 0)}°</b></div>`)}</div>` : nothing}
     </div>`;
   }
 
@@ -555,13 +554,14 @@ class HacasaNova extends LitElement {
     for (const n of this.notifications.slice(0, 2)) items.push({ k: "notifications", icon: "mdi:bell-outline", title: n.title || t("Melding"), text: (n.message || "").replace(/\s+/g, " ").slice(0, 70) });
     if (h.attention.length) items.push({ k: "attention", icon: "mdi:alert-circle-outline", title: `${h.attention.length} ${h.attention.length === 1 ? t("melding") : t("meldingen")}`, text: `${h.attention[0].name} ${h.attention[0].text}` });
     if (h.doorsOpen.length) items.push({ k: "doors", icon: "mdi:door-open", title: h.doorsOpen.map(e => name(this.hass, e)).join(", "), text: h.doorsOpen.length === 1 ? t("Staat open") : t("Staan open") });
-    for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", icon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
+    for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", uicon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));
     const su = selfUpdate(this);   // a newer HaCasa Nova: first in the row, tap = what's new (+ install via HACS)
     if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("HaCasa Nova {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
     const editing = this.editing("home"), cards = editing ? [editStrip(this, "home")] : this.applyPage("home", homeCards(this, h)).map(c => c.tpl);
     return html`
       ${this.renderTitle(h.temp, t(this.pageCfg("home").title || this.config.home?.greeting || "") || greeting(), "", this.tickerOn("home", items), html`${this.renderPills(h)}${quickRow(this)}`, "home", this.renderWx(h.weather), h.hum)}
+      ${editing ? editTools(this, "home") : nothing}
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen kaarten: wijs entiteiten toe aan ruimtes in Home Assistant.")}</div>` : nothing}
       ${editing ? editBar(this, "home") : nothing}
@@ -569,20 +569,31 @@ class HacasaNova extends LitElement {
   }
 
   /** every card of a room as { key, label, tpl } (key = entity/device id or a fixed name) */
-  roomCards(r) {
+  /** a room shows its lights, plugs (switches, power strips, plugs with a meter) and motion sensors by itself, as long as they work;
+      everything else in the area comes through Add card (pages[room].add) and leaves with the bin. Groups, graphs and templates made for the room stay. */
+  roomCards(r, all = false) {
+    const list = this.roomAllCards(r);
+    if (all) return list;
+    const e = r.ents, added = new Set(this.pageCfg(r.id).add || []), ok = x => !isDown(x);
+    const def = new Set([...e.lights.filter(ok), ...e.switches.filter(ok), ...e.motion.filter(ok)].map(x => x.id));
+    for (const st of e.strips) if (st.switches.some(ok)) def.add(st.id);
+    for (const a of e.appliances) if (a.power && !a.op && !isDown(a.power)) def.add(a.id);
+    return list.filter(x => def.has(x.key) || added.has(x.key) || (x.alias || []).some(k => added.has(k)) || x.key.startsWith("group:") || x.key.startsWith("graph:") || x.key.startsWith("tpl") || (x.key.includes(".") && e.all.some(y => y.id === x.key && y.added)));
+  }
+  roomAllCards(r) {
     const e = r.ents, v = l => this.visible(l), nm = x => label(this, x), dn = x => cardCfg(this, x.id).name || deviceName(this.hass, x.device);
     const list = [];
-    const add = (arr, lbl, tpl) => arr.forEach(x => list.push({ key: x.id, label: lbl(x), tpl: tpl(x) }));
+    const add = (arr, lbl, tpl, alias = null) => arr.forEach(x => list.push({ key: x.id, label: lbl(x), tpl: tpl(x), alias: alias ? alias(x) : undefined }));
     add(v(e.lights), nm, x => lightCard(this, x));
     add(v(e.climate), nm, x => climateCard(this, x.state, name(this.hass, x)));
     add(v(e.media), nm, x => mediaCard(this, x));
     add(v(e.covers), nm, x => coverCard(this, x));
-    add(v(e.strips), dn, x => stripCard(this, x));
+    add(v(e.strips), dn, x => stripCard(this, x), x => x.switches.map(s => s.id));
     add(v(e.fans), nm, x => fanCard(this, x));
     add(v(e.locks), nm, x => lockCard(this, x));
     add(v(e.vacuums), nm, x => vacuumCard(this, x));
     add(v(e.humidifiers), nm, x => humidifierCard(this, x));
-    add(v(e.appliances), dn, x => applianceCard(this, x));
+    add(v(e.appliances), dn, x => applianceCard(this, x), x => [x.key, x.switch?.id, x.power?.id, x.op?.id].filter(Boolean));
     (this.config.templates || []).filter(tc => (tc.room === r.id || tc.room === r.slug) && !condHidden(this, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => list.push({ key: tc.id, label: tc.name || t("Template"), tpl: templateCard(this, tc, i) }));
     (this.config.groups || []).filter(g => (g.room === r.id || g.room === r.slug) && g.members?.length).forEach(g => list.push({ key: "group:" + g.id, label: g.name || t("Groep"), tpl: groupCard(this, g) }));
     (this.config.graphs || []).filter(g => (g.room === r.id || g.room === r.slug) && g.entity).forEach(g => list.push({ key: "graph:" + g.id, label: g.name || t("Grafiek"), tpl: graphCard(this, g) }));
@@ -595,6 +606,7 @@ class HacasaNova extends LitElement {
     add(v(e.motion), nm, x => sensorCard(this, x, "motion"));
     add(v(e.other), nm, x => sensorCard(this, x, "binary"));
     add(v(e.values), nm, x => valueCard(this, x));
+    if (e.air.length) list.push({ key: "air", label: t("Luchtkwaliteit"), tpl: airCard(this, r) });
     // hand-added template instances and panel cards (entities added by hand are already in r.ents through the model)
     if (!this._noAdded) for (const key of (this.pageCfg(r.id).add || [])) if (!key.includes(".")) { const c = addedCard(this, key, r.id); if (c) list.push({ key, label: c.label, tpl: c.tpl }); }
     return list;
@@ -634,7 +646,8 @@ class HacasaNova extends LitElement {
     if (r.motion) items.push({ k: "motion", icon: "mdi:motion-sensor", title: t("Beweging"), text: r.motionOn ? t("Nu") : relTime(r.motion.last_changed) });
     const editing = this.editing(r.id), cards = editing ? [editStrip(this, r.id)] : this.applyPage(r.id, this.roomCards(r)).map(c => c.tpl);
     return html`
-      ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), nothing, r.id, nothing, r.hum)}
+      ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), this.renderPills(null, r.id), r.id, nothing, r.hum)}
+      ${editing ? editTools(this, r.id) : nothing}
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen apparaten in deze ruimte.")}</div>` : nothing}
       ${editing ? editBar(this, r.id) : nothing}

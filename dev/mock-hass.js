@@ -36,7 +36,8 @@ export function makeHass(onChange) {
   add("media_player.sony_kd_55x85l_2", null, "on", { friendly_name: "Bedroom TV", app_name: "com.amazon.amazonvideo.livingroom", volume_level: .2 }, { device: dS1 });
   add("media_player.sony_kd_55x85l_4", null, "on", { friendly_name: "Sony KD-55X85L", source: "HDMI 1" }, { device: dS2 });
   add("media_player.sony_kd_55x85l", null, "playing", { friendly_name: "SONY KD-55X85L", app_name: "Prime Video", media_series_title: "The Boys", media_title: "S4 E3 · We'll Keep the Red Flag Flying Here", entity_picture: "/images/rooms/livingroom.png" }, { device: dS3 });
-  add("media_player.speaker", "living_room", "playing", { friendly_name: "Speaker", media_title: "B2b", media_artist: "Charli xcx", volume_level: .35, entity_picture: "/images/rooms/lounge.png" });
+  add("media_player.speaker", "living_room", "playing", { friendly_name: "Speaker", media_title: "B2b", media_artist: "Charli xcx", media_album_name: "Brat", app_name: "Spotify", media_content_type: "music", volume_level: .35, entity_picture: "/images/rooms/lounge.png", media_duration: 178, media_position: 72, media_position_updated_at: now(), supported_features: 524288 + 4096 + 4, group_members: ["media_player.speaker"] });
+  add("media_player.kitchen_speaker", "kitchen", "idle", { friendly_name: "Kitchen speaker", volume_level: .2, supported_features: 524288 });
   add("cover.blind_living_room", "living_room", "open", { friendly_name: "Blind", current_position: 100 });
   const dWin = dev("dev_window", "living_room");
   add("binary_sensor.living_room_living_room_window", "living_room", "off", { friendly_name: "Living room window", device_class: "window" }, { changed: ago(720), device: dWin });
@@ -44,6 +45,29 @@ export function makeHass(onChange) {
   add("sensor.living_room_temperature", "living_room", "20.8", { friendly_name: "Living room temperature", device_class: "temperature", unit_of_measurement: "°C" });
   add("sensor.living_room_humidity", "living_room", "48", { friendly_name: "Living room humidity", device_class: "humidity", unit_of_measurement: "%" });
   add("binary_sensor.living_room_motion", "living_room", "off", { friendly_name: "Living room motion", device_class: "motion" }, { changed: ago(3) });
+  add("sensor.living_room_co2", "living_room", "940", { friendly_name: "Living room CO2", device_class: "carbon_dioxide", unit_of_measurement: "ppm" });
+  add("sensor.living_room_voc", "living_room", "180", { friendly_name: "Living room VOC", device_class: "volatile_organic_compounds_parts", unit_of_measurement: "ppb" });
+  add("sensor.living_room_pm25", "living_room", "6.2", { friendly_name: "Living room PM2.5", device_class: "pm25", unit_of_measurement: "µg/m³" });
+  // 3.2 cards: a shopping list, timers, an EV, solar and a battery, garden zones
+  add("todo.shopping_list", null, "4", { friendly_name: "Shopping list", supported_features: 15 });
+  add("timer.eggs", null, "active", { friendly_name: "Eggs", duration: "0:07:00", finishes_at: new Date(Date.now() + 252000).toISOString(), remaining: "0:04:12" });
+  add("timer.laundry", null, "idle", { friendly_name: "Laundry reminder", duration: "0:45:00" });
+  add("sensor.polestar_battery", null, "72", { friendly_name: "Polestar Battery", device_class: "battery", unit_of_measurement: "%" }, { reg: { entity_category: "diagnostic" } });
+  add("sensor.polestar_range", null, "310", { friendly_name: "Polestar Range", unit_of_measurement: "km" });
+  add("sensor.polestar_charging_power", null, "7.2", { friendly_name: "Polestar Charging power", unit_of_measurement: "kW", device_class: "power" });
+  add("binary_sensor.polestar_charging", null, "on", { friendly_name: "Polestar Charging", device_class: "battery_charging" });
+  add("sensor.polestar_charge_complete", null, new Date(Date.now() + 5.5 * 3600000).toISOString(), { friendly_name: "Polestar Charge complete", device_class: "timestamp" });
+  add("switch.wallbox_charging", null, "on", { friendly_name: "Wallbox charging" });
+  add("sensor.solar_power", null, "3100", { friendly_name: "Solar power", unit_of_measurement: "W", device_class: "power" });
+  add("sensor.solar_energy_today", null, "14.2", { friendly_name: "Solar energy today", unit_of_measurement: "kWh", device_class: "energy", state_class: "total_increasing" });
+  add("sensor.home_battery", null, "64", { friendly_name: "Home battery", device_class: "battery", unit_of_measurement: "%" });
+  add("sensor.home_battery_power", null, "-420", { friendly_name: "Home battery power", unit_of_measurement: "W", device_class: "power" });
+  add("switch.sprinkler_lawn", "backyard", "off", { friendly_name: "Sprinkler lawn" });
+  add("switch.sprinkler_beds", "backyard", "on", { friendly_name: "Sprinkler beds" }, { changed: ago(6) });
+  add("sensor.irrigation_next_run", null, new Date(Date.now() + 14 * 3600000).toISOString(), { friendly_name: "Irrigation next run", device_class: "timestamp" });
+  add("sensor.rain_today", null, "8.2", { friendly_name: "Rain today", unit_of_measurement: "mm" });
+  // Buienradar-style minute forecast: mm/h averaged over the next N minutes
+  for (const [n, v] of [[5, 0], [10, 0], [15, 0.1], [30, 0.6], [45, 1.4], [60, 1.9], [75, 1.5], [90, 1.0], [105, 0.7], [120, 0.5]]) add(`sensor.br_precipitation_forecast_average_${n}m`, null, String(v), { friendly_name: `Precipitation forecast average ${n}m`, unit_of_measurement: "mm/h" });
 
   // kitchen
   add("light.ceiling_light_kitchen", "kitchen", "on", { friendly_name: "Ceiling light", brightness: 255, supported_color_modes: ["brightness"] }, { changed: ago(160) });
@@ -105,6 +129,8 @@ export function makeHass(onChange) {
   // whole-home
   for (const [p, st] of [["alex", "home"], ["sam", "home"], ["robin", "home"], ["jamie", "not_home"], ["charlie", "not_home"]])
     add(`person.${p}`, null, st, { friendly_name: p.split("_")[0].replace(/^\w/, c => c.toUpperCase()) }, { changed: ago(st === "home" ? 900 : 130) });
+  add("sensor.home_jamie_direction_of_travel", null, "towards", { friendly_name: "Home Jamie direction of travel" });
+  add("sensor.home_jamie_distance", null, "12.4", { friendly_name: "Home Jamie distance", unit_of_measurement: "km" });
   add("alarm_control_panel.alarmo", null, "disarmed", { friendly_name: "Alarmo", changed_by: "Alex", code_format: "number", code_arm_required: false }, { changed: ago(640) });
   add("fan.ceiling_fan", "bedroom", "on", { friendly_name: "Ceiling fan", percentage: 40, preset_modes: ["low", "high", "auto"], oscillating: false });
   add("lock.front_door", "hallway", "locked", { friendly_name: "Front door lock", changed_by: "Sam" }, { changed: ago(130) });
@@ -128,6 +154,7 @@ export function makeHass(onChange) {
   const waste = (n, pre = "") => { const [y, m, dd] = d(n).split("-"); return [`${pre}${dd}-${m}-${y}`, { Wastecollector: "example", Sort_date: +`${y}${m}${dd}`, Days_until: n }]; };
   for (const [id, n, pre] of [["bio", 1, "Tomorrow, "], ["plastic", 5, ""], ["paper", 15, ""]]) { const [st, at] = waste(n, pre); add(`sensor.waste_${id}`, null, st, { friendly_name: `Waste ${id}`, ...at }); }
   add("calendar.family", null, "on", { friendly_name: "Family" });
+  add("calendar.work", null, "off", { friendly_name: "Work" });
   add("sun.sun", null, "above_horizon", { next_rising: new Date(Date.now() + 10 * 3600000).toISOString(), next_setting: new Date(Date.now() + 2 * 3600000).toISOString() });
   add("sensor.washing_machine_power", null, "0", { friendly_name: "Washing machine power", unit_of_measurement: "W", device_class: "power" }, { device: dWas });
   add("scene.living_room_movie", "living_room", "unknown", { friendly_name: "Movie", icon: "mdi:movie-open-outline" });
@@ -139,19 +166,25 @@ export function makeHass(onChange) {
   add("sensor.p1_energy_today", null, "6.8", { unit_of_measurement: "kWh" });
   add("automation.night_mode", null, "unavailable", { friendly_name: "Night mode" });
 
+  const todoItems = [{ uid: "1", summary: "Milk", status: "needs_action" }, { uid: "2", summary: "Coffee beans", status: "needs_action" }, { uid: "3", summary: "Bread", status: "completed" }, { uid: "4", summary: "Olive oil", status: "needs_action" }, { uid: "5", summary: "Apples", status: "needs_action" }];
+  const bumpTodo = () => { states["todo.shopping_list"] = { ...states["todo.shopping_list"], state: String(todoItems.filter(x => x.status !== "completed").length), last_updated: now() }; };
+  const notifSubs = [];
   const notifications = [{ notification_id: "update_available", title: "Update available", message: "Home Assistant 2026.10.1 is available.", created_at: ago(40) }];
   const hass = {
     user: { id: "u1", name: "Alex", is_admin: true },
     areas, devices, entities, states, floors, language: new URLSearchParams(location.search).get("lang") || "en",
-    connection: { subscribeMessage(cb, msg) { console.log("[mock] subscribe", msg.type); if (msg.type === "render_template") { setTimeout(() => cb({ result: msg.template.includes("weather") ? "Partly cloudy" : "example" }), 30); return Promise.resolve(() => {}); } setTimeout(() => cb({ notifications: Object.fromEntries(notifications.map(n => [n.notification_id, n])) }), 50); return () => {}; } },
+    connection: { subscribeMessage(cb, msg) { console.log("[mock] subscribe", msg.type); if (msg.type === "render_template") { setTimeout(() => cb({ result: msg.template.includes("weather") ? "Partly cloudy" : "example" }), 30); return Promise.resolve(() => {}); } notifSubs.push(cb); setTimeout(() => cb({ type: "current", notifications: Object.fromEntries(notifications.map(n => [n.notification_id, n])) }), 50); return () => {}; } },   // like HA: the full set once, then only changes
     callService(domain, service, data) {
       console.log("[mock] callService", domain, service, data);
+      if (domain === "todo" && service === "add_item") { todoItems.push({ uid: String(Date.now()), summary: data.item, status: "needs_action" }); bumpTodo(); }
+      if (domain === "todo" && service === "update_item") { const it = todoItems.find(x => x.uid === data.item || x.summary === data.item); if (it) it.status = data.status; bumpTodo(); }
+      if (domain === "todo" && service === "remove_completed_items") { for (let i = todoItems.length - 1; i >= 0; i--) if (todoItems[i].status === "completed") todoItems.splice(i, 1); bumpTodo(); }
+      if (domain === "persistent_notification" && service === "dismiss") { const i = notifications.findIndex(n => n.notification_id === data.notification_id); if (i >= 0) { const [n] = notifications.splice(i, 1); notifSubs.forEach(cb => cb({ type: "removed", notifications: { [n.notification_id]: n } })); } }
       const ids = [].concat(data.entity_id || []);
       for (const id of ids) {
         const s = states[id]; if (!s) continue;
         const set = (st, attrs = {}) => { states[id] = { ...s, state: st, attributes: { ...s.attributes, ...attrs }, last_changed: now() }; };
         if (service === "toggle") set(s.state === "on" ? "off" : "on");
-        if (domain === "persistent_notification" && service === "dismiss") { const i = notifications.findIndex(n => n.notification_id === data.notification_id); if (i >= 0) notifications.splice(i, 1); }
         if (service === "turn_on") set("on", data.brightness_pct ? { brightness: Math.round(data.brightness_pct * 2.55) } : data.color_temp_kelvin ? { color_temp_kelvin: data.color_temp_kelvin, color_mode: "color_temp" } : data.hs_color ? { hs_color: data.hs_color, color_mode: "hs", rgb_color: (h => { const [hh, ss] = h, c = ss / 100, x = c * (1 - Math.abs((hh / 60) % 2 - 1)), m = 1 - c; const [r, g, b] = hh < 60 ? [c, x, 0] : hh < 120 ? [x, c, 0] : hh < 180 ? [0, c, x] : hh < 240 ? [0, x, c] : hh < 300 ? [x, 0, c] : [c, 0, x]; return [r, g, b].map(v => Math.round((v + m) * 255)); })(data.hs_color) } : {});
         if (service === "turn_off") set("off");
         if (service === "media_play_pause") set(s.state === "playing" ? "paused" : "playing");
@@ -166,6 +199,11 @@ export function makeHass(onChange) {
         if (service === "lock") set("locked"); if (service === "unlock") set("unlocked");
         if (service === "start") set("cleaning"); if (service === "pause") set("paused"); if (service === "return_to_base") set("returning");
         if (service === "set_humidity") set(s.state, { humidity: data.humidity });
+        if (domain === "timer" && service === "start") set("active", { finishes_at: new Date(Date.now() + 300000).toISOString() });
+        if (domain === "timer" && service === "pause") set("paused", { remaining: "0:03:00" });
+        if (domain === "timer" && service === "cancel") set("idle");
+        if (domain === "timer" && service === "change") set("active", { finishes_at: new Date(new Date(s.attributes.finishes_at).getTime() + 300000).toISOString() });
+        if (domain === "media_player" && service === "join") set(s.state, { group_members: [id, ...data.group_members] });
         if (service.startsWith("alarm_")) console.log("[mock] alarm code", data.code), set({ alarm_disarm: "disarmed", alarm_arm_home: "armed_home", alarm_arm_away: "armed_away", alarm_arm_night: "armed_night" }[service]);
       }
       hass.states = { ...states };
@@ -174,7 +212,14 @@ export function makeHass(onChange) {
     },
     callWS(msg) {
       console.log("[mock] callWS", msg);
-      if (msg.type === "call_service" && msg.domain === "calendar") { const t = new Date(); return Promise.resolve({ response: { "calendar.family": { events: [{ summary: "Swimming lesson", start: new Date(t.getTime() + 2 * 3600000).toISOString(), end: new Date(t.getTime() + 3 * 3600000).toISOString() }, { summary: "Grandma's birthday", start: new Date(t.getTime() + 86400000).toISOString().slice(0, 10), end: new Date(t.getTime() + 2 * 86400000).toISOString().slice(0, 10) }] } } }); }
+      if (msg.type === "todo/item/list") return Promise.resolve({ items: todoItems.map(x => ({ ...x })) });
+      if (msg.type === "call_service" && msg.domain === "calendar") { const t = new Date(), at = (d, h, m = 0) => { const x = new Date(t); x.setDate(x.getDate() + d); x.setHours(h, m, 0, 0); return x.toISOString(); }, day = d => { const x = new Date(t); x.setDate(x.getDate() + d); return x.toISOString().slice(0, 10); };
+        return Promise.resolve({ response: {
+          "calendar.family": { events: [{ summary: "Swimming lesson", start: new Date(t.getTime() + 2 * 3600000).toISOString(), end: new Date(t.getTime() + 3 * 3600000).toISOString(), location: "Pool" }, { summary: "Grandma's birthday", start: day(1), end: day(2) }, { summary: "Dinner at Oma", start: at(3, 16), end: at(3, 19, 30), description: "Bring the photo book" }, { summary: "Dentist", start: at(-1, 12), end: at(-1, 12, 45), location: "Centre" }, { summary: "Football", start: at(5, 11), end: at(5, 12, 30) }, { summary: "Holiday", start: day(9), end: day(16) }] },
+          "calendar.work": { events: [{ summary: "Design review", start: at(0, 10), end: at(0, 11, 30), location: "Teams" }, { summary: "Standup", start: at(1, 9), end: at(1, 9, 30) }, { summary: "Standup", start: at(2, 9), end: at(2, 9, 30) }, { summary: "Standup", start: at(0, 9), end: at(0, 10) }, { summary: "Early shift", start: at(2, 7), end: at(2, 15) }, { summary: "1:1", start: at(4, 14), end: at(4, 14, 30) }] } } }); }
+      if (msg.type === "call_service" && msg.domain === "weather") { const h = new Date(); h.setMinutes(0, 0, 0); const conds = ["partlycloudy", "rainy", "rainy", "cloudy", "cloudy", "partlycloudy", "sunny", "sunny", "clear-night", "clear-night"];
+        if (msg.service_data.type === "hourly") return Promise.resolve({ response: { "weather.home": { forecast: Array.from({ length: 24 }, (_, i) => ({ datetime: new Date(h.getTime() + i * 36e5).toISOString(), condition: conds[i % conds.length], temperature: 14 - i * .4, precipitation_probability: [10, 80, 70, 40, 20, 0, 0, 0][i] ?? 0, precipitation: [0, 1.2, 0.8, 0.2, 0, 0, 0, 0][i] ?? 0 })) } } });
+        return Promise.resolve({ response: { "weather.home": { forecast: Array.from({ length: 7 }, (_, i) => { const d = new Date(h); d.setDate(d.getDate() + i); return { datetime: d.toISOString(), condition: ["partlycloudy", "rainy", "partlycloudy", "sunny", "sunny", "rainy", "cloudy"][i], temperature: [14, 12, 14, 16, 19, 16, 11][i], templow: [9, 8, 7, 6, 8, 9, 5][i], precipitation_probability: [80, 90, 20, 0, 0, 40, 70][i] }; }) } } }); }
       if (msg.type === "history/history_during_period" && msg.entity_ids[0].startsWith("sensor.")) { const now = Date.now(), hrs = (now - Date.parse(msg.start_time)) / 3600000, id = msg.entity_ids[0], base = parseFloat(hass.states[id]?.state) || 20;
         return Promise.resolve({ [id]: Array.from({ length: Math.round(hrs * 4) + 1 }, (_, i) => { const h = i / 4 - hrs; return { s: String(base + Math.sin((h + 9) / 3.8) * 1.3 + Math.sin(h * 1.7) * .25 - .4), lu: (now + h * 3600000) / 1000 }; }) }); }
       if (msg.type === "history/history_during_period" && msg.entity_ids[0].startsWith("climate.")) { const id = msg.entity_ids[0], st = Date.parse(msg.start_time), now = Date.now();
