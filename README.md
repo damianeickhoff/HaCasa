@@ -2,8 +2,6 @@
 
 <img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/header.webp" alt="HaCasa Nova: a modern, room-first panel for your Home Assistant" width="100%">
 
-# HaCasa Nova
-
 **The HaCasa reboot.** A room-first Home Assistant panel, built on the [Homio](https://github.com/iamtherufus/Homio) design by [iamtherufus](https://github.com/iamtherufus).
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
