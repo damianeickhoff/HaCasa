@@ -26,7 +26,7 @@ const icons = {
     build.onResolve({ filter: /^hcn:icons$/ }, () => ({ path: "icons", namespace: "hcn" }));
     build.onLoad({ filter: /.*/, namespace: "hcn" }, () => {
       const map = {};
-      for (const f of readdirSync("icons").filter(f => f.endsWith(".svg")))
+      for (const f of readdirSync("icons").filter(f => f.endsWith(".svg")).sort())   // sorted: NTFS and ext4 list files in different orders, the bundle must not depend on that
         map[f.slice(0, -4)] = "data:image/svg+xml," + encodeURIComponent(readFileSync(`icons/${f}`, "utf8").trim());
       return { contents: `export default ${JSON.stringify(map)};`, loader: "js", watchDirs: ["icons"] };
     });
@@ -53,7 +53,7 @@ const mdi = {
   setup(build) {
     build.onResolve({ filter: /^hcn:mdi$/ }, () => ({ path: "mdi", namespace: "hcn-mdi" }));
     build.onLoad({ filter: /.*/, namespace: "hcn-mdi" }, () => {
-      const meta = JSON.parse(readFileSync("node_modules/@mdi/svg/meta.json", "utf8")).filter(x => !x.deprecated).sort((a, b) => a.name.localeCompare(b.name));
+      const meta = JSON.parse(readFileSync("node_modules/@mdi/svg/meta.json", "utf8")).filter(x => !x.deprecated).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);   // code-unit order, the same on every machine
       const tags = [...new Set(meta.flatMap(x => x.tags))].sort();
       const lines = meta.map(x => { const own = new Set(x.name.split("-")), extra = [...new Set(x.aliases.flatMap(a => a.split("-")))].filter(w => !own.has(w));
         return [x.name, extra.join(" "), x.tags.map(tg => String.fromCharCode(65 + tags.indexOf(tg))).join("")].join("|").replace(/\|+$/, ""); });
