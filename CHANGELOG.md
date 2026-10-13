@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 3.1.0-beta.4 (beta)
 
 - **Fewer cards by default.** The home view starts with Attention (now always there, "all is well" when nothing needs it), Weather, Household, and Security and Agenda when an alarm, a lock or a calendar exists. A room shows its lights, plugs and motion sensors that are reachable. Everything else (thermostat, media players, waste, scenes, energy, list, timers, car, solar, garden; in a room: covers, fans, locks, doors and windows, cameras, scenes, light scenes, air quality …) is added through edit mode → *Add card*, where the room's own entities are listed first, and removed again with the bin instead of hidden. Groups, graphs and template cards you made stay where they are. A room without a reachable light, plug or motion sensor and without anything you added is left out of the navigation (Settings → Rooms still lists every room by hand). Cards that showed up by themselves before are not carried over: add them back once. The *Media* and *Weather card* switches under Settings → Home page are gone with it.
