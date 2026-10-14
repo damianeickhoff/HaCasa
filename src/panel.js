@@ -76,7 +76,7 @@ class HacasaNova extends LitElement {
     this.addEventListener("pointerdown", e => { if (this.navFloor != null && !this.drawer && !e.composedPath().some(el => el.classList?.contains("fl"))) this.navFloor = null; });
     this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab"))) this.drawer = false; });
   }
-  disconnectedCallback() { super.disconnectedCallback(); clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
+  disconnectedCallback() { super.disconnectedCallback(); clearTimeout(this._userRetry); if (this.userConfig === undefined) this._userLoaded = false; clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
   wake() { this.idle = false; this._lastActivity = Date.now(); }
   /** go to the previous/next room in nav order (home is before the first room) */
   swipe(dir) { const order = [null, ...this.rooms]; const i = order.findIndex(r => (r?.id || null) === (this.room?.id || null)); const n = order[i + dir]; if (n !== undefined) this.go(n); }
@@ -95,7 +95,16 @@ class HacasaNova extends LitElement {
   }
   /** user settings; a config.json next to the panel is imported into them once (so updates never overwrite anything) */
   async loadUser() {
-    let u = await loadUserConfig(this.hass);
+    let u;
+    try { u = await loadUserConfig(this.hass); }
+    catch (e) {
+      // userConfig stays undefined: no wizard, no saves; try again (2 s, 4 s, … up to 30 s)
+      this._userTries = (this._userTries || 0) + 1;
+      console.warn(`[hacasa-nova] settings could not be loaded (attempt ${this._userTries}), retrying`, e);
+      clearTimeout(this._userRetry); this._userRetry = setTimeout(() => this.loadUser(), Math.min(30000, 1000 * 2 ** this._userTries));
+      return;
+    }
+    this._userTries = 0;
     if (this.fileConfig && Object.keys(this.fileConfig).length && !u?.importedAt) {
       u = { ...mergeConfig(this.fileConfig, u || {}), importedAt: new Date().toISOString(), setupDone: true };
       try { await saveUserConfig(this.hass, u); console.info("[hacasa-nova] config.json imported into the user settings"); } catch (e) { console.warn("[hacasa-nova] could not store the imported config.json", e); }
@@ -111,7 +120,7 @@ class HacasaNova extends LitElement {
   /** merge a JSON file (export or an old config.json) into the settings */
   importSettings(file) {
     const rd = new FileReader();
-    rd.onload = async () => { try { const data = JSON.parse(rd.result); if (!data || typeof data !== "object") throw 0; const u = { ...mergeConfig(this.userConfig || {}, data), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; this.applyConfig(); this.draft = JSON.parse(JSON.stringify(this.config)); this.showToast(t("Instellingen geïmporteerd"), 3000, "ok"); } catch { this.showToast(t("Geen geldig instellingenbestand")); } };
+    rd.onload = async () => { if (this.notLoaded()) return; try { const data = JSON.parse(rd.result); if (!data || typeof data !== "object") throw 0; const u = { ...mergeConfig(this.userConfig || {}, data), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; this.applyConfig(); this.draft = JSON.parse(JSON.stringify(this.config)); this.showToast(t("Instellingen geïmporteerd"), 3000, "ok"); } catch { this.showToast(t("Geen geldig instellingenbestand")); } };
     rd.readAsText(file);
   }
   /** one render_template subscription per template card field; re-subscribed when the config changes */
@@ -136,7 +145,7 @@ class HacasaNova extends LitElement {
     }
   }
   get settingsPath() { return `${this.basePath()}/instellingen`; }
-  async saveSettings() { try { await saveUserConfig(this.hass, this.draft); } catch (e) { console.warn("[hacasa-nova] save failed", e); this.showToast(t("Opslaan mislukt")); return; } this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); this.showToast(t("Instellingen opgeslagen"), 2500, "ok"); }
+  async saveSettings() { if (this.notLoaded()) return; try { await saveUserConfig(this.hass, this.draft); } catch (e) { console.warn("[hacasa-nova] save failed", e); this.showToast(t("Opslaan mislukt")); return; } this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); this.showToast(t("Instellingen opgeslagen"), 2500, "ok"); }
   /** back to the defaults (a config.json next to the panel is imported again on the next load) */
   async resetSettings() { await saveUserConfig(this.hass, null); this.userConfig = null; this.applyConfig(); this.draft = mergeConfig(DEFAULT_CONFIG, this.cardConfig); }
 
@@ -204,15 +213,20 @@ class HacasaNova extends LitElement {
   /** open Home Assistant's own more-info dialog for an entity */
   moreInfo(entityId) { this.dispatchEvent(new CustomEvent("hass-more-info", { bubbles: true, composed: true, detail: { entityId } })); }
   async saveCardSettings(id, cfg) {
+    if (this.notLoaded()) return;
     const cards = { ...(this.userConfig?.cards || {}) };
     if (cfg && Object.keys(cfg).some(k => cfg[k] !== undefined)) cards[id] = cfg; else delete cards[id];
     this.userConfig = { ...(this.userConfig || {}), cards };
     await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); this.popup = null;
   }
+  /** the stored settings have not been read yet (or reading failed): saving now would replace them with just this change */
+  notLoaded() { if (this.userConfig !== undefined) return false; this.showToast(t("Opslaan mislukt")); return true; }
   /** merge a patch into the per-user settings and save it */
-  async saveUser(patch) { this.userConfig = { ...(this.userConfig || {}), ...patch }; await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); }
+  async saveUser(patch) { if (this.notLoaded()) return; this.userConfig = { ...(this.userConfig || {}), ...patch }; await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); }
   /** wizard result -> user settings (null = skipped: only remember that it ran) */
   async finishWizard(d) {
+    // read the store again first: if settings exist after all, the wizard adds to them instead of replacing them
+    try { const stored = await loadUserConfig(this.hass); if (stored) this.userConfig = stored; } catch (e) { console.warn("[hacasa-nova] wizard: settings could not be read", e); this.showToast(t("Opslaan mislukt")); return; }
     const clean = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""));
     const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.userConfig?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.userConfig?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true } : { setupDone: true };
     await this.saveUser(patch); this.popup = null; if (d) this.showToast(t("Het panel is ingesteld"), 3000, "ok");

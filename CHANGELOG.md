@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Settings could be lost after a bad connection (#172).** When Home Assistant could not be reached at the moment the panel opened (a tablet waking up, HA restarting), the panel treated that as "no settings yet" and showed the setup wizard, and finishing or skipping it replaced the real settings. Now the panel keeps trying until the settings are loaded, refuses to save before that, and the wizard adds to settings that already exist instead of replacing them.
 - **Graph card settings froze the panel** when the period was changed: the card on the page and its live preview kept reloading each other's history. History is now cached per period.
 - Card picker: the English descriptions of the Security, Household, List, Timers, Car, Solar, Garden and Air quality cards were still in Dutch.
 - Phones: the four brightness steps on a light card now fit next to the slider (the last one was cut off), the top bar's pills end at the right edge like the logo does on the left, and the media card's progress line no longer touches the buttons.

@@ -15,16 +15,16 @@ export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
 
 // carried over once when the key is empty: pre-release names, or (dev build) a copy of the real settings
 const OLD_USER_DATA_KEYS = SUFFIX ? ["hacasa_nova"] : ["kamer_panel", "homio_panel"];
+/** null = nothing stored yet. Throws when Home Assistant could not be asked (connection lost, HA starting):
+ *  that must never look like an empty store, or the wizard opens and saving it wipes the real settings (#172) */
 export async function loadUserConfig(hass) {
-  try {
-    const r = await hass.callWS({ type: "frontend/get_user_data", key: USER_DATA_KEY });
-    if (r?.value) return r.value;
-    for (const key of OLD_USER_DATA_KEYS) {
-      const o = await hass.callWS({ type: "frontend/get_user_data", key });
-      if (o?.value) { await hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value: o.value }); console.info(`[hacasa-nova] settings migrated from ${key}`); return o.value; }
-    }
-    return null;
-  } catch (e) { console.warn("[hacasa-nova] user data not available", e); return null; }
+  const r = await hass.callWS({ type: "frontend/get_user_data", key: USER_DATA_KEY });
+  if (r?.value) return r.value;
+  for (const key of OLD_USER_DATA_KEYS) {
+    const o = await hass.callWS({ type: "frontend/get_user_data", key });
+    if (o?.value) { await hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value: o.value }); console.info(`[hacasa-nova] settings migrated from ${key}`); return o.value; }
+  }
+  return null;
 }
 export const saveUserConfig = (hass, value) => hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value });
 
