@@ -6,10 +6,11 @@ import { classMap } from "lit/directives/class-map.js";
 import { t, tn, locale } from "./i18n.js";
 import { domain, num, isOn, unavailable, relTime, sinceText, icon } from "./util.js";
 import { name, deviceName } from "./model.js";
-import { label, mediaView, condText, condIcon, condSvg, ico, cardCfg, lightCaps, dot, wxEmoji } from "./cards.js";
+import { label, mediaView, condText, condIcon, condSvg, ico, cardCfg, lightCaps, dot } from "./cards.js";
 import { liveTick } from "./cards2.js";
 import { energyFlow } from "./cards2.js";
 import { calendarBody, whenText } from "./calendar.js";
+import { sky, wxIcon, feelsLike } from "./sky.js";
 
 const hm = d => new Date(d).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
 /** colour weather glyphs for the popup (the cards keep the thin-line icons) */
@@ -58,19 +59,11 @@ const rainLine = r => { if (!r) return ""; const step = r.minutes / r.pts.length
   let end = wet[0]; while (wet.includes(end + 1)) end++;
   const from = wet[0] * step, len = Math.round((end + 1 - wet[0]) * step);
   return from < (r.minute ? 10 : 30) ? t("Regen nu, nog ongeveer {m} min", { m: len }) : t("Regen vanaf {t}, ongeveer {m} min", { t: hm(Date.now() + from * 60000), m: len }); };
-/** apparent temperature when the weather entity does not give one (Steadman: temperature, humidity, wind) */
-function feelsLike(a) {
-  if (a.apparent_temperature != null) return num(a.apparent_temperature);
-  const T = num(a.temperature), rh = num(a.humidity), ws = num(a.wind_speed); if (T == null || rh == null || ws == null) return null;
-  const ms = (a.wind_speed_unit || "km/h") === "m/s" ? ws : (a.wind_speed_unit === "mph" ? ws * 0.447 : ws / 3.6);
-  const e = rh / 100 * 6.105 * Math.exp(17.27 * T / (237.7 + T));
-  return T + 0.33 * e - 0.7 * ms - 4;
-}
 export function weatherPopup(p, pop, ui) {
   const home = p.home, w = home.weather, a = w.attributes, fc = pop.forecast || [], dfc = (pop.dailyForecast || []).slice(0, 7);
   const hourly = fc.filter(f => f.datetime && (new Date(f.datetime) - Date.now()) < 36e5 * 30 && new Date(f.datetime) > Date.now() - 36e5).slice(0, 8);
   const rain = rainSoon(p, fc), rmax = rain ? Math.max(1, ...rain.pts) : 1;
-  const wxi = wxEmoji;
+  const wxi = c => wxIcon(c, 26);
   const prob = f => f.precipitation_probability != null ? `${Math.round(f.precipitation_probability)}%` : f.precipitation ? `${f.precipitation} mm` : "";
   const todayKey = new Date().toDateString();
   const lo = Math.min(...dfc.map(f => num(f.templow) ?? num(f.temperature) ?? 0)), hi = Math.max(...dfc.map(f => num(f.temperature) ?? 0)), span = Math.max(1, hi - lo);
@@ -86,8 +79,8 @@ export function weatherPopup(p, pop, ui) {
     sun ? { v: hm(sun.attributes.next_setting), u: "", n: t("Zonsondergang") } : null,
     a.visibility != null ? { v: a.visibility, u: a.visibility_unit || "km", n: t("Zicht") } : null,
   ].filter(Boolean).slice(0, 6);
-  const head = html`<div class="wxhd"><div><b>${Math.round(num(a.temperature) ?? 0)}°${dot()}${condText(w.state)}</b><span>${[feels != null ? t("Voelt als {v}", { v: Math.round(feels) + "°" }) : null, rainLine(rain) || null].filter(Boolean).map((x, i) => html`${i ? dot() : nothing}${x}`)}${pop.loading && !feels ? t("Laden…") : nothing}</span></div>${wxi(w.state)}</div>`;
-  return ui.wrap(t("Weer"), head, "", html`
+  const head = html`<div class="wxhd"><div><b>${Math.round(num(a.temperature) ?? 0)}°${dot()}${condText(w.state)}</b><span>${[feels != null ? t("Voelt als {v}", { v: Math.round(feels) + "°" }) : null, rainLine(rain) || null].filter(Boolean).map((x, i) => html`${i ? dot() : nothing}${x}`)}${pop.loading && !feels ? t("Laden…") : nothing}</span></div></div>`;
+  return ui.wrap(t("Weer"), html`<div class="skybg">${sky(p, w.state, "popup")}</div>${head}`, "", html`
     ${rain ? html`<div class="prow" style="margin-top:4px"><span>${rain.minute ? t("Komende 2 uur") : t("Komende uren")}</span><b>mm/h</b></div>
       <div class="rain">${rain.pts.map((v, i) => { const at = hm(Date.now() + (i + .5) * rain.minutes / rain.pts.length * 60000); return html`<i class=${pop.rainSel === i ? "sel" : ""} style=${`height:${Math.max(4, v / rmax * 100)}%`} data-tip=${`${at} · ${fmt(v)} mm/h`} @click=${() => p.openPopup({ ...pop, rainSel: pop.rainSel === i ? undefined : i })}></i>`; })}</div>
       <div class="bars-x">${[0, .25, .5, .75, 1].map(f => html`<span>${f ? hm(Date.now() + f * rain.minutes * 60000) : t("nu")}</span>`)}</div>` : nothing}
@@ -95,9 +88,9 @@ export function weatherPopup(p, pop, ui) {
       <div class="fc hours h8">${hourly.map((f, i) => html`<div class=${i === 0 ? "now" : ""}>${new Date(f.datetime).toLocaleTimeString(locale(), { hour: "2-digit" })}${wxi(f.condition)}<b>${Math.round(f.temperature)}°</b>${prob(f) ? html`<em>${prob(f)}</em>` : nothing}</div>`)}</div>` : nothing}
     ${dfc.length ? html`<div class="prow"><span>${t("Deze week")}</span><b>${Math.round(lo)}° … ${Math.round(hi)}°</b></div>
       <div class="wk">${dfc.map(f => { const d = new Date(f.datetime), isT = d.toDateString() === todayKey, l = num(f.templow), h = num(f.temperature);
-        return html`<div class=${classMap({ wd: true, today: isT })}><span>${isT ? t("Vandaag") : d.toLocaleDateString(locale(), { weekday: "short" }).replace(".", "")}</span>${wxi(f.condition)}<span class="lo">${l != null ? Math.round(l) + "°" : ""}</span><div class="range"><i style=${`left:${((l ?? h) - lo) / span * 100}%;width:${Math.max(4, ((h ?? l) - (l ?? h)) / span * 100)}%`}></i></div><span class="hi">${h != null ? Math.round(h) + "°" : ""}</span><em>${prob(f)}</em></div>`; })}</div>` : nothing}
+        return html`<div class=${classMap({ wd: true, today: isT })}><span>${isT ? t("Vandaag") : d.toLocaleDateString(locale(), { weekday: "short" }).replace(".", "")}</span>${wxIcon(f.condition, 22)}<span class="lo">${l != null ? Math.round(l) + "°" : ""}</span><div class="range"><i style=${`left:${((l ?? h) - lo) / span * 100}%;width:${Math.max(4, ((h ?? l) - (l ?? h)) / span * 100)}%`}></i></div><span class="hi">${h != null ? Math.round(h) + "°" : ""}</span><em>${prob(f)}</em></div>`; })}</div>` : nothing}
     ${!hourly.length && !dfc.length ? html`<div class="sub">${pop.loading ? t("Laden…") : t("Geen verwachting beschikbaar")}</div>` : nothing}
-    ${kpis.length ? html`<div class="wkpi">${kpis.map(k => html`<div><b>${k.v}<small>${k.u}</small></b><span>${k.n}</span></div>`)}</div>` : nothing}`);
+    ${kpis.length ? html`<div class="wkpi">${kpis.map(k => html`<div><b>${k.v}<small>${k.u}</small></b><span>${k.n}</span></div>`)}</div>` : nothing}`, "wxsky");
 }
 
 /* =========================================================== energy =========================================================== */

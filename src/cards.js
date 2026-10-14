@@ -8,6 +8,7 @@ import { name, deviceName } from "./model.js";
 import { applianceState, applianceEnd, eventWhen, nextEvent } from "./extras2.js";
 import { spark } from "./extras3.js";
 import { tw } from "./motion.js";
+import { sky, feelsLike } from "./sky.js";
 import { graphCard, stepGraph } from "./graph.js";
 import { peopleCard, securityCard, todoCard, todoEntity, evCard, evReady, timersCard, timerList, solarCard, solarReady, gardenCard, gardenReady } from "./cards2.js";
 import "./camsnap.js";
@@ -651,13 +652,7 @@ function homeAllCards(p, h) {
       <div class="n">${title}</div>
       <div class="s">${open.length ? open.slice(0, 2).map((e, i) => html`${i ? html`<br>` : nothing}<b>${nm(e)}</b> ${t("open sinds {t}", { t: relTime(e.state?.last_changed) })}`) : html`${t("Alles dicht")}${dot()}${sinceText(latest)}`}</div>
       <div class="lbl">${footList((open.length ? closed : all).map(nm))}</div></div>`); };
-  if (h.weather) { const w = h.weather, days = (p.wx?.daily || []).slice(1, 3), dayName = f => new Date(f.datetime).toLocaleDateString(locale(), { weekday: "short" }).replace(".", "");
-    const expect = wxExpect(p, true);
-    add("weather", t("Weer"), html`<div class=${classMap({ card: true, hassub: days.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "weather" }) })}>
-    <div class="i">${wxEmoji(w.state)}</div>
-    <div class="n">${condText(w.state)}</div><div class="s">${Math.round(num(w.attributes.temperature) ?? 0)}°${expect ? html`${dot()}${expect}` : ""}</div>
-    ${w.attributes.wind_speed ? html`<div class="lbl">${t("wind")} ${Math.round(w.attributes.wind_speed)} ${w.attributes.wind_speed_unit || t("km/u")}</div>` : nothing}
-    ${days.length ? html`<div class="subc">${days.map(f => html`<div><b>${dayName(f)} · ${condText(f.condition)}</b><span>${Math.round(num(f.temperature) ?? 0)}°${num(f.templow) != null ? ` / ${Math.round(num(f.templow))}°` : ""}</span></div>`)}</div>` : nothing}</div>`); }
+  if (h.weather) add("weather", t("Weer"), weatherCard(p, h.weather));
   if (h.waste.length) { const w = h.waste[0], later = h.waste.slice(1, 3);
     add("waste", t("Afval"), html`<div class=${classMap({ card: true, hassub: later.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "waste" }) })}>
     <div class="i">${ico("mdi:trash-can-outline", wasteIcon(w.label))}</div>
@@ -694,6 +689,41 @@ export function wxExpect(p, short = false) {
   const at = soon ? new Date(soon.datetime).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) : "";
   if (short) return soon ? t("{what} rond {t}", { what: t(PRECIP[soon.condition]), t: at }) : p.wx?.hourly?.length ? t("Droog") : "";
   return soon ? t("{what} verwacht rond {t}", { what: t(PRECIP[soon.condition]), t: at }) : p.wx?.hourly?.length ? t("Droog de komende uren") : "";
+}
+/* ---------- weather card: the sky of sky.js behind a big temperature, high / low and today's precipitation in the corner,
+   tomorrow as one sentence at the bottom ("Morgen half bewolkt met 16° en 20% kans op regen") ---------- */
+const sameDay = (a, b) => a.toDateString() === b.toDateString();
+/** today's and tomorrow's daily forecast, found by date (some integrations start the list at tomorrow) */
+export function wxDays(p) {
+  const d = p.wx?.daily || [], now = new Date(), tom = new Date(now.getTime() + 864e5);
+  return { today: d.find(f => sameDay(new Date(f.datetime), now)) || null, tomorrow: d.find(f => sameDay(new Date(f.datetime), tom)) || null };
+}
+const snowy = c => c === "snowy" || c === "snowy-rainy";
+const DROP = html`<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1C3.6 3 2.5 4.6 2.5 6.1a2.5 2.5 0 0 0 5 0C7.5 4.6 6.4 3 5 1z" fill="currentColor"/></svg>`;
+const FLAKE = html`<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" aria-hidden="true"><path d="M5 1v8M1.5 3l7 4M1.5 7l7-4M4 1.6 5 2.6 6 1.6M4 8.4l1-1 1 1"/></svg>`;
+/** the condition as a word inside the sentence about tomorrow */
+const wxAdj = c => ({ sunny: t("zonnig"), "clear-night": t("helder"), partlycloudy: t("half bewolkt"), cloudy: t("bewolkt"), rainy: t("regenachtig"), pouring: t("stortregen"), lightning: t("onweerachtig"), "lightning-rainy": t("onweerachtig"),
+  snowy: t("sneeuw"), "snowy-rainy": t("natte sneeuw"), hail: t("hagel"), fog: t("mistig"), windy: t("winderig"), "windy-variant": t("winderig") }[c] || t("wisselvallig"));
+/** the sentence about tomorrow; the chance only from 20%, a flake for snow; short = the phone version without "kans op regen" */
+function tomorrowLine(f, short) {
+  const temp = Math.round(num(f.temperature) ?? 0), pc = num(f.precipitation_probability), wet = pc != null && pc >= 20, snow = snowy(f.condition), what = wxAdj(f.condition);
+  const s = !wet ? t("Morgen {what} met {temp}", { what }) : short ? t("Morgen {what} met {temp} en {chance}", { what })
+    : snow ? t("Morgen {what} met {temp} en {chance} kans op sneeuw", { what }) : t("Morgen {what} met {temp} en {chance} kans op regen", { what });
+  return s.split(/(\{temp\}|\{chance\})/).map(x => x === "{temp}" ? html`<b>${temp}°</b>` : x === "{chance}" ? html`<span class="pp">${snow ? FLAKE : DROP}${Math.round(pc)}%</span>` : x);
+}
+export function weatherCard(p, w) {
+  const a = w.attributes, { today, tomorrow } = wxDays(p), feels = feelsLike(a), temp = Math.round(num(a.temperature) ?? 0);
+  const hi = num(today?.temperature), lo = num(today?.templow), mm = num(today?.precipitation), pc = num(today?.precipitation_probability), snow = snowy(w.state) || snowy(today?.condition);
+  const expect = wxExpect(p) || (a.wind_speed != null ? `${t("wind")} ${Math.round(a.wind_speed)} ${a.wind_speed_unit || t("km/u")}` : "");
+  const rainBit = mm != null ? html`<span class=${classMap({ mm: true, dry: !mm })}>${snow ? FLAKE : DROP}${mm.toLocaleString(locale(), { maximumFractionDigits: 1 })} mm</span>`
+    : pc != null ? html`<span class=${classMap({ mm: true, dry: pc < 20 })}>${snow ? FLAKE : DROP}${Math.round(pc)}%</span>` : nothing;
+  return html`<div class="card wxsky" ${pressDir(p, { tap: () => p.openPopup({ type: "weather" }) })}>
+    ${sky(p, w.state)}
+    <div class="tnow"><b>${tw(String(temp))}<sup>°</sup></b>${feels != null ? html`<span>${t("voelt als {v}", { v: Math.round(feels) + "°" })}</span>` : nothing}</div>
+    ${hi != null || rainBit !== nothing ? html`<div class="c wxc">${hi != null ? html`<span class="hl">${Math.round(hi)}°${lo != null ? html`<em>/${Math.round(lo)}°</em>` : nothing}</span>` : nothing}${rainBit}</div>` : nothing}
+    <div class="n">${condText(w.state)}</div><div class="s">${expect}</div>
+    ${tomorrow ? html`<div class="snt"><span class="lg">${tomorrowLine(tomorrow, false)}</span><span class="sh">${tomorrowLine(tomorrow, true)}</span></div>` : nothing}
+  </div>`;
 }
 /* ---------- group card: user-defined set of lights (kind "light") or switches / fans / plugs (kind "plug") ---------- */
 const svcFor = id => id.split(".")[0] === "input_boolean" ? "input_boolean" : id.split(".")[0] === "light" ? "light" : id.split(".")[0] === "fan" ? "fan" : "switch";

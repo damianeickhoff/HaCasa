@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **The weather card is the sky now.** Its glass shows the weather as a moving scene: a soft sun or moon glow in the corner, clouds drifting past, rain at three depths with drops on the glass, soft snow, hail, fog banks, wind, and thunderstorms with forked lightning from different places that lights up the clouds. On the card: the temperature with "feels like" behind it, today's high / low and expected precipitation in the corner, and tomorrow as one sentence ("Tomorrow partly cloudy, 16° and a 20% chance of rain"). With *Animations* off the sky is a still picture.
+- **Animated weather icons** for everything that shows other weather than now: the hours and the week in the weather popup and the weather next to the greeting.
+- **Weather popup:** the header is the same sky as the card and fades into the popup.
+- **Weather next to the greeting:** the icon sits next to the temperature, and the four hour tiles are one glass bar with five hours and tomorrow.
+
 - **Settings could be lost after a bad connection (#172).** When Home Assistant could not be reached at the moment the panel opened (a tablet waking up, HA restarting), the panel treated that as "no settings yet" and showed the setup wizard, and finishing or skipping it replaced the real settings. Now the panel keeps trying until the settings are loaded, refuses to save before that, and the wizard adds to settings that already exist instead of replacing them.
 - **Graph card settings froze the panel** when the period was changed: the card on the page and its live preview kept reloading each other's history. History is now cached per period.
 - Card picker: the English descriptions of the Security, Household, List, Timers, Car, Solar, Garden and Air quality cards were still in Dutch.

@@ -13,7 +13,8 @@ import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./s
 import { renderPage, PAGES } from "./pages.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
-import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, anyIco, wxEmoji } from "./cards.js";
+import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, anyIco, wxDays } from "./cards.js";
+import { wxIcon, wxDefs } from "./sky.js";
 import { renderPills, pillTemplates } from "./pills.js";
 import { iconPicker } from "./iconpicker.js";
 import { quickRow, watchTriggers, presetCard, selfUpdate } from "./features.js";
@@ -449,7 +450,7 @@ class HacasaNova extends LitElement {
     const alarmLbl = alarm ? ({ disarmed: t("Uit"), armed_home: t("Thuis"), armed_away: t("Weg"), armed_night: t("Nacht"), armed_vacation: t("Vakantie"), arming: t("Inschakelen"), pending: t("Wachten"), triggered: t("Alarm"), unavailable: "?" }[alarm.state] || alarm.state) : null;
     const alarmCls = alarm ? ({ disarmed: "off", armed_home: "home", arming: "arming", pending: "arming", triggered: "triggered", unavailable: "off" }[alarm.state] || "armed") : "";
     const phone = matchMedia("(max-width:900px)").matches;
-    return html`
+    return html`${wxDefs}
       ${this._prevBg ? html`<div class="bg out" style="--bg:url(&quot;${this._prevBg}&quot;)"></div>` : nothing}
       ${keyed(bg || "plain", isPage ? html`<div class="bg plain"></div>` : html`<div class=${classMap({ bg: true, grad: !this.bgOk(bg) })} style=${this.bgStyle(bg, room?.slug)}></div>`)}
       <nav class=${classMap({ nav: true, open: this.drawer, srch: !!this.searchOpen, topnav: this.config.phoneNav === "top" })}>
@@ -544,19 +545,20 @@ class HacasaNova extends LitElement {
 
   /** status pills under the greeting (see pills.js): built-in lights, doors & windows, attention plus the user's own */
   renderPills(h, key = "home") { return renderPills(this, key, h); }
-  /** weather block next to the greeting: temperature, condition, high/low, wind and the next hours */
+  /** weather block next to the greeting: animated icon + temperature, condition, high/low and wind, then one glass bar with the next hours and tomorrow */
   renderWx(w) {
     if (!w) return nothing;
-    const a = w.attributes, fx = this.wx || {}, now = Date.now();
-    const hours = (fx.hourly || []).filter(f => new Date(f.datetime).getTime() > now - 30 * 60000).slice(0, 4);
-    const today = (fx.daily || [])[0] || {};
-    const hi = num(today.temperature), lo = num(today.templow);
+    const a = w.attributes, fx = this.wx || {}, now = Date.now(), { today, tomorrow } = wxDays(this);
+    const hours = (fx.hourly || []).filter(f => new Date(f.datetime).getTime() > now - 30 * 60000).slice(0, 5);
+    const hi = num(today?.temperature), lo = num(today?.templow);
     const line = [hi != null && lo != null ? `H ${Math.round(hi)}° · L ${Math.round(lo)}°` : "", a.wind_speed != null ? t("Wind {n}", { n: `${Math.round(a.wind_speed)} ${a.wind_speed_unit || t("km/u")}` }) : ""].filter(Boolean).join(" · ");
+    const th = num(tomorrow?.temperature), tl = num(tomorrow?.templow);
     return html`<div class=${classMap({ wx: true, wxm: !!this.config.home?.wxMobile })} @click=${ev => { ev.stopPropagation(); this.openPopup({ type: "weather" }); }}>
-      <div class="big">${wxEmoji(w.state)}<div class="t">${tw(String(Math.round(num(a.temperature) ?? 0)))}<sup>°</sup></div></div>
+      <div class="big">${wxIcon(w.state, 58)}<div class="t">${tw(String(Math.round(num(a.temperature) ?? 0)))}<sup>°</sup></div></div>
       <div class="cnd">${condText(w.state)}${wxExpect(this) ? html`<i class="dt"></i>${wxExpect(this)}` : nothing}</div>
       ${line ? html`<div class="hl">${line}</div>` : nothing}
-      ${hours.length ? html`<div class="hours">${hours.map(f => html`<div>${t("{h}u", { h: new Date(f.datetime).getHours() })}${wxEmoji(f.condition)}<b>${Math.round(num(f.temperature) ?? 0)}°</b></div>`)}</div>` : nothing}
+      ${hours.length || tomorrow ? html`<div class="wbar">${hours.map(f => html`<div>${t("{h}u", { h: new Date(f.datetime).getHours() })}${wxIcon(f.condition, 24)}<b>${Math.round(num(f.temperature) ?? 0)}°</b></div>`)}
+        ${tomorrow ? html`<div class="tm">${t("Morgen")}${wxIcon(tomorrow.condition, 24)}<b>${th != null ? Math.round(th) + "°" : ""}${tl != null ? html`<em> / ${Math.round(tl)}°</em>` : nothing}</b></div>` : nothing}</div>` : nothing}
     </div>`;
   }
 

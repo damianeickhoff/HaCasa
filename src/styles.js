@@ -12,6 +12,7 @@ import { motionStyles } from "./motion.js";
 import { calendarStyles } from "./calendar.js";
 import { cards2Styles } from "./cards2.js";
 import { popup2Styles } from "./popups2.js";
+import { skyStyles } from "./sky.js";
 
 // Started from our own Homio-style mockup; scoped to the panel host.
 export const styles = css`
@@ -150,18 +151,20 @@ export const styles = css`
   .wx .big img.ico,.wx .big ha-icon{width:52px;height:52px;--mdc-icon-size:52px;margin-top:6px;opacity:.95}
   .wxe{font-style:normal;display:inline-block;line-height:1}
   .wx .big .wxe{font-size:46px;margin-top:9px}
-  .wx .hours div .wxe{display:block;font-size:22px;margin:6px auto}
   .card .i .wxe{font-size:32px;line-height:36px}
   .wx .t{font-size:72px;font-weight:500;letter-spacing:-3px;line-height:1}
   .wx .t sup{font-size:28px;font-weight:600;vertical-align:top;margin-left:2px;line-height:1.6}
   .wx .cnd{font-size:15px;font-weight:600;color:var(--fg-2);margin-top:2px}
   .wx .hl{font-size:13px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--fg-3);margin-top:4px}
-  .wx .hours{display:flex;gap:4px;justify-content:flex-end;margin-top:14px}
-  .wx .hours div{width:64px;padding:10px 0;border-radius:var(--r);background:rgba(255,255,255,.10);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);text-align:center;font-size:12px;font-weight:600;color:var(--fg-2)}
-  .wx .hours div{font-size:13px}
-  .wx .hours div img.ico,.wx .hours div ha-icon{width:24px;height:24px;--mdc-icon-size:24px;margin:6px auto;display:block}
-  .wx .hours div b{display:block;color:#fff;font-weight:700;font-size:14px}
-  @media (max-width:1100px){ .wx .hours{display:none} }
+  /* one glass bar: the next hours, then tomorrow behind a divider */
+  .wx .big .wxi{margin-top:6px}
+  .wx .wbar{display:inline-flex;margin-top:16px;padding:10px 6px;border-radius:var(--r);background:rgba(255,255,255,.10);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);text-align:center}
+  .wx .wbar div{width:52px;font-size:12px;font-weight:600;color:var(--fg-2)}
+  .wx .wbar div .wxi{display:block;margin:5px auto}
+  .wx .wbar div b{display:block;color:#fff;font-size:14px;font-weight:700}
+  .wx .wbar div.tm{width:auto;padding:0 10px 0 14px;margin-left:6px;border-left:1px solid var(--line)}
+  .wx .wbar div.tm b em{font-style:normal;color:var(--fg-3);font-weight:600}
+  @media (max-width:1100px){ .wx .wbar{display:none} }
 
   /* ===== card strip ===== */
   .strip{position:absolute;left:var(--pad);right:0;bottom:85px;display:flex;gap:var(--card-gap);overflow-x:auto;scroll-snap-type:none;scrollbar-width:none;padding:6px 0}
@@ -736,12 +739,12 @@ export const styles = css`
     .wx .big{justify-content:flex-start;gap:4px}
     .wx .big img.ico,.wx .big ha-icon{width:36px;height:36px;--mdc-icon-size:36px;margin-top:0}
     .wx .big .wxe{font-size:32px;margin-top:2px}
+    .wx .big .wxi{width:36px;height:36px;margin-top:0}
     .card .i .wxe{font-size:26px;line-height:30px}
     .wx .t{font-size:40px;letter-spacing:-2px}
     .wx .t sup{font-size:16px;line-height:1.4}
     .wx .cnd{margin:0}
     .wx .hl{margin-top:2px}
-    .wx .hours{display:none}
     .strip{position:static;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:6px;padding:4px var(--pad) calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));scroll-snap-type:none;scrollbar-width:none}
     .strip::after{display:none}
     .etools{position:static;padding:8px var(--pad) 6px;flex:none}
@@ -840,5 +843,6 @@ export const styles = css`
   .card.unavailable .i,.card.unavailable .c,.card.unavailable .lbl,.card.unavailable .prog,.card.unavailable hcn-cam-snap{display:none}
   .card.unavailable .n{margin-bottom:6px}
   @media (max-width:900px){ .card.unavailable{padding:0 16px} }
+  ${unsafeCSS(skyStyles)}
   ${unsafeCSS(motionStyles)}
 `;

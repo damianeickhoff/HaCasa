@@ -58,7 +58,7 @@
     // animations jump to their end state, so a capture never lands mid-fade
     customElements.whenDefined("hacasa-nova").then(() => el.updateComplete).then(() => {
       const st = document.createElement("style");
-      st.textContent = "*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important}";
+      st.textContent = "*:not(.sky *, .wxi *),*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important}";   // the weather sky and icons keep moving: their end state is empty
       el.shadowRoot.append(st);
     });
   }
