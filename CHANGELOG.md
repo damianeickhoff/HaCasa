@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 3.1.0-beta.5 (beta)
 
 - **The weather card is the sky now.** Its glass shows the weather as a moving scene: a soft sun or moon glow in the corner, clouds drifting past, rain at three depths with drops on the glass, soft snow, hail, fog banks, wind, and thunderstorms with forked lightning from different places that lights up the clouds. On the card: the temperature with "feels like" behind it, today's high / low and expected precipitation in the corner, and tomorrow as one sentence ("Tomorrow partly cloudy, 16° and a 20% chance of rain"). With *Animations* off the sky is a still picture.
