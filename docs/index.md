@@ -71,3 +71,4 @@ The original **HaCasa** was a button-card dashboard that grew to almost 500 star
 - **[Cards](cards.md)**: what every card does and how to change it.
 - **[Settings](settings.md)**: a tour of the settings page.
 - **[Discussions](https://github.com/damianeickhoff/HaCasa/discussions)**: questions, ideas, and show us your setup.
+- **[Discord](https://discord.gg/2Xgtqm8Xmw)**: chat with other users, get help quickly and test betas.

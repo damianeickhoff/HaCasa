@@ -30,4 +30,4 @@
     **Settings → General → Language**. *Automatic* follows the language of your Home Assistant profile; anything other than Dutch or German shows English.
 
 ??? question "Something else"
-    Ask in [Discussions → Q&A](https://github.com/damianeickhoff/HaCasa/discussions/categories/q-a), where the answer helps the next person too. Found a bug? Open an [issue on GitHub](https://github.com/damianeickhoff/HaCasa/issues/new/choose) with your Home Assistant version, the browser and any red lines from the browser console (F12).
+    Ask in [Discussions → Q&A](https://github.com/damianeickhoff/HaCasa/discussions/categories/q-a), where the answer helps the next person too, or in #help on the [HaCasa Discord](https://discord.gg/2Xgtqm8Xmw). Found a bug? Open an [issue on GitHub](https://github.com/damianeickhoff/HaCasa/issues/new/choose) with your Home Assistant version, the browser and any red lines from the browser console (F12).

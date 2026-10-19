@@ -10,8 +10,9 @@
 [![Release](https://img.shields.io/github/v/release/damianeickhoff/HaCasa?style=flat-square&label=release)](https://github.com/damianeickhoff/HaCasa/releases)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/github/license/damianeickhoff/HaCasa?style=flat-square)](https://github.com/damianeickhoff/HaCasa/blob/main/LICENSE)
+[![Discord](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscord.com%2Fapi%2Fv10%2Finvites%2F2Xgtqm8Xmw%3Fwith_counts%3Dtrue&query=%24.approximate_member_count&suffix=%20members&label=Discord&logo=discord&logoColor=white&color=5865F2&style=flat-square)](https://discord.gg/2Xgtqm8Xmw)
 
-[Documentation](https://damianeickhoff.github.io/HaCasa/) · [Demo video](https://damianeickhoff.github.io/HaCasa/#demo) · [Install](#install) · [Discussions](https://github.com/damianeickhoff/HaCasa/discussions) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
+[Documentation](https://damianeickhoff.github.io/HaCasa/) · [Demo video](https://damianeickhoff.github.io/HaCasa/#demo) · [Install](#install) · [Discussions](https://github.com/damianeickhoff/HaCasa/discussions) · [Discord](https://discord.gg/2Xgtqm8Xmw) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
 
 <a href="https://damianeickhoff.github.io/HaCasa/#demo"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/demo/poster-play.webp" alt="HaCasa Nova: watch the 40-second demo" width="100%"></a>
 
@@ -148,6 +149,7 @@ The full guide is at **[damianeickhoff.github.io/HaCasa](https://damianeickhoff.
 
 ## Community
 
+- **Chat:** join the [HaCasa Discord](https://discord.gg/2Xgtqm8Xmw) for quick questions, beta testing and sharing your setup
 - **Questions and help:** [Discussions → Q&A](https://github.com/damianeickhoff/HaCasa/discussions/categories/q-a)
 - **Show your setup:** [Discussions → Show and tell](https://github.com/damianeickhoff/HaCasa/discussions/categories/show-and-tell)
 - **Ideas:** [Discussions → Ideas](https://github.com/damianeickhoff/HaCasa/discussions/categories/ideas)
