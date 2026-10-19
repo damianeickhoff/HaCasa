@@ -3,6 +3,7 @@
 ## Unreleased
 
 - **The Sensors page stayed empty** since 3.1.0-beta.4: its rows used a value that no longer existed and the page stopped rendering. It shows all sensors again.
+- **Album art from Music Assistant did not show (#174).** Music Assistant hands out its artwork as a plain http address on your network, which the browser blocks on an https dashboard or away from home. The media card and popup now load the artwork through Home Assistant, like the HA media card does.
 
 ## 3.1.0-beta.5 (beta)
 

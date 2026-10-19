@@ -251,7 +251,7 @@ export function mediaView(p, e) {
   const a = info?.attributes || {}, mainOff = main?.state === "off" || main?.state === "standby";
   const app = appInfo(a.app_name || main?.attributes?.app_name || (cands.find(s => s.attributes.app_name && s.state !== "off")?.attributes.app_name) || main?.attributes?.source);
   const title = a.media_series_title && a.media_title ? `${a.media_series_title} · ${a.media_title}` : a.media_title || null;
-  return { main, info, app, title, artist: a.media_artist || null, art: !mainOff || active(info) ? a.entity_picture || null : null,
+  return { main, info, app, title, artist: a.media_artist || null, art: !mainOff || active(info) ? a.entity_picture_local || a.entity_picture || null : null,   // _local = HA's proxy; the raw URL can be http on the LAN (Music Assistant) and gets blocked
     playing: cands.some(s => s.state === "playing"), paused: info?.state === "paused", off: mainOff && !cands.some(active), ctl: info && info !== main && active(info) ? info.entity_id : e.id };
 }
 
