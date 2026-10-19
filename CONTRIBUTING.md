@@ -5,7 +5,7 @@ Thanks for wanting to help! HaCasa Nova is a beta maintained by one person, so s
 ## Where to go
 
 - **Bug?** Open an [issue](https://github.com/damianeickhoff/HaCasa/issues/new/choose) with your Home Assistant version, browser and any red lines from the browser console (F12).
-- **Question or idea?** Start a [discussion](https://github.com/damianeickhoff/HaCasa/discussions): Q&A for help, Ideas for suggestions, Show and tell for your setup.
+- **Question or idea?** Start a [discussion](https://github.com/damianeickhoff/HaCasa/discussions): Q&A for help, Ideas for suggestions, Show and tell for your setup. For a quick chat, or to test betas, join the [HaCasa Discord](https://discord.gg/2Xgtqm8Xmw).
 - **Known issues** are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158). Pick one, say in the issue that you're on it, and go.
 
 ## Development

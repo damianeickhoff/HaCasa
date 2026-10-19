@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **HaCasa has a Discord server.** A few of you asked for a place to chat, so here it is: https://discord.gg/2Xgtqm8Xmw. Come by for quick questions, to share your setup, or to test betas. Bugs still go to GitHub issues.
+
 ## 3.1.0-beta.6 (beta)
 
 - **The Sensors page stayed empty** since 3.1.0-beta.4: its rows used a value that no longer existed and the page stopped rendering. It shows all sensors again.

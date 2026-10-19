@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Chat on Discord
+    url: https://discord.gg/2Xgtqm8Xmw
+    about: Quick questions, beta testing and sharing your setup with other HaCasa users.
   - name: Question or help with your setup
     url: https://github.com/damianeickhoff/HaCasa/discussions/categories/q-a
     about: Ask in Discussions → Q&A, so the answer helps the next person too.
