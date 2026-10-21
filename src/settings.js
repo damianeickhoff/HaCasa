@@ -288,6 +288,8 @@ export const settingsStyles = `
   .settings .actions button.pulse{animation:pulse 1.6s ease-in-out infinite}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
   @media (max-width:900px){
+    .settings.page{padding-top:calc(96px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))}   /* no eyebrow line above the title here, so less room under the top bar */
+    .settings .phead{margin-bottom:20px}
     .settings .sbody{grid-template-columns:1fr}
     .settings .tabs{flex-direction:row;overflow-x:auto;position:static;scrollbar-width:none;padding-bottom:2px}
     .settings .tabs button{flex:none;padding:8px 12px}
