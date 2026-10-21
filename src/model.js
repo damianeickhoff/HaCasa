@@ -118,12 +118,14 @@ const latest = (list) => list.map(e => e.state).filter(Boolean).sort((a, b) => n
 
 /* One TV often shows up through several integrations (Android TV Remote, Bravia, Cast, Apple TV), each with its own
    media_player. Only some report a title and artwork (Cast, Apple TV), and those often have no area. Players whose device
-   names match ("SONY KD-55X85L") become one card; `linked` lists the others, plus a player picked by hand (card setting `link`). */
+   names match ("SONY KD-55X85L") become one card; `linked` lists the others, plus a player picked by hand (card setting `link`).
+   A player added to the room by hand (`pinned`, pages[area].add) always keeps its own card: an Apple TV and the Music Assistant
+   player on top of it can share a device name and are two players, not one TV. */
 const devKey = (hass, id) => { const d = hass.devices?.[hass.entities?.[id]?.device_id]; return (d?.name || "").toLowerCase().replace(/[^a-z0-9]/g, ""); };
-function linkMedia(hass, media, config) {
-  const all = Object.keys(hass.states).filter(id => id.startsWith("media_player.") && !hass.entities?.[id]?.hidden), out = [];
+function linkMedia(hass, media, config, pinned) {
+  const all = Object.keys(hass.states).filter(id => id.startsWith("media_player.") && !hass.entities?.[id]?.hidden && !pinned.has(id)), out = [];
   for (const e of media) {
-    const k = devKey(hass, e.id), same = k.length > 3 ? all.filter(id => id !== e.id && devKey(hass, id) === k) : [];
+    const k = devKey(hass, e.id), same = k.length > 3 ? all.filter(id => id !== e.id && devKey(hass, id) === k && !(pinned.has(e.id) && media.some(m => m.id === id))) : [];
     const lead = out.find(x => x.linked.includes(e.id));
     if (lead) continue;                                                   // already folded into an earlier card of this room
     const manual = config.cards?.[e.id]?.link;
@@ -141,7 +143,7 @@ export function buildRooms(hass, config) {
     const own = byArea.get(a.area_id) || [];
     const extra = (config.pages?.[a.area_id]?.add || []).filter(id => hass.states[id] && !own.some(e => e.id === id)).map(id => ({ id, reg: hass.entities?.[id] || {}, state: hass.states[id], added: true }));
     const ents = classify([...own, ...extra], config, hass);
-    ents.media = linkMedia(hass, ents.media, config);
+    ents.media = linkMedia(hass, ents.media, config, new Set(config.pages?.[a.area_id]?.add || []));
     const s = slug(a.name), pg = config.pages?.[a.area_id] || {};
     return {
       id: a.area_id, name: pg.title || a.name, slug: s, floor: a.floor_id || null,
