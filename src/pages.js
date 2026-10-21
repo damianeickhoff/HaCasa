@@ -84,7 +84,9 @@ function energy(p) {
   const val = s => s && num(s.state) != null ? num(s.state) : null;
   const eh = p.energyHist || {}; if (en.today && (!eh.at || Date.now() - eh.at > 10 * 60000)) p.loadEnergyToday();
   const use = eh.use || [], sun = eh.sun || [], max = Math.max(...use.map(r => r.v || 0), ...sun.map(r => r.v || 0), 0.001);
-  const watts = Object.values(st).filter(s => domain(s.entity_id) === "sensor" && s.attributes.unit_of_measurement === "W" && num(s.state) != null && s.entity_id !== en.power?.entity_id).sort((a, b) => num(b.state) - num(a.state));
+  // consumers only, as in the energy popup: not the house meter, the solar or the home battery set under Settings → Energy, nothing at or below 0 W
+  const ecfg = p.config.home?.energy || {}, skip = new Set([en.power?.entity_id, ecfg.solar, ecfg.batteryPower].filter(Boolean));
+  const watts = Object.values(st).filter(s => domain(s.entity_id) === "sensor" && s.attributes.unit_of_measurement === "W" && num(s.state) > 0 && !skip.has(s.entity_id) && !p.hass.entities?.[s.entity_id]?.hidden).sort((a, b) => num(b.state) - num(a.state));
   const nowH = p.netHist?.[en.power?.entity_id];
   const kpis = [
     kpi({ icon: "mdi:flash-outline", svg: "electric", em: t("Nu"), v: en.power ? fmt(val(en.power), 0) : "–", unit: "W", n: eh.peak ? t("piek vandaag {w} W om {t}", { w: fmt(eh.peak.v, 0), t: eh.peak.t }) : "", on: !!en.power, spark: nowH, tap: en.power ? () => p.moreInfo(en.power.entity_id) : null }),

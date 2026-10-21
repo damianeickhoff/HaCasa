@@ -721,7 +721,9 @@ export const styles = css`
     .title .sub{font-size:15px}
     .ticker{height:40px;font-size:11px;letter-spacing:1.3px;max-width:none;margin-top:14px}
     .ticker div{align-items:center;line-height:1.4;white-space:normal}
-    .ticker div span{min-width:0}
+    .ticker div span{min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .ticker .tk{height:auto}
+    .ticker .tt{flex:none;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .wx{display:none;text-align:left;align-items:center;gap:14px;padding:0;margin-top:16px}
     .wx.wxm{display:flex}
     .card.hassub{padding-right:var(--cp)}

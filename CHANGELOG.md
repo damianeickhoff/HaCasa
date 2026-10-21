@@ -8,6 +8,8 @@
 - **A media player you add to a room by hand gets its own card.** HaCasa folds players on the same device into one card (a TV that shows up through Cast, Android TV and its own integration). That also folded the Music Assistant player into the Apple TV it plays on, so adding it did nothing. A player you add yourself now always keeps its own card.
 - **Template cards placed through Add card showed "Template error" (#167)**, even with the right entity filled in. The card was saved once without its fields first, and the error from that first render came in late and stayed. It now saves in one go, late answers from an earlier render are ignored, and a warning from Home Assistant no longer counts as an error. Placing a template only asks for the entity when the template uses `$entity`; the other fields are optional and keep the template's own text when left empty. Hover a card that still says *Template error* to see Home Assistant's message.
 - A template card from an old `config.json` without an id no longer disappears when it moves to the template library.
+- **Energy page:** *Biggest consumers now* listed the solar panels and the home battery set under Settings → Energy as consumers, and devices drawing 0 W. It shows only what is using power now, like the energy popup.
+- Phones: a long notification line (like the update notice in Spanish) was cut off at the top. The title stays on one line and the text wraps to two lines at most.
 
 ## 3.1.0-beta.6 (beta)
 

@@ -637,7 +637,7 @@ function homeAllCards(p, h) {
     <div class="c">${h.attention.length ? `${h.attention.length} ${h.attention.length === 1 ? t("melding") : t("meldingen")}` : t("Alles in orde")}</div>
     <div class="n">${t("Aandacht")}</div>
     <div class="s">${h.attention.length ? pickAttention(h.attention).map(a => html`<span>${ico(a.icon)}<b>${a.name}</b><em>${a.text}</em></span>`) : html`<span>${t("Geen onbereikbare apparaten, lege batterijen of updates")}</span>`}</div></div>`);
-  // 3.2 cards: security (with an alarm or a lock), household, to-do list, timers, EV, solar; edit mode hides what you do not want
+  // cards new in 3.1: security (with an alarm or a lock), household, to-do list, timers, EV, solar; edit mode hides what you do not want
   if (h.alarm || p.rooms.some(r => r.ents.locks.length)) add("security", t("Beveiliging"), securityCard(p, h));
   if (h.persons.length) add("people", t("Huishouden"), peopleCard(p, h));
   { const td = todoEntity(p); if (td) add("todo", t("Lijst"), todoCard(p, td)); }
