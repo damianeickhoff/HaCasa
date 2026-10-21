@@ -173,7 +173,11 @@ export function makeHass(onChange) {
   const hass = {
     user: { id: "u1", name: "Alex", is_admin: true },
     areas, devices, entities, states, floors, language: new URLSearchParams(location.search).get("lang") || "en",
-    connection: { subscribeMessage(cb, msg) { console.log("[mock] subscribe", msg.type); if (msg.type === "render_template") { setTimeout(() => cb({ result: msg.template.includes("weather") ? "Partly cloudy" : "example" }), 30); return Promise.resolve(() => {}); } notifSubs.push(cb); setTimeout(() => cb({ type: "current", notifications: Object.fromEntries(notifications.map(n => [n.notification_id, n])) }), 50); return () => {}; } },   // like HA: the full set once, then only changes
+    connection: { subscribeMessage(cb, msg) { console.log("[mock] subscribe", msg.type); if (msg.type === "render_template") {
+      // like HA with report_errors: an unknown entity ($entity left in) errors, a little later than a normal result; "warn" sends a WARNING first
+      if (/\$entity(?!\w)/.test(msg.template)) { setTimeout(() => cb({ error: "UndefinedError: 'None' has no attribute 'last_changed'", level: "ERROR" }), 300); return Promise.resolve(() => {}); }
+      if (msg.template.includes("warn")) setTimeout(() => cb({ error: "Template variable warning: no such attribute", level: "WARNING" }), 20);
+      setTimeout(() => cb({ result: msg.template.includes("weather") ? "Partly cloudy" : "example" }), 30); return Promise.resolve(() => {}); } notifSubs.push(cb); setTimeout(() => cb({ type: "current", notifications: Object.fromEntries(notifications.map(n => [n.notification_id, n])) }), 50); return () => {}; } },   // like HA: the full set once, then only changes
     callService(domain, service, data) {
       console.log("[mock] callService", domain, service, data);
       if (domain === "todo" && service === "add_item") { todoItems.push({ uid: String(Date.now()), summary: data.item, status: "needs_action" }); bumpTodo(); }

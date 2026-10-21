@@ -112,7 +112,12 @@ const stateText = s => unavailable(s) ? t("Onbereikbaar") : s.state === "on" ? t
 /** add `key` to the page, then open its card settings */
 async function addKey(p, pageKey, key, { cardCfg = null, hideIn = null, haArea = false } = {}) {
   if (haArea) await p.hass.callWS({ type: "config/entity_registry/update", entity_id: key, area_id: pageKey });
-  else { const pc = p.pageCfg(pageKey); await p.savePage(pageKey, { ...pc, add: [...new Set([...(pc.add || []), key])] }); }
+  else if (cardCfg) {
+    // the page entry and the card's settings in one save: a template instance saved without its fields renders `$entity` once and errors (#167)
+    const pc = p.pageCfg(pageKey);
+    await p.saveUser({ pages: { ...(p.userConfig?.pages || {}), [pageKey]: { ...pc, add: [...new Set([...(pc.add || []), key])] } }, cards: { ...(p.userConfig?.cards || {}), [key]: cardCfg } });
+    cardCfg = null;
+  } else { const pc = p.pageCfg(pageKey); await p.savePage(pageKey, { ...pc, add: [...new Set([...(pc.add || []), key])] }); }
   if (hideIn) { const pc = p.pageCfg(hideIn); await p.savePage(hideIn, { ...pc, hidden: [...new Set([...(pc.hidden || []), key])] }); }
   if (cardCfg) await p.saveCardSettings(key, cardCfg);
   setTimeout(() => p.openCardForm(key), haArea ? 800 : 50);              // a registry change arrives through hass first
@@ -255,7 +260,8 @@ export function addPopup(p, pop) {
   if (type?.id === "tpl" && step === 3) {
     const tc = (p.config.templates || []).find(x => x.id === pop.pick); if (!tc) return nothing;
     const fields = pop.fields || {}, setF = (k, v) => upd({ fields: { ...fields, [k]: v } }), ask = TPL_ASK.filter(([k]) => (tc.ask || []).includes(k));
-    const ok = ask.every(([k]) => fields[k]);
+    // only the entity is needed, and only when the template uses $entity; an empty field keeps the template's own text (its placeholder)
+    const ok = !/\$entity(?!\w)/.test([tc.state, tc.label, tc.visible, tc.data, tc.path].join(" ")) || !!fields.entity;
     return html`<div class="popup addp">${head(tc.name || t("Template"), t("Vul de velden van deze kaart in"))}
       <div class="form">
         ${f(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${fields.entity || ""} placeholder="sensor.x" @change=${e => setF("entity", e.target.value || undefined)}><datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}

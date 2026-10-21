@@ -5,6 +5,8 @@
 - **HaCasa has a Discord server.** A few of you asked for a place to chat, so here it is: https://discord.gg/2Xgtqm8Xmw. Come by for quick questions, to share your setup, or to test betas. Bugs still go to GitHub issues.
 - **HaCasa speaks Spanish (#176)**, thanks to AdriBM. Texts added since their translation still show in English for now.
 - **A media player you add to a room by hand gets its own card.** HaCasa folds players on the same device into one card (a TV that shows up through Cast, Android TV and its own integration). That also folded the Music Assistant player into the Apple TV it plays on, so adding it did nothing. A player you add yourself now always keeps its own card.
+- **Template cards placed through Add card showed "Template error" (#167)**, even with the right entity filled in. The card was saved once without its fields first, and the error from that first render came in late and stayed. It now saves in one go, late answers from an earlier render are ignored, and a warning from Home Assistant no longer counts as an error. Placing a template only asks for the entity when the template uses `$entity`; the other fields are optional and keep the template's own text when left empty. Hover a card that still says *Template error* to see Home Assistant's message.
+- A template card from an old `config.json` without an id no longer disappears when it moves to the template library.
 
 ## 3.1.0-beta.6 (beta)
 

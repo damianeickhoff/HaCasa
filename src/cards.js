@@ -483,7 +483,7 @@ export function templateCard(p, tc, i) {
   const state = String(r.state ?? "…").replace(/^!/, "");
   const tap = () => { if (tc.tap === "toggle" && tc.entity) p.call(tc.entity.split(".")[0] === "input_boolean" ? "input_boolean" : "homeassistant", "toggle", { entity_id: tc.entity }); else if (tc.tap === "service" && tc.service) { const [d, s] = tc.service.split("."); let data = {}; try { data = JSON.parse(tc.data || "{}"); } catch {} p.call(d, s, data); } else if (tc.tap === "navigate" && tc.path) p.goPath(tc.path); else if (tc.entity) p.moreInfo(tc.entity); };
   return html`<div class=${classMap({ card: true, on, unavailable: r.error })} ${pressDir(p, { tap, hold: tc.entity ? () => p.moreInfo(tc.entity) : null })}>
-    <div class="n">${tc.name || t("Template")}</div><div class="s">${r.error ? (p.hass.user?.is_admin ? t("Templatefout") : t("alleen voor beheerders")) : state}</div>
+    <div class="n">${tc.name || t("Template")}</div><div class="s" title=${r.error && p.hass.user?.is_admin ? r.msg || "" : ""}>${r.error ? (p.hass.user?.is_admin ? t("Templatefout") : t("alleen voor beheerders")) : state}</div>
     ${r.label ? html`<div class="lbl">${r.label}</div>` : nothing}
     <div class="i">${uico(tc.icon, "mdi:code-braces")}</div>
   </div>`;

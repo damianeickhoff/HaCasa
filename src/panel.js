@@ -135,14 +135,30 @@ class HacasaNova extends LitElement {
     if (key === this._tplKey || !this.hass?.connection?.subscribeMessage) return;
     this._tplKey = key; (this._tplUnsubs || []).forEach(u => { try { u.then ? u.then(f => f(), () => {}) : u(); } catch {} }); this._tplUnsubs = [];
     this.templates = {};
+    // messages from an older set of subscriptions can still arrive after this one started (unsubscribing is async): they are dropped,
+    // or a card placed a moment ago keeps the error of its first render. Errors are kept per field, a warning (level WARNING) is not one,
+    // and a field's next result clears its own error only (#167)
+    const gen = this._tplGen = (this._tplGen || 0) + 1;
+    const set = (id, field, patch) => {
+      if (gen !== this._tplGen) return;
+      const cur = this.templates[id] || {}, errs = { ...(cur.errs || {}), ...(field ? { [field]: patch.err } : {}) };
+      if (!field) Object.assign(errs, { all: patch.err });
+      for (const k in errs) if (!errs[k]) delete errs[k];
+      const next = { ...cur, errs, error: Object.keys(errs).length ? true : undefined, msg: Object.values(errs)[0] || undefined };
+      if (field && "result" in patch) next[field] = patch.result;
+      this.templates = { ...this.templates, [id]: next };
+    };
     for (const x of list) for (const field of ["state", "label", "foot", "visible"]) {
       if (!x[field]) continue;
       try {
-        const u = this.hass.connection.subscribeMessage(msg => { this.templates = { ...this.templates, [x.id]: { ...(this.templates[x.id] || {}), [field]: msg.result, error: msg.error ? true : undefined } }; }, { type: "render_template", template: x[field], report_errors: true });
+        const u = this.hass.connection.subscribeMessage(msg => {
+          if (msg.error) { if (msg.level !== "WARNING") set(x.id, field, { err: String(msg.error) }); }
+          else set(x.id, field, { result: msg.result, err: null });
+        }, { type: "render_template", template: x[field], report_errors: true });
         // render_template is refused for non-admin users: show the card as an error instead of an unhandled rejection
-        u?.catch?.(() => { this.templates = { ...this.templates, [x.id]: { error: true } }; });
+        u?.catch?.(e => set(x.id, null, { err: e?.message || "refused" }));
         this._tplUnsubs.push(u);
-      } catch (e) { this.templates = { ...this.templates, [x.id]: { error: true } }; }
+      } catch (e) { set(x.id, null, { err: e?.message || "error" }); }
     }
   }
   get settingsPath() { return `${this.basePath()}/instellingen`; }
@@ -265,8 +281,9 @@ class HacasaNova extends LitElement {
   migrateTemplates() {
     const tpls = this.userConfig?.templates; if (!tpls || !tpls.some(x => x.room !== "none")) return;
     const pages = { ...(this.userConfig.pages || {}) };
-    const next = tpls.map(x => { if (x.room === "none") return x; const page = x.room || "home", pc = { ...(pages[page] || {}) }, key = `tpl:${x.id}:legacy`;
-      pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, room: "none" }; });
+    // a template without an id (an old config.json import) gets the one subscribeTemplates gives it, stored, so its instance can find it
+    const next = tpls.map((x, i) => { if (x.room === "none") return x; const id = x.id || "tpl" + i, page = x.room || "home", pc = { ...(pages[page] || {}) }, key = `tpl:${id}:legacy`;
+      pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, id, room: "none" }; });
     console.info("[hacasa-nova] template cards moved to the pages' add lists");
     this.saveUser({ templates: next, pages });
   }
