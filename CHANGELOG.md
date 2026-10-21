@@ -3,6 +3,7 @@
 ## Unreleased
 
 - **HaCasa has a Discord server.** A few of you asked for a place to chat, so here it is: https://discord.gg/2Xgtqm8Xmw. Come by for quick questions, to share your setup, or to test betas. Bugs still go to GitHub issues.
+- **HaCasa speaks Spanish (#176)**, thanks to AdriBM. Texts added since their translation still show in English for now.
 
 ## 3.1.0-beta.6 (beta)
 
