@@ -626,7 +626,7 @@ const HOME_DEFAULT = ["attention", "weather", "people", "security", "agenda"];
 export function homeCards(p, h, all = false) {
   const list = homeAllCards(p, h);
   if (all) return list;
-  const added = new Set(p.config.pages?.home?.add || []);
+  const added = new Set([...(p.config.pages?.home?.add || []), ...(p.config.pages?.home?.keep || [])]);
   return list.filter(x => HOME_DEFAULT.includes(x.key) || added.has(x.key) || x.key.startsWith("group:") || x.key.startsWith("graph:") || x.key.startsWith("tpl"));
 }
 function homeAllCards(p, h) {
@@ -673,7 +673,7 @@ function homeAllCards(p, h) {
   // template cards placed on the home view
   (p.config.templates || []).filter(tc => (!tc.room || tc.room === "home") && !condHidden(p, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => add(tc.id, tc.name || t("Template"), templateCard(p, tc, i)));
   // cards added to the home view by hand (edit mode → Kaart toevoegen): entities, template instances, the panel's own cards
-  if (!p._noAdded) for (const key of (p.config.pages?.home?.add || [])) { const c = addedCard(p, key, "home"); if (c) add(key, c.label, c.tpl); }
+  if (!p._noAdded) for (const key of (p.config.pages?.home?.add || [])) { if (cards.some(c => c.key === key)) continue; const c = addedCard(p, key, "home"); if (c) add(key, c.label, c.tpl); }
   if (h.energy.power) add("energy", t("Energie"), html`<div class="card" ${pressDir(p, { tap: () => p.openPopup({ type: "energy" }) })}>
     <div class="n">${t("Energie")}</div><div class="s">${tw(`${Math.round(num(h.energy.power.state) ?? 0)} W`)}</div>
     <div class="lbl">${h.energy.today ? t("Vandaag {n} kWh", { n: num(h.energy.today.state)?.toFixed(1) }) : ""}</div><div class="i">${ico("mdi:flash-outline", "electric")}</div></div>`);

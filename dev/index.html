@@ -28,6 +28,7 @@
   // dev config: photos come from /images/rooms/ under the served folder (not part of the repo; rooms without one get a gradient)
   const img = n => `/images/rooms/${n}.png`;
   el.fileConfig = {
+    kept30: true,   // a 3.1 setup: no carrying over of 3.0 cards (delete it from mock:hacasa_nova in localStorage to try that migration)
     title: "Home.", rooms: ["living_room", "kitchen", "bedroom", "dressing_room", "landing", "attic"],
     roomImage: "/images/rooms/{slug}.jpg", homeImage: img("backyard"),
     pages: { living_room: { image: img("livingroom") }, kitchen: { image: img("kitchen") }, bedroom: { image: img("lounge") }, dressing_room: { image: img("dressing") }, landing: { image: img("landing") }, attic: { image: img("office") } },

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Coming from 3.0? Your cards stay.** 3.1 shows fewer cards by itself (see beta.4 below), but when you update from 3.0, every card your pages showed is kept: the thermostat, waste, scenes and energy on the home view, and covers, thermostats, media players, scenes, cameras, locks, doors and windows in the rooms. Rooms that only had those stay in the navigation too. They act like cards you added yourself, so edit mode removes one with the bin. This happens once; playing media and busy appliances on the home view now come through *Add card*.
 - **HaCasa has a Discord server.** A few of you asked for a place to chat, so here it is: https://discord.gg/2Xgtqm8Xmw. Come by for quick questions, to share your setup, or to test betas. Bugs still go to GitHub issues.
 - **HaCasa speaks Spanish (#176)**, thanks to AdriBM. Texts added since their translation still show in English for now.
 - **A media player you add to a room by hand gets its own card.** HaCasa folds players on the same device into one card (a TV that shows up through Cast, Android TV and its own integration). That also folded the Music Assistant player into the Apple TV it plays on, so adding it did nothing. A player you add yourself now always keeps its own card.

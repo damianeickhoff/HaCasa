@@ -369,7 +369,7 @@ export function renderPopup(p, pop) {
           <button class="addline" @click=${() => upd({ lines: [...(d.lines || []), { icon: "mdi:text", text: "" }] })}>${t("+ eigen regel")}</button></div>
         ${pillEditor(p, pop, key, d, upd)}
         <div class="modes n3" style="margin-top:18px">
-          <button class="on" @click=${() => p.savePage(key, { title: d.title, image: d.image, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined, add: d.add, pills: d.pills })}>${t("Opslaan")}</button>
+          <button class="on" @click=${() => p.savePage(key, { title: d.title, image: d.image, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined, add: d.add, keep: d.keep, pills: d.pills })}>${t("Opslaan")}</button>
           <button @click=${() => p.savePage(key, null)}>${t("Herstel")}</button>
           <button data-close>${t("Annuleren")}</button></div></div>`;
     }

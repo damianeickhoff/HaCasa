@@ -169,7 +169,7 @@ export function buildRooms(hass, config) {
     const ex = new Set(config.excludeAreas || []);
     // a room is listed when it has something to show by default (a reachable light, plug or motion sensor) or something the user put there
     const own = r => { const e = r.ents, ok = x => !isDown(x); return e.lights.some(ok) || e.switches.some(ok) || e.motion.some(ok) || e.strips.some(st => st.switches.some(ok)) || e.appliances.some(a => a.power && !a.op && !isDown(a.power)); };
-    const made = r => r.ents.all.some(e => e.added) || (config.pages?.[r.id]?.add || []).length > 0 || [...(config.groups || []), ...(config.graphs || []), ...(config.templates || [])].some(g => g.room === r.id || g.room === r.slug);
+    const made = r => r.ents.all.some(e => e.added) || (config.pages?.[r.id]?.add || []).length > 0 || (config.pages?.[r.id]?.keep || []).length > 0 || [...(config.groups || []), ...(config.graphs || []), ...(config.templates || [])].some(g => g.room === r.id || g.room === r.slug);
     rooms = rooms.filter(r => !ex.has(r.id) && !ex.has(r.slug) && (own(r) || made(r)))
       .sort((a, b) => a.name.localeCompare(b.name, locale()));
     if (config.maxRooms) rooms = rooms.slice(0, config.maxRooms);

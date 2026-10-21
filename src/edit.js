@@ -64,7 +64,7 @@ function editDown(p, key, ev) {
 }
 
 /** cards on the page that keep it from being shown (a hidden card stays in the page's "hidden" list) */
-const ownCard = (p, key, ck) => (p.pageCfg(key).add || []).includes(ck) || (ck.startsWith("group:") && (p.config.groups || []).some(g => "group:" + g.id === ck && (g.room || "home") === key)) || (ck.startsWith("graph:") && (p.config.graphs || []).some(g => "graph:" + g.id === ck && (g.room || "home") === key));
+const ownCard = (p, key, ck) => [...(p.pageCfg(key).add || []), ...(p.pageCfg(key).keep || [])].includes(ck) || (ck.startsWith("group:") && (p.config.groups || []).some(g => "group:" + g.id === ck && (g.room || "home") === key)) || (ck.startsWith("graph:") && (p.config.graphs || []).some(g => "graph:" + g.id === ck && (g.room || "home") === key));
 export const hiddenCards = (p, key) => { const hid = new Set(p.pageCfg(key).hidden || []); return p.orderCards(p.pageCards(key), p.pageCfg(key).order).filter(c => hid.has(c.key)); };
 
 export function editStrip(p, key) {

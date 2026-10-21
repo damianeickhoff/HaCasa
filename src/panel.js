@@ -176,6 +176,7 @@ class HacasaNova extends LitElement {
     this.rooms = buildRooms(this.hass, this.config);
     this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
     watchTriggers(this);
+    if (this.userConfig?.setupDone && !this.userConfig.kept30 && !this._keepRan && this.hass.areas && Object.keys(this.hass.states).length) { this._keepRan = true; this.migrateKeep(); }
     if (!this._wizardShown && this.userConfig !== undefined && !this.userConfig?.setupDone && !this.cardConfig) { this._wizardShown = true; this.popup = { type: "wizard", step: 0 }; }
     if (!this._hinted && this.userConfig !== undefined && this.userConfig?.setupDone && !this.userConfig?.hintSeen) { this._hinted = true; this.showToast(t("Tik op een kaart om te schakelen, houd vast voor details. Via ⋯ in de popup stel je dit per kaart in."), 9000, "info"); this.saveUser({ hintSeen: true }); }
     if (this.home.calendars.length && (!this._eventsAt || Date.now() - this._eventsAt > 10 * 60000)) this.loadEvents();
@@ -245,7 +246,7 @@ class HacasaNova extends LitElement {
     // read the store again first: if settings exist after all, the wizard adds to them instead of replacing them
     try { const stored = await loadUserConfig(this.hass); if (stored) this.userConfig = stored; } catch (e) { console.warn("[hacasa-nova] wizard: settings could not be read", e); this.showToast(t("Opslaan mislukt")); return; }
     const clean = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""));
-    const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.userConfig?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.userConfig?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true } : { setupDone: true };
+    const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.userConfig?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.userConfig?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true, kept30: true } : { setupDone: true, kept30: true };
     await this.saveUser(patch); this.popup = null; if (d) this.showToast(t("Het panel is ingesteld"), 3000, "ok");
   }
   async savePreset(r, pr) {
@@ -275,7 +276,7 @@ class HacasaNova extends LitElement {
   /** take a hand-added card off its page again: an add-list entry (a template instance also drops its settings), or a group / graph made for this page */
   async removeAdded(pageKey, key) {
     if (key.startsWith("group:") || key.startsWith("graph:")) { const kind = key.startsWith("group:") ? "groups" : "graphs", id = key.slice(6); await this.saveUser({ [kind]: (this.userConfig?.[kind] || this.config[kind] || []).filter(g => g.id !== id) }); await this.saveCardSettings(key, null); return; }
-    const pc = this.pageCfg(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null);
+    const pc = this.pageCfg(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key), keep: pc.keep?.filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null);
   }
   /** template cards used to be pinned to a page (room); since 3.1 they are a library placed through edit mode: move the pins into the pages' add lists once */
   migrateTemplates() {
@@ -286,6 +287,28 @@ class HacasaNova extends LitElement {
       pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, id, room: "none" }; });
     console.info("[hacasa-nova] template cards moved to the pages' add lists");
     this.saveUser({ templates: next, pages });
+  }
+  /** 3.1 shows fewer cards by itself. Settings from 3.0 keep what that version showed on its own, once: every card a page had beyond the new
+      defaults goes into pages[key].keep, which shows like a card added by hand and leaves with the bin. Not in `add`, because a hand-added
+      media player stops folding in its sibling players (linkMedia). New installs get `kept30` from the wizard; 3.1 betas that already used
+      Add card are left as they are. Values and air quality cards are new in 3.1, playing media and busy appliances on the home view are not kept. */
+  migrateKeep() {
+    const u = this.userConfig, pages = { ...(u.pages || {}) };
+    if (Object.values(pages).some(pc => (pc.add || []).some(k => !/^tpl:.*:legacy$/.test(k)))) { this.saveUser({ kept30: true }); return; }
+    const keep = (key, keys) => { const hid = new Set(pages[key]?.hidden || []), list = keys.filter(k => !hid.has(k)); if (list.length) pages[key] = { ...(pages[key] || {}), keep: list }; };
+    this._noAdded = true;
+    try {
+      keep("home", homeCards(this, this.home, true).map(c => c.key).filter(k => ["climate", "waste", "scenes", "energy"].includes(k)));
+      // every area 3.0 listed, also those the new room filter leaves out of the navigation (a room with only a thermostat or a TV);
+      // with a fixed room list that list decides, so every area may keep its cards
+      const listed30 = r => Array.isArray(this.config.rooms) || r.ents.all.some(e => ["light", "switch", "media_player", "cover", "climate", "fan", "lock", "vacuum", "humidifier", "input_boolean"].includes(e.id.split(".")[0]) && !e.reg.entity_category);
+      for (const r of buildRooms(this.hass, { ...this.config, rooms: Object.keys(this.hass.areas) }).filter(listed30)) {
+        const e = r.ents, auto = new Set([...e.lights, ...e.switches, ...e.motion, ...e.strips, ...e.appliances.filter(a => a.power && !a.op), ...e.values].map(x => x.id));
+        keep(r.id, this.roomAllCards(r).map(c => c.key).filter(k => !auto.has(k) && k !== "air" && !/^(group|graph):|^tpl/.test(k)));
+      }
+    } finally { this._noAdded = false; }
+    console.info("[hacasa-nova] cards from 3.0 kept on their pages");
+    this.saveUser({ pages, kept30: true });
   }
   tickerOn(key, items) {
     const pc = this.pageCfg(key), tk = pc.ticker || {};
@@ -607,7 +630,7 @@ class HacasaNova extends LitElement {
   roomCards(r, all = false) {
     const list = this.roomAllCards(r);
     if (all) return list;
-    const e = r.ents, added = new Set(this.pageCfg(r.id).add || []), ok = x => !isDown(x);
+    const e = r.ents, pc = this.pageCfg(r.id), added = new Set([...(pc.add || []), ...(pc.keep || [])]), ok = x => !isDown(x);
     const def = new Set([...e.lights.filter(ok), ...e.switches.filter(ok), ...e.motion.filter(ok)].map(x => x.id));
     for (const st of e.strips) if (st.switches.some(ok)) def.add(st.id);
     for (const a of e.appliances) if (a.power && !a.op && !isDown(a.power)) def.add(a.id);
@@ -641,7 +664,7 @@ class HacasaNova extends LitElement {
     add(v(e.values), nm, x => valueCard(this, x));
     if (e.air.length) list.push({ key: "air", label: t("Luchtkwaliteit"), tpl: airCard(this, r) });
     // hand-added template instances and panel cards (entities added by hand are already in r.ents through the model)
-    if (!this._noAdded) for (const key of (this.pageCfg(r.id).add || [])) if (!key.includes(".")) { const c = addedCard(this, key, r.id); if (c) list.push({ key, label: c.label, tpl: c.tpl }); }
+    if (!this._noAdded) for (const key of (this.pageCfg(r.id).add || [])) if (!key.includes(".") && !list.some(c => c.key === key)) { const c = addedCard(this, key, r.id); if (c) list.push({ key, label: c.label, tpl: c.tpl }); }
     return list;
   }
 
