@@ -1,25 +1,30 @@
 // HaCasa Nova: a Home Assistant custom panel (panel_custom) that builds a home view and one
 // page per area, straight from the area/device/entity registries.
-import { t, locale, setLang, pickLang } from "./i18n.js";
+import { t, locale, setLang, pickLang, inText } from "./i18n.js";
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
 import { styles } from "./styles.js";
 import { buildRooms, buildHome, name } from "./model.js";
 import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateInstance } from "./cards.js";
-import { editStrip, editBar, canEdit } from "./edit.js";
+import { editStrip, editBar, editTools, canEdit } from "./edit.js";
 import { renderPopup } from "./popups.js";
 import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
 import { renderPage, PAGES } from "./pages.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
-import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon } from "./cards.js";
+import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, anyIco, wxDays } from "./cards.js";
+import { wxIcon, wxDefs } from "./sky.js";
+import { renderPills, pillTemplates } from "./pills.js";
+import { iconPicker } from "./iconpicker.js";
 import { quickRow, watchTriggers, presetCard, selfUpdate } from "./features.js";
 import { searchBar, openFor } from "./search.js";
 import { graphCard } from "./graph.js";
 import { fetchNumeric, batteryEta, modeList } from "./extras3.js";
+import { airCard } from "./cards2.js";
 import { deviceName } from "./model.js";
-import { BASE, TAG, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
+import { BASE, TAG, icon, slug, isOn, unavailable, isDown, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
+import { ghost, tw, afterRender, setMotion } from "./motion.js";
 
 /** numbers with their unit (6,8 kWh · 50% · 12 min · 14:02) rendered white inside a notice */
 const emph = text => { const parts = String(text ?? "").split(/(\d+(?:[.,:]\d+)?(?:\s?(?:%|kWh|W|kW|°C?|min|uur|u|×))?)/g); return parts.map((x, i) => i % 2 ? html`<b>${x}</b>` : x); };
@@ -31,14 +36,14 @@ const brandTitle = s => html`<span class="bt">${s}</span>`;
 const eventWhenShort = ev => ev.allDay ? t("hele dag") : ev.start.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
 const BUILD = Math.floor(Date.now() / 3600000).toString(36);   // changes every hour: replaced photos show up after a reload
 const FONT = "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap";
-const DEFAULT_CONFIG = { rooms: "auto", roomImage: "/local/images/rooms/{slug}.jpg", homeImage: "/local/images/rooms/home.jpg", maxRooms: 9, home: {}, more: [] };
+const DEFAULT_CONFIG = { rooms: "auto", roomImage: "/local/images/rooms/{slug}.jpg", homeImage: "/local/images/rooms/home.jpg", home: {}, more: [] };   // no room cap by default (#146); Settings → Kamers can set one
 
 class HacasaNova extends LitElement {
   static styles = styles;
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
-    config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, tick: { state: true }, now: { state: true },
-    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true },
+    config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, iconPick: { state: true }, tick: { state: true }, now: { state: true },
+    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true }, todo: { state: true },
   };
 
   constructor() {
@@ -53,7 +58,7 @@ class HacasaNova extends LitElement {
     this.loadConfig();
     this._clock = setInterval(() => { this.now = clock(); }, 15000);
     this._ticker = setInterval(() => { this.tick++; }, 4000);
-    this._onKey = e => { if (e.key === "Escape") { if (this.popup?.menu) { this.popup = { ...this.popup, menu: false }; return; } if (!this.popup && this.edit) { this.stopEdit(); return; } this.popup = null; this.search = ""; this.searchOpen = false; } };
+    this._onKey = e => { if (e.key === "Escape") { if (this.iconPick) { this.iconPick = null; return; } if (this.popup?.menu) { this.popup = { ...this.popup, menu: false }; return; } if (!this.popup && this.edit) { this.stopEdit(); return; } this.popup = null; this.search = ""; this.searchOpen = false; } };
     addEventListener("keydown", this._onKey);
     // inside a Lovelace card the dashboard owns the URL path, so rooms are routed through the hash
     if (this.hashMode) { this._onHash = () => { this.route = { path: location.hash.replace(/^#/, "") || "/", prefix: "" }; }; addEventListener("hashchange", this._onHash); this._onHash(); }
@@ -72,14 +77,15 @@ class HacasaNova extends LitElement {
     this.addEventListener("pointerdown", e => { if (this.navFloor != null && !this.drawer && !e.composedPath().some(el => el.classList?.contains("fl"))) this.navFloor = null; });
     this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab"))) this.drawer = false; });
   }
-  disconnectedCallback() { super.disconnectedCallback(); clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
+  disconnectedCallback() { super.disconnectedCallback(); clearTimeout(this._userRetry); if (this.userConfig === undefined) this._userLoaded = false; clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
   wake() { this.idle = false; this._lastActivity = Date.now(); }
   /** go to the previous/next room in nav order (home is before the first room) */
   swipe(dir) { const order = [null, ...this.rooms]; const i = order.findIndex(r => (r?.id || null) === (this.room?.id || null)); const n = order[i + dir]; if (n !== undefined) this.go(n); }
-  async loadEvents() { this._eventsAt = Date.now(); this.events = await fetchEvents(this.hass, this.home?.calendars || []); }
+  /** a window from last week to five weeks ahead: enough for the week view to page through without refetching */
+  async loadEvents() { this._eventsAt = Date.now(); const from = new Date(); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (from.getDay() + 6) % 7 - 7); this.events = await fetchEvents(this.hass, this.home?.calendars || [], 42, from); }
   async loadHistory(pop) { this.popup = { ...pop, history: null }; const rows = await fetchHistory(this.hass, pop.e.id); if (this.popup?.type === "sensor" && this.popup.e?.id === pop.e.id) this.popup = { ...this.popup, history: rows, loaded: true }; }
   showIdle() { this.idle = true; }
-  async loadHourly(pop) { const id = this.config.home?.energy?.today; this.popup = { ...pop, hourly: null }; const rows = await hourlyToday(this.hass, id); if (this.popup?.type === "energy") this.popup = { ...this.popup, hourly: rows }; }
+  async loadHourly(pop) { const en = this.config.home?.energy || {}; this.popup = { ...pop, hourly: null }; const [rows, sol] = await Promise.all([hourlyToday(this.hass, en.today), en.solarToday ? hourlyToday(this.hass, en.solarToday) : null]); if (this.popup?.type === "energy") this.popup = { ...this.popup, hourly: rows, solarHourly: sol }; }
 
   async loadConfig() {
     try {
@@ -90,7 +96,16 @@ class HacasaNova extends LitElement {
   }
   /** user settings; a config.json next to the panel is imported into them once (so updates never overwrite anything) */
   async loadUser() {
-    let u = await loadUserConfig(this.hass);
+    let u;
+    try { u = await loadUserConfig(this.hass); }
+    catch (e) {
+      // userConfig stays undefined: no wizard, no saves; try again (2 s, 4 s, … up to 30 s)
+      this._userTries = (this._userTries || 0) + 1;
+      console.warn(`[hacasa-nova] settings could not be loaded (attempt ${this._userTries}), retrying`, e);
+      clearTimeout(this._userRetry); this._userRetry = setTimeout(() => this.loadUser(), Math.min(30000, 1000 * 2 ** this._userTries));
+      return;
+    }
+    this._userTries = 0;
     if (this.fileConfig && Object.keys(this.fileConfig).length && !u?.importedAt) {
       u = { ...mergeConfig(this.fileConfig, u || {}), importedAt: new Date().toISOString(), setupDone: true };
       try { await saveUserConfig(this.hass, u); console.info("[hacasa-nova] config.json imported into the user settings"); } catch (e) { console.warn("[hacasa-nova] could not store the imported config.json", e); }
@@ -106,7 +121,7 @@ class HacasaNova extends LitElement {
   /** merge a JSON file (export or an old config.json) into the settings */
   importSettings(file) {
     const rd = new FileReader();
-    rd.onload = async () => { try { const data = JSON.parse(rd.result); if (!data || typeof data !== "object") throw 0; const u = { ...mergeConfig(this.userConfig || {}, data), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; this.applyConfig(); this.draft = JSON.parse(JSON.stringify(this.config)); this.showToast(t("Instellingen geïmporteerd")); } catch { this.showToast(t("Geen geldig instellingenbestand")); } };
+    rd.onload = async () => { if (this.notLoaded()) return; try { const data = JSON.parse(rd.result); if (!data || typeof data !== "object") throw 0; const u = { ...mergeConfig(this.userConfig || {}, data), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; this.applyConfig(); this.draft = JSON.parse(JSON.stringify(this.config)); this.showToast(t("Instellingen geïmporteerd"), 3000, "ok"); } catch { this.showToast(t("Geen geldig instellingenbestand")); } };
     rd.readAsText(file);
   }
   /** one render_template subscription per template card field; re-subscribed when the config changes */
@@ -115,34 +130,53 @@ class HacasaNova extends LitElement {
     this.config.templates = cards;
     const lines = Object.entries(this.config.pages || {}).flatMap(([k, pc]) => (pc.lines || []).map((l, i) => ({ id: `line:${k}:${i}`, state: l.text })));
     const overrides = Object.entries(this.config.cards || {}).filter(([, c]) => c.tplState || c.tplSub || c.tplFoot || c.tplVisible).map(([id, c]) => ({ id: "card:" + id, state: c.tplState, label: c.tplSub, foot: c.tplFoot, visible: c.tplVisible }));
-    const list = [...cards.filter(x => x.room !== "none"), ...lines, ...overrides, ...templateInstances(this)];   // room "none" = library only, rendered per instance
+    const list = [...cards.filter(x => x.room !== "none"), ...lines, ...overrides, ...templateInstances(this), ...pillTemplates(this.config)];   // room "none" = library only, rendered per instance
     const key = JSON.stringify(list.map(x => [x.id, x.state, x.label, x.foot, x.visible]));
     if (key === this._tplKey || !this.hass?.connection?.subscribeMessage) return;
     this._tplKey = key; (this._tplUnsubs || []).forEach(u => { try { u.then ? u.then(f => f(), () => {}) : u(); } catch {} }); this._tplUnsubs = [];
     this.templates = {};
+    // messages from an older set of subscriptions can still arrive after this one started (unsubscribing is async): they are dropped,
+    // or a card placed a moment ago keeps the error of its first render. Errors are kept per field, a warning (level WARNING) is not one,
+    // and a field's next result clears its own error only (#167)
+    const gen = this._tplGen = (this._tplGen || 0) + 1;
+    const set = (id, field, patch) => {
+      if (gen !== this._tplGen) return;
+      const cur = this.templates[id] || {}, errs = { ...(cur.errs || {}), ...(field ? { [field]: patch.err } : {}) };
+      if (!field) Object.assign(errs, { all: patch.err });
+      for (const k in errs) if (!errs[k]) delete errs[k];
+      const next = { ...cur, errs, error: Object.keys(errs).length ? true : undefined, msg: Object.values(errs)[0] || undefined };
+      if (field && "result" in patch) next[field] = patch.result;
+      this.templates = { ...this.templates, [id]: next };
+    };
     for (const x of list) for (const field of ["state", "label", "foot", "visible"]) {
       if (!x[field]) continue;
       try {
-        const u = this.hass.connection.subscribeMessage(msg => { this.templates = { ...this.templates, [x.id]: { ...(this.templates[x.id] || {}), [field]: msg.result, error: msg.error ? true : undefined } }; }, { type: "render_template", template: x[field], report_errors: true });
+        const u = this.hass.connection.subscribeMessage(msg => {
+          if (msg.error) { if (msg.level !== "WARNING") set(x.id, field, { err: String(msg.error) }); }
+          else set(x.id, field, { result: msg.result, err: null });
+        }, { type: "render_template", template: x[field], report_errors: true });
         // render_template is refused for non-admin users: show the card as an error instead of an unhandled rejection
-        u?.catch?.(() => { this.templates = { ...this.templates, [x.id]: { error: true } }; });
+        u?.catch?.(e => set(x.id, null, { err: e?.message || "refused" }));
         this._tplUnsubs.push(u);
-      } catch (e) { this.templates = { ...this.templates, [x.id]: { error: true } }; }
+      } catch (e) { set(x.id, null, { err: e?.message || "error" }); }
     }
   }
   get settingsPath() { return `${this.basePath()}/instellingen`; }
-  async saveSettings() { await saveUserConfig(this.hass, this.draft); this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); }
+  async saveSettings() { if (this.notLoaded()) return; try { await saveUserConfig(this.hass, this.draft); } catch (e) { console.warn("[hacasa-nova] save failed", e); this.showToast(t("Opslaan mislukt")); return; } this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); this.showToast(t("Instellingen opgeslagen"), 2500, "ok"); }
   /** back to the defaults (a config.json next to the panel is imported again on the next load) */
   async resetSettings() { await saveUserConfig(this.hass, null); this.userConfig = null; this.applyConfig(); this.draft = mergeConfig(DEFAULT_CONFIG, this.cardConfig); }
 
   /* ---------- derived model ---------- */
-  willUpdate() {
+  willUpdate(changed) {
     if (!this.hass) return;
     setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
+    const still = !!this.config.noMotion || matchMedia("(prefers-reduced-motion: reduce)").matches; this.classList.toggle("still", still); setMotion(!still);
+    if (changed.has("popup")) { const was = changed.get("popup"); if (was && !this.popup) ghost(this, ".overlay", "pop-out", 200); else if (was?.menu && this.popup && !this.popup.menu && this.popup.type === was.type) ghost(this, ".pmenu", "menu-out", 170, (c, el) => { const r = el.getBoundingClientRect(); c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;right:auto;bottom:auto;width:${r.width}px`; }); }
     if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this._unsubNotif = subscribeNotifications(this.hass, list => { this.notifications = list; }); this.subscribeTemplates(); }
     this.rooms = buildRooms(this.hass, this.config);
     this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
     watchTriggers(this);
+    if (this.userConfig?.setupDone && !this.userConfig.kept30 && !this._keepRan && this.hass.areas && Object.keys(this.hass.states).length) { this._keepRan = true; this.migrateKeep(); }
     if (!this._wizardShown && this.userConfig !== undefined && !this.userConfig?.setupDone && !this.cardConfig) { this._wizardShown = true; this.popup = { type: "wizard", step: 0 }; }
     if (!this._hinted && this.userConfig !== undefined && this.userConfig?.setupDone && !this.userConfig?.hintSeen) { this._hinted = true; this.showToast(t("Tik op een kaart om te schakelen, houd vast voor details. Via ⋯ in de popup stel je dit per kaart in."), 9000, "info"); this.saveUser({ hintSeen: true }); }
     if (this.home.calendars.length && (!this._eventsAt || Date.now() - this._eventsAt > 10 * 60000)) this.loadEvents();
@@ -157,11 +191,14 @@ class HacasaNova extends LitElement {
     const bg = this.settings || this.page ? "" : this.bgUrl(this.room);   // Meer pages: plain background, no photo
     if (bg !== this._bg) { if (this._bg && this._bgCache?.get(this._bg) !== false) { this._prevBg = this._bg; clearTimeout(this._bgT); this._bgT = setTimeout(() => { this._prevBg = null; this.requestUpdate(); }, 500); } this._bg = bg; }
     if (this.popup?.type === "weather" && !this.popup.forecast && !this.popup.loading) this.loadForecast();
+    const key = this.settings ? "settings" : this.page || (this.room ? this.room.id : "home");
+    if (this._viewKey && key !== this._viewKey) ghost(this, ".title,.strip,.sfade,.page,.empty", "view-out", 240);
+    this._viewSwitch = key !== this._viewKey; this._viewKey = key;
   }
 
-  updated(changed) {
-    const key = this.settings ? "settings" : this.page || (this.room ? this.room.id : "home");
-    if (key !== this._viewKey) { this._viewKey = key; requestAnimationFrame(() => { this.style.transform = "translateZ(0)"; requestAnimationFrame(() => { this.style.transform = ""; }); }); }
+  updated() {
+    if (this._viewSwitch) { this._viewSwitch = false; requestAnimationFrame(() => { this.style.transform = "translateZ(0)"; requestAnimationFrame(() => { this.style.transform = ""; }); }); }
+    afterRender(this);
   }
 
   /* ---------- actions ---------- */
@@ -170,8 +207,10 @@ class HacasaNova extends LitElement {
     try { return await this.hass.callService(domain, service, data); }
     catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
   }
-  showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; clearTimeout(this._toastT); this._toastT = setTimeout(() => { this.toast = null; }, ms); }
+  showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; this.toastOut = false; clearTimeout(this._toastT); clearTimeout(this._toastT2); this._toastT = setTimeout(() => { this.toastOut = true; this.requestUpdate(); this._toastT2 = setTimeout(() => { this.toast = null; }, 260); }, ms); }
   openPopup(pop) { this.popup = pop; }
+  /** open the icon picker over everything; `set` gets the chosen "mdi:…" (or undefined for no icon) */
+  pickIcon(cur, set, ph) { this.iconPick = { cur, set, ph, q: "" }; this.updateComplete.then(() => this.shadowRoot?.querySelector(".ipick input")?.focus()); }
   /** navigate inside the panel: hash in card mode, history otherwise */
   nav(path) { if (this.hashMode) location.hash = "#" + (path || "/"); else navigate(path); }
   go(room) { this.drawer = false; this.nav(`${this.basePath()}/${room ? room.slug : ""}`); this.scrollStrip(0); }
@@ -192,18 +231,23 @@ class HacasaNova extends LitElement {
   /** open Home Assistant's own more-info dialog for an entity */
   moreInfo(entityId) { this.dispatchEvent(new CustomEvent("hass-more-info", { bubbles: true, composed: true, detail: { entityId } })); }
   async saveCardSettings(id, cfg) {
+    if (this.notLoaded()) return;
     const cards = { ...(this.userConfig?.cards || {}) };
     if (cfg && Object.keys(cfg).some(k => cfg[k] !== undefined)) cards[id] = cfg; else delete cards[id];
     this.userConfig = { ...(this.userConfig || {}), cards };
     await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); this.popup = null;
   }
+  /** the stored settings have not been read yet (or reading failed): saving now would replace them with just this change */
+  notLoaded() { if (this.userConfig !== undefined) return false; this.showToast(t("Opslaan mislukt")); return true; }
   /** merge a patch into the per-user settings and save it */
-  async saveUser(patch) { this.userConfig = { ...(this.userConfig || {}), ...patch }; await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); }
+  async saveUser(patch) { if (this.notLoaded()) return; this.userConfig = { ...(this.userConfig || {}), ...patch }; await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); }
   /** wizard result -> user settings (null = skipped: only remember that it ran) */
   async finishWizard(d) {
+    // read the store again first: if settings exist after all, the wizard adds to them instead of replacing them
+    try { const stored = await loadUserConfig(this.hass); if (stored) this.userConfig = stored; } catch (e) { console.warn("[hacasa-nova] wizard: settings could not be read", e); this.showToast(t("Opslaan mislukt")); return; }
     const clean = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""));
-    const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.userConfig?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.userConfig?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true } : { setupDone: true };
-    await this.saveUser(patch); this.popup = null; if (d) this.showToast(t("Het panel is ingesteld"));
+    const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.userConfig?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.userConfig?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true, kept30: true } : { setupDone: true, kept30: true };
+    await this.saveUser(patch); this.popup = null; if (d) this.showToast(t("Het panel is ingesteld"), 3000, "ok");
   }
   async savePreset(r, pr) {
     const all = { ...(this.userConfig?.presets || {}) }, list = all[r.id] || [];
@@ -225,33 +269,50 @@ class HacasaNova extends LitElement {
       template instances fall back to the `visible` field of their template */
   condHiddenCard(key) {
     const c = cardCfg(this, key);
-    if (c.visEntity) {
-      const s = this.hass.states[c.visEntity]; if (!s) return false;
-      const v = s.state, w = String(c.visValue ?? ""), n = num(v), m = num(w);
-      const ok = c.visOp === "ne" ? v !== w : c.visOp === "gt" ? (n != null && m != null && n > m) : c.visOp === "lt" ? (n != null && m != null && n < m) : v === w;
-      return c.tplVisibleInvert ? ok : !ok;
-    }
-    if (c.tplVisible) return condHidden(this, "card:" + key, c.tplVisible, c.tplVisibleInvert);
+    if (c.visEntity || c.tplVisible) return condHiddenBy(this, c, "card:" + key);
     if (key.startsWith("tpl:")) { const m = templateInstance(this, key); return m ? condHidden(this, key, m.visible, m.visibleInvert) : false; }
     return false;
   }
   /** take a hand-added card off its page again: an add-list entry (a template instance also drops its settings), or a group / graph made for this page */
   async removeAdded(pageKey, key) {
     if (key.startsWith("group:") || key.startsWith("graph:")) { const kind = key.startsWith("group:") ? "groups" : "graphs", id = key.slice(6); await this.saveUser({ [kind]: (this.userConfig?.[kind] || this.config[kind] || []).filter(g => g.id !== id) }); await this.saveCardSettings(key, null); return; }
-    const pc = this.pageCfg(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null);
+    const pc = this.pageCfg(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key), keep: pc.keep?.filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null);
   }
   /** template cards used to be pinned to a page (room); since 3.1 they are a library placed through edit mode: move the pins into the pages' add lists once */
   migrateTemplates() {
     const tpls = this.userConfig?.templates; if (!tpls || !tpls.some(x => x.room !== "none")) return;
     const pages = { ...(this.userConfig.pages || {}) };
-    const next = tpls.map(x => { if (x.room === "none") return x; const page = x.room || "home", pc = { ...(pages[page] || {}) }, key = `tpl:${x.id}:legacy`;
-      pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, room: "none" }; });
+    // a template without an id (an old config.json import) gets the one subscribeTemplates gives it, stored, so its instance can find it
+    const next = tpls.map((x, i) => { if (x.room === "none") return x; const id = x.id || "tpl" + i, page = x.room || "home", pc = { ...(pages[page] || {}) }, key = `tpl:${id}:legacy`;
+      pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, id, room: "none" }; });
     console.info("[hacasa-nova] template cards moved to the pages' add lists");
     this.saveUser({ templates: next, pages });
   }
+  /** 3.1 shows fewer cards by itself. Settings from 3.0 keep what that version showed on its own, once: every card a page had beyond the new
+      defaults goes into pages[key].keep, which shows like a card added by hand and leaves with the bin. Not in `add`, because a hand-added
+      media player stops folding in its sibling players (linkMedia). New installs get `kept30` from the wizard; 3.1 betas that already used
+      Add card are left as they are. Values and air quality cards are new in 3.1, playing media and busy appliances on the home view are not kept. */
+  migrateKeep() {
+    const u = this.userConfig, pages = { ...(u.pages || {}) };
+    if (Object.values(pages).some(pc => (pc.add || []).some(k => !/^tpl:.*:legacy$/.test(k)))) { this.saveUser({ kept30: true }); return; }
+    const keep = (key, keys) => { const hid = new Set(pages[key]?.hidden || []), list = keys.filter(k => !hid.has(k)); if (list.length) pages[key] = { ...(pages[key] || {}), keep: list }; };
+    this._noAdded = true;
+    try {
+      keep("home", homeCards(this, this.home, true).map(c => c.key).filter(k => ["climate", "waste", "scenes", "energy"].includes(k)));
+      // every area 3.0 listed, also those the new room filter leaves out of the navigation (a room with only a thermostat or a TV);
+      // with a fixed room list that list decides, so every area may keep its cards
+      const listed30 = r => Array.isArray(this.config.rooms) || r.ents.all.some(e => ["light", "switch", "media_player", "cover", "climate", "fan", "lock", "vacuum", "humidifier", "input_boolean"].includes(e.id.split(".")[0]) && !e.reg.entity_category);
+      for (const r of buildRooms(this.hass, { ...this.config, rooms: Object.keys(this.hass.areas) }).filter(listed30)) {
+        const e = r.ents, auto = new Set([...e.lights, ...e.switches, ...e.motion, ...e.strips, ...e.appliances.filter(a => a.power && !a.op), ...e.values].map(x => x.id));
+        keep(r.id, this.roomAllCards(r).map(c => c.key).filter(k => !auto.has(k) && k !== "air" && !/^(group|graph):|^tpl/.test(k)));
+      }
+    } finally { this._noAdded = false; }
+    console.info("[hacasa-nova] cards from 3.0 kept on their pages");
+    this.saveUser({ pages, kept30: true });
+  }
   tickerOn(key, items) {
     const pc = this.pageCfg(key), tk = pc.ticker || {};
-    const custom = (pc.lines || []).map((l, i) => ({ k: "custom", icon: l.icon || "mdi:text", text: this.templates?.[`line:${key}:${i}`]?.state })).filter(x => x.text && String(x.text).trim());
+    const custom = (pc.lines || []).map((l, i) => ({ k: "custom", uicon: l.icon || "mdi:text", text: this.templates?.[`line:${key}:${i}`]?.state })).filter(x => x.text && String(x.text).trim());
     return [...custom, ...items.filter(it => tk[it.k] !== false)];
   }
   /** appliance features on/off for a plug; the popup stays open on the matching card form */
@@ -274,7 +335,16 @@ class HacasaNova extends LitElement {
   basePath() { if (this.hashMode) return ""; return "/" + (this.route?.prefix || this.panel?.url_path || location.pathname.split("/")[1]).replace(/^\/+|\/+$/g, ""); }
   stripDragged() { return this._drag > 6; }
   /** true while the image is assumed to load; flips to false (and re-renders) when it 404s */
-  bgOk(url) { if (!url) return false; const c = this._bgCache || (this._bgCache = new Map()); if (c.has(url)) return c.get(url); c.set(url, true); const im = new Image(); im.onerror = () => { c.set(url, false); this.requestUpdate(); }; im.src = url; return true; }
+  bgOk(url) {
+    if (!url) return false;
+    const c = this._bgCache || (this._bgCache = new Map()); if (c.has(url)) return c.get(url);
+    // photos that 404'd are remembered for the session (without the cache-bust), so every reload does not retry 8 paths per room (#149)
+    const key = url.replace(/\?v=[^&]*$/, ""), missed = this._bgMiss || (this._bgMiss = new Set((() => { try { return JSON.parse(sessionStorage.getItem("hcn:bgmiss") || "[]"); } catch { return []; } })()));
+    if (missed.has(key)) { c.set(url, false); return false; }
+    c.set(url, true); const im = new Image();
+    im.onerror = () => { c.set(url, false); missed.add(key); try { sessionStorage.setItem("hcn:bgmiss", JSON.stringify([...missed])); } catch {} this.requestUpdate(); };
+    im.src = url; return true;
+  }
   /** photo for a room (or home): the first candidate path that loads, trying .jpg/.jpeg/.png/.webp for each */
   bgUrl(room) {
     const ver = u => u + (u.includes("?") ? "" : "?v=" + BUILD);
@@ -330,10 +400,11 @@ class HacasaNova extends LitElement {
   /** energy page: today's use and return per hour, power peak and a 3 h sparkline */
   async loadEnergyToday() {
     const en = this.home.energy; this.energyHist = { ...(this.energyHist || {}), at: Date.now() };
-    const [use, sun, pw] = await Promise.all([en.today ? hourlyToday(this.hass, en.today.entity_id) : null, en.returned ? hourlyToday(this.hass, en.returned.entity_id) : null, en.power ? fetchNumeric(this.hass, [en.power.entity_id], 24) : null]);
+    const solarId = this.config.home?.energy?.solarToday;
+    const [use, sun, pw, sol] = await Promise.all([en.today ? hourlyToday(this.hass, en.today.entity_id) : null, en.returned ? hourlyToday(this.hass, en.returned.entity_id) : null, en.power ? fetchNumeric(this.hass, [en.power.entity_id], 24) : null, solarId ? hourlyToday(this.hass, solarId) : null]);
     const rows = pw?.[en.power?.entity_id] || [], peak = rows.length ? rows.reduce((a, b) => b.v > a.v ? b : a) : null;
     if (en.power) this.netHist = { ...(this.netHist || {}), [en.power.entity_id]: rows.filter(r => r.t > Date.now() - 3 * 3600000) };
-    this.energyHist = { at: Date.now(), use: use || [], sun: sun || [], peak: peak ? { v: peak.v, t: new Date(peak.t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) } : null };
+    this.energyHist = { at: Date.now(), use: use || [], sun: sun || [], sol: sol || [], peak: peak ? { v: peak.v, t: new Date(peak.t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) } : null };
   }
   /** plug with a meter: 3 h of power for the sparkline, today's kWh per hour from the recorder */
   async loadPlug(id, powerId, energyId) {
@@ -418,22 +489,28 @@ class HacasaNova extends LitElement {
     const alarm = h.alarm, armed = alarm && alarm.state !== "disarmed" && !unavailable(alarm);
     const alarmLbl = alarm ? ({ disarmed: t("Uit"), armed_home: t("Thuis"), armed_away: t("Weg"), armed_night: t("Nacht"), armed_vacation: t("Vakantie"), arming: t("Inschakelen"), pending: t("Wachten"), triggered: t("Alarm"), unavailable: "?" }[alarm.state] || alarm.state) : null;
     const alarmCls = alarm ? ({ disarmed: "off", armed_home: "home", arming: "arming", pending: "arming", triggered: "triggered", unavailable: "off" }[alarm.state] || "armed") : "";
-    return html`
+    const phone = matchMedia("(max-width:900px)").matches;
+    return html`${wxDefs}
       ${this._prevBg ? html`<div class="bg out" style="--bg:url(&quot;${this._prevBg}&quot;)"></div>` : nothing}
       ${keyed(bg || "plain", isPage ? html`<div class="bg plain"></div>` : html`<div class=${classMap({ bg: true, grad: !this.bgOk(bg) })} style=${this.bgStyle(bg, room?.slug)}></div>`)}
-      <nav class=${classMap({ nav: true, open: this.drawer, srch: !!this.searchOpen })}>
+      <nav class=${classMap({ nav: true, open: this.drawer, srch: !!this.searchOpen, topnav: this.config.phoneNav === "top" })}>
         <a class="logo" @click=${() => this.go(null)}><span class="mark"><img class="ico logo" src=${icon("hacasa")} alt="HaCasa"></span>${brandTitle(this.config.title || t("Thuis") + ".")}</a>
         ${this.renderLinks(room, isPage)}
         ${h.persons.length ? html`<div class="people pill" title=${t("Wie is thuis")} @click=${() => this.openPopup({ type: "people" })}><ha-icon icon="mdi:account-group-outline"></ha-icon><span class="pc">${h.home}<small>/${h.persons.length}</small></span></div>` : nothing}
-        ${alarm ? html`<div class=${classMap({ alarm: true, pill: true, armed, [alarmCls]: true })} @click=${() => this.openPopup({ type: "alarm" })}><ha-icon icon=${alarm.state === "triggered" ? "mdi:shield-alert" : alarm.state === "arming" || alarm.state === "pending" ? "mdi:shield-sync" : armed ? "mdi:shield-home" : "mdi:shield-home-outline"}></ha-icon><span class="al">${alarmLbl}</span><i></i></div>` : html`<span></span>`}
+        ${alarm ? html`<div class=${classMap({ alarm: true, pill: true, armed, [alarmCls]: true })} @click=${() => this.openPopup({ type: "security" })}><ha-icon icon=${alarm.state === "triggered" ? "mdi:shield-alert" : alarm.state === "arming" || alarm.state === "pending" ? "mdi:shield-sync" : armed ? "mdi:shield-home" : "mdi:shield-home-outline"}></ha-icon><span class="al">${alarmLbl}</span><i></i></div>` : html`<span></span>`}
         <div class="time"><b>${this.now}</b></div>
+        ${phone && this.config.phoneNav === "top" ? html`
+          <button class=${classMap({ sbtn: true, on: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; this.drawer = false; }}><img src=${icon(this.searchOpen ? "close" : "search")} alt=""></button>
+          <button class="menu" title=${t("Menu")} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img src=${icon(this.drawer ? "close" : "menu")} alt="menu"></button>
+          ${this.searchOpen && !this.settings ? searchBar(this) : nothing}` : nothing}
       </nav>
-      ${matchMedia("(max-width:900px)").matches ? this.renderBottomNav(room, isPage) : nothing}
+      ${phone && (this.config.phoneNav !== "top" || this.edit) ? this.renderBottomNav(room, isPage) : nothing}
       ${keyed(this.settings ? "settings" : this.page || (room ? room.id : "home"), this.settings ? renderSettings(this) : this.page ? renderPage(this, this.page) : room ? this.renderRoom(room) : this.renderHome(h))}
       ${this.hass.connected === false ? html`<div class="offline"><ha-icon icon="mdi:lan-disconnect"></ha-icon>${t("Geen verbinding met Home Assistant")}</div>` : nothing}
-      ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info" })}>${this.toast}</div>` : nothing}
+      ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info", ok: this.toastCls === "ok", out: !!this.toastOut })}>${this.toastCls === "ok" ? html`<ha-icon icon="mdi:check-circle-outline"></ha-icon>` : nothing}${this.toast}</div>` : nothing}
       ${this.idle ? idleScreen(this) : nothing}
-      ${this.popup ? html`<div class="overlay" @click=${e => { if ((e.target.classList.contains("overlay") && this.popup?.type !== "wizard") || e.target.closest?.("[data-close]")) this.popup = null; }}>${renderPopup(this, this.popup)}</div>` : nothing}
+      ${this.popup ? html`<div class="overlay" @click=${e => { if ((e.target.classList.contains("overlay") && this.popup?.type !== "wizard") || e.target.closest?.("[data-close]")) this.popup = null; }}>${this.safePopup()}</div>` : nothing}
+      ${iconPicker(this)}
     `;
   }
 
@@ -456,15 +533,16 @@ class HacasaNova extends LitElement {
   floorOf(room) { return room ? (this.floorGroups.find(g => g.rooms.includes(room))?.id ?? null) : null; }
   /** phones and tablets: glass pill at the bottom (home · rooms · more) plus a detached search button; the rooms tab opens the room sheet (renderLinks) above it */
   renderBottomNav(room, isPage) {
-    const srch = this.searchOpen && !this.settings;
+    const srch = this.searchOpen && !this.settings, shortcuts = (this.config.bottomTabs || ["sensoren", "energie"]).filter(k => PAGES[k]);
     const toggleSearch = () => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; this.drawer = false; };
     if (this.edit && !this.settings) return html`<div class="bnav"><div class="btabs pill edit"><span class="lbl"><ha-icon icon="mdi:pencil-outline"></ha-icon>${this.editKey === "home" ? t("Startpagina bewerken") : t("Kamer bewerken")}</span><a class="done" @click=${() => this.stopEdit()}>${t("Klaar")}</a></div></div>`;
     return html`<div class=${classMap({ bnav: true, srch })}>
       ${srch ? searchBar(this) : html`<div class="btabs pill">
-        <a class=${classMap({ ic: true, active: !room && !isPage && !this.drawer })} title=${t("Thuis")} @click=${() => this.go(null)}><img class="ico" src=${icon("home")} alt=""></a>
-        <a class=${classMap({ rtab: true, active: !!room || this.drawer })} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><span>${room ? room.name : t("Kamers")}</span><ha-icon icon=${this.drawer ? "mdi:chevron-down" : "mdi:chevron-up"}></ha-icon></a>
+        <a class=${classMap({ active: !room && !isPage })} title=${t("Thuis")} @click=${() => this.go(null)}><img class="ico" src=${icon("home")} alt=""><span>${t("Thuis")}</span></a>
+        <a class=${classMap({ rtab: true, active: !!room })} title=${t("Kamers")} @click=${() => { this.drawer = !this.drawer; this.navFloor = this.drawer ? this.floorOf(room) : null; }}><img class="ico" src=${icon("floorplan")} alt=""><span>${room ? room.name : t("Kamers")}</span></a>
+        ${shortcuts.map(k => html`<a class=${classMap({ active: this.page === k })} title=${t(PAGES[k].label)} @click=${() => { this.drawer = false; this.goPath("__" + k + "__"); }}><ha-icon icon=${PAGES[k].icon}></ha-icon><span>${t(PAGES[k].label)}</span></a>`)}
         <span class="sep"></span>
-        <a class=${classMap({ ic: true, more: true, active: !!isPage })} title=${t("Meer")} @click=${() => this.openPopup({ type: "more" })}><ha-icon icon="mdi:dots-horizontal"></ha-icon></a>
+        <a class=${classMap({ more: true, active: !!isPage && !shortcuts.includes(this.page) })} title=${t("Meer")} @click=${() => this.openPopup({ type: "more" })}><ha-icon icon="mdi:dots-horizontal"></ha-icon><span>${t("Meer")}</span></a>
       </div>`}
       <button class=${classMap({ sbtn: true, on: srch })} title=${t("Zoeken")} @click=${toggleSearch}><img src=${icon(srch ? "close" : "search")} alt=""></button>
     </div>`;
@@ -474,10 +552,11 @@ class HacasaNova extends LitElement {
     if (this.searchOpen && !this.drawer && !matchMedia("(max-width:900px)").matches) return html`<div class="links pill srch">${searchBar(this)}</div>`;
     const more = html`<a class=${classMap({ more: true, active: !!isPage })} @click=${() => this.openPopup({ type: "more" })}>${t("Meer")}</a><span class="sep"></span><a class=${classMap({ search: true, active: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; }}><img class="ico" src=${icon("search")} alt=""></a>`;
     const groups = this.config.navMode === "floors" ? this.floorGroups : [];
-    if (groups.length < 2) return html`<div class="links pill">
+    const homeLink = nothing;   // (the bar has its own home tab)
+    if (groups.length < 2) return html`<div class="links pill">${homeLink}
       ${this.rooms.map(r => html`<a class=${classMap({ active: room?.id === r.id })} @click=${() => this.go(r)}>${r.name}</a>`)}${more}</div>`;
     const all = this.drawer && this.config.navExpand;   // mobile menu: every floor open, headers are just headings
-    return html`<div class=${classMap({ links: true, pill: true, floors: true, expanded: all })}>
+    return html`<div class=${classMap({ links: true, pill: true, floors: true, expanded: all })}>${homeLink}
       ${groups.map(g => { const here = g.rooms.includes(room);
         return html`<div class=${classMap({ fl: true, open: all || this.navFloor === g.id })} @mouseleave=${() => { if (!this.drawer && this.navFloor === g.id) this.navFloor = null; }}>
           <a class=${classMap({ active: here })} @click=${() => { if (!all) this.navFloor = this.navFloor === g.id ? null : g.id; }}>${g.name}${here ? html`<small>${room.name}</small>` : nothing}${all ? nothing : html`<ha-icon icon="mdi:chevron-down"></ha-icon>`}</a>
@@ -488,14 +567,14 @@ class HacasaNova extends LitElement {
   renderTitle(temp, title, sub, items, extra = nothing, pageKey = "home", aside = nothing, hum = null) {
     const i = items.length ? this.tick % items.length : 0;
     const date = new Date().toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
-    const eyebrow = [date, temp != null ? t("{t}° binnen", { t: temp.toFixed(1) }) : "", hum != null ? t("{h}% luchtvochtigheid", { h: Math.round(hum) }) : ""].filter(Boolean);
-    return html`<section class=${classMap({ title: true, aside: aside !== nothing })} ${pressDir(this, { tap: () => {}, hold: () => canEdit(this) ? this.startEdit(pageKey) : this.openPopup({ type: "page", key: pageKey }) })}>
+    const eyebrow = [date, temp != null ? tw(t("{t}° binnen", { t: temp.toFixed(1) })) : "", hum != null ? t("{h}% luchtvochtigheid", { h: Math.round(hum) }) : ""].filter(Boolean);
+    return html`<section class=${classMap({ title: true, aside: aside !== nothing, editing: this.editing(pageKey) })} ${pressDir(this, { tap: () => {}, hold: () => canEdit(this) ? this.startEdit(pageKey) : this.openPopup({ type: "page", key: pageKey }) })}>
       <div class="tl">
         <div class="temp">${eyebrow.map((x, k) => html`${k ? html`<i class="dt"></i>` : nothing}<span>${x}</span>`)}</div>
         <h1>${title}</h1>
         ${sub ? html`<div class="sub">${sub}</div>` : nothing}
         ${items.length ? html`<div class="ticker">
-          ${items.map((it, k) => { const body = html`${ico(it.icon)}${it.title ? html`<b class="tt">${it.title}</b><i class="dt"></i>` : nothing}<span>${emph(it.text)}</span>`;
+          ${items.map((it, k) => { const body = html`${it.uicon ? anyIco(it.uicon) : ico(it.icon)}${it.title ? html`<b class="tt">${it.title}</b><i class="dt"></i>` : nothing}<span>${emph(it.text)}</span>`;
             return html`<div class=${k === i ? "show" : ""}>${it.tap ? html`<button class="tk" @click=${e => { e.stopPropagation(); it.tap(); }}>${body}</button>` : body}</div>`; })}
         </div>` : nothing}
         ${extra}
@@ -504,30 +583,22 @@ class HacasaNova extends LitElement {
     </section>`;
   }
 
-  /** one line under the greeting: what needs attention (or "all quiet"), then today's energy use */
-  /** status pills under the greeting: lights, doors & windows, attention; each opens its popup */
-  renderPills(h) {
-    const pills = [];
-    if (h.lights.length) pills.push({ icon: "mdi:lightbulb-outline", svg: "lamp", on: h.lightsOn.length > 0, text: h.lightsOn.length ? t("{n} aan", { n: h.lightsOn.length }) : t("Lampen uit"), pop: "lights" });
-    const open = h.doorsOpen.length + h.windowsOpen.length;
-    if (h.doors.length || h.windows.length) pills.push({ icon: "mdi:door", svg: "door", on: open > 0, text: open ? t("{n} open", { n: open }) : t("Alles dicht"), pop: "doors" });
-    if (h.attention.length) pills.push({ icon: "mdi:alert-circle-outline", svg: "sparkles", on: true, text: `${h.attention.length} ${h.attention.length === 1 ? t("melding") : t("meldingen")}`, pop: "attention" });
-    if (!pills.length) return nothing;
-    return html`<div class="pills">${pills.map(x => html`<button class=${classMap({ on: x.on })} @click=${ev => { ev.stopPropagation(); this.openPopup({ type: x.pop }); }}>${ico(x.icon, x.svg)}${x.text}</button>`)}</div>`;
-  }
-  /** weather block next to the greeting: temperature, condition, high/low, wind and the next hours */
+  /** status pills under the greeting (see pills.js): built-in lights, doors & windows, attention plus the user's own */
+  renderPills(h, key = "home") { return renderPills(this, key, h); }
+  /** weather block next to the greeting: animated icon + temperature, condition, high/low and wind, then one glass bar with the next hours and tomorrow */
   renderWx(w) {
     if (!w) return nothing;
-    const a = w.attributes, fx = this.wx || {}, now = Date.now();
-    const hours = (fx.hourly || []).filter(f => new Date(f.datetime).getTime() > now - 30 * 60000).slice(0, 4);
-    const today = (fx.daily || [])[0] || {};
-    const hi = num(today.temperature), lo = num(today.templow);
+    const a = w.attributes, fx = this.wx || {}, now = Date.now(), { today, tomorrow } = wxDays(this);
+    const hours = (fx.hourly || []).filter(f => new Date(f.datetime).getTime() > now - 30 * 60000).slice(0, 5);
+    const hi = num(today?.temperature), lo = num(today?.templow);
     const line = [hi != null && lo != null ? `H ${Math.round(hi)}° · L ${Math.round(lo)}°` : "", a.wind_speed != null ? t("Wind {n}", { n: `${Math.round(a.wind_speed)} ${a.wind_speed_unit || t("km/u")}` }) : ""].filter(Boolean).join(" · ");
+    const th = num(tomorrow?.temperature), tl = num(tomorrow?.templow);
     return html`<div class=${classMap({ wx: true, wxm: !!this.config.home?.wxMobile })} @click=${ev => { ev.stopPropagation(); this.openPopup({ type: "weather" }); }}>
-      <div class="big">${ico(condIcon(w.state), condSvg(w.state))}<div class="t">${Math.round(num(a.temperature) ?? 0)}<sup>°</sup></div></div>
+      <div class="big">${wxIcon(w.state, 58)}<div class="t">${tw(String(Math.round(num(a.temperature) ?? 0)))}<sup>°</sup></div></div>
       <div class="cnd">${condText(w.state)}${wxExpect(this) ? html`<i class="dt"></i>${wxExpect(this)}` : nothing}</div>
       ${line ? html`<div class="hl">${line}</div>` : nothing}
-      ${hours.length ? html`<div class="hours">${hours.map(f => html`<div>${t("{h}u", { h: new Date(f.datetime).getHours() })}${ico(condIcon(f.condition), condSvg(f.condition))}<b>${Math.round(num(f.temperature) ?? 0)}°</b></div>`)}</div>` : nothing}
+      ${hours.length || tomorrow ? html`<div class="wbar">${hours.map(f => html`<div>${t("{h}u", { h: new Date(f.datetime).getHours() })}${wxIcon(f.condition, 24)}<b>${Math.round(num(f.temperature) ?? 0)}°</b></div>`)}
+        ${tomorrow ? html`<div class="tm">${t("Morgen")}${wxIcon(tomorrow.condition, 24)}<b>${th != null ? Math.round(th) + "°" : ""}${tl != null ? html`<em> / ${Math.round(tl)}°</em>` : nothing}</b></div>` : nothing}</div>` : nothing}
     </div>`;
   }
 
@@ -539,34 +610,46 @@ class HacasaNova extends LitElement {
     for (const n of this.notifications.slice(0, 2)) items.push({ k: "notifications", icon: "mdi:bell-outline", title: n.title || t("Melding"), text: (n.message || "").replace(/\s+/g, " ").slice(0, 70) });
     if (h.attention.length) items.push({ k: "attention", icon: "mdi:alert-circle-outline", title: `${h.attention.length} ${h.attention.length === 1 ? t("melding") : t("meldingen")}`, text: `${h.attention[0].name} ${h.attention[0].text}` });
     if (h.doorsOpen.length) items.push({ k: "doors", icon: "mdi:door-open", title: h.doorsOpen.map(e => name(this.hass, e)).join(", "), text: h.doorsOpen.length === 1 ? t("Staat open") : t("Staan open") });
-    for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", icon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
+    for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", uicon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));
     const su = selfUpdate(this);   // a newer HaCasa Nova: first in the row, tap = what's new (+ install via HACS)
     if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("HaCasa Nova {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
     const editing = this.editing("home"), cards = editing ? [editStrip(this, "home")] : this.applyPage("home", homeCards(this, h)).map(c => c.tpl);
     return html`
       ${this.renderTitle(h.temp, t(this.pageCfg("home").title || this.config.home?.greeting || "") || greeting(), "", this.tickerOn("home", items), html`${this.renderPills(h)}${quickRow(this)}`, "home", this.renderWx(h.weather), h.hum)}
+      ${editing ? editTools(this, "home") : nothing}
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen kaarten: wijs entiteiten toe aan ruimtes in Home Assistant.")}</div>` : nothing}
       ${editing ? editBar(this, "home") : nothing}
-      <div class=${classMap({ banner: true, show: h.motion.length > 0 && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => roomWord(r.name)).join(", ") })}</div>`;
+      <div class=${classMap({ banner: true, show: h.motion.length > 0 && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => inText(r.name)).join(", ") })}</div>`;
   }
 
   /** every card of a room as { key, label, tpl } (key = entity/device id or a fixed name) */
-  roomCards(r) {
+  /** a room shows its lights, plugs (switches, power strips, plugs with a meter) and motion sensors by itself, as long as they work;
+      everything else in the area comes through Add card (pages[room].add) and leaves with the bin. Groups, graphs and templates made for the room stay. */
+  roomCards(r, all = false) {
+    const list = this.roomAllCards(r);
+    if (all) return list;
+    const e = r.ents, pc = this.pageCfg(r.id), added = new Set([...(pc.add || []), ...(pc.keep || [])]), ok = x => !isDown(x);
+    const def = new Set([...e.lights.filter(ok), ...e.switches.filter(ok), ...e.motion.filter(ok)].map(x => x.id));
+    for (const st of e.strips) if (st.switches.some(ok)) def.add(st.id);
+    for (const a of e.appliances) if (a.power && !a.op && !isDown(a.power)) def.add(a.id);
+    return list.filter(x => def.has(x.key) || added.has(x.key) || (x.alias || []).some(k => added.has(k)) || x.key.startsWith("group:") || x.key.startsWith("graph:") || x.key.startsWith("tpl") || (x.key.includes(".") && e.all.some(y => y.id === x.key && y.added)));
+  }
+  roomAllCards(r) {
     const e = r.ents, v = l => this.visible(l), nm = x => label(this, x), dn = x => cardCfg(this, x.id).name || deviceName(this.hass, x.device);
     const list = [];
-    const add = (arr, lbl, tpl) => arr.forEach(x => list.push({ key: x.id, label: lbl(x), tpl: tpl(x) }));
+    const add = (arr, lbl, tpl, alias = null) => arr.forEach(x => list.push({ key: x.id, label: lbl(x), tpl: tpl(x), alias: alias ? alias(x) : undefined }));
     add(v(e.lights), nm, x => lightCard(this, x));
     add(v(e.climate), nm, x => climateCard(this, x.state, name(this.hass, x)));
     add(v(e.media), nm, x => mediaCard(this, x));
     add(v(e.covers), nm, x => coverCard(this, x));
-    add(v(e.strips), dn, x => stripCard(this, x));
+    add(v(e.strips), dn, x => stripCard(this, x), x => x.switches.map(s => s.id));
     add(v(e.fans), nm, x => fanCard(this, x));
     add(v(e.locks), nm, x => lockCard(this, x));
     add(v(e.vacuums), nm, x => vacuumCard(this, x));
     add(v(e.humidifiers), nm, x => humidifierCard(this, x));
-    add(v(e.appliances), dn, x => applianceCard(this, x));
+    add(v(e.appliances), dn, x => applianceCard(this, x), x => [x.key, x.switch?.id, x.power?.id, x.op?.id].filter(Boolean));
     (this.config.templates || []).filter(tc => (tc.room === r.id || tc.room === r.slug) && !condHidden(this, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => list.push({ key: tc.id, label: tc.name || t("Template"), tpl: templateCard(this, tc, i) }));
     (this.config.groups || []).filter(g => (g.room === r.id || g.room === r.slug) && g.members?.length).forEach(g => list.push({ key: "group:" + g.id, label: g.name || t("Groep"), tpl: groupCard(this, g) }));
     (this.config.graphs || []).filter(g => (g.room === r.id || g.room === r.slug) && g.entity).forEach(g => list.push({ key: "graph:" + g.id, label: g.name || t("Grafiek"), tpl: graphCard(this, g) }));
@@ -579,10 +662,14 @@ class HacasaNova extends LitElement {
     add(v(e.motion), nm, x => sensorCard(this, x, "motion"));
     add(v(e.other), nm, x => sensorCard(this, x, "binary"));
     add(v(e.values), nm, x => valueCard(this, x));
+    if (e.air.length) list.push({ key: "air", label: t("Luchtkwaliteit"), tpl: airCard(this, r) });
     // hand-added template instances and panel cards (entities added by hand are already in r.ents through the model)
-    if (!this._noAdded) for (const key of (this.pageCfg(r.id).add || [])) if (!key.includes(".")) { const c = addedCard(this, key, r.id); if (c) list.push({ key, label: c.label, tpl: c.tpl }); }
+    if (!this._noAdded) for (const key of (this.pageCfg(r.id).add || [])) if (!key.includes(".") && !list.some(c => c.key === key)) { const c = addedCard(this, key, r.id); if (c) list.push({ key, label: c.label, tpl: c.tpl }); }
     return list;
   }
+
+  /** a popup whose entity vanished mid-render (fast switching, a removed entity) closes instead of breaking the whole panel (#153) */
+  safePopup() { try { return renderPopup(this, this.popup); } catch (e) { console.warn("[hacasa-nova] popup closed after a render error", this.popup?.type, e); setTimeout(() => { this.popup = null; }, 0); return nothing; } }
 
   /* ---------- edit mode: edit.js renders the strip and the bar, these hold the state and save ---------- */
   startEdit(key) { this.edit = true; this.editKey = key; this.editOrder = null; this.editDrag = null; this.popup = null; this.drawer = false; this.searchOpen = false; }
@@ -615,16 +702,15 @@ class HacasaNova extends LitElement {
     if (r.motion) items.push({ k: "motion", icon: "mdi:motion-sensor", title: t("Beweging"), text: r.motionOn ? t("Nu") : relTime(r.motion.last_changed) });
     const editing = this.editing(r.id), cards = editing ? [editStrip(this, r.id)] : this.applyPage(r.id, this.roomCards(r)).map(c => c.tpl);
     return html`
-      ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), nothing, r.id, nothing, r.hum)}
+      ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), this.renderPills(null, r.id), r.id, nothing, r.hum)}
+      ${editing ? editTools(this, r.id) : nothing}
       <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen apparaten in deze ruimte.")}</div>` : nothing}
       ${editing ? editBar(this, r.id) : nothing}
-      <div class=${classMap({ banner: true, show: r.motionOn && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in de {room}", { room: roomWord(r.name) })}</div>`;
+      <div class=${classMap({ banner: true, show: r.motionOn && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in de {room}", { room: inText(r.name) })}</div>`;
   }
 }
 
 if (!customElements.get(TAG)) customElements.define(TAG, HacasaNova);
 import "./card.js";
 import "./iconset.js";
-/** room name inside a sentence: lower-cased, except in German where nouns keep their capital */
-const roomWord = n => locale().startsWith("de") ? n : n.toLowerCase();

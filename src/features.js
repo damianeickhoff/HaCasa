@@ -2,7 +2,7 @@
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { SUFFIX, VERSION, domain, isOn, unavailable } from "./util.js";
-import { pressDir } from "./cards.js";
+import { pressDir, anyIco } from "./cards.js";
 
 /* ---------- quick actions (home view) ---------- */
 export const QUICK_TYPES = { scene: t("Scène"), script: t("Script"), entity: t("Schakelen"), lights_off: t("Alle lampen uit"), media_off: t("Media uit") };
@@ -24,7 +24,7 @@ const quickOn = (p, q) => q.type === "entity" ? isOn(p.hass.states[q.entity]) : 
 export function quickRow(p) {
   const list = (p.config.home?.quick || []).filter(q => q.label && (q.type === "lights_off" || q.type === "media_off" || q.entity));
   if (!list.length) return nothing;
-  return html`<div class="quick">${list.map(q => html`<button class=${quickOn(p, q) ? "on" : ""} @click=${() => runQuick(p, q)}><ha-icon icon=${q.icon || QUICK_ICON[q.type] || "mdi:flash-outline"}></ha-icon><span>${q.label}</span></button>`)}</div>`;
+  return html`<div class="quick">${list.map(q => html`<button class=${quickOn(p, q) ? "on" : ""} @click=${() => runQuick(p, q)}>${anyIco(q.icon || QUICK_ICON[q.type] || "mdi:flash-outline")}<span>${q.label}</span></button>`)}</div>`;
 }
 
 /* ---------- doorbell / motion: open the camera when a trigger fires ---------- */
@@ -58,7 +58,7 @@ export function pendingUpdates(hass) {
     .sort((a, b) => a.title.localeCompare(b.title, "nl"));
 }
 export function installUpdate(p, u) {
-  if (!u.canInstall) return p.moreInfo(u.id);
+  if (!u.canInstall || !p.hass.user?.is_admin) return p.moreInfo(u.id);   // update.install is refused for non-admins (#144): show HA's dialog instead
   p.openPopup({ type: "confirm", title: t("Update installeren"), big: u.title, sub: `${u.from || "?"} → ${u.to || "?"}${u.summary ? " · " + u.summary.replace(/\s+/g, " ").slice(0, 160) : ""}`, okLabel: t("Installeren"), ok: () => p.call("update", "install", { entity_id: u.id }) });
 }
 
@@ -87,7 +87,7 @@ export function presetCard(p, r) {
   const list = roomPresets(p, r);
   return html`<div class="card scenes presets" ${pressDir(p, { tap: () => p.openPopup({ type: "presets", roomId: r.id }) })}>
     <div class="n">${t("Lichtscènes")}</div>
-    <div class="s">${list.map(pr => html`<button class=${presetMatches(p, pr) ? "on" : ""} title=${pr.name} @click=${ev => { ev.stopPropagation(); applyPreset(p, pr); }}><ha-icon icon=${pr.icon || "mdi:lightbulb-group-outline"}></ha-icon></button>`)}
+    <div class="s">${list.map(pr => html`<button class=${presetMatches(p, pr) ? "on" : ""} title=${pr.name} @click=${ev => { ev.stopPropagation(); applyPreset(p, pr); }}>${anyIco(pr.icon || "mdi:lightbulb-group-outline")}</button>`)}
       <button class="add" title=${t("Huidige stand opslaan")} @click=${ev => { ev.stopPropagation(); p.openPopup({ type: "presets", roomId: r.id, form: true }); }}><ha-icon icon="mdi:plus"></ha-icon></button></div>
   </div>`;
 }
@@ -95,8 +95,11 @@ export function presetCard(p, r) {
 export const featureStyles = `
   .offline{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:rgba(242,122,92,.95);color:#fff;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:fadeIn .3s ease-out both}
   .offline ha-icon{--mdc-icon-size:18px}
-  .title:has(.quick){transform:translateY(-56%)}
-  @media (max-height:620px){ .title:has(.quick){transform:translateY(-64%)} .quick{margin-top:10px} }
+  /* desktop only: the hero is centred with a transform there; on phones it is static, and :has() would out-rank the phone rule (#169) */
+  @media (min-width:901px){
+    .title:has(.quick){transform:translateY(-56%)}
+    @media (max-height:620px){ .title:has(.quick){transform:translateY(-64%)} .quick{margin-top:10px} }
+  }
   .quick{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0 5px;max-width:640px}
   .quick button{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 12px;border:0;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .quick button:active{background:rgba(255,255,255,.3)}
@@ -124,11 +127,26 @@ export const featureStyles = `
   .popup .plist li .btns button{width:32px;height:32px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-weight:700;cursor:pointer;display:grid;place-items:center}
   .popup .plist li .btns button:disabled{opacity:.3;cursor:default}
   .popup .plist li .btns button ha-icon{--mdc-icon-size:18px}
+  .popup .plist li .grip{display:grid;place-items:center;width:30px;height:34px;margin:-4px 0;cursor:grab;touch-action:none;color:var(--fg-3);user-select:none}
+  .popup .plist li .grip ha-icon{--mdc-icon-size:22px}
+  .popup .plist li.drag{background:rgba(255,255,255,.22);border-color:var(--line-on);box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:1}
+  .popup .plist li.drag .grip{cursor:grabbing;color:#fff}
+  .popup .plist li .pt{display:flex;align-items:center;gap:12px;min-width:0;cursor:pointer}
+  .popup .plist li .pt>div{min-width:0}
+  .popup .plist li .pt small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .popup .plist li .pt ha-icon{--mdc-icon-size:20px;flex:none}
+  .popup .plist li.open{border-color:var(--line-on);background:rgba(255,255,255,.14);border-bottom-left-radius:0;border-bottom-right-radius:0}
+  .popup .plist li.ped{display:block;margin-top:-4px;padding:6px 12px 14px;background:rgba(255,255,255,.09);border-color:var(--line-on);border-top:0;border-top-left-radius:0;border-top-right-radius:0;font-size:13px}
+  .popup .plist li.ped .f{grid-template-columns:130px 1fr}
+  .popup .plist li.ped .sh{margin-bottom:2px}
+  .popup .pillpv{margin-top:8px;padding:12px 14px;border-radius:var(--r-sm);background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)}
+  .popup .pillpv .pills{margin:0}
+  .popup .pillpv .pills button{cursor:default}
+  .popup .pillpv .pills .none{font-size:12px;color:var(--fg-3)}
+  .popup .plist + .addbtn{margin-top:4px}
   .popup .form .f small{display:block;font-size:11px;font-weight:500;opacity:.65}
   .popup .form .f button{border:0;border-radius:var(--r-sm);background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:12px;font-weight:700;padding:9px 12px;cursor:pointer;justify-self:start}
-  .popup .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-  .popup .chips button{border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:12px;font-weight:600;padding:8px 12px;cursor:pointer;opacity:.6}
-  .popup .chips button.on{background:rgba(255,255,255,.35);opacity:1}
+  .popup .chips{display:flex;flex-wrap:wrap;margin-top:10px}
   .settings input[type=file]{padding:7px 10px;font-size:12px}
   .settings input[type=checkbox]{width:auto;justify-self:start;accent-color:#fff;transform:scale(1.2)}
   .settings .row.quick{grid-template-columns:1.2fr 1fr 1fr 1.4fr max-content max-content;align-items:center}

@@ -2,7 +2,8 @@ name: Validate
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -18,8 +19,11 @@ jobs:
       - name: translations
         run: npm run i18n:check
       - run: npm run build
-      - name: dist is up to date
-        run: git diff --exit-code -- dist/hacasa-nova.js || (echo "Run npm run build and commit dist/hacasa-nova.js" && exit 1)
+      # dist/ is only committed with a release (HACS reads it from the release commit), so pull requests
+      # leave it alone; a release tag must point at a commit whose dist/ matches the source.
+      - name: dist is up to date (release tags)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: git diff --exit-code -- dist/hacasa-nova.js || (echo "Run npm run build and commit dist/hacasa-nova.js before tagging" && exit 1)
 
   hacs:
     runs-on: ubuntu-latest
@@ -27,4 +31,3 @@ jobs:
       - uses: hacs/action@main
         with:
           category: plugin
-          ignore: brands

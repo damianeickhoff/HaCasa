@@ -13,10 +13,11 @@ const DC_SVG = { temperature: "thermometer", humidity: "water", power: "lightnin
 
 /** fetch and bucket the history of one sensor: `n` points spread over the last `hours`, gaps carry the previous value */
 export async function loadGraph(p, g) {
-  const key = g.id, cur = p.graphHist?.[key];
-  if (cur && Date.now() - cur.at < 5 * 60000 && cur.hours === g.hours) return;
+  // cached per sensor AND period: the card on the page and its settings preview may want different periods at once
+  const hours = +g.hours || 24, key = g.id + ":" + hours, cur = p.graphHist?.[key];
+  if (cur && Date.now() - cur.at < 5 * 60000) return;
   if (p._graphBusy?.has(key)) return; (p._graphBusy ||= new Set()).add(key);
-  const hours = +g.hours || 24, rows = (await fetchNumeric(p.hass, [g.entity], hours))[g.entity] || [];
+  const rows = (await fetchNumeric(p.hass, [g.entity], hours))[g.entity] || [];
   const now = Date.now(), start = now - hours * 3600000, n = Math.min(96, Math.max(24, hours * 4)), step = (now - start) / n;
   const sums = Array(n).fill(0), cnt = Array(n).fill(0);
   for (const r of rows) { const i = Math.min(n - 1, Math.max(0, Math.floor((r.t - start) / step))); sums[i] += r.v; cnt[i]++; }
@@ -54,10 +55,11 @@ export function stepGraph(p, id) {
 
 export const fmtVal = (v, unit) => v == null ? "–" : `${(Math.abs(v) >= 100 ? Math.round(v) : Math.round(v * 10) / 10).toLocaleString(locale())}${unit === "°C" || unit === "°F" ? "°" : unit === "%" ? " %" : unit ? " " + unit : ""}`;
 
-export function graphCard(p, g) {
+export function graphCard(p, g0) {
+  const g = p._preview?.id === "graph:" + g0.id && p._preview.gd ? p._preview.gd : g0;   // the card form edits the definition itself; its preview shows the draft
   const id = "graph:" + g.id, cfg = cardCfg(p, id), s = p.hass.states[g.entity], un = unavailable(s), unit = s?.attributes?.unit_of_measurement || "", dc = s?.attributes?.device_class;
-  const hours = +g.hours || 24, h = p.graphHist?.[g.id];
-  if (s && (!h || Date.now() - h.at > 5 * 60000 || h.hours !== hours)) loadGraph(p, { ...g, hours });
+  const hours = +g.hours || 24, h = p.graphHist?.[g.id + ":" + hours];
+  if (s && (!h || Date.now() - h.at > 5 * 60000)) loadGraph(p, { ...g, hours });
   const pts = h?.pts || [], last = pts.length ? pts[pts.length - 1] : null, lo = h?.min, hi = h?.max, span = (hi - lo) || 1;
   const dotStyle = pts.length > 1 ? `left:100%;top:${(100 - (3 + (last - lo) / span * (H - 6)) / H * 100).toFixed(1)}%` : "display:none";
   const per = hours === 24 ? t("Afgelopen 24 uur") : hours % 24 === 0 ? t("Afgelopen {n} dagen", { n: hours / 24 }) : t("Afgelopen {n} uur", { n: hours });

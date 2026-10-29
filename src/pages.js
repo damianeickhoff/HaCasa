@@ -1,11 +1,11 @@
 // Full-page views opened from the t("Meer") menu. They use the same cards as the room pages,
 // laid out in a grid with small uppercase section titles. `ha` = the real HA page (button top-right).
-import { t, locale } from "./i18n.js";
+import { t, tn, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { domain, num, isOn, unavailable, isDown, relTime } from "./util.js";
 
-import { pressDir, label, cardCfg, camStream, ico, energyOf } from "./cards.js";
+import { pressDir, label, cardCfg, camStream, ico, anyIco, energyOf } from "./cards.js";
 import { spark } from "./extras3.js";
 import { name, deviceName } from "./model.js";
 import { pendingUpdates, installUpdate } from "./features.js";
@@ -43,8 +43,8 @@ export function renderPage(p, key) {
 const kpi = ({ icon, svg, em = "", v, unit = "", n = "", on = false, bar = null, spark: sp = null, tap = null }) => html`<div class=${classMap({ kpi: true, on })} @click=${tap}>
   <div class="top">${ico(icon, svg)}${em ? html`<em>${em}</em>` : nothing}</div><div class="v">${v}${unit ? html`<small>${unit}</small>` : nothing}</div><div class="n">${n}</div>
   ${bar != null ? html`<div class="bar"><i style="--v:${Math.max(0, Math.min(100, bar))}%"></i></div>` : nothing}${sp && sp.length > 1 ? html`<div class="spk">${spark(sp, 70, 26)}</div>` : nothing}</div>`;
-const srow = ({ icon, svg, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, toggle = null, on = false, dim = false, err = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim, err })} @click=${tap}>
-  ${ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
+const srow = ({ icon, svg, raw = false, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, toggle = null, on = false, dim = false, err = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim, err })} @click=${tap}>
+  ${raw ? anyIco(icon) : ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
   ${toggle ? html`<span class="tog" @click=${ev => { ev.stopPropagation(); toggle(); }}></span>` : pill != null ? html`<span class="st">${pill}</span>` : html`<div class=${classMap({ val: true, dim })}>${val}${unit ? html`<small>${unit}</small>` : nothing}</div>`}</div>`;
 const sblock = (title, rows, meta = "") => rows.length ? html`<div class="sblk"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3>${rows}</div>` : nothing;
 const pillbar = (list, cur, set) => html`<div class="ppills">${list.map(([k, l, icon, svg, n]) => html`<button class=${classMap({ on: cur === k })} @click=${() => set(k)}>${ico(icon, svg)}${n != null ? `${n} ${l}` : l}</button>`)}</div>`;
@@ -84,7 +84,9 @@ function energy(p) {
   const val = s => s && num(s.state) != null ? num(s.state) : null;
   const eh = p.energyHist || {}; if (en.today && (!eh.at || Date.now() - eh.at > 10 * 60000)) p.loadEnergyToday();
   const use = eh.use || [], sun = eh.sun || [], max = Math.max(...use.map(r => r.v || 0), ...sun.map(r => r.v || 0), 0.001);
-  const watts = Object.values(st).filter(s => domain(s.entity_id) === "sensor" && s.attributes.unit_of_measurement === "W" && num(s.state) != null && s.entity_id !== en.power?.entity_id).sort((a, b) => num(b.state) - num(a.state));
+  // consumers only, as in the energy popup: not the house meter, the solar or the home battery set under Settings → Energy, nothing at or below 0 W
+  const ecfg = p.config.home?.energy || {}, skip = new Set([en.power?.entity_id, ecfg.solar, ecfg.batteryPower].filter(Boolean));
+  const watts = Object.values(st).filter(s => domain(s.entity_id) === "sensor" && s.attributes.unit_of_measurement === "W" && num(s.state) > 0 && !skip.has(s.entity_id) && !p.hass.entities?.[s.entity_id]?.hidden).sort((a, b) => num(b.state) - num(a.state));
   const nowH = p.netHist?.[en.power?.entity_id];
   const kpis = [
     kpi({ icon: "mdi:flash-outline", svg: "electric", em: t("Nu"), v: en.power ? fmt(val(en.power), 0) : "–", unit: "W", n: eh.peak ? t("piek vandaag {w} W om {t}", { w: fmt(eh.peak.v, 0), t: eh.peak.t }) : "", on: !!en.power, spark: nowH, tap: en.power ? () => p.moreInfo(en.power.entity_id) : null }),
@@ -94,7 +96,7 @@ function energy(p) {
     price && val(en.today) != null ? kpi({ icon: "mdi:counter", svg: "counter", em: t("Kosten"), v: "€ " + fmt(val(en.today) * price, 2), n: t("vandaag · € {p} / kWh", { p: fmt(price, 2) }) }) : null,
   ].filter(Boolean);
   const plugs = p.rooms.flatMap(r => r.ents.appliances.filter(a => a.power && !a.op)).map(a => { const h = p.plugHist?.[a.id]; if (!h) p.loadPlug(a.id, a.power.id, energyOf(p, a.device)?.entity_id); return { a, h }; }).filter(x => x.h?.today != null).sort((x, y) => y.h.today - x.h.today);
-  return { sub: en.power ? t("{v} nu · {k} vandaag", { v: `${fmt(val(en.power), 0)} W`, k: `${fmt(val(en.today))} kWh` }) : t("Kies de energiesensoren bij Panel instellingen"),
+  return { sub: en.power ? t("{v} nu · {k} vandaag", { v: `${fmt(val(en.power), 0)} W`, k: `${fmt(val(en.today))} kWh` }) : t("Kies de energiesensoren bij HaCasa instellingen"),
     body: html`
       <div class="kpis">${kpis}</div>
       ${use.length ? html`<div class="chart"><h3>${t("Per uur")}<b>${t("verbruik en opwek")}</b></h3>
@@ -103,7 +105,7 @@ function energy(p) {
         <div class="legend"><span><i style="background:rgba(255,255,255,.3)"></i>${t("verbruik")}</span>${sun.length ? html`<span><i style="background:rgba(255,220,130,.75)"></i>${t("zon")}</span>` : nothing}<span><i style="background:#fff"></i>${t("nu")}</span></div></div>` : nothing}
       <div class="sblks">
         ${sblock(t("Grootverbruikers nu"), watts.slice(0, 10).map(s => srow({ icon: s.attributes.icon || "mdi:power-plug-outline", svg: s.attributes.icon ? null : "plug", name: s.attributes.friendly_name || s.entity_id, val: fmt(num(s.state), 0), unit: "W", on: num(s.state) > 100, tap: () => p.moreInfo(s.entity_id) })), `${watts.length}`)}
-        ${sblock(t("Vandaag per apparaat"), plugs.map(({ a, h }) => srow({ icon: cardCfg(p, a.id).icon || "mdi:power-plug-outline", svg: cardCfg(p, a.id).icon ? null : "plug", name: cardCfg(p, a.id).name || deviceName(p.hass, a.device), sub: h.peak ? t("piek {w} W", { w: h.peak.v }) : "", tr: h.rows ? html`<div class="tr">${h.rows.filter((_, i) => i % 3 === 0).map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(10, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : nothing, val: fmt(h.today), unit: "kWh", tap: () => p.openPopup({ type: "appliance", a }) })), t("kWh"))}
+        ${sblock(t("Vandaag per apparaat"), plugs.map(({ a, h }) => srow({ icon: cardCfg(p, a.id).icon || "mdi:power-plug-outline", svg: cardCfg(p, a.id).icon ? null : "plug", raw: !!cardCfg(p, a.id).icon, name: cardCfg(p, a.id).name || deviceName(p.hass, a.device), sub: h.peak ? t("piek {w} W", { w: h.peak.v }) : "", tr: h.rows ? html`<div class="tr">${h.rows.filter((_, i) => i % 3 === 0).map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(10, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : nothing, val: fmt(h.today), unit: "kWh", tap: () => p.openPopup({ type: "appliance", a }) })), t("kWh"))}
       </div>` };
 }
 
@@ -139,10 +141,11 @@ function system(p) {
     host ? srow({ icon: "mdi:server", svg: "server", name: host.hostname || t("Host"), sub: [host.operating_system, host.kernel].filter(Boolean).join(" · "), pill: "OK", tap: () => p.goPath("/config/hardware") }) : null,
     ...updates.map(u => srow({ icon: u.kind === t("Firmware") ? "mdi:chip" : "mdi:update", svg: "update", name: u.title, sub: `${u.busy ? t("Bezig…") : `${u.from || "?"} → ${u.to || "?"}`}${u.canInstall ? " · " + t("tik = installeren") : ""}`, pill: t("Update"), on: true, tap: () => installUpdate(p, u) })),
   ].filter(Boolean);
-  return { sub: t("{n} sensoren · {u} updates", { n: new Set([...cpu, ...mem, ...disk, ...net].map(s => s.entity_id)).size, u: updates.length }),
+  return { sub: tn(new Set([...cpu, ...mem, ...disk, ...net].map(s => s.entity_id)).size, "{n} sensor", "{n} sensoren") + " · " + tn(updates.length, "{n} update", "{n} updates"),
     body: html`
       <div class="kpis">${kpis}</div>
       ${!kpis.length ? html`<div class="hint" style="margin-top:20px;opacity:.75;font-size:13px">${t("Geen systeemsensoren gevonden. Voeg de integratie System Monitor toe voor processor, geheugen, schijf en netwerk.")}</div>` : nothing}
+      ${!p.hass.user?.is_admin ? html`<div class="hint" style="margin-top:12px;opacity:.75;font-size:13px">${t("Host- en kerngegevens komen van de Supervisor en zijn alleen voor beheerders zichtbaar.")}</div>` : nothing}
       <div class="sblks">
         ${sblock("Home Assistant", ha, hc.version || "")}
         ${sblock(t("Host"), hostRows, `${updates.length} ${t("updates")}`)}
@@ -159,34 +162,31 @@ function sensors(p) {
   const battIds = batteries.map(b => b.e.id); if (battIds.length && p._battKey !== battIds.join()) p.loadBatteryEta(battIds);
   const eta = p.battEta || {}, more = id => () => p.moreInfo(id);
   const trend = e => { const h = p.lightHist?.[e.id]; if (!h) { p.loadLightHist(e.id); return html`<div class="tr"></div>`; } const g = Array.from({ length: 8 }, (_, i) => (h.bars[(new Date().getHours() + 1 + i * 3) % 24] + h.bars[(new Date().getHours() + 2 + i * 3) % 24] + h.bars[(new Date().getHours() + 3 + i * 3) % 24]) / 3); return html`<div class="tr">${g.map(v => html`<i class=${classMap({ on: v > 0 })} style="height:${Math.max(10, v * 100)}%"></i>`)}</div>`; };
-  const row = ({ icon, svg, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, on = false, dim = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim })} @click=${tap}>
-    ${ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
-    ${pill != null ? html`<span class="st">${pill}</span>` : html`<div class=${classMap({ val: true, dim })}>${val}${unit ? html`<small>${unit}</small>` : nothing}</div>`}</div>`;
   const R = {
-    temp: (e, r, withRoom) => row({ icon: "mdi:thermometer", svg: "thermometer", name: label(p, e), sub: withRoom ? r.name : "", val: num(e.state?.state)?.toFixed(1) ?? "?", unit: "°", tap: more(e.id) }),
-    hum: (e, r, withRoom) => row({ icon: "mdi:water-outline", svg: "water", name: label(p, e), sub: withRoom ? r.name : "", val: Math.round(num(e.state?.state) ?? 0), unit: "%", tap: more(e.id) }),
-    door: (e, r, withRoom, kind) => row({ icon: kind === "window" ? "mdi:window-closed-variant" : "mdi:door", svg: kind === "window" ? "window" : "door", name: label(p, e), sub: `${withRoom ? r.name + " · " : ""}${isOn(e.state) ? t("open sinds {t}", { t: relTime(e.state?.last_changed) }) : t("dicht sinds {t}", { t: relTime(e.state?.last_changed) })}`, tr: trend(e), pill: unavailable(e.state) ? t("Offline") : isOn(e.state) ? t("Open") : t("Dicht"), on: isOn(e.state), dim: unavailable(e.state), tap: more(e.id) }),
-    motion: (e, r, withRoom) => row({ icon: "mdi:motion-sensor", svg: "motion", name: label(p, e), sub: `${withRoom ? r.name + " · " : ""}${isOn(e.state) ? t("beweging nu") : t("laatst {t}", { t: relTime(e.state?.last_changed) })}${p.lightHist?.[e.id] ? ` · ${p.lightHist[e.id].count}× ${t("vandaag")}` : ""}`, tr: trend(e), pill: isOn(e.state) ? t("Nu") : t("Rustig"), on: isOn(e.state), dim: unavailable(e.state), tap: more(e.id) }),
-    other: (e, r, withRoom) => row({ icon: "mdi:checkbox-blank-circle-outline", svg: "sensor", name: label(p, e), sub: `${withRoom ? r.name + " · " : ""}${e.state?.attributes?.device_class || ""}`, pill: isOn(e.state) ? t("Aan") : t("Uit"), on: isOn(e.state), dim: unavailable(e.state), tap: more(e.id) }),
-    batt: (e, r, v, withRoom) => row({ icon: v <= low ? "mdi:battery-20" : v <= 50 ? "mdi:battery-50" : "mdi:battery", svg: "battery", name: name(p.hass, e).replace(/ batter(y|ij)/i, ""), sub: `${withRoom ? r.name + " · " : ""}${etaText(eta[e.id]) || t("Batterij")}`, val: v, unit: "%", dim: v <= low, tap: more(e.id) }),
+    temp: (e, r, withRoom) => srow({ icon: "mdi:thermometer", svg: "thermometer", name: label(p, e), sub: withRoom ? r.name : "", val: num(e.state?.state)?.toFixed(1) ?? "?", unit: "°", tap: more(e.id) }),
+    hum: (e, r, withRoom) => srow({ icon: "mdi:water-outline", svg: "water", name: label(p, e), sub: withRoom ? r.name : "", val: Math.round(num(e.state?.state) ?? 0), unit: "%", tap: more(e.id) }),
+    door: (e, r, withRoom, kind) => srow({ icon: kind === "window" ? "mdi:window-closed-variant" : "mdi:door", svg: kind === "window" ? "window" : "door", name: label(p, e), sub: `${withRoom ? r.name + " · " : ""}${isOn(e.state) ? t("open sinds {t}", { t: relTime(e.state?.last_changed) }) : t("dicht sinds {t}", { t: relTime(e.state?.last_changed) })}`, tr: trend(e), pill: unavailable(e.state) ? t("Offline") : isOn(e.state) ? t("Open") : t("Dicht"), on: isOn(e.state), dim: unavailable(e.state), tap: more(e.id) }),
+    motion: (e, r, withRoom) => srow({ icon: "mdi:motion-sensor", svg: "motion", name: label(p, e), sub: `${withRoom ? r.name + " · " : ""}${isOn(e.state) ? t("beweging nu") : t("laatst {t}", { t: relTime(e.state?.last_changed) })}${p.lightHist?.[e.id] ? ` · ${p.lightHist[e.id].count}× ${t("vandaag")}` : ""}`, tr: trend(e), pill: isOn(e.state) ? t("Nu") : t("Rustig"), on: isOn(e.state), dim: unavailable(e.state), tap: more(e.id) }),
+    other: (e, r, withRoom) => srow({ icon: "mdi:checkbox-blank-circle-outline", svg: "sensor", name: label(p, e), sub: `${withRoom ? r.name + " · " : ""}${e.state?.attributes?.device_class || ""}`, pill: isOn(e.state) ? t("Aan") : t("Uit"), on: isOn(e.state), dim: unavailable(e.state), tap: more(e.id) }),
+    batt: (e, r, v, withRoom) => srow({ icon: v <= low ? "mdi:battery-20" : v <= 50 ? "mdi:battery-50" : "mdi:battery", svg: "battery", name: name(p.hass, e).replace(/ batter(y|ij)/i, ""), sub: `${withRoom ? r.name + " · " : ""}${etaText(eta[e.id]) || t("Batterij")}`, val: v, unit: "%", dim: v <= low, tap: more(e.id) }),
   };
   const roomRows = (r, withRoom = false) => [...r.ents.temp.map(e => R.temp(e, r, withRoom)), ...r.ents.hum.map(e => R.hum(e, r, withRoom)), ...r.ents.doors.map(e => R.door(e, r, withRoom, "door")), ...r.ents.windows.map(e => R.door(e, r, withRoom, "window")), ...r.ents.motion.map(e => R.motion(e, r, withRoom)), ...[...r.ents.other, ...r.ents.details].map(e => R.other(e, r, withRoom)), ...r.ents.battery.filter(e => num(e.state?.state) != null).map(e => R.batt(e, r, num(e.state.state), withRoom))];
   const block = (title, rows, meta = "") => rows.length ? html`<div class="sblk"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3>${rows}</div>` : nothing;
   const total = p.rooms.reduce((n, r) => n + roomRows(r).length, 0), lowB = batteries.filter(b => b.v <= low);
   const attention = [
-    ...(filter === "all" || filter === "update" ? updates.map(u => row({ icon: u.kind === t("Firmware") ? "mdi:chip" : "mdi:update", svg: "update", name: u.title, sub: `${u.busy ? t("Bezig…") : `${u.from || "?"} → ${u.to || "?"}`}${u.canInstall ? " · " + t("tik = installeren") : ""}`, pill: t("Update"), on: true, tap: () => installUpdate(p, u) })) : []),
+    ...(filter === "all" || filter === "update" ? updates.map(u => srow({ icon: u.kind === t("Firmware") ? "mdi:chip" : "mdi:update", svg: "update", name: u.title, sub: `${u.busy ? t("Bezig…") : `${u.from || "?"} → ${u.to || "?"}`}${u.canInstall ? " · " + t("tik = installeren") : ""}`, pill: t("Update"), on: true, tap: () => installUpdate(p, u) })) : []),
     ...(filter === "all" || filter === "battery" ? (filter === "battery" ? batteries : lowB).map(({ e, r, v }) => R.batt(e, r, v, true)) : []),
-    ...(filter === "all" || filter === "offline" ? offline.map(({ e, r }) => row({ icon: "mdi:lan-disconnect", svg: "network_off", name: name(p.hass, e), sub: `${r.name} · ${t("sinds {t}", { t: relTime(e.state?.last_changed) })}`, pill: t("Offline"), dim: true, tap: more(e.id) })) : []),
+    ...(filter === "all" || filter === "offline" ? offline.map(({ e, r }) => srow({ icon: "mdi:lan-disconnect", svg: "network_off", name: name(p.hass, e), sub: `${r.name} · ${t("sinds {t}", { t: relTime(e.state?.last_changed) })}`, pill: t("Offline"), dim: true, tap: more(e.id) })) : []),
   ];
   const kinds = [[t("Klimaat"), r => [...r.ents.temp.map(e => R.temp(e, r, true)), ...r.ents.hum.map(e => R.hum(e, r, true))]], [t("Deuren & ramen"), r => [...r.ents.doors.map(e => R.door(e, r, true, "door")), ...r.ents.windows.map(e => R.door(e, r, true, "window"))]], [t("Beweging"), r => r.ents.motion.map(e => R.motion(e, r, true))], [t("Overig"), r => [...r.ents.other, ...r.ents.details].map(e => R.other(e, r, true))], [t("Batterijen"), r => r.ents.battery.filter(e => num(e.state?.state) != null).map(e => R.batt(e, r, num(e.state.state), true))]];
-  const pills = [["all", t("Alles"), "mdi:radar", "radar", null], ["battery", t("batterijen"), "mdi:battery", "battery", lowB.length], ["offline", t("onbereikbaar"), "mdi:lan-disconnect", "network_off", offline.length], ["update", t("updates"), "mdi:update", "update", updates.length]];
-  return { sub: t("{n} sensoren in {r} ruimtes · {b} batterijen laag · {o} onbereikbaar", { n: total, r: p.rooms.length, b: lowB.length, o: offline.length }) + (updates.length ? ` · ${t("{n} updates", { n: updates.length })}` : ""),
+  const pills = [["all", t("Alles"), "mdi:radar", "radar", null], ["battery", lowB.length === 1 ? t("batterij") : t("batterijen"), "mdi:battery", "battery", lowB.length], ["offline", t("onbereikbaar"), "mdi:lan-disconnect", "network_off", offline.length], ["update", updates.length === 1 ? t("update") : t("updates"), "mdi:update", "update", updates.length]];
+  return { sub: [tn(total, "{n} sensor", "{n} sensoren") + " " + tn(p.rooms.length, "in {n} ruimte", "in {n} ruimtes"), tn(lowB.length, "{n} batterij laag", "{n} batterijen laag"), t("{n} onbereikbaar", { n: offline.length }), updates.length ? tn(updates.length, "{n} update", "{n} updates") : ""].filter(Boolean).join(" · "),
     head: html`<div class="ppills">${pills.map(([k, l, icon, svg, n]) => html`<button class=${classMap({ on: filter === k })} @click=${() => { p.sensFilter = k; }}>${ico(icon, svg)}${n != null ? `${n} ${l}` : l}</button>`)}</div>`,
     tools: html`<div class="seg pseg"><button class=${group === "room" ? "on" : ""} @click=${() => { p.sensGroup = "room"; }}>${t("Per ruimte")}</button><button class=${group === "kind" ? "on" : ""} @click=${() => { p.sensGroup = "kind"; }}>${t("Per soort")}</button></div>`,
     body: html`
       <div class="sblks">
         ${block(t("Aandacht"), attention, `${attention.length}`)}
-        ${filter === "all" ? (group === "room" ? p.rooms.map(r => block(r.name, roomRows(r), t("{n} sensoren", { n: roomRows(r).length }))) : kinds.map(([title, f]) => block(title, p.rooms.flatMap(f)))) : nothing}
+        ${filter === "all" ? (group === "room" ? p.rooms.map(r => block(r.name, roomRows(r), tn(roomRows(r).length, "{n} sensor", "{n} sensoren"))) : kinds.map(([title, f]) => block(title, p.rooms.flatMap(f)))) : nothing}
       </div>` };
 }
 
@@ -218,7 +218,7 @@ export const pageStyles = `
   .ppills button{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--fg-2);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
   .ppills button.on{background:rgba(255,255,255,.18);color:#fff}
   .ppills button img.ico,.ppills button ha-icon{width:17px;height:17px;--mdc-icon-size:17px}
-  .seg.pseg{height:46px;padding:4px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid var(--line);display:inline-flex}
+  .seg.pseg{height:46px;padding:4px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid var(--line);display:inline-flex;flex-wrap:nowrap;gap:2px;width:max-content;max-width:100%}
   .seg.pseg button{height:100%;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--fg-3);font:inherit;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
   .seg.pseg button.on{background:rgba(255,255,255,.9);color:#1d1d1f}
   .sblks{columns:400px;column-gap:6px;margin-top:26px}

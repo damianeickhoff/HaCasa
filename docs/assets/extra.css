@@ -13,6 +13,7 @@
 .md-typeset h1 { font-weight: 700; letter-spacing: -.02em; }
 .md-typeset img { border-radius: 10px; }
 .hero { text-align: center; margin: 0 0 2rem; }
+.hero img.header { width: 100%; max-width: 1100px; border-radius: 14px; display: block; margin: 0 auto 1.4rem; box-shadow: 0 18px 50px rgba(0,0,0,.25); }
 .hero p.tag { font-size: 1.15rem; opacity: .85; margin-top: -.6rem; }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
 .grid2 figure { margin: 0; }

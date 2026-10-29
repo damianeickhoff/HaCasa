@@ -22,14 +22,14 @@ From top to bottom:
 - **Status pills.** Lights on, doors and windows open, items needing attention. Tap one for the list.
 - **Quick actions.** Your own buttons: a scene, a script, toggle something, all lights off, media off. Optionally with a confirmation.
 - **Weather.** Current conditions with a heads-up when rain is coming; tap for the hourly and 7-day forecast.
-- **Cards.** Thermostat, playing media, attention, weather, waste, scenes, agenda, appliances, energy and your groups and template cards.
+- **Cards.** By default: Attention, Weather and Household, plus Security (with an alarm or a lock) and Agenda (with a calendar). Everything else (thermostat, a media player, waste, scenes, energy, list, timers, car, solar, garden, groups, graphs, templates) you add yourself through [edit mode](#edit-mode) → *Add card*, and remove again with the bin.
 - **Motion bar.** Shows where motion is detected right now.
 
 ## Room pages
 
 ![Room page](assets/screenshots/room.png)
 
-Each room shows its photo, its temperature and humidity, a notification line for that room (lights on, open windows, what is playing) and a card for every device in the area. See [Cards](cards.md) for each type.
+Each room shows its photo, its temperature and humidity, a notification line for that room (lights on, open windows, what is playing) and, by default, a card for every light, plug (switches, power strips, plugs with a meter) and motion sensor in the area that is reachable. Everything else in the area (thermostat, media, covers, fans, locks, doors and windows, cameras, scenes, light scenes, air quality …) you add through [edit mode](#edit-mode) → *Add card*, where the room's own entities are listed first, and remove with the bin. A room with nothing to show by default and nothing added is left out of the navigation until you list it under *Settings → Rooms*. See [Cards](cards.md) for each type.
 
 ## Edit mode
 

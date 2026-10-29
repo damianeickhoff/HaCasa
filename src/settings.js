@@ -5,22 +5,26 @@ import { t, locale, LANGUAGES } from "./i18n.js";
 import { html, nothing } from "lit";
 import { domain, slug, SUFFIX, VERSION } from "./util.js";
 import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates, selfUpdate } from "./features.js";
-import { GRAPH_HOURS } from "./graph.js";
+import { PAGES } from "./pages.js";
+import { defaultsGrid } from "./defaults.js";
+import { dragRows } from "./drag.js";
+import { iconInput } from "./iconpicker.js";
+import { solarSettings } from "./cards2.js";
 
 export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
 
 // carried over once when the key is empty: pre-release names, or (dev build) a copy of the real settings
 const OLD_USER_DATA_KEYS = SUFFIX ? ["hacasa_nova"] : ["kamer_panel", "homio_panel"];
+/** null = nothing stored yet. Throws when Home Assistant could not be asked (connection lost, HA starting):
+ *  that must never look like an empty store, or the wizard opens and saving it wipes the real settings (#172) */
 export async function loadUserConfig(hass) {
-  try {
-    const r = await hass.callWS({ type: "frontend/get_user_data", key: USER_DATA_KEY });
-    if (r?.value) return r.value;
-    for (const key of OLD_USER_DATA_KEYS) {
-      const o = await hass.callWS({ type: "frontend/get_user_data", key });
-      if (o?.value) { await hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value: o.value }); console.info(`[hacasa-nova] settings migrated from ${key}`); return o.value; }
-    }
-    return null;
-  } catch (e) { console.warn("[hacasa-nova] user data not available", e); return null; }
+  const r = await hass.callWS({ type: "frontend/get_user_data", key: USER_DATA_KEY });
+  if (r?.value) return r.value;
+  for (const key of OLD_USER_DATA_KEYS) {
+    const o = await hass.callWS({ type: "frontend/get_user_data", key });
+    if (o?.value) { await hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value: o.value }); console.info(`[hacasa-nova] settings migrated from ${key}`); return o.value; }
+  }
+  return null;
 }
 export const saveUserConfig = (hass, value) => hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value });
 
@@ -50,6 +54,16 @@ export const selectDoms = (hass, doms, v, on, empty = t("kies")) => {
 };
 /** pill choice; `def` is what applies when nothing is chosen and picking it stores nothing (marked "std") */
 export const pills = (opts, cur, def, on) => html`<div class="seg">${opts.map(o => html`<button class=${(cur ?? def) === o.v ? "on" : ""} @click=${() => on(o.v === def ? undefined : o.v)}>${o.l}${o.v === def ? html`<sup>${t("std")}</sup>` : nothing}</button>`)}</div>`;
+/** visibility condition (cards, status pills): a comparison on an entity state ("simple") or a Jinja template ("tpl"), plus
+    "show when true / false". setMode(mode, patch) switches the mode and clears the other mode's fields; row(label, control, sub) lays out a line */
+export const condFields = (draft, upd, mode, setMode, row, hint, listId = "hcn-entities") => html`
+  ${row(t("Voorwaarde"), html`<div class="seg">${[["simple", t("Eenvoudig")], ["tpl", t("Template")]].map(([v, l]) => html`<button class=${mode === v ? "on" : ""} @click=${() => setMode(v, v === "simple" ? { tplVisible: undefined } : { visEntity: undefined, visOp: undefined, visValue: undefined })}>${l}</button>`)}</div>`, hint)}
+  ${mode === "simple" ? html`
+    ${row(t("Entiteit"), html`<input type="text" list=${listId} .value=${draft.visEntity || ""} placeholder="sensor.x" @change=${e => upd({ visEntity: e.target.value || undefined })}>`)}
+    ${row(t("Vergelijking"), html`<div class="seg">${[["", t("is")], ["ne", t("is niet")], ["gt", t("groter dan")], ["lt", t("kleiner dan")]].map(([v, l]) => html`<button class=${(draft.visOp || "") === v ? "on" : ""} @click=${() => upd({ visOp: v || undefined })}>${l}</button>`)}</div>`)}
+    ${row(t("Waarde"), html`<input type="text" .value=${draft.visValue ?? ""} placeholder="on" @change=${e => upd({ visValue: e.target.value === "" ? undefined : e.target.value })}>`, t("de staat van de entiteit, bv. on, off, 21.5"))}`
+  : row(t("Template"), html`<input type="text" .value=${draft.tplVisible || ""} placeholder="{{ states('sensor.x') | int < 30 }}" @change=${e => upd({ tplVisible: e.target.value || undefined })}>`, t("Jinja; onwaar is false, 0, no, off, none of leeg, alles anders is waar"))}
+  ${row(t("Tonen als"), html`<div class="seg two">${[[false, t("waar")], [true, t("onwaar")]].map(([v, l]) => html`<button class=${!!draft.tplVisibleInvert === v ? "on" : ""} @click=${() => upd({ tplVisibleInvert: v || undefined })}>${l}</button>`)}</div>`, t("zichtbaar als de voorwaarde dit oplevert"))}`;
 /** chip list that toggles entity ids in/out of a list (null list = "all") */
 const chips = (states, cur, allIds, setList, extra = () => nothing) => html`<div class="chips">${states.map(s => { const all = !cur; const on = all || cur.includes(s.entity_id);
   return html`<button class=${on ? "on" : ""} title=${s.entity_id} @click=${() => { const c = cur || allIds; setList(on ? c.filter(x => x !== s.entity_id) : [...c, s.entity_id]); }}>${s.attributes.friendly_name || s.entity_id}${extra(s)}</button>`; })}</div>`;
@@ -64,8 +78,6 @@ export const TABS = [
   { id: "meldingen", label: t("Bewegen & deurbel"), sub: t("bewegingsbalk, camera-popup"), icon: "mdi:motion-sensor" },
   { id: "agenda", label: t("Agenda & afval"), sub: t("kalenders en ophaaldagen"), icon: "mdi:calendar-blank-outline" },
   { id: "energie", label: t("Energie"), sub: t("vermogen, verbruik, gas"), icon: "mdi:lightning-bolt-outline" },
-  { id: "groepen", label: t("Groepen"), sub: t("meerdere lampen of stekkers op één kaart"), icon: "mdi:shape-outline" },
-  { id: "grafieken", label: t("Grafieken"), sub: t("lijn van een sensor op een kaart"), icon: "mdi:chart-line" },
   { id: "templates", label: t("Templatekaarten"), sub: t("eigen kaarten met Jinja"), icon: "mdi:code-braces" },
   { id: "meer", label: t("Meer-menu"), sub: t("eigen links"), icon: "mdi:dots-horizontal-circle-outline" },
   { id: "modi", label: t("Modi"), sub: t("gast, vakantie, …"), icon: "mdi:account-switch-outline" },
@@ -109,10 +121,13 @@ export function renderSettings(p) {
         ${field(t("Taal"), html`<select @change=${e => set("language", e.target.value || undefined)}><option value="" ?selected=${!d.language}>${t("automatisch (taal van Home Assistant)")}</option>${Object.entries(LANGUAGES).map(([k, l]) => html`<option value=${k} ?selected=${d.language === k}>${l}</option>`)}</select>`, t("direct zichtbaar na opslaan"))}
         ${field(t("Titel"), text(d.title, v => set("title", v), t("Thuis") + "."), t("linksboven in de navigatie"))}
         ${field(t("Navigatie"), html`<select @change=${e => set("navMode", e.target.value || undefined)}><option value="" ?selected=${d.navMode !== "floors"}>${t("per kamer")}</option><option value="floors" ?selected=${d.navMode === "floors"}>${t("per verdieping, kamers in een uitklapmenu")}</option></select>`, Object.keys(p.hass.floors || {}).length ? t("verdiepingen komen uit Home Assistant (Instellingen › Ruimtes)") : t("nog geen verdiepingen in Home Assistant: maak ze aan bij Instellingen › Ruimtes"))}
+        ${field(t("Balk op telefoon"), pills([{ v: "", l: t("onderaan") }, { v: "top", l: t("bovenaan") }], d.phoneNav, "", v => set("phoneNav", v)), t("onderaan: thuis, kamers, twee sneltoetsen en meer; bovenaan: menu- en zoekknop in de bovenbalk zoals in 3.0"))}
+        ${d.phoneNav !== "top" ? [0, 1].map(i => field(t("Sneltoets {n}", { n: i + 1 }), html`<select @change=${e => { const cur = d.bottomTabs || ["sensoren", "energie"]; const next = [...cur]; next[i] = e.target.value; set("bottomTabs", next); }}><option value="" ?selected=${(d.bottomTabs || ["sensoren", "energie"])[i] === ""}>${t("geen")}</option>${Object.entries(PAGES).map(([k, v]) => html`<option value=${k} ?selected=${(d.bottomTabs || ["sensoren", "energie"])[i] === k}>${t(v.label)}</option>`)}</select>`, i === 0 ? t("pagina's in de balk onderaan, naast de kamers") : "")) : nothing}
         ${d.navMode === "floors" ? field(t("Menu op telefoon"), html`<select @change=${e => set("navExpand", e.target.value ? true : undefined)}><option value="" ?selected=${!d.navExpand}>${t("verdieping uitklappen met tikken")}</option><option value="1" ?selected=${!!d.navExpand}>${t("alle verdiepingen uitgeklapt")}</option></select>`, t("hoe de kamers in het menu op telefoon en tablet staan")) : nothing}
         ${field(t("Kamerfoto"), text(d.roomImage, v => set("roomImage", v), "/local/images/rooms/{slug}.jpg"), t("{slug} wordt de ruimtenaam · per kamer aanpasbaar bij Pagina's", { slug: "{slug}" }))}
         ${field(t("Foto startpagina"), text(d.homeImage, v => set("homeImage", v), "/local/images/rooms/home.jpg"))}
-        ${field(t("Media-achtergrond"), text(d.mediaIdleImage, v => set("mediaIdleImage", v), "/local/images/music/idle-media.gif"), t("op mediakaarten als er niets speelt; leeg = geen"))}`)}
+        ${field(t("Media-achtergrond"), text(d.mediaIdleImage, v => set("mediaIdleImage", v), "/local/images/music/idle-media.gif"), t("op mediakaarten als er niets speelt; leeg = geen"))}
+        ${field(t("Animaties"), check(!d.noMotion, v => set("noMotion", v ? undefined : true)), t("overgangen en kleine bewegingen; uit = alles direct, handig op een trage wandtablet"))}`)}
       ${sec(t("Gedrag"), "", html`
         ${field(t("Batterij-grens"), number(d.home?.lowBattery ?? 20, v => setHome("lowBattery", v)), t("onder dit percentage in Aandacht"))}
         ${field(t("Controleren op updates"), check(!d.noUpdateCheck, v => set("noUpdateCheck", v ? undefined : true)), t("melding op de startpagina als er een nieuwe HaCasa Nova is (alleen voor beheerders)"))}
@@ -127,8 +142,10 @@ export function renderSettings(p) {
           <button @click=${() => p.openPopup({ type: "page", key })}>${t("Instellen")}</button>${Object.keys(pc).length ? html`<button title=${t("Herstel")} @click=${() => { const pages = { ...d.pages }; delete pages[key]; set("pages", pages); }}>×</button>` : nothing}</li>`; })}</ul>
       <div class="hint">${t("Sneller: houd de titel van een pagina ingedrukt.")}</div>`),
 
-    kamers: sec(t("Kamers"), t("{n} zichtbaar · volgorde = navigatie", { n: selected.length }) + " · " + t("Meer staat altijd achteraan"), html`<ul class="rooms">
-      ${selected.map((a, i) => html`<li class="on"><span>${a.name}</span>
+    kamers: sec(t("Kamers"), t("{n} zichtbaar · volgorde = navigatie", { n: selected.length }) + " · " + t("Meer staat altijd achteraan"), html`
+      ${!Array.isArray(d.rooms) ? field(t("Maximum"), number(d.maxRooms, v => set("maxRooms", v || undefined)), t("alleen in de automatische stand: leeg = alle ruimtes met apparaten (3.0 stopte stil bij 9)")) : nothing}
+      <ul class="rooms" data-drag>
+      ${selected.map((a, i) => html`<li class=${p.roomDrag === a.id ? "on drag" : "on"} data-k=${a.id}><span class="grip" title=${t("Sleep om te verplaatsen")} @pointerdown=${ev => dragRows(ev, a.id, order => { p.roomDrag = a.id; setRooms(order.map(id => selected.find(x => x.id === id))); }, order => { p.roomDrag = null; setRooms(order.map(id => selected.find(x => x.id === id))); })}><ha-icon icon="mdi:drag"></ha-icon></span><span>${a.name}</span>
         <button title=${t("Omhoog")} @click=${() => move(i, -1)}>↑</button><button title=${t("Omlaag")} @click=${() => move(i, 1)}>↓</button>
         <button title=${t("Verbergen")} @click=${() => setRooms(selected.filter(x => x.id !== a.id))}>×</button></li>`)}
       ${rest.map(a => html`<li><span>${a.name}</span><button title=${t("Tonen")} @click=${() => setRooms([...selected, a])}>+</button></li>`)}
@@ -142,55 +159,13 @@ export function renderSettings(p) {
         ${field(t("Thermostaat"), select(hass, "climate", d.home?.climate, v => setHome("climate", v)))}
         ${field(t("Alarm"), select(hass, "alarm_control_panel", d.home?.alarm, v => setHome("alarm", v)))}
         ${field(t("Weer"), select(hass, "weather", d.home?.weather, v => setHome("weather", v)))}
-        ${field(t("Media"), check(d.home?.mediaHome !== false, v => setHome("mediaHome", v ? undefined : false)), t("spelende of gepauzeerde mediaspelers als kaart"))}
         ${field(t("Weer op telefoon"), check(d.home?.wxMobile === true, v => setHome("wxMobile", v ? true : undefined)), t("het weerblok naast de begroeting ook op kleine schermen"))}
-        ${field(t("Weerkaart"), check(d.home?.weatherCard === true, v => setHome("weatherCard", v ? true : undefined)), t("ook als het weer al naast de begroeting staat"))}
         ${field(t("Scènes"), html`<div class="chips">${scenes.map(s => { const on = chosen ? chosen.includes(s.entity_id) : scenes.indexOf(s) < 4;
           return html`<button class=${on ? "on" : ""} @click=${() => { const cur = chosen || scenes.slice(0, 4).map(x => x.entity_id); setHome("scenes", on ? cur.filter(x => x !== s.entity_id) : [...cur, s.entity_id]); }}>${s.attributes.friendly_name}</button>`; })}${!scenes.length ? html`<small>${t("Geen scènes gevonden")}</small>` : nothing}</div>`, t("op de scèneskaart"))}`)}`,
 
-    standaard: (() => {
-      const types = [["light", t("Lampen"), ["steps", "colors", "today"]], ["switch", t("Schakelaars"), ["today"]], ["appliance", t("Stekkers & apparaten"), ["timer", "cost", "bars"]], ["binary_sensor", t("Deuren, ramen, beweging"), ["today", "graph"]], ["fan", t("Ventilatoren"), []], ["lock", t("Sloten"), []], ["cover", t("Rolluiken"), []], ["media_player", t("Media"), []], ["climate", t("Thermostaten"), ["heating", "outside"]]];
-      const BL = { steps: t("helderheid-stappen"), colors: t("kleuren"), today: t("vandaag (uren)"), graph: t("grafiek (aan/uit-lijn)"), timer: t("timer"), cost: t("kosten"), bars: t("verbruik per uur"), heating: t("vandaag verwarmd"), outside: t("buitentemperatuur") };
-      const all = d.cardDefaults || {}, setT = (type, patch) => { const cur = { ...(all[type] || {}), ...patch }; for (const k of Object.keys(cur)) if (cur[k] === undefined) delete cur[k]; const next = { ...all }; if (Object.keys(cur).length) next[type] = cur; else delete next[type]; set("cardDefaults", Object.keys(next).length ? next : undefined); };
-      const canToggle = type => ["light", "switch", "fan", "lock", "appliance"].includes(type);
-      return sec(t("Kaartstandaarden"), t("standaardgedrag per soort kaart; per kaart aan te passen via ⋯ in de popup"), html`${types.map(([type, label, bottoms]) => { const c = all[type] || {}; return html`
-        <div class="dsec"><h4>${label}</h4>
-          ${field(t("Tikken"), pills([{ v: "", l: canToggle(type) ? t("schakelen") : t("details openen") }, ...(canToggle(type) ? [{ v: "popup", l: t("details openen") }] : []), { v: "more", l: t("Home Assistant-dialoog") }, { v: "none", l: t("niets") }], c.tap, "", v => setT(type, { tap: v })))}
-          ${field(t("Vasthouden"), pills([{ v: "", l: t("details openen") }, { v: "more", l: t("Home Assistant-dialoog") }, { v: "none", l: t("niets") }], c.hold, "", v => setT(type, { hold: v })))}
-          ${bottoms.length ? field(t("Onderaan"), pills([{ v: "", l: t("automatisch") }, { v: "none", l: t("niets") }, ...bottoms.map(b => ({ v: b, l: BL[b] }))], c.bottom, "", v => setT(type, { bottom: v }))) : nothing}
-          ${field(t("Tonen"), html`<span class="chk3"><label><input type="checkbox" .checked=${!c.hideName} @change=${e => setT(type, { hideName: e.target.checked ? undefined : true })}> ${t("Naam")}</label><label><input type="checkbox" .checked=${!c.hideSub} @change=${e => setT(type, { hideSub: e.target.checked ? undefined : true })}> ${t("Ondertitel")}</label><label><input type="checkbox" .checked=${!c.hideState} @change=${e => setT(type, { hideState: e.target.checked ? undefined : true })}> ${t("Staat")}</label></span>`)}
-          ${["light", "switch", "binary_sensor", "lock", "cover", "fan"].includes(type) ? field(t("Batterij tonen"), check(!!c.showBattery, v => setT(type, { showBattery: v || undefined })), t("rechtsonder, als het apparaat er een heeft")) : nothing}
-        </div>`; })}`);
-    })(),
-    groepen: (() => {
-      const groups = d.groups || [], setG = (i, patch) => { const list = groups.map((g, k) => k === i ? { ...g, ...patch } : g); set("groups", list); };
-      const cands = p.rooms.flatMap(r => [...r.ents.lights, ...r.ents.switches, ...r.ents.fans, ...r.ents.appliances.filter(a => a.switch).map(a => a.switch)].map(e => ({ id: e.id, name: `${r.name} · ${e.state?.attributes?.friendly_name || e.id}` })));
-      return sec(t("Groepen"), t("één kaart voor meerdere lampen, schakelaars of stekkers; tikken op een tegel schakelt dat ene, de kaart zelf opent de lijst"), html`
-        ${groups.map((g, i) => html`<div class="dsec">
-          <h4>${g.name || t("Nieuwe groep")}<button class="link" @click=${() => set("groups", groups.filter((_, k) => k !== i))}>${t("verwijderen")}</button></h4>
-          ${field(t("Naam"), html`<input type="text" .value=${g.name || ""} @change=${e => setG(i, { name: e.target.value })}>`)}
-          ${field(t("Icoon"), html`<input type="text" .value=${g.icon || ""} placeholder="mdi:shape-outline" @change=${e => setG(i, { icon: e.target.value || undefined })}>`)}
-          ${field(t("Plaats"), html`<select @change=${e => setG(i, { room: e.target.value })}><option value="home" ?selected=${!g.room || g.room === "home"}>${t("startpagina")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${g.room === r.id}>${r.name}</option>`)}</select>`)}
-          ${field(t("Stijl"), html`<select @change=${e => setG(i, { style: e.target.value })}><option value="tiles" ?selected=${!g.style || g.style === "tiles"}>${t("tegels (tikken schakelt)")}</option><option value="list" ?selected=${g.style === "list"}>${t("lijst")}</option></select>`)}
-          ${field(t("Onderdelen"), html`<select multiple size="6" @change=${e => setG(i, { members: [...e.target.selectedOptions].map(o => o.value) })}>${cands.map(c => html`<option value=${c.id} ?selected=${(g.members || []).includes(c.id)}>${c.name}</option>`)}</select>`, t("Ctrl/Cmd-klik voor meerdere"))}
-        </div>`)}
-        <button class="add" @click=${() => set("groups", [...groups, { id: "grp" + Date.now().toString(36), name: "", members: [], style: "tiles", room: "home" }])}>${t("+ groep")}</button>`);
-    })(),
-    grafieken: (() => {
-      const graphs = d.graphs || [], setG = (i, patch) => set("graphs", graphs.map((g, k) => k === i ? { ...g, ...patch } : g));
-      const numeric = s => domain(s.entity_id) === "sensor" && Number.isFinite(parseFloat(s.state)) && !["timestamp", "date", "enum"].includes(s.attributes.device_class);
-      return sec(t("Grafieken"), t("één kaart per sensor met een lijn van de laatste uren; tikken opent de Home Assistant-grafiek"), html`
-        ${graphs.map((g, i) => html`<div class="dsec">
-          <h4>${g.name || p.hass.states[g.entity]?.attributes?.friendly_name || t("Nieuwe grafiek")}<button class="link" @click=${() => set("graphs", graphs.filter((_, k) => k !== i))}>${t("verwijderen")}</button></h4>
-          ${field(t("Sensor"), select(hass, "sensor", g.entity, v => setG(i, { entity: v || undefined }), { empty: t("kies"), filter: numeric }), t("elke numerieke sensor: temperatuur, vochtigheid, vermogen, …"))}
-          ${field(t("Naam"), html`<input type="text" .value=${g.name || ""} placeholder=${p.hass.states[g.entity]?.attributes?.friendly_name || ""} @change=${e => setG(i, { name: e.target.value || undefined })}>`)}
-          ${field(t("Plaats"), html`<select @change=${e => setG(i, { room: e.target.value })}><option value="home" ?selected=${!g.room || g.room === "home"}>${t("startpagina")}</option>${p.rooms.map(r => html`<option value=${r.id} ?selected=${g.room === r.id}>${r.name}</option>`)}</select>`)}
-          ${field(t("Periode"), html`<select @change=${e => setG(i, { hours: +e.target.value })}>${GRAPH_HOURS.map(n => html`<option value=${n} ?selected=${(+g.hours || 24) === n}>${n % 24 ? t("{n} uur", { n }) : n === 24 ? t("24 uur") : t("{n} dagen", { n: n / 24 })}</option>`)}</select>`)}
-        </div>`)}
-        <button class="add" @click=${() => set("graphs", [...graphs, { id: "gr" + Date.now().toString(36), room: "home", hours: 24 }])}>${t("+ grafiek")}</button>`);
-    })(),
+    standaard: sec(t("Kaartstandaarden"), t("tik op een kaart om de standaard voor die soort in te stellen; per kaart aan te passen via ⋯ in de popup"), defaultsGrid(p, d)),
     acties: sec(t("Snelle acties"), t("knoppen onder de begroeting op de startpagina"), html`
-      ${quick.map((q, i) => html`<div class="row quick">${text(q.label, v => setQuick(i, "label", v), "label")}${text(q.icon, v => setQuick(i, "icon", v), t("mdi:icon (optioneel)"))}
+      ${quick.map((q, i) => html`<div class="row quick">${text(q.label, v => setQuick(i, "label", v), "label")}${iconInput(p, q.icon, v => setQuick(i, "icon", v), "mdi:flash-outline")}
         <select @change=${e => setQuick(i, "type", e.target.value)}>${Object.entries(QUICK_TYPES).map(([k, l]) => html`<option value=${k} ?selected=${(q.type || "scene") === k}>${t(l)}</option>`)}</select>
         ${q.type === "lights_off" || q.type === "media_off" ? html`<span></span>` : selectDoms(hass, q.type === "script" ? ["script"] : q.type === "entity" ? QUICK_DOMAINS : ["scene"], q.entity, v => setQuick(i, "entity", v))}
         <label title=${t("Eerst bevestigen")}>${check(q.confirm, v => setQuick(i, "confirm", v || undefined))}${t("bevestig")}</label><button @click=${() => setHome("quick", quick.filter((_, j) => j !== i))}>×</button></div>`)}
@@ -215,19 +190,20 @@ export function renderSettings(p) {
       ${field(t("Verbruik vandaag"), select(hass, "sensor", d.home?.energy?.today, v => setEnergy("today", v), { empty: t("geen"), filter: s => s.attributes.unit_of_measurement === "kWh" }))}
       ${field(t("Teruggeleverd"), select(hass, "sensor", d.home?.energy?.returned, v => setEnergy("returned", v), { empty: t("geen"), filter: s => s.attributes.unit_of_measurement === "kWh" }))}
       ${field(t("Prijs per kWh"), html`<input type="number" step="0.01" min="0" .value=${d.home?.energy?.price ?? ""} placeholder="0.30" @change=${e => setEnergy("price", e.target.value === "" ? undefined : +e.target.value)}>`, t("voor de kostenregel op stekkerkaarten"))}
-      ${field(t("Gas"), select(hass, "sensor", d.home?.energy?.gas, v => setEnergy("gas", v), { empty: t("geen"), filter: s => s.attributes.unit_of_measurement === "m³" }))}`),
+      ${field(t("Gas"), select(hass, "sensor", d.home?.energy?.gas, v => setEnergy("gas", v), { empty: t("geen"), filter: s => s.attributes.unit_of_measurement === "m³" }))}
+      ${solarSettings(p, d, setEnergy, field)}`),
 
-    templates: sec(t("Templatekaarten"), t("sjablonen met Jinja; plaatsen doe je per pagina via Bewerken → Kaart toevoegen"), html`<ul class="rooms">
+    templates: sec(t("Templatekaarten"), t("sjablonen met Jinja; plaatsen doe je per pagina via Bewerken → Kaart toevoegen") + (hass.user?.is_admin ? "" : " · " + t("templates rendert Home Assistant alleen voor beheerders")), html`<ul class="rooms">
       ${(d.templates || []).map((tp, i) => html`<li class="on"><span>${tp.name || t("Naamloos")}<small>${tp.ask?.length ? t("{n} invulvelden", { n: tp.ask.length }) + " · " : ""}${tp.state || t("geen template")}</small></span><button title=${t("Bewerken")} @click=${() => p.openPopup({ type: "tpl", index: i })}>✎</button><button title=${t("Verwijderen")} @click=${() => set("templates", (d.templates || []).filter((_, j) => j !== i))}>×</button></li>`)}
       ${!(d.templates || []).length ? html`<li><span>${t("Nog geen templatekaarten")}</span></li>` : nothing}
     </ul><button class="add" @click=${() => { const list = [...(d.templates || []), { id: "tpl" + Date.now().toString(36), name: "", icon: "mdi:code-braces", state: "", room: "none" }]; set("templates", list); p.openPopup({ type: "tpl", index: list.length - 1 }); }}>${t("+ templatekaart")}</button>`),
 
     meer: sec(t("Meer-menu"), t("eigen links naast de ingebouwde pagina's"), html`
-      ${more.map((m, i) => html`<div class="row r4">${text(m.label, v => setMore(i, "label", v), "label")}${text(m.icon, v => setMore(i, "icon", v), "mdi:icon")}${text(m.path, v => setMore(i, "path", v), "/pad")}<button @click=${() => set("more", more.filter((_, j) => j !== i))}>×</button></div>`)}
+      ${more.map((m, i) => html`<div class="row r4">${text(m.label, v => setMore(i, "label", v), "label")}${iconInput(p, m.icon, v => setMore(i, "icon", v), "mdi:link")}${text(m.path, v => setMore(i, "path", v), "/pad")}<button @click=${() => set("more", more.filter((_, j) => j !== i))}>×</button></div>`)}
       <button class="add" @click=${() => set("more", [...more, { label: "", icon: "mdi:link", path: "/" }])}>${t("+ pagina")}</button>`),
 
     modi: sec(t("Modi"), t("een schakelaar of input_boolean per modus; automatiseringen in Home Assistant doen de rest"), html`
-      ${modes.map((m, i) => html`<div class="row r4">${text(m.label, v => setMode(i, "label", v), t("label"))}${text(m.icon, v => setMode(i, "icon", v), "mdi:icon")}${selectDoms(hass, ["input_boolean", "switch"], m.entity, v => setMode(i, "entity", v))}<button @click=${() => set("modes", modes.filter((_, j) => j !== i))}>×</button></div>`)}
+      ${modes.map((m, i) => html`<div class="row r4">${text(m.label, v => setMode(i, "label", v), t("label"))}${iconInput(p, m.icon, v => setMode(i, "icon", v), "mdi:account-switch-outline")}${selectDoms(hass, ["input_boolean", "switch"], m.entity, v => setMode(i, "entity", v))}<button @click=${() => set("modes", modes.filter((_, j) => j !== i))}>×</button></div>`)}
       ${!modes.length ? html`<div class="hint">${t("Nog geen modi. Bijvoorbeeld Gast of Vakantie, gekoppeld aan een input_boolean.")}</div>` : nothing}
       <button class="add" @click=${() => set("modes", [...modes, { label: "", icon: "mdi:account-switch-outline" }])}>${t("+ modus")}</button>
       <div class="hint">${t("De modi staan in het Meer-menu; een actieve modus verschijnt in de meldingenregel van de startpagina.")}</div>`),
@@ -238,11 +214,11 @@ export function renderSettings(p) {
   };
 
   return html`<section class="settings page">
-    <header class="phead"><div><h1>${t("Instellingen")}</h1><div class="psub">${t("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · HaCasa Nova ${VERSION}${(su => su ? html` · <a class="upd" @click=${su.open}>${t("{v} beschikbaar", { v: String(su.to).replace(/^v/, "") })}</a>` : nothing)(selfUpdate(p))}</div></div>
+    <header class="phead"><div><h1>${t("HaCasa instellingen")}</h1><div class="psub">${t("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · HaCasa Nova ${VERSION}${(su => su ? html` · <a class="upd" @click=${su.open}>${t("{v} beschikbaar", { v: String(su.to).replace(/^v/, "") })}</a>` : nothing)(selfUpdate(p))}</div></div>
       <div class="actions">
-        ${p.saved ? html`<span class="ok">${t("Opgeslagen")}</span>` : dirty ? html`<span class="dirty"><ha-icon icon="mdi:circle-medium"></ha-icon>${t("Niet opgeslagen")}</span>` : nothing}
+        ${p.saved ? html`<span class="ok"><ha-icon icon="mdi:check-circle-outline"></ha-icon>${t("Opgeslagen")}</span>` : dirty ? html`<span class="dirty"><ha-icon icon="mdi:circle-medium"></ha-icon>${t("Niet opgeslagen")}</span>` : nothing}
         <button class=${dirty ? "primary pulse" : "primary"} @click=${() => p.saveSettings()}>${t("Opslaan")}</button>
-        <button @click=${() => { if (confirm(t("Alle panelinstellingen van deze gebruiker wissen en terug naar de standaard?"))) p.resetSettings(); }}>${t("Alles herstellen")}</button>
+        <button @click=${() => { if (confirm(t("Alle HaCasa-instellingen van deze gebruiker wissen en terug naar de standaard?"))) p.resetSettings(); }}>${t("Alles herstellen")}</button>
         <button @click=${() => { if (!dirty || confirm(t("Wijzigingen niet opgeslagen. Toch sluiten?"))) p.go(null); }}>${t("Sluiten")}</button>
       </div></header>
     <div class="sbody">
@@ -265,6 +241,19 @@ export const settingsStyles = `
   .settings .pcard h2{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.95;margin-bottom:14px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
   .settings .pcard h2 small{font-size:12px;letter-spacing:0;text-transform:none;font-weight:500;opacity:.8;text-align:right;line-height:1.4}
   .settings .dsec{margin-top:14px}
+  .settings .dgrid{display:grid;grid-template-columns:repeat(auto-fill,calc(var(--card-w) * .62 + 22px));gap:12px}
+  .settings .dtile{display:flex;flex-direction:column;gap:10px;padding:10px;border-radius:var(--r-sm);background:rgba(255,255,255,.06);border:1px solid var(--line);text-align:left;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s}
+  .settings .dtile:hover{background:rgba(255,255,255,.12);border-color:var(--line-on)}
+  .settings .dpv{position:relative;width:calc(var(--card-w) * .62);height:calc(var(--card-h) * .62);max-width:100%;overflow:hidden;border-radius:6px;pointer-events:none}
+  .settings .dsc{position:absolute;top:0;left:0;width:var(--card-w);height:var(--card-h);transform:scale(.62);transform-origin:0 0}
+  .settings .dsc .card{animation:none;width:var(--card-w);height:var(--card-h);margin:0}
+  .settings .dnone{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px dashed var(--line);border-radius:6px;color:var(--fg-3);text-align:center}
+  .settings .dnone ha-icon{--mdc-icon-size:26px}
+  .settings .dnone small{font-size:11px;font-weight:500}
+  .settings .dl{padding:0 2px 2px}
+  .settings .dl b{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+  .settings .dl b i{font-style:normal;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(255,255,255,.9);color:#1d1d1f;font-size:10px;display:inline-grid;place-items:center}
+  .settings .dl small{display:block;font-size:11px;font-weight:500;color:var(--fg-3);margin-top:3px;line-height:1.35}
   .settings .dsec h4 .link{margin-left:auto;border:0;background:none;color:var(--fg-3);font:inherit;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
   .settings .dsec h4{display:flex;align-items:center;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--fg-2);margin:0 0 8px 2px}
   .settings .chk3{display:flex;gap:14px;font-weight:600}
@@ -280,6 +269,9 @@ export const settingsStyles = `
   .settings .rooms li{display:flex;align-items:center;gap:6px;padding:10px 14px;margin-bottom:6px;background:rgba(255,255,255,.09);border-radius:var(--r-sm);font-size:14px;font-weight:600;opacity:.8;line-height:1.3}
   .settings .rooms li.on{opacity:1;background:rgba(255,255,255,.2)}
   .settings .rooms li span{flex:1;min-width:0}
+  .settings .rooms li span.grip{flex:none;display:grid;place-items:center;width:26px;margin:-6px 2px -6px -6px;padding:6px 0;cursor:grab;touch-action:none;opacity:.6}
+  .settings .rooms li span.grip ha-icon{--mdc-icon-size:20px}
+  .settings .rooms li.drag{background:rgba(255,255,255,.3);box-shadow:0 8px 24px rgba(0,0,0,.25)}
   .settings .rooms li small{display:block;font-size:12px;font-weight:500;opacity:.8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .settings button{border:0;border-radius:var(--r-sm);background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:13px;font-weight:700;padding:9px 13px;cursor:pointer}
   .settings button.on,.settings button.primary{background:rgba(255,255,255,.4)}
@@ -296,11 +288,17 @@ export const settingsStyles = `
   .settings .actions button.pulse{animation:pulse 1.6s ease-in-out infinite}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
   @media (max-width:900px){
+    .settings.page{padding-top:calc(96px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))}   /* no eyebrow line above the title here, so less room under the top bar */
+    .settings .phead{margin-bottom:20px}
     .settings .sbody{grid-template-columns:1fr}
     .settings .tabs{flex-direction:row;overflow-x:auto;position:static;scrollbar-width:none;padding-bottom:2px}
     .settings .tabs button{flex:none;padding:8px 12px}
     .settings .tabs button small{display:none}
     .settings .f{grid-template-columns:1fr}
+    .settings .dgrid{grid-template-columns:1fr 1fr;gap:8px}
+    .settings .dtile{padding:8px;gap:8px}
+    .settings .dpv{width:calc(var(--card-w) * .55);height:calc(var(--card-h) * .55)}
+    .settings .dsc{transform:scale(.55)}
     .settings .row,.settings .row.r4{grid-template-columns:1fr}
     .settings .actions{justify-content:flex-start}
     .settings .actions button{height:38px;padding:0 14px;font-size:11px}

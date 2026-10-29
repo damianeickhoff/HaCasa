@@ -4,7 +4,7 @@ HaCasa Nova looks and works best when it fills the whole screen and is the first
 
 ## 1. Make it your start page
 
-Open HaCasa Nova and go to **More → Panel settings → General → HA start page**, then press **Make HaCasa Nova the start page**. From then on Home Assistant opens on HaCasa Nova instead of the Overview.
+Open HaCasa Nova and go to **More → HaCasa settings → General → HA start page**, then press **Make HaCasa Nova the start page**. From then on Home Assistant opens on HaCasa Nova instead of the Overview.
 
 This is a setting per user, so do it once for every person in the house (and on their own login).
 
@@ -28,7 +28,7 @@ For a tablet on the wall:
 
 - Use a **kiosk browser**, such as Fully Kiosk Browser on Android, so the browser bars disappear and the screen stays on.
 - Log in with a **separate Home Assistant user** for the tablet, and give that user the start page and hidden sidebar from steps 1 and 2.
-- Turn on the **idle screen** under **More → Panel settings → General → Idle screen after**: after a few minutes without touch the panel dims to the clock, the weather and a status line, and a touch wakes it.
+- Turn on the **idle screen** under **More → HaCasa settings → General → Idle screen after**: after a few minutes without touch the panel dims to the clock, the weather and a status line, and a touch wakes it.
 - Set up the **doorbell popup** under **Settings → Motion & doorbell**, so the camera appears when someone rings.
 
 ## Also worth it

@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/logo/hacasa-banner.svg" alt="HaCasa" width="280">
-
-# HaCasa Nova
+<img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/header.webp" alt="HaCasa Nova: a modern, room-first panel for your Home Assistant" width="100%">
 
 **The HaCasa reboot.** A room-first Home Assistant panel, built on the [Homio](https://github.com/iamtherufus/Homio) design by [iamtherufus](https://github.com/iamtherufus).
 
@@ -14,11 +12,13 @@
 
 [Documentation](https://damianeickhoff.github.io/HaCasa/) · [Demo video](https://damianeickhoff.github.io/HaCasa/#demo) · [Install](#install) · [Discussions](https://github.com/damianeickhoff/HaCasa/discussions) · [Discord](https://discord.gg/2Xgtqm8Xmw) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
 
-<a href="https://damianeickhoff.github.io/HaCasa/#demo"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/demo/poster-play.webp" alt="HaCasa Nova: watch the 40-second demo" width="100%"></a>
-
-<sub>▶ Click to watch the 40-second demo</sub>
-
 </div>
+
+<details>
+<summary><b>▶ Watch the 40-second demo</b></summary>
+<br>
+<a href="https://damianeickhoff.github.io/HaCasa/#demo"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/demo/poster-play.webp" alt="HaCasa Nova: watch the 40-second demo" width="100%"></a>
+</details>
 
 > ⚠️ **HaCasa Nova is a work in progress and needs testing.** This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
 
@@ -45,7 +45,7 @@ The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus
 | **Attention** | Unavailable devices, low batteries, pending updates and persistent notifications in one place, with one-tap install for updates. |
 | **Popups** | Every card opens a detailed popup: brightness, colour and colour temperature, climate modes, media volume, history of the last 24 hours, and a shortcut to Home Assistant's own dialog. |
 | **Per-card settings** | Name, icon, tap and hold behaviour, bottom line, custom action buttons and template overrides per card, plus defaults per card type. |
-| **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, Dutch, English and German. |
+| **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, [several languages](https://damianeickhoff.github.io/HaCasa/extras/#language). |
 | **Phone and tablet** | Built for wall tablets and phones alike: the strip becomes a two-column grid on phones. |
 
 ## Screenshots
@@ -133,7 +133,7 @@ Inside a card the rooms are routed through the URL hash (`#/kitchen`), so the da
 
 Put a photo per room in `/config/www/images/rooms/`, named after the area: `Living room` → `living-room.jpg` (`.jpeg`, `.png` and `.webp` work too). The home view uses `home.jpg`. You can also set a picture on the area in Home Assistant, or choose a photo per page in the panel settings. Rooms without a photo get a calm gradient.
 
-That's it. Everything else lives in the panel: **More → Panel settings**.
+That's it. Everything else lives in the panel: **More → HaCasa settings**.
 
 > 💡 **For the best experience**, make HaCasa Nova your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://damianeickhoff.github.io/HaCasa/best-experience/) in the docs, which also has tips for wall tablets.
 
@@ -145,7 +145,7 @@ The full guide is at **[damianeickhoff.github.io/HaCasa](https://damianeickhoff.
 
 - **Admin features.** Template cards and your own ticker lines use Home Assistant's template renderer, installing updates calls `update.install`, and the System page asks the Supervisor for host info. These need an administrator account; for other users those parts stay empty.
 - **Fonts.** The panel uses [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk) from Google Fonts. Without internet access it falls back to the system font.
-- **Languages.** English, Dutch and German, following your Home Assistant language. Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/damianeickhoff/HaCasa/tree/main/src/lang), see [CONTRIBUTING](https://github.com/damianeickhoff/HaCasa/blob/main/CONTRIBUTING.md#translations).
+- **Languages.** Follows your Home Assistant language; see the [list of languages](https://damianeickhoff.github.io/HaCasa/extras/#language). Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/damianeickhoff/HaCasa/tree/main/src/lang), see [CONTRIBUTING](https://github.com/damianeickhoff/HaCasa/blob/main/CONTRIBUTING.md#translations).
 
 ## Community
 
@@ -164,7 +164,7 @@ The original button-card based HaCasa is kept on the [`legacy`](https://github.c
 
 ```bash
 npm install
-npm run watch            # rebuilds dist/hacasa-nova.js on every change
+npm run watch            # rebuilds dev/build/hacasa-nova.js on every change
 npx http-server .. -p 8097 -c-1
 # open http://localhost:8097/<this folder>/dev/index.html
 npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one

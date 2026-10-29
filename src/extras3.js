@@ -19,7 +19,7 @@ export const spark = (rows, w = 160, h = 30) => {
   if (!rows || rows.length < 2) return svg`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h - 1}" x2="${w}" y2="${h - 1}" stroke="rgba(255,255,255,.3)" stroke-width="1"/></svg>`;
   const t0 = rows[0].t, t1 = rows[rows.length - 1].t || t0 + 1, max = Math.max(...rows.map(r => r.v), 0.0001);
   const pts = rows.map(r => `${((r.t - t0) / (t1 - t0 || 1) * w).toFixed(1)},${(h - 2 - r.v / max * (h - 4)).toFixed(1)}`);
-  return svg`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polygon points="0,${h} ${pts.join(" ")} ${w},${h}" fill="rgba(255,255,255,.15)"/><polyline points=${pts.join(" ")} fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  return svg`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polygon points="0,${h} ${pts.join(" ")} ${w},${h}" fill="rgba(255,255,255,.15)"/><polyline class="draw" pathLength="1" points=${pts.join(" ")} fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 };
 
 /* ---------- network card: download + upload with sparklines (system page) ---------- */

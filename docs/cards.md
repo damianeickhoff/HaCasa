@@ -167,7 +167,7 @@ A live snapshot that refreshes every few seconds without flicker; tap for the st
 </figure>
 <figure markdown>
 ![Agenda card](assets/cards/agenda.webp)
-<figcaption>Agenda: the next events from your calendars</figcaption>
+<figcaption>Agenda: the next events from your calendars; the popup is a week grid</figcaption>
 </figure>
 <figure markdown>
 ![Scenes card](assets/cards/scenes.webp)
@@ -179,11 +179,33 @@ A live snapshot that refreshes every few seconds without flicker; tap for the st
 </figure>
 </div>
 
-Waste pickups work with the Afvalbeheer and Afvalwijzer integrations and any sensor with a date. The weather card shows on the home view when the weather block in the header is hidden (on phones, for example), or always with **Settings → Home page → Weather card**.
+Waste pickups work with the Afvalbeheer and Afvalwijzer integrations and any sensor with a date. Attention, Weather, Household, Security and Agenda are on the home view by default; the thermostat, waste, scenes and energy cards are added through *Add card*.
+
+## More home view cards
+
+Seven more cards can sit on the home view. Security and Household appear by themselves when the entities exist. List, Timers, Car, Solar and Garden are added through *Add card*; Car and Garden are set up in their card settings, Solar takes its sensors under **Settings → Energy**.
+
+| card | shows | needs |
+|---|---|---|
+| **Security** | the alarm state, open doors and windows, locks and the number of cameras in one card; the popup arms the alarm, lists what is open, locks and unlocks, and shows every camera | an alarm panel or a lock |
+| **Household** | everyone with their picture (grey when away), who is away and since when, the zone they are in, or *on the way · 12 km · 14 min* when the [Proximity](https://www.home-assistant.io/integrations/proximity/) integration or a travel-time sensor named after the person exists | person entities |
+| **List** | the first open items of a to-do list with a tick box each; the popup has the whole list, an add field and *Clear completed* | a `todo` entity (Home Assistant's shopping list counts); the card picks a shopping list by itself, another list is chosen in its card settings |
+| **Timers** | running timers counting down, with +5 / +15 / +60 minutes; idle timers start from the card or the popup | `timer` helpers |
+| **Car** | the charge as a ring, the range, charging power and when the battery is full; a start / stop button when a switch is set | the battery sensor, the rest optional (card settings) |
+| **Solar** | solar power now, today's yield, the home battery and how much of your use is your own power; bars of today's yield | a solar power sensor under Settings → Energy, optionally a daily sensor and a battery |
+| **Garden** | watering zones as buttons, the next run and today's rain | switches or valves per zone (card settings) |
+
+**Air quality** is a room card: a room with a CO₂, VOC, fine dust (PM2.5 / PM10), AQI, NO₂ or ozone sensor gets one, with up to four readings rated good / so-so / poor, a one-line advice ("CO₂ is high: open a window") and the humidity. It can be placed on the home view too through *Add card → Air quality*.
 
 ## Groups
 
-**Settings → Groups** combines several lights, switches or plugs into one card, placed in a room or on the home view. Style *tiles* shows a master switch with a chip per member; *list* shows the members as rows.
+A group combines several lights, or several switches, plugs and fans, into one card, placed in a room or on the home view (*Add card → Group*). A group is either a **light group** or a **plug group**; the kind decides which entities you can pick as members.
+
+Three styles: *tiles* shows a chip per member that toggles that one; *list* shows the members as rows; *counter* shows how many are on as a big number with a progress line and the names of the lit members under it.
+
+A light group gets the light card's bottom line: **Bottom** in the card's ⋯ settings offers *brightness steps* and *colours* (colour dots or warm / neutral / cool white, depending on what the members support), and a tap sends that to every light in the group. Groups also take the tap and hold behaviour and up to three action buttons like any other card; an action button without an `entity_id` targets all members.
+
+The group's popup lists the members; a tap toggles one, holding it opens that light, fan or switch in its own popup (with an arrow back to the group). A light group with dimmable lights also gets a brightness slider there: *together* moves every light at once, *per light* shows one slider under each light.
 
 ## Graphs
 

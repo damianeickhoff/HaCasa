@@ -1,12 +1,16 @@
 // Card renderers. Each returns a lit template. `p` is the panel (for hass, popups, services).
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
+import { directive, Directive, PartType } from "lit/directive.js";
 import { classMap } from "lit/directives/class-map.js";
 import { icon, isOn, unavailable, num, relTime, shortDate, sinceText, domain } from "./util.js";
 import { name, deviceName } from "./model.js";
 import { applianceState, applianceEnd, eventWhen, nextEvent } from "./extras2.js";
 import { spark } from "./extras3.js";
+import { tw } from "./motion.js";
+import { sky, feelsLike } from "./sky.js";
 import { graphCard, stepGraph } from "./graph.js";
+import { peopleCard, securityCard, todoCard, todoEntity, evCard, evReady, timersCard, timerList, solarCard, solarReady, gardenCard, gardenReady } from "./cards2.js";
 import "./camsnap.js";
 
 const HOLD_MS = 500;
@@ -56,12 +60,22 @@ const OWN_RE = [[/cpu|chip|memory/, "chip"], [/harddisk|disk|database/, "harddis
   [/lightning|flash/, "electric"], [/server/, "server"], [/timer|clock/, "timer"], [/lan|network|wifi|ethernet|router/, "access_point"], [/update|restart|reload/, "update"],
   [/motion|walk/, "motion"], [/door/, "door"], [/window/, "window"], [/lightbulb|lamp/, "lamp"], [/home/, "home"], [/television|monitor/, "tv"], [/fan/, "fan"]];
 const ownFor = mdi => OWN[mdi] || (mdi?.startsWith("mdi:") ? OWN_RE.find(([re]) => re.test(mdi))?.[1] : null);
-export const ico = (mdi, svg) => (svg = svg || ownFor(mdi)) ? html`<img class="ico" src=${icon(svg)} alt="">` : html`<ha-icon icon=${mdi}></ha-icon>`;
+/** "hacasa:<name>" = one of our own icons (icons/<name>.svg; hacasa:logo = the mark) */
+export const ownName = v => typeof v === "string" && v.startsWith("hacasa:") ? (v.slice(7) === "logo" ? "hacasa" : v.slice(7)) : null;
+export const ico = (mdi, svg) => (svg = svg || ownName(mdi) || ownFor(mdi)) ? html`<img class="ico" src=${icon(svg)} alt="">` : html`<ha-icon icon=${mdi}></ha-icon>`;
+/** an icon exactly as chosen, never swapped for one of ours: hacasa:… is our SVG (as a mask, so it takes the colour and the
+    --mdc-icon-size of wherever it sits, like ha-icon), anything else goes to Home Assistant */
+export const anyIco = v => ownName(v) ? html`<ha-icon class="own" style=${`--own:url("${icon(ownName(v))}")`}></ha-icon>` : html`<ha-icon icon=${v}></ha-icon>`;
+/** the user's icon when one is set, else the default (which may map onto our own set) */
+export const uico = (v, mdi, svg) => v ? anyIco(v) : ico(mdi, svg);
 /** per-card user settings (name, icon, tap behaviour, hidden) */
 /* ---------- per-card behaviour: panel-wide defaults per card type, overridden per card ---------- */
 /** card type used for the defaults: entity domain, "plug" for a switch with a power meter, "appliance" for devices with a programme */
 export const cardType = (p, id) => id.startsWith("device:") ? "appliance" : id.split(".")[0];
-export const cardCfg = (p, id) => ({ ...((p.config.cardDefaults || {})[cardType(p, id)] || {}), ...(p._preview?.id === id ? p._preview.draft : (p.config.cards || {})[id] || {}) });   // _preview: the card form's draft, while its preview renders
+export const cardCfg = (p, id) => {
+  const type = cardType(p, id), dp = p._prevDef?.type === type ? p._prevDef : null;   // _prevDef: the Card defaults form's draft, while its preview renders (per-card settings left out)
+  return { ...(dp ? dp.draft : (p.config.cardDefaults || {})[type] || {}), ...(dp ? {} : p._preview?.id === id ? p._preview.draft : (p.config.cards || {})[id] || {}) };   // _preview: the card form's draft, while its preview renders
+};
 /** a rendered visibility template counts as false when it is one of these (or empty) */
 export const condFalse = v => /^(false|0|no|off|none|unknown|unavailable|)$/i.test(String(v ?? "").trim());
 /** is the card hidden by its visibility condition? `key` is its entry in p.templates ("card:<id>" or a template card id).
@@ -72,6 +86,18 @@ export function condHidden(p, key, tpl, invert) {
   if (r.visible === undefined) return true;
   const f = condFalse(r.visible); return invert ? !f : f;
 }
+/** hidden by a condition {visEntity, visOp, visValue} (a comparison on an entity state) or {tplVisible} (Jinja, rendered as p.templates[tplKey]);
+    tplVisibleInvert flips it. Used by cards and status pills */
+export function condHiddenBy(p, c, tplKey) {
+  if (c.visEntity) {
+    const s = p.hass.states[c.visEntity]; if (!s) return false;
+    const v = s.state, w = String(c.visValue ?? ""), n = num(v), m = num(w);
+    const ok = c.visOp === "ne" ? v !== w : c.visOp === "gt" ? (n != null && m != null && n > m) : c.visOp === "lt" ? (n != null && m != null && n < m) : v === w;
+    return c.tplVisibleInvert ? ok : !ok;
+  }
+  if (c.tplVisible) return condHidden(p, tplKey, c.tplVisible, c.tplVisibleInvert);
+  return false;
+}
 /** tap / hold handlers from the settings: tap = toggle (default when the card can toggle) | popup | more | none; hold = popup (default) | more | none */
 export function pressFor(p, id, toggle, popup) {
   const cfg = cardCfg(p, id), run = k => k === "toggle" && toggle ? toggle : k === "popup" ? popup : k === "more" ? () => p.moreInfo(id.startsWith("device:") ? cfg.key || id : id) : k === "none" ? () => {} : null;
@@ -80,12 +106,13 @@ export function pressFor(p, id, toggle, popup) {
 }
 /** classes that hide the name, subtitle or corner state when the user switched them off */
 export const infoCls = cfg => ({ noname: !!cfg.hideName, nosub: !!cfg.hideSub, nostate: !!cfg.hideState });
-/** user-defined action buttons (label, icon, domain.service, JSON data) on the bottom line */
-export function customActions(p, id) {
+/** user-defined action buttons (label, icon, domain.service, JSON data) on the bottom line; `target` = the entity_id used
+    when the data has none (default: the card's own id; a group passes its members) */
+export function customActions(p, id, target) {
   const acts = (cardCfg(p, id).actions || []).filter(a => a && a.label && a.service);
   if (!acts.length) return nothing;
-  const run = a => ev => { ev.stopPropagation(); const [d, s] = a.service.split("."); let data = {}; try { data = a.data ? JSON.parse(a.data) : {}; } catch {} if (!data.entity_id && !id.startsWith("device:")) data.entity_id = id; p.call(d, s, data); };
-  return html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>${acts.slice(0, 3).map(a => html`<button @click=${run(a)}>${a.icon ? html`<ha-icon icon=${a.icon}></ha-icon>` : nothing}${a.label}</button>`)}</div>`;
+  const run = a => ev => { ev.stopPropagation(); const [d, s] = a.service.split("."); let data = {}; try { data = a.data ? JSON.parse(a.data) : {}; } catch {} if (!data.entity_id && !id.startsWith("device:")) data.entity_id = target || id; p.call(d, s, data); };
+  return html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>${acts.slice(0, 3).map(a => html`<button @click=${run(a)}>${a.icon ? anyIco(a.icon) : nothing}${a.label}</button>`)}</div>`;
 }
 /** text override for a field ("state" = corner, "label" = subtitle, "foot" = bottom line) when the card has a template for it */
 export const ovr = (p, id, field) => { const v = p.templates?.["card:" + id]?.[field]; return v == null || v === "" ? null : String(v); };
@@ -93,7 +120,7 @@ export const hasActs = (p, id) => (cardCfg(p, id).actions || []).some(a => a && 
 
 export const label = (p, e) => cardCfg(p, e.id).name || name(p.hass, e);
 export const isHidden = (p, id) => !!cardCfg(p, id).hidden;
-export const icoFor = (p, id, mdi, svg) => { const c = cardCfg(p, id).icon; return c ? html`<ha-icon icon=${c}></ha-icon>` : ico(mdi, svg); };
+export const icoFor = (p, id, mdi, svg) => uico(cardCfg(p, id).icon, mdi, svg);
 /** tap/hold wiring honouring the per-card "tap" override: toggle (default) or popup */
 const toggleOrPopup = (p, id, toggle, popup) => pressFor(p, id, toggle, popup);
 
@@ -135,22 +162,28 @@ export function batteryCorner(p, e) {
 export const batteryOf = (p, e) => e?.reg?.device_id ? p.rooms.flatMap(r => r.ents.battery).find(x => x.reg?.device_id === e.reg.device_id) || null : null;
 function lightBottom(p, e, s, on, pct) {
   const cfg = cardCfg(p, e.id), caps = lightCaps(s), mode = cfg.bottom || (caps.dim ? "steps" : "none");
-  const act = data => ev => { ev.stopPropagation(); p.call("light", "turn_on", { entity_id: e.id, ...data }); };
+  if (mode === "today") return todayBottom(p, e.id, cfg);
+  return lightLane(mode, caps, cfg, lightState(s), data => p.call("light", "turn_on", { entity_id: e.id, ...data }));
+}
+/** what the bottom lane needs to know about a light: on, brightness %, current colour / colour temperature */
+export const lightState = s => { const on = isOn(s), a = s?.attributes || {}; return { on, pct: on ? Math.round((a.brightness || 255) / 2.55) : 0, rgb: on && a.rgb_color ? a.rgb_color : null, kelvin: on ? num(a.color_temp_kelvin) : null, ctWord: on ? ctWord(s) : "" }; };
+/** the light card's bottom lane: brightness steps or colour dots (mode "steps" | "colors"; anything else = nothing).
+    Shared with light groups, which pass the combined capabilities and state of their members and a call that targets all of them. */
+export function lightLane(mode, caps, cfg, st, call) {
+  const act = data => ev => { ev.stopPropagation(); call(data); };
   if (mode === "steps" && caps.dim) {
-    const near = on ? [25, 50, 75, 100].reduce((a, b) => Math.abs(b - pct) < Math.abs(a - pct) ? b : a) : null;
+    const near = st.on ? [25, 50, 75, 100].reduce((a, b) => Math.abs(b - st.pct) < Math.abs(a - st.pct) ? b : a) : null;
     return html`<div class="lbl steps" @click=${ev => ev.stopPropagation()}>${[25, 50, 75, 100].map(v => html`<button class=${classMap({ on: near === v })} @click=${act({ brightness_pct: v })}>${v}</button>`)}</div>`;
   }
   if (mode === "colors" && (caps.rgb || caps.ct)) {
-    const a = s?.attributes || {};
     if (caps.rgb) {
-      const cols = (cfg.colors || DEFAULT_COLORS).map(h => [h, hex2rgb(h)]).filter(x => x[1]).slice(0, 6), cur = on && a.rgb_color ? a.rgb_color : null;
+      const cols = (cfg.colors || DEFAULT_COLORS).map(h => [h, hex2rgb(h)]).filter(x => x[1]).slice(0, 6), cur = st.rgb;
       const d = c => cur ? Math.hypot(c[0] - cur[0], c[1] - cur[1], c[2] - cur[2]) : 1e9, best = cur ? cols.reduce((x, y) => d(y[1]) < d(x[1]) ? y : x) : null;
-      return html`<div class="lbl cols" @click=${ev => ev.stopPropagation()}>${cols.map(([h, c]) => html`<button class=${classMap({ on: best === cols.find(x => x[0] === h) && d(c) < 60 })} style="background:${h}" @click=${act({ rgb_color: c })}></button>`)}${on && ctWord(s) ? html`<span>${ctWord(s)}</span>` : nothing}</div>`;
+      return html`<div class="lbl cols" @click=${ev => ev.stopPropagation()}>${cols.map(([h, c]) => html`<button class=${classMap({ on: best === cols.find(x => x[0] === h) && d(c) < 60 })} style="background:${h}" @click=${act({ rgb_color: c })}></button>`)}${st.ctWord ? html`<span>${st.ctWord}</span>` : nothing}</div>`;
     }
-    const k = on ? num(a.color_temp_kelvin) : null, best = k != null ? TONES.reduce((x, y) => Math.abs(y[1] - k) < Math.abs(x[1] - k) ? y : x) : null;
+    const k = st.kelvin, best = k != null ? TONES.reduce((x, y) => Math.abs(y[1] - k) < Math.abs(x[1] - k) ? y : x) : null;
     return html`<div class="lbl cols" @click=${ev => ev.stopPropagation()}>${TONES.map(tn => html`<button class=${classMap({ on: best === tn })} style="background:${tn[0]}" title=${t(tn[2])} @click=${act({ color_temp_kelvin: tn[1] })}></button>`)}${best ? html`<span>${t(best[2])}</span>` : nothing}</div>`;
   }
-  if (mode === "today") return todayBottom(p, e.id, cfg);
   return nothing;
 }
 /** warm / neutral / cool white for a light in colour-temperature mode */
@@ -218,7 +251,7 @@ export function mediaView(p, e) {
   const a = info?.attributes || {}, mainOff = main?.state === "off" || main?.state === "standby";
   const app = appInfo(a.app_name || main?.attributes?.app_name || (cands.find(s => s.attributes.app_name && s.state !== "off")?.attributes.app_name) || main?.attributes?.source);
   const title = a.media_series_title && a.media_title ? `${a.media_series_title} · ${a.media_title}` : a.media_title || null;
-  return { main, info, app, title, artist: a.media_artist || null, art: !mainOff || active(info) ? a.entity_picture || null : null,
+  return { main, info, app, title, artist: a.media_artist || null, art: !mainOff || active(info) ? a.entity_picture_local || a.entity_picture || null : null,   // _local = HA's proxy; the raw URL can be http on the LAN (Music Assistant) and gets blocked
     playing: cands.some(s => s.state === "playing"), paused: info?.state === "paused", off: mainOff && !cands.some(active), ctl: info && info !== main && active(info) ? info.entity_id : e.id };
 }
 
@@ -298,12 +331,12 @@ export function climateCard(p, s, title = t("Verwarming")) {
   const action = s.attributes.hvac_action ? ({ heating: t("Verwarmt"), cooling: t("Koelt"), idle: t("Rust"), off: t("Uit"), drying: t("Droogt"), fan: t("Ventileert") }[s.attributes.hvac_action] || s.attributes.hvac_action) : on ? ({ heat: t("Verwarmen"), cool: t("Koelen"), auto: t("Auto"), heat_cool: t("Auto"), dry: t("Drogen"), fan_only: t("Ventileren") }[s.state] || s.state) : t("Uit");
   const lo = num(s.attributes.min_temp) ?? 7, hi = num(s.attributes.max_temp) ?? 35, v = target != null ? Math.max(0, Math.min(100, (target - lo) / (hi - lo) * 100)) : 0;
   const setTo = val => p.call("climate", "set_temperature", { entity_id: s.entity_id, temperature: +val.toFixed(1) });
-  return html`<div class=${classMap({ card: true, climate: true, on, unavailable: un })}
+  return html`<div class=${classMap({ card: true, climate: true, on, unavailable: un, heating: s.attributes.hvac_action === "heating", cooling: s.attributes.hvac_action === "cooling" })}
       ${pressDir(p, { tap: () => p.openPopup({ type: "climate", s }) })}>
-    ${un ? ua() : nothing}
+    ${un ? ua() : nothing}<i class="hglow"></i>
     <div class="i">${icoFor(p, s.entity_id, "mdi:radiator", "heating")}</div>
     <div class="c">${un ? t("Onbereikbaar") : action}</div>
-    <div class="s big">${un ? t("Onbereikbaar") : cur != null ? `${cur.toFixed(1)}°` : target != null ? `${target.toFixed(1)}°` : s.state}</div>
+    <div class="s big">${un ? t("Onbereikbaar") : cur != null ? tw(`${cur.toFixed(1)}°`) : target != null ? tw(`${target.toFixed(1)}°`) : s.state}</div>
     <div class="n">${title}</div>
     ${modes.length > 1 ? html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>
       ${modes.length > 1 ? modes.slice(0, 4).map(m => html`<button class=${classMap({ mode: true, on: s.state === m })} title=${m} @click=${() => p.call("climate", "set_hvac_mode", { entity_id: s.entity_id, hvac_mode: m })}><ha-icon icon=${MI[m] || "mdi:thermostat"}></ha-icon></button>`) : nothing}
@@ -336,7 +369,7 @@ export function sensorCard(p, e, kind) {
 /* ---------- fan / lock / vacuum / humidifier ---------- */
 export function fanCard(p, e) {
   const s = e.state, on = isOn(s), un = unavailable(s), pct = num(s?.attributes?.percentage);
-  return html`<div class=${classMap({ card: true, vs: pct != null, on, unavailable: un, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })}
+  return html`<div class=${classMap({ card: true, fan: true, vs: pct != null, on, unavailable: un, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })}
       ${pressDir(p, toggleOrPopup(p, e.id, () => p.call("fan", "toggle", { entity_id: e.id }), () => p.openPopup({ type: "fan", e })))}>
     ${un ? ua() : nothing}
     <div class="i">${icoFor(p, e.id, "mdi:fan", "fan")}</div>
@@ -410,7 +443,7 @@ function plugCard(p, a, st, title, cfg, acts) {
   return html`<div class=${classMap({ card: true, plug: true, appl: acts.length > 0, hasspk: mode === "spark" && !!h?.spark?.length, on, unavailable: st.st === "unknown", ...infoCls(cfg) })}
       ${pressDir(p, pressFor(p, a.id, sw ? () => p.call("switch", "toggle", { entity_id: sw.id }) : null, () => p.openPopup({ type: "appliance", a })))}>
     ${st.st === "unknown" ? ua() : nothing}
-    <div class="i">${ico(cfg.icon || "mdi:power-plug-outline", "plug")}</div>
+    <div class="i">${uico(cfg.icon, "mdi:power-plug-outline", "plug")}</div>
     <div class="c">${ovr(p, a.id, "state") ?? (left != null ? html`<i></i>${t("uit over {n} min", { n: left })}` : st.st === "unknown" ? t("Geen meting") : plain ? (on ? t("Aan") : t("Uit")) : st.st === "running" ? t("Bezig") : st.st === "done" ? t("Klaar") : on ? (W > 0.5 ? t("Standby") : t("Aan")) : t("Uit"))}</div>
     <div class="s big">${W ?? "–"}<small>W</small></div>
     <div class="n">${title}</div>
@@ -435,7 +468,7 @@ export function applianceCard(p, a) {
   return html`<div class=${classMap({ card: true, appl: acts.length > 0, on: APPLIANCE_ACTIVE.includes(st.st), running: st.st === "running", unavailable: st.st === "unknown" })}
       ${pressDir(p, { tap: () => p.openPopup({ type: "appliance", a }), hold: () => p.openPopup({ type: "appliance", a }) })}>
     ${st.st === "unknown" ? ua() : nothing}
-    <div class="i">${ico(cfg.icon || applianceIcon(title))}</div>
+    <div class="i">${uico(cfg.icon, applianceIcon(title))}</div>
     <div class="c">${st.label}</div>
     <div class="n">${title}</div><div class="s">${line || st.label}</div>
     ${foot.length ? html`<div class="lbl">${foot.map((x, i) => html`${i ? dot() : nothing}${x}`)}</div>` : nothing}
@@ -450,9 +483,9 @@ export function templateCard(p, tc, i) {
   const state = String(r.state ?? "…").replace(/^!/, "");
   const tap = () => { if (tc.tap === "toggle" && tc.entity) p.call(tc.entity.split(".")[0] === "input_boolean" ? "input_boolean" : "homeassistant", "toggle", { entity_id: tc.entity }); else if (tc.tap === "service" && tc.service) { const [d, s] = tc.service.split("."); let data = {}; try { data = JSON.parse(tc.data || "{}"); } catch {} p.call(d, s, data); } else if (tc.tap === "navigate" && tc.path) p.goPath(tc.path); else if (tc.entity) p.moreInfo(tc.entity); };
   return html`<div class=${classMap({ card: true, on, unavailable: r.error })} ${pressDir(p, { tap, hold: tc.entity ? () => p.moreInfo(tc.entity) : null })}>
-    <div class="n">${tc.name || t("Template")}</div><div class="s">${r.error ? t("Templatefout") : state}</div>
+    <div class="n">${tc.name || t("Template")}</div><div class="s" title=${r.error && p.hass.user?.is_admin ? r.msg || "" : ""}>${r.error ? (p.hass.user?.is_admin ? t("Templatefout") : t("alleen voor beheerders")) : state}</div>
     ${r.label ? html`<div class="lbl">${r.label}</div>` : nothing}
-    <div class="i">${ico(tc.icon || "mdi:code-braces")}</div>
+    <div class="i">${uico(tc.icon, "mdi:code-braces")}</div>
   </div>`;
 }
 
@@ -461,7 +494,7 @@ export function roomScenesCard(p, scenes) {
   return html`<div class="card scenes" ${pressDir(p, {})}>
     <div class="i">${ico("mdi:shape-outline", "shapes")}</div>
     <div class="n">${t("Scènes")}</div>
-    <div class="s">${scenes.slice(0, 4).map(e => html`<button title=${label(p, e)} @click=${ev => { ev.stopPropagation(); p.call("scene", "turn_on", { entity_id: e.id }); }}><ha-icon icon=${cardCfg(p, e.id).icon || e.state?.attributes?.icon || "mdi:palette-outline"}></ha-icon><small>${label(p, e)}</small></button>`)}</div>
+    <div class="s">${scenes.slice(0, 4).map(e => html`<button title=${label(p, e)} @click=${ev => { ev.stopPropagation(); p.call("scene", "turn_on", { entity_id: e.id }); }}>${anyIco(cardCfg(p, e.id).icon || e.state?.attributes?.icon || "mdi:palette-outline")}<small>${label(p, e)}</small></button>`)}</div>
   </div>`;
 }
 /** HA MJPEG stream URL for a camera state (entity_picture -> camera_proxy_stream) */
@@ -492,7 +525,7 @@ export function stripCard(p, st) {
     <div class="s">${un ? t("Onbereikbaar") : on ? t("{n} van {m} aan", { n: on, m: st.switches.length }) : t("Alles uit")}</div>
     <div class="socks">${st.switches.map((e, i) => html`<button class=${classMap({ on: isOn(e.state), unavailable: unavailable(e.state) })} title=${label(p, e)}
         ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: e.id }), hold: () => p.openPopup({ type: "switch", e }) })}>
-        <ha-icon icon=${cardCfg(p, e.id).icon || "mdi:power-socket-eu"}></ha-icon><small>${cardCfg(p, e.id).name || (i + 1)}</small></button>`)}</div>
+        ${anyIco(cardCfg(p, e.id).icon || "mdi:power-socket-eu")}<small>${cardCfg(p, e.id).name || (i + 1)}</small></button>`)}</div>
   </div>`;
 }
 
@@ -533,7 +566,7 @@ export function valueCard(p, e) {
     <div class="i">${icoFor(p, e.id, mdi)}</div>
     ${corner ? html`<div class="c">${corner}</div>` : nothing}
     ${un ? html`<div class="n">${label(p, e)}</div><div class="s">${t("Onbereikbaar")}</div>`
-      : v != null ? html`<div class="s big">${fmtVal(v)}<small>${unit}</small></div><div class="nm">${label(p, e)}</div>`
+      : v != null ? html`<div class="s big">${tw(fmtVal(v))}<small>${unit}</small></div><div class="nm">${label(p, e)}</div>`
       : html`<div class="n">${label(p, e)}</div><div class="s">${ovr(p, e.id, "label") ?? s?.state ?? ""}</div>`}
     <div class="lbl"><span>${ovr(p, e.id, "foot") ?? sinceText(s?.last_changed)}</span></div>
     ${customActions(p, e.id)}${batteryCorner(p, e)}
@@ -579,24 +612,39 @@ export function findCard(p, key, exceptPage) {
   p._noAdded = true;
   try {
     const m = /^room:([^:]+):(.+)$/.exec(key);
-    if (m) { const r = p.rooms.find(x => x.id === m[1]); return r ? p.roomCards(r).find(c => c.key === m[2]) || null : null; }
-    if (exceptPage !== "home") { const c = homeCards(p, p.home).find(c => c.key === key); if (c) return c; }
-    for (const r of p.rooms) if (r.id !== exceptPage) { const c = p.roomCards(r).find(c => c.key === key); if (c) return c; }
+    if (m) { const r = p.rooms.find(x => x.id === m[1]); return r ? p.roomCards(r, true).find(c => c.key === m[2]) || null : null; }
+    if (exceptPage !== "home") { const c = homeCards(p, p.home, true).find(c => c.key === key); if (c) return c; }
+    for (const r of p.rooms) if (r.id !== exceptPage) { const c = p.roomCards(r, true).find(c => c.key === key); if (c) return c; }
     return null;
   } finally { p._noAdded = false; }
 }
 
-export function homeCards(p, h) {
+/** cards the home view shows by itself: attention, weather, household, and security / agenda when the entities exist.
+    Everything else (thermostat, waste, scenes, energy, list, timers, car, solar, garden, a media player …) is picked through Add card and
+    lives in pages.home.add, so the bin in edit mode removes it again. Groups, graphs and template cards made for the home view stay. */
+const HOME_DEFAULT = ["attention", "weather", "people", "security", "agenda"];
+export function homeCards(p, h, all = false) {
+  const list = homeAllCards(p, h);
+  if (all) return list;
+  const added = new Set([...(p.config.pages?.home?.add || []), ...(p.config.pages?.home?.keep || [])]);
+  return list.filter(x => HOME_DEFAULT.includes(x.key) || added.has(x.key) || x.key.startsWith("group:") || x.key.startsWith("graph:") || x.key.startsWith("tpl"));
+}
+function homeAllCards(p, h) {
   const cards = [], add = (key, label, tpl) => cards.push({ key, label, tpl });
   if (h.climate) add("climate", t("Thermostaat"), climateCard(p, h.climate));
-  // media players that are playing or paused (two at most), unless switched off in the settings
-  if (p.config.home?.mediaHome !== false) for (const m of p.rooms.flatMap(r => r.ents.media).filter(e => ["playing", "paused"].includes(e.state?.state) && !isHidden(p, e.id)).slice(0, 2)) add(m.id, label(p, m), mediaCard(p, m));
-  if (h.attention.length) add("attention", t("Aandacht"), html`<div class="card list" ${pressDir(p, { tap: () => p.openPopup({ type: "attention" }) })}>
+  add("attention", t("Aandacht"), html`<div class=${classMap({ card: true, list: true, calm: !h.attention.length })} ${pressDir(p, { tap: () => p.openPopup({ type: "attention" }) })}>
     <div class="i">${ico("mdi:palette-outline", "sparkles")}</div>
-    <div class="c">${h.attention.length} ${h.attention.length === 1 ? t("melding") : t("meldingen")}</div>
+    <div class="c">${h.attention.length ? `${h.attention.length} ${h.attention.length === 1 ? t("melding") : t("meldingen")}` : t("Alles in orde")}</div>
     <div class="n">${t("Aandacht")}</div>
-    <div class="s">${pickAttention(h.attention).map(a => html`<span>${ico(a.icon)}<b>${a.name}</b><em>${a.text}</em></span>`)}</div></div>`);
-  const openCard = (key, title, all, open, popup, mdi, svg) => { const closed = all.filter(e => !open.includes(e)), nm = e => name(p.hass, e);
+    <div class="s">${h.attention.length ? pickAttention(h.attention).map(a => html`<span>${ico(a.icon)}<b>${a.name}</b><em>${a.text}</em></span>`) : html`<span>${t("Geen onbereikbare apparaten, lege batterijen of updates")}</span>`}</div></div>`);
+  // cards new in 3.1: security (with an alarm or a lock), household, to-do list, timers, EV, solar; edit mode hides what you do not want
+  if (h.alarm || p.rooms.some(r => r.ents.locks.length)) add("security", t("Beveiliging"), securityCard(p, h));
+  if (h.persons.length) add("people", t("Huishouden"), peopleCard(p, h));
+  { const td = todoEntity(p); if (td) add("todo", t("Lijst"), todoCard(p, td)); }
+  if (timerList(p).length) add("timers", t("Timers"), timersCard(p));
+  if (evReady(p)) add("ev", t("Auto"), evCard(p));
+  if (solarReady(p)) add("solar", t("Zon"), solarCard(p));
+  const openCard =(key, title, all, open, popup, mdi, svg) => { const closed = all.filter(e => !open.includes(e)), nm = e => name(p.hass, e);
     const latest = all.map(e => e.state?.last_changed).filter(Boolean).sort().at(-1);
     return add(key, title, html`<div class=${classMap({ card: true, on: open.length > 0, foot: true })} ${pressDir(p, { tap: () => p.openPopup({ type: popup }) })}>
       <div class="i">${ico(mdi, svg)}</div>
@@ -604,22 +652,7 @@ export function homeCards(p, h) {
       <div class="n">${title}</div>
       <div class="s">${open.length ? open.slice(0, 2).map((e, i) => html`${i ? html`<br>` : nothing}<b>${nm(e)}</b> ${t("open sinds {t}", { t: relTime(e.state?.last_changed) })}`) : html`${t("Alles dicht")}${dot()}${sinceText(latest)}`}</div>
       <div class="lbl">${footList((open.length ? closed : all).map(nm))}</div></div>`); };
-  if (false) openCard("doors", h.doors.length && h.windows.length ? t("Deuren & ramen") : h.doors.length ? t("Deuren") : t("Ramen"), [...h.doors, ...h.windows], [...h.doorsOpen, ...h.windowsOpen], "doors", h.doors.length ? "mdi:door" : "mdi:window-closed-variant", h.doors.length ? "door" : "window");
-  if (false) { const lastL = h.lights.map(e => e.state?.last_changed).filter(Boolean).sort().at(-1);
-    add("lights", t("Lampen"), html`<div class=${classMap({ card: true, foot: true, on: h.lightsOn.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "lights" }) })}>
-    <div class="i">${ico("mdi:lightbulb-outline", "lamp")}</div>
-    <div class="c">${h.lightsOn.length ? t("{n} aan", { n: h.lightsOn.length }) : t("Uit")}</div>
-    <div class="n">${t("Lampen")}</div>
-    <div class="s">${h.lightsOn.length ? html`<b>${h.lightsOn.length}</b> ${t("van")} <b>${h.lights.length}</b> ${t("lampen aan")}` : html`${t("Alles uit")}${dot()}${sinceText(lastL)}`}</div>
-    <div class="lbl">${footList((h.lightsOn.length ? h.lightsOn : h.lights).map(e => name(p.hass, e)))}</div></div>`); }
-  const heroWx = h.weather && (p.config.home?.wxMobile || !matchMedia("(max-width:900px)").matches);
-  if (h.weather && (p.config.home?.weatherCard || !heroWx)) { const w = h.weather, days = (p.wx?.daily || []).slice(1, 3), dayName = f => new Date(f.datetime).toLocaleDateString(locale(), { weekday: "short" }).replace(".", "");
-    const expect = wxExpect(p, true);
-    add("weather", t("Weer"), html`<div class=${classMap({ card: true, hassub: days.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "weather" }) })}>
-    <div class="i">${ico(condIcon(w.state), condSvg(w.state))}</div>
-    <div class="n">${condText(w.state)}</div><div class="s">${Math.round(num(w.attributes.temperature) ?? 0)}°${expect ? html`${dot()}${expect}` : ""}</div>
-    ${w.attributes.wind_speed ? html`<div class="lbl">${t("wind")} ${Math.round(w.attributes.wind_speed)} ${w.attributes.wind_speed_unit || t("km/u")}</div>` : nothing}
-    ${days.length ? html`<div class="subc">${days.map(f => html`<div><b>${dayName(f)} · ${condText(f.condition)}</b><span>${Math.round(num(f.temperature) ?? 0)}°${num(f.templow) != null ? ` / ${Math.round(num(f.templow))}°` : ""}</span></div>`)}</div>` : nothing}</div>`); }
+  if (h.weather) add("weather", t("Weer"), weatherCard(p, h.weather));
   if (h.waste.length) { const w = h.waste[0], later = h.waste.slice(1, 3);
     add("waste", t("Afval"), html`<div class=${classMap({ card: true, hassub: later.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "waste" }) })}>
     <div class="i">${ico("mdi:trash-can-outline", wasteIcon(w.label))}</div>
@@ -635,17 +668,16 @@ export function homeCards(p, h) {
     <div class="i">${ico("mdi:calendar-blank-outline", "calendar")}</div>
     <div class="n">${ev ? ev.summary : t("Niets gepland")}</div><div class="s">${ev ? eventWhen(ev) : t("vandaag en morgen")}</div>
     ${later.length ? html`<div class="subc">${later.map(x => html`<div><b>${when(x)}</b><span>${x.summary}</span></div>`)}</div><div class="lbl mob"><span>${later[0].allDay ? when(later[0]).replace(t("hele dag"), "").trim() || t("Vandaag") : when(later[0])}${dot()}${later[0].summary}</span></div>` : nothing}</div>`); }
-  // appliances that are busy or just finished (all of them live on their room page)
-  for (const a of p.rooms.flatMap(r => r.ents.appliances)) { if (a.plain) continue; const st = applianceState(p.hass, a, cardCfg(p, a.id).threshold ?? 5); if (APPLIANCE_ACTIVE.includes(st.st)) add(a.id, cardCfg(p, a.id).name || deviceName(p.hass, a.device), applianceCard(p, a)); }
   for (const g of (p.config.groups || []).filter(g => (!g.room || g.room === "home") && g.members?.length)) add("group:" + g.id, g.name || t("Groep"), groupCard(p, g));
   for (const g of (p.config.graphs || []).filter(g => (!g.room || g.room === "home") && g.entity)) add("graph:" + g.id, g.name || t("Grafiek"), graphCard(p, g));
   // template cards placed on the home view
   (p.config.templates || []).filter(tc => (!tc.room || tc.room === "home") && !condHidden(p, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => add(tc.id, tc.name || t("Template"), templateCard(p, tc, i)));
   // cards added to the home view by hand (edit mode → Kaart toevoegen): entities, template instances, the panel's own cards
-  if (!p._noAdded) for (const key of (p.config.pages?.home?.add || [])) { const c = addedCard(p, key, "home"); if (c) add(key, c.label, c.tpl); }
+  if (!p._noAdded) for (const key of (p.config.pages?.home?.add || [])) { if (cards.some(c => c.key === key)) continue; const c = addedCard(p, key, "home"); if (c) add(key, c.label, c.tpl); }
   if (h.energy.power) add("energy", t("Energie"), html`<div class="card" ${pressDir(p, { tap: () => p.openPopup({ type: "energy" }) })}>
-    <div class="n">${t("Energie")}</div><div class="s">${Math.round(num(h.energy.power.state) ?? 0)} W</div>
+    <div class="n">${t("Energie")}</div><div class="s">${tw(`${Math.round(num(h.energy.power.state) ?? 0)} W`)}</div>
     <div class="lbl">${h.energy.today ? t("Vandaag {n} kWh", { n: num(h.energy.today.state)?.toFixed(1) }) : ""}</div><div class="i">${ico("mdi:flash-outline", "electric")}</div></div>`);
+  if (gardenReady(p)) add("garden", t("Tuin"), gardenCard(p));
   return cards;
 }
 
@@ -658,24 +690,78 @@ export function wxExpect(p, short = false) {
   if (short) return soon ? t("{what} rond {t}", { what: t(PRECIP[soon.condition]), t: at }) : p.wx?.hourly?.length ? t("Droog") : "";
   return soon ? t("{what} verwacht rond {t}", { what: t(PRECIP[soon.condition]), t: at }) : p.wx?.hourly?.length ? t("Droog de komende uren") : "";
 }
-/* ---------- group card: user-defined set of lights / switches / fans / plugs ---------- */
-const TOGGLE_DOMAINS = ["light", "switch", "fan", "input_boolean"];
+/* ---------- weather card: the sky of sky.js behind a big temperature, high / low and today's precipitation in the corner,
+   tomorrow as one sentence at the bottom ("Morgen half bewolkt met 16° en 20% kans op regen") ---------- */
+const sameDay = (a, b) => a.toDateString() === b.toDateString();
+/** today's and tomorrow's daily forecast, found by date (some integrations start the list at tomorrow) */
+export function wxDays(p) {
+  const d = p.wx?.daily || [], now = new Date(), tom = new Date(now.getTime() + 864e5);
+  return { today: d.find(f => sameDay(new Date(f.datetime), now)) || null, tomorrow: d.find(f => sameDay(new Date(f.datetime), tom)) || null };
+}
+const snowy = c => c === "snowy" || c === "snowy-rainy";
+const DROP = html`<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1C3.6 3 2.5 4.6 2.5 6.1a2.5 2.5 0 0 0 5 0C7.5 4.6 6.4 3 5 1z" fill="currentColor"/></svg>`;
+const FLAKE = html`<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" aria-hidden="true"><path d="M5 1v8M1.5 3l7 4M1.5 7l7-4M4 1.6 5 2.6 6 1.6M4 8.4l1-1 1 1"/></svg>`;
+/** the condition as a word inside the sentence about tomorrow */
+const wxAdj = c => ({ sunny: t("zonnig"), "clear-night": t("helder"), partlycloudy: t("half bewolkt"), cloudy: t("bewolkt"), rainy: t("regenachtig"), pouring: t("stortregen"), lightning: t("onweerachtig"), "lightning-rainy": t("onweerachtig"),
+  snowy: t("sneeuw"), "snowy-rainy": t("natte sneeuw"), hail: t("hagel"), fog: t("mistig"), windy: t("winderig"), "windy-variant": t("winderig") }[c] || t("wisselvallig"));
+/** the sentence about tomorrow; the chance only from 20%, a flake for snow; short = the phone version without "kans op regen" */
+function tomorrowLine(f, short) {
+  const temp = Math.round(num(f.temperature) ?? 0), pc = num(f.precipitation_probability), wet = pc != null && pc >= 20, snow = snowy(f.condition), what = wxAdj(f.condition);
+  const s = !wet ? t("Morgen {what} met {temp}", { what }) : short ? t("Morgen {what} met {temp} en {chance}", { what })
+    : snow ? t("Morgen {what} met {temp} en {chance} kans op sneeuw", { what }) : t("Morgen {what} met {temp} en {chance} kans op regen", { what });
+  return s.split(/(\{temp\}|\{chance\})/).map(x => x === "{temp}" ? html`<b>${temp}°</b>` : x === "{chance}" ? html`<span class="pp">${snow ? FLAKE : DROP}${Math.round(pc)}%</span>` : x);
+}
+export function weatherCard(p, w) {
+  const a = w.attributes, { today, tomorrow } = wxDays(p), feels = feelsLike(a), temp = Math.round(num(a.temperature) ?? 0);
+  const hi = num(today?.temperature), lo = num(today?.templow), mm = num(today?.precipitation), pc = num(today?.precipitation_probability), snow = snowy(w.state) || snowy(today?.condition);
+  const expect = wxExpect(p) || (a.wind_speed != null ? `${t("wind")} ${Math.round(a.wind_speed)} ${a.wind_speed_unit || t("km/u")}` : "");
+  const rainBit = mm != null ? html`<span class=${classMap({ mm: true, dry: !mm })}>${snow ? FLAKE : DROP}${mm.toLocaleString(locale(), { maximumFractionDigits: 1 })} mm</span>`
+    : pc != null ? html`<span class=${classMap({ mm: true, dry: pc < 20 })}>${snow ? FLAKE : DROP}${Math.round(pc)}%</span>` : nothing;
+  return html`<div class="card wxsky" ${pressDir(p, { tap: () => p.openPopup({ type: "weather" }) })}>
+    ${sky(p, w.state)}
+    <div class="tnow"><b>${tw(String(temp))}<sup>°</sup></b>${feels != null ? html`<span>${t("voelt als {v}", { v: Math.round(feels) + "°" })}</span>` : nothing}</div>
+    ${hi != null || rainBit !== nothing ? html`<div class="c wxc">${hi != null ? html`<span class="hl">${Math.round(hi)}°${lo != null ? html`<em>/${Math.round(lo)}°</em>` : nothing}</span>` : nothing}${rainBit}</div>` : nothing}
+    <div class="n">${condText(w.state)}</div><div class="s">${expect}</div>
+    ${tomorrow ? html`<div class="snt"><span class="lg">${tomorrowLine(tomorrow, false)}</span><span class="sh">${tomorrowLine(tomorrow, true)}</span></div>` : nothing}
+  </div>`;
+}
+/* ---------- group card: user-defined set of lights (kind "light") or switches / fans / plugs (kind "plug") ---------- */
 const svcFor = id => id.split(".")[0] === "input_boolean" ? "input_boolean" : id.split(".")[0] === "light" ? "light" : id.split(".")[0] === "fan" ? "fan" : "switch";
-const memberIcon = id => id.startsWith("light.") ? "lamp" : id.startsWith("fan.") ? "fan" : "plug";
+const memberIcon = x => x.id.startsWith("light.") ? lightIcon(x.s) : x.id.startsWith("fan.") ? "fan" : "plug";
+/** "light" (every member a light: brightness steps and colours on the card) or "plug" (switches, plugs, fans); groups made before the split are told apart by their members */
+export const groupKind = g => g.kind || ((g.members || []).length && g.members.every(id => id.startsWith("light.")) ? "light" : "plug");
 /** members as [{ id, s, on, name }] */
 export const groupMembers = (p, g) => (g.members || []).map(id => { const s = p.hass.states[id]; return s ? { id, s, on: isOn(s), name: cardCfg(p, id).name || s.attributes.friendly_name || id } : null; }).filter(Boolean);
-export function groupCard(p, g) {
-  const id = "group:" + g.id, cfg = cardCfg(p, id), m = groupMembers(p, g), on = m.filter(x => x.on).length, any = on > 0;
+/** what the lights of a group can do together: a capability when any member has it */
+export const groupCaps = m => m.map(x => lightCaps(x.s)).reduce((a, c) => ({ rgb: a.rgb || c.rgb, ct: a.ct || c.ct, dim: a.dim || c.dim }), { rgb: false, ct: false, dim: false });
+/** the state of a light group for the bottom lane: on when any is on, the average brightness of the lit members, the colour of the first lit one */
+const groupLightState = m => {
+  const lit = m.filter(x => x.on).map(x => lightState(x.s));
+  if (!lit.length) return { on: false, pct: 0, rgb: null, kelvin: null, ctWord: "" };
+  const first = lit.find(x => x.rgb) || lit.find(x => x.kelvin != null) || lit[0];
+  return { on: true, pct: Math.round(lit.reduce((a, x) => a + x.pct, 0) / lit.length), rgb: first.rgb, kelvin: first.kelvin, ctWord: first.ctWord };
+};
+export function groupCard(p, g0) {
+  const g = p._preview?.id === "group:" + g0.id && p._preview.gd ? p._preview.gd : g0;   // the card form edits the definition itself; its preview shows the draft
+  const id = "group:" + g.id, cfg = cardCfg(p, id), m = groupMembers(p, g), on = m.filter(x => x.on).length, any = on > 0, kind = groupKind(g);
   const toggleOne = x => ev => { ev.stopPropagation(); p.call(svcFor(x.id), "toggle", { entity_id: x.id }); };
   const all = () => { for (const x of m) p.call(svcFor(x.id), any ? "turn_off" : "turn_on", { entity_id: x.id }); };
   const popup = () => p.openPopup({ type: "group", g });
-  const style = cfg.style || g.style || "tiles";
-  return html`<div class=${classMap({ card: true, group: true, [style]: true, on: any, ...infoCls(cfg) })} ${pressDir(p, pressFor(p, id, cfg.tap === "toggle" ? all : null, popup))}>
-    <div class="i">${ico(g.icon || "mdi:shape-outline", g.icon ? null : "shapes")}</div>
-    <div class="c">${ovr(p, id, "state") ?? (any ? t("{n} van {m} aan", { n: on, m: m.length }) : t("Alles uit"))}</div>
+  const style = cfg.style || g.style || "tiles", ids = m.map(x => x.id);
+  const foot = ovr(p, id, "foot");
+  // bottom lane: a template, else (light groups) the light card's steps / colours aimed at every member, else the count style's track
+  const lane = foot != null ? html`<div class="lbl"><span>${foot}</span></div>`
+    : kind === "light" && ids.length ? lightLane(cfg.bottom || "none", groupCaps(m), cfg, groupLightState(m), data => p.call("light", "turn_on", { entity_id: ids, ...data })) : nothing;
+  const names = m.filter(x => x.on).map(x => x.name).join(" · ");
+  const track = style === "count" && lane === nothing ? html`<div class="lbl track"><span>${any ? names : t("Alles uit")}</span><i style="--v:${m.length ? on / m.length * 100 : 0}%"></i></div>` : nothing;
+  return html`<div class=${classMap({ card: true, group: true, [style]: true, lane: lane !== nothing, on: any, acts: hasActs(p, id), ...infoCls(cfg) })} ${pressDir(p, pressFor(p, id, cfg.tap === "toggle" ? all : null, popup))}>
+    <div class="i">${uico(g.icon, "mdi:shape-outline", "shapes")}</div>
+    <div class="c">${ovr(p, id, "state") ?? (style === "count" ? (kind === "light" ? t("Lampen") : t("Stekkers")) : any ? t("{n} van {m} aan", { n: on, m: m.length }) : t("Alles uit"))}</div>
     <div class="n">${cfg.name || g.name}</div>
-    ${style === "list" ? html`<div class="s glist">${m.slice(0, 4).map(x => html`<div class=${classMap({ on: x.on })}><i></i>${ico(null, memberIcon(x.id))}<span>${x.name}</span><b>${x.on ? t("Aan") : t("Uit")}</b></div>`)}</div>`
-      : html`<div class="s gtiles" @click=${ev => ev.stopPropagation()}>${m.slice(0, 5).map(x => html`<button class=${classMap({ on: x.on })} title=${x.name} @click=${toggleOne(x)}>${ico(null, memberIcon(x.id))}<small>${x.name}</small></button>`)}</div>`}
+    ${style === "count" ? html`<div class="s big">${on}<small>/ ${m.length} ${t("aan")}</small></div>`
+      : style === "list" ? html`<div class="s glist">${m.slice(0, 4).map(x => html`<div class=${classMap({ on: x.on })}><i></i>${ico(null, memberIcon(x))}<span>${x.name}</span><b>${x.on ? t("Aan") : t("Uit")}</b></div>`)}</div>`
+      : html`<div class="s gtiles" @click=${ev => ev.stopPropagation()}>${m.slice(0, 5).map(x => html`<button class=${classMap({ on: x.on })} title=${x.name} @click=${toggleOne(x)}>${ico(null, memberIcon(x))}<small>${x.name}</small></button>`)}</div>`}
+    ${lane}${track}${customActions(p, id, ids)}
   </div>`;
 }
 
@@ -687,6 +773,9 @@ export const wasteSentence = w => w.days == null ? `${w.label}: ${w.state}` : w.
 export const condText = c => ({ "clear-night": t("Helder"), cloudy: t("Bewolkt"), fog: t("Mist"), hail: t("Hagel"), lightning: t("Onweer"), "lightning-rainy": t("Onweer"), partlycloudy: t("Half bewolkt"), pouring: t("Stortregen"), rainy: t("Regen"), snowy: t("Sneeuw"), "snowy-rainy": t("Natte sneeuw"), sunny: t("Zonnig"), windy: t("Winderig"), "windy-variant": t("Winderig"), exceptional: t("Uitzonderlijk") }[c] || c || "");
 /** thin SVG icon for a weather condition (see icons/) */
 export const condSvg = c => ({ "clear-night": "moon", cloudy: "cloud", fog: "fog", hail: "snow", lightning: "lightning", "lightning-rainy": "lightning", partlycloudy: "partly_cloudy", pouring: "pouring", rainy: "rain", snowy: "snow", "snowy-rainy": "snow", sunny: "sun", windy: "wind", "windy-variant": "wind" }[c] || "cloud");
+/** colour weather glyphs (home card, header block, weather popup); the room cards keep the thin-line icons */
+const WX_EMOJI = { sunny: "☀️", "clear-night": "🌙", partlycloudy: "⛅", cloudy: "☁️", rainy: "🌧️", pouring: "🌧️", lightning: "⛈️", "lightning-rainy": "⛈️", snowy: "🌨️", "snowy-rainy": "🌨️", hail: "🌨️", fog: "🌫️", windy: "💨", "windy-variant": "💨", exceptional: "⚠️" };
+export const wxEmoji = c => html`<span class="wxe">${WX_EMOJI[c] || "☁️"}</span>`;
 export const condIcon = c => ({ "clear-night": "mdi:weather-night", cloudy: "mdi:weather-cloudy", fog: "mdi:weather-fog", hail: "mdi:weather-hail", lightning: "mdi:weather-lightning", "lightning-rainy": "mdi:weather-lightning-rainy", partlycloudy: "mdi:weather-partly-cloudy", pouring: "mdi:weather-pouring", rainy: "mdi:weather-rainy", snowy: "mdi:weather-snowy", "snowy-rainy": "mdi:weather-snowy-rainy", sunny: "mdi:weather-sunny", windy: "mdi:weather-windy", "windy-variant": "mdi:weather-windy-variant" }[c] || "mdi:weather-cloudy");
 
 /** Drag on the in-card slider: converts pointer x to percent and calls fn on release (and while dragging, throttled). */
@@ -724,7 +813,6 @@ function vsliderDrag(ev, fn) {
 }
 
 /* press() as a lit directive so it can be used inline in templates */
-import { directive, Directive, PartType } from "lit/directive.js";
 class PressDirective extends Directive {
   constructor(part) { super(part); if (part.type !== PartType.ELEMENT) throw new Error("pressDir on elements only"); }
   update(part, [p, opts]) {

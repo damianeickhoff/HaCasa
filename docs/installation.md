@@ -57,7 +57,7 @@ panel_custom:
     The icon works anywhere Home Assistant takes an icon, for example `icon: hacasa:logo` on your own cards.
 
 !!! tip "Make it the start page"
-    In the panel go to **More → Panel settings → General → HA start page** to open Home Assistant on HaCasa Nova (per user). See [Best experience](best-experience.md) for that, hiding the sidebar and wall tablets.
+    In the panel go to **More → HaCasa settings → General → HA start page** to open Home Assistant on HaCasa Nova (per user). See [Best experience](best-experience.md) for that, hiding the sidebar and wall tablets.
 
 ## 2b. Dashboard card
 
@@ -94,4 +94,4 @@ When a new version is out, administrators see a line in the notification row on 
 Your settings are stored in Home Assistant, not in the file, so updates never touch them.
 
 !!! note
-    The notice comes from the update entity HACS creates (`update.hacasa_nova_update`). Installed without HACS? Then the panel asks GitHub for the latest release, at most twice a day. Turn the notice off under **More → Panel settings → General → Check for updates**.
+    The notice comes from the update entity HACS creates (`update.hacasa_nova_update`). Installed without HACS? Then the panel asks GitHub for the latest release, at most twice a day. Turn the notice off under **More → HaCasa settings → General → Check for updates**.

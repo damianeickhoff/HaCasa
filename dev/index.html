@@ -21,19 +21,22 @@
     });
   }
   import { makeHass } from "./mock-hass.js";
-  await import("../dist/hacasa-nova.js?v=" + Date.now());
+  await import("./build/hacasa-nova.js?v=" + Date.now()); // npm run dev, watch or build
 
   const el = document.createElement("hacasa-nova");
   // dev config: images are served from the www root by http-server, not /local
   // dev config: photos come from /images/rooms/ under the served folder (not part of the repo; rooms without one get a gradient)
   const img = n => `/images/rooms/${n}.png`;
   el.fileConfig = {
+    kept30: true,   // a 3.1 setup: no carrying over of 3.0 cards (delete it from mock:hacasa_nova in localStorage to try that migration)
     title: "Home.", rooms: ["living_room", "kitchen", "bedroom", "dressing_room", "landing", "attic"],
     roomImage: "/images/rooms/{slug}.jpg", homeImage: img("backyard"),
     pages: { living_room: { image: img("livingroom") }, kitchen: { image: img("kitchen") }, bedroom: { image: img("lounge") }, dressing_room: { image: img("dressing") }, landing: { image: img("landing") }, attic: { image: img("office") } },
-    home: { weather: "weather.home", energy: { power: "sensor.p1_power", today: "sensor.p1_energy_today" },
+    home: { weather: "weather.home", energy: { power: "sensor.p1_power", today: "sensor.p1_energy_today", solar: "sensor.solar_power", solarToday: "sensor.solar_energy_today", battery: "sensor.home_battery", batteryPower: "sensor.home_battery_power", price: 0.28 },
+
       waste: [{ entity: "sensor.waste_bio", label: "Bio" }, { entity: "sensor.waste_plastic", label: "Plastic" }, { entity: "sensor.waste_paper", label: "Paper" }] },
     more: [],
+    cards: { ev: { battery: "sensor.polestar_battery", range: "sensor.polestar_range", power: "sensor.polestar_charging_power", charging: "binary_sensor.polestar_charging", finish: "sensor.polestar_charge_complete", switch: "switch.wallbox_charging", name: "Polestar" }, garden: { zones: ["switch.sprinkler_lawn", "switch.sprinkler_beds"], next: "sensor.irrigation_next_run", rain: "sensor.rain_today" } },
     templates: [{ id: "tpl1", name: "Outside", icon: "mdi:thermometer", state: "{{ states('weather.home') }}", label: "example", room: undefined }],
     graphs: [{ id: "gr1", entity: "sensor.living_room_temperature", room: "home", hours: 24 }, { id: "gr2", entity: "sensor.living_room_humidity", room: "living_room", hours: 24 }],
   };
@@ -56,7 +59,7 @@
     // animations jump to their end state, so a capture never lands mid-fade
     customElements.whenDefined("hacasa-nova").then(() => el.updateComplete).then(() => {
       const st = document.createElement("style");
-      st.textContent = "*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important}";
+      st.textContent = "*:not(.sky *, .wxi *),*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important}";   // the weather sky and icons keep moving: their end state is empty
       el.shadowRoot.append(st);
     });
   }
