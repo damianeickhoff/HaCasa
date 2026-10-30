@@ -1,5 +1,5 @@
 // Agenda, appliances, history timeline and weather animation.
-import { t, locale } from "./i18n.js";
+import { t, locale, timeOpts } from "./i18n.js";
 import { html, nothing } from "lit";
 import { num, relTime, isOn, unavailable } from "./util.js";
 
@@ -20,7 +20,7 @@ export async function fetchEvents(hass, calendars, days = 2, from = null) {
 export const eventWhen = ev => {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const day = ev.start >= today && ev.start < new Date(today.getTime() + 86400000) ? t("Vandaag") : ev.start < new Date(today.getTime() + 2 * 86400000) ? t("Morgen") : ev.start.toLocaleDateString(locale(), { weekday: "long" });
-  return ev.allDay ? `${day} · ${t("hele dag")}` : `${day} · ${ev.start.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })}`;
+  return ev.allDay ? `${day} · ${t("hele dag")}` : `${day} · ${ev.start.toLocaleTimeString(locale(), timeOpts())}`;
 };
 export const nextEvent = events => events.find(ev => ev.end > new Date()) || null;
 
@@ -28,7 +28,7 @@ export const nextEvent = events => events.find(ev => ev.end > new Date()) || nul
    a plug with a power sensor: "running" while power > threshold; "done" after a run until the plug is used again or `doneMinutes` pass.
    a device with an operation-state sensor (Home Connect …): the state comes straight from the appliance. */
 const memo = new Map(); // power sensor id -> { running: bool, doneAt: Date|null }
-const hm = d => d.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+const hm = d => d.toLocaleTimeString(locale(), timeOpts());
 /** `a` is a model appliance ({ power, switch, op, progress, finish }); `thr` the power threshold in W */
 export function applianceState(hass, a, thr = 5) {
   return a.op ? opState(hass, a) : powerState(hass, { power: a.power.id, entity: a.switch?.id, threshold: thr });
@@ -83,7 +83,7 @@ export const timeline = (rows, kind) => {
   const ons = rows.filter(r => r.s === "on").slice(0, 20);
   if (!ons.length) return html`<div class="sub">${t("Niets gebeurd in de laatste 24 uur")}</div>`;
   const word = kind === "motion" ? t("Beweging") : t("Open");
-  return html`<ul class="tl">${ons.map(r => html`<li><span>${r.t.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })}</span><b>${word}</b><small>${relTime(r.t.toISOString())}</small></li>`)}</ul>`;
+  return html`<ul class="tl">${ons.map(r => html`<li><span>${r.t.toLocaleTimeString(locale(), timeOpts())}</span><b>${word}</b><small>${relTime(r.t.toISOString())}</small></li>`)}</ul>`;
 };
 
 export const extra2Styles = `

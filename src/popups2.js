@@ -3,7 +3,7 @@
 // `ui` carries the popup helpers from popups.js: wrap(title, big, sub, body, cls), li(...), modes(...), range(...).
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { t, tn, locale } from "./i18n.js";
+import { t, tn, locale, timeOpts, hourLabel } from "./i18n.js";
 import { domain, num, isOn, unavailable, relTime, sinceText, icon } from "./util.js";
 import { name, deviceName } from "./model.js";
 import { label, mediaView, condText, condIcon, condSvg, ico, cardCfg, lightCaps, dot } from "./cards.js";
@@ -12,7 +12,7 @@ import { energyFlow } from "./cards2.js";
 import { calendarBody, whenText } from "./calendar.js";
 import { sky, wxIcon, feelsLike } from "./sky.js";
 
-const hm = d => new Date(d).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+const hm = d => new Date(d).toLocaleTimeString(locale(), timeOpts());
 /** colour weather glyphs for the popup (the cards keep the thin-line icons) */
 
 const fmt = (v, d = 1) => v == null ? "–" : v.toLocaleString(locale(), { maximumFractionDigits: d });
@@ -85,7 +85,7 @@ export function weatherPopup(p, pop, ui) {
       <div class="rain">${rain.pts.map((v, i) => { const at = hm(Date.now() + (i + .5) * rain.minutes / rain.pts.length * 60000); return html`<i class=${pop.rainSel === i ? "sel" : ""} style=${`height:${Math.max(4, v / rmax * 100)}%`} data-tip=${`${at} · ${fmt(v)} mm/h`} @click=${() => p.openPopup({ ...pop, rainSel: pop.rainSel === i ? undefined : i })}></i>`; })}</div>
       <div class="bars-x">${[0, .25, .5, .75, 1].map(f => html`<span>${f ? hm(Date.now() + f * rain.minutes * 60000) : t("nu")}</span>`)}</div>` : nothing}
     ${hourly.length ? html`<div class="prow"><span>${t("Per uur")}</span><b>${hourly.some(f => f.precipitation_probability != null) ? t("kans op neerslag") : ""}</b></div>
-      <div class="fc hours h8">${hourly.map((f, i) => html`<div class=${i === 0 ? "now" : ""}>${new Date(f.datetime).toLocaleTimeString(locale(), { hour: "2-digit" })}${wxi(f.condition)}<b>${Math.round(f.temperature)}°</b>${prob(f) ? html`<em>${prob(f)}</em>` : nothing}</div>`)}</div>` : nothing}
+      <div class="fc hours h8">${hourly.map((f, i) => html`<div class=${i === 0 ? "now" : ""}>${new Date(f.datetime).toLocaleTimeString(locale(), timeOpts({ hour: "2-digit" }))}${wxi(f.condition)}<b>${Math.round(f.temperature)}°</b>${prob(f) ? html`<em>${prob(f)}</em>` : nothing}</div>`)}</div>` : nothing}
     ${dfc.length ? html`<div class="prow"><span>${t("Deze week")}</span><b>${Math.round(lo)}° … ${Math.round(hi)}°</b></div>
       <div class="wk">${dfc.map(f => { const d = new Date(f.datetime), isT = d.toDateString() === todayKey, l = num(f.templow), h = num(f.temperature);
         return html`<div class=${classMap({ wd: true, today: isT })}><span>${isT ? t("Vandaag") : d.toLocaleDateString(locale(), { weekday: "short" }).replace(".", "")}</span>${wxIcon(f.condition, 22)}<span class="lo">${l != null ? Math.round(l) + "°" : ""}</span><div class="range"><i style=${`left:${((l ?? h) - lo) / span * 100}%;width:${Math.max(4, ((h ?? l) - (l ?? h)) / span * 100)}%`}></i></div><span class="hi">${h != null ? Math.round(h) + "°" : ""}</span><em>${prob(f)}</em></div>`; })}</div>` : nothing}
@@ -110,7 +110,7 @@ export function energyPopup(p, pop, ui) {
   // today per hour: use, with the solar part laid over it
   const rows = pop.hourly === undefined ? null : pop.hourly, sol = pop.solarHourly || [], max = Math.max(...(rows || []).map(x => x.v), ...sol.map(x => x.v), 0.001), nowH = new Date().getHours();
   const solAt = tm => sol.find(x => x.t.getHours() === tm.getHours())?.v || 0;
-  const bars = rows ? (rows.length ? html`<div class="ebars">${rows.map(x => html`<i class=${classMap({ now: x.t.getHours() === nowH })} style=${`height:${Math.max(3, x.v / max * 100)}%`} title=${`${x.t.getHours()}:00 · ${x.v.toFixed(2)} kWh`}><b style=${`height:${Math.min(100, solAt(x.t) / Math.max(x.v, 0.001) * 100)}%`}></b></i>`)}</div><div class="bars-x"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>` : html`<div class="sub">${t("Nog geen gegevens voor vandaag")}</div>`) : html`<div class="sub">${t("Laden…")}</div>`;
+  const bars = rows ? (rows.length ? html`<div class="ebars">${rows.map(x => html`<i class=${classMap({ now: x.t.getHours() === nowH })} style=${`height:${Math.max(3, x.v / max * 100)}%`} title=${`${hourLabel(x.t, x.t.getHours() + ":00")} · ${x.v.toFixed(2)} kWh`}><b style=${`height:${Math.min(100, solAt(x.t) / Math.max(x.v, 0.001) * 100)}%`}></b></i>`)}</div><div class="bars-x"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>` : html`<div class="sub">${t("Nog geen gegevens voor vandaag")}</div>`) : html`<div class="sub">${t("Laden…")}</div>`;
   // the biggest consumers right now: W sensors, with the switch of the plug they belong to
   const skip = new Set([en.power?.entity_id, cfg.solar, cfg.batteryPower].filter(Boolean));
   const appl = p.rooms.flatMap(rm => rm.ents.appliances.filter(a => a.power).map(a => ({ a, rm })));
