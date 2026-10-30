@@ -3,7 +3,7 @@
 // the ones that need entities picked (Settings → More cards).
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { t, tn, locale } from "./i18n.js";
+import { t, tn, locale, timeOpts } from "./i18n.js";
 import { domain, num, isOn, unavailable, relTime, sinceText, slug } from "./util.js";
 import { pressDir, ico, anyIco, cardCfg, label, dot, camStream, uico, customActions, hasActs, infoCls, ovr } from "./cards.js";
 import { name } from "./model.js";
@@ -153,7 +153,7 @@ function evState(p) {
 }
 export function evCard(p) {
   const e = evState(p), c = evCfg(p), key = "ev", cfg = cardCfg(p, key);
-  const line = e.charging ? [t("Laadt"), e.powerW != null ? `${fmt(e.powerW / 1000, 1)} kW` : null, e.finAt ? t("klaar om {t}", { t: e.finAt.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) }) : null].filter(Boolean).join(" · ") : e.plugged ? t("Aangesloten, laadt niet") : t("Niet aangesloten");
+  const line = e.charging ? [t("Laadt"), e.powerW != null ? `${fmt(e.powerW / 1000, 1)} kW` : null, e.finAt ? t("klaar om {t}", { t: e.finAt.toLocaleTimeString(locale(), timeOpts()) }) : null].filter(Boolean).join(" · ") : e.plugged ? t("Aangesloten, laadt niet") : t("Niet aangesloten");
   const sw = e.sw ? html`<div class="ctl row" @click=${ev => ev.stopPropagation()}><button class=${classMap({ on: isOn(e.sw) })} @click=${() => p.call(domain(c.switch) === "input_boolean" ? "input_boolean" : "switch", "toggle", { entity_id: c.switch })}><ha-icon icon=${isOn(e.sw) ? "mdi:stop" : "mdi:ev-station"}></ha-icon>${isOn(e.sw) ? t("Stop") : t("Laden")}</button></div>` : nothing;
   return html`<div class=${classMap({ card: true, ev: true, on: e.charging, appl: !!e.sw, ...infoCls(cfg) })} style=${`--soc:${Math.max(0, Math.min(100, e.soc ?? 0))}`} ${pressDir(p, { tap: () => p.openPopup({ type: "ev" }) })}>
     <div class="i">${uico(cfg.icon, "mdi:car-electric-outline", "ev_charger")}</div>
@@ -166,7 +166,7 @@ export function evCard(p) {
   </div>`;
 }
 export function evPopup(p, wrap, li, modes) {
-  const e = evState(p), c = evCfg(p), hm = d => d.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+  const e = evState(p), c = evCfg(p), hm = d => d.toLocaleTimeString(locale(), timeOpts());
   const row = (id, mdi, lbl, v, sub) => st(p, id) ? li(mdi, lbl, v, { sub, onclick: () => p.moreInfo(id) }) : nothing;
   return wrap(t("Auto"), e.name, [e.soc != null ? `${Math.round(e.soc)}%` : null, e.rng != null ? `${fmt(e.rng, 0)} ${st(p, c.range)?.attributes.unit_of_measurement || "km"}` : null, e.charging ? t("laadt") : e.plugged ? t("aangesloten") : t("niet aangesloten")].filter(Boolean).join(" · "), html`
     ${e.sw ? modes([{ label: isOn(e.sw) ? t("Stop met laden") : t("Start laden"), on: isOn(e.sw), go: () => p.call(domain(c.switch) === "input_boolean" ? "input_boolean" : "switch", "toggle", { entity_id: c.switch }) }], "n2") : nothing}
@@ -204,7 +204,7 @@ export function timersPopup(p, wrap, li, modes) {
   liveTick(p, "timers", active.length > 0);
   const row = s => { const left = timerLeft(s), nm = s.attributes.friendly_name || s.entity_id;
     return html`<div class=${classMap({ trow: true, on: s.state === "active" })}>
-      <div class="tn">${nm}<small>${s.state === "active" ? t("klaar om {t}", { t: new Date(s.attributes.finishes_at).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) }) : s.state === "paused" ? t("gepauzeerd") : t("staat stil")}${s.attributes.duration ? ` · ${s.attributes.duration}` : ""}</small></div>
+      <div class="tn">${nm}<small>${s.state === "active" ? t("klaar om {t}", { t: new Date(s.attributes.finishes_at).toLocaleTimeString(locale(), timeOpts()) }) : s.state === "paused" ? t("gepauzeerd") : t("staat stil")}${s.attributes.duration ? ` · ${s.attributes.duration}` : ""}</small></div>
       <b class="tv">${left != null ? mmss(left) : "–"}</b>
       <div class="tb">${s.state === "active" ? html`<button @click=${() => p.call("timer", "pause", { entity_id: s.entity_id })}><ha-icon icon="mdi:pause"></ha-icon></button><button @click=${() => p.call("timer", "change", { entity_id: s.entity_id, duration: dur(5) })}>+5</button><button @click=${() => p.call("timer", "cancel", { entity_id: s.entity_id })}><ha-icon icon="mdi:close"></ha-icon></button>`
         : s.state === "paused" ? html`<button class="on" @click=${() => p.call("timer", "start", { entity_id: s.entity_id })}><ha-icon icon="mdi:play"></ha-icon></button><button @click=${() => p.call("timer", "cancel", { entity_id: s.entity_id })}><ha-icon icon="mdi:close"></ha-icon></button>`
@@ -267,7 +267,7 @@ export function gardenPopup(p, wrap, li, modes) {
   return wrap(t("Tuin"), on.length ? tn(on.length, "{n} zone aan", "{n} zones aan") : t("Uit"), t("tik op een zone om te starten of stoppen"), html`
     ${on.length ? modes([{ label: t("Alles uit"), go: () => on.forEach(s => zoneToggle(p, s.entity_id)) }], "n2") : nothing}
     <ul>${zones.map(s => li(zoneOn(s) ? "mdi:water" : "mdi:water-outline", cardCfg(p, s.entity_id).name || s.attributes.friendly_name, zoneOn(s) ? t("Aan") : t("Uit"), { on: zoneOn(s), sub: sinceText(s.last_changed), onclick: () => zoneToggle(p, s.entity_id) }))}
-      ${next ? li("mdi:calendar-clock", t("Volgende beurt"), next.attributes.device_class === "timestamp" && !isNaN(new Date(next.state)) ? new Date(next.state).toLocaleString(locale(), { weekday: "short", hour: "2-digit", minute: "2-digit" }) : next.state, { onclick: () => p.moreInfo(next.entity_id) }) : nothing}
+      ${next ? li("mdi:calendar-clock", t("Volgende beurt"), next.attributes.device_class === "timestamp" && !isNaN(new Date(next.state)) ? new Date(next.state).toLocaleString(locale(), timeOpts({ weekday: "short", hour: "2-digit", minute: "2-digit" })) : next.state, { onclick: () => p.moreInfo(next.entity_id) }) : nothing}
       ${rain ? li("mdi:weather-rainy", t("Regen vandaag"), `${rain.state} ${rain.attributes.unit_of_measurement || "mm"}`, { onclick: () => p.moreInfo(rain.entity_id) }) : nothing}</ul>`);
 }
 

@@ -1,5 +1,5 @@
 // Notifications, energy statistics, alarm keypad and the idle screen.
-import { t, tn, locale } from "./i18n.js";
+import { t, tn, locale, hourLabel } from "./i18n.js";
 import { html, nothing } from "lit";
 import { num, relTime, clock } from "./util.js";
 import { condText, condIcon } from "./cards.js";
@@ -33,7 +33,7 @@ export const bars = (rows, unit = "kWh") => {
   if (!rows) return html`<div class="sub">${t("Geen geschiedenis beschikbaar")}</div>`;
   if (!rows.length) return html`<div class="sub">${t("Nog geen gegevens voor vandaag")}</div>`;
   const max = Math.max(...rows.map(r => r.v), 0.001), now = new Date().getHours();
-  return html`<div class="bars">${rows.map(r => html`<i class=${r.t.getHours() === now ? "now" : ""} style="height:${Math.max(3, r.v / max * 100)}%" title="${r.t.getHours()}:00 · ${r.v.toFixed(2)} ${unit}"></i>`)}</div>
+  return html`<div class="bars">${rows.map(r => html`<i class=${r.t.getHours() === now ? "now" : ""} style="height:${Math.max(3, r.v / max * 100)}%" title="${hourLabel(r.t, r.t.getHours() + ":00")} · ${r.v.toFixed(2)} ${unit}"></i>`)}</div>
     <div class="bars-x"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>`;
 };
 

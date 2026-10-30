@@ -1,4 +1,4 @@
-import { t, locale } from "./i18n.js";
+import { t, locale, timeOpts } from "./i18n.js";
 // Small helpers shared by the panel.
 import ICONS from "hcn:icons";                                 // icons/*.svg as data: URLs (inlined by build.mjs)
 export const BASE = new URL("./", import.meta.url);           // dist/ folder URL at runtime
@@ -27,7 +27,7 @@ const DAY = 86400000;
 export function relTime(iso) {
   if (!iso) return "";
   const d = new Date(iso), now = new Date(), diff = now - d;
-  const hm = d.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+  const hm = d.toLocaleTimeString(locale(), timeOpts());
   if (diff < 60000) return t("nu");
   if (diff < 3600000) return t("{n} min geleden", { n: Math.round(diff / 60000) });
   if (d.toDateString() === now.toDateString()) return hm;
@@ -53,7 +53,7 @@ export function sinceText(iso) {
   if (diff < 3600000) return t("{n} min geleden", { n: Math.round(diff / 60000) });
   return t("sinds {t}", { t: relTime(iso) });
 }
-export const clock = () => new Date().toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+export const clock = () => new Date().toLocaleTimeString(locale(), timeOpts());
 
 // Navigate inside Home Assistant without a full reload.
 export function navigate(path) {

@@ -1,6 +1,6 @@
 // HaCasa Nova: a Home Assistant custom panel (panel_custom) that builds a home view and one
 // page per area, straight from the area/device/entity registries.
-import { t, locale, setLang, pickLang, inText } from "./i18n.js";
+import { t, locale, setLang, setTimeFormat, pickLang, inText, timeOpts, hourLabel } from "./i18n.js";
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
@@ -33,7 +33,7 @@ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 /** "Thuis." -> Thuis + an accent dot; any other title stays as it is */
 const brandTitle = s => html`<span class="bt">${s}</span>`;
 
-const eventWhenShort = ev => ev.allDay ? t("hele dag") : ev.start.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+const eventWhenShort = ev => ev.allDay ? t("hele dag") : ev.start.toLocaleTimeString(locale(), timeOpts());
 const BUILD = Math.floor(Date.now() / 3600000).toString(36);   // changes every hour: replaced photos show up after a reload
 const FONT = "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap";
 const DEFAULT_CONFIG = { rooms: "auto", roomImage: "/local/images/rooms/{slug}.jpg", homeImage: "/local/images/rooms/home.jpg", home: {}, more: [] };   // no room cap by default (#146); Settings → Kamers can set one
@@ -170,6 +170,7 @@ class HacasaNova extends LitElement {
   willUpdate(changed) {
     if (!this.hass) return;
     setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
+    setTimeFormat(this.hass.locale);
     const still = !!this.config.noMotion || matchMedia("(prefers-reduced-motion: reduce)").matches; this.classList.toggle("still", still); setMotion(!still);
     if (changed.has("popup")) { const was = changed.get("popup"); if (was && !this.popup) ghost(this, ".overlay", "pop-out", 200); else if (was?.menu && this.popup && !this.popup.menu && this.popup.type === was.type) ghost(this, ".pmenu", "menu-out", 170, (c, el) => { const r = el.getBoundingClientRect(); c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;right:auto;bottom:auto;width:${r.width}px`; }); }
     if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this._unsubNotif = subscribeNotifications(this.hass, list => { this.notifications = list; }); this.subscribeTemplates(); }
@@ -404,7 +405,7 @@ class HacasaNova extends LitElement {
     const [use, sun, pw, sol] = await Promise.all([en.today ? hourlyToday(this.hass, en.today.entity_id) : null, en.returned ? hourlyToday(this.hass, en.returned.entity_id) : null, en.power ? fetchNumeric(this.hass, [en.power.entity_id], 24) : null, solarId ? hourlyToday(this.hass, solarId) : null]);
     const rows = pw?.[en.power?.entity_id] || [], peak = rows.length ? rows.reduce((a, b) => b.v > a.v ? b : a) : null;
     if (en.power) this.netHist = { ...(this.netHist || {}), [en.power.entity_id]: rows.filter(r => r.t > Date.now() - 3 * 3600000) };
-    this.energyHist = { at: Date.now(), use: use || [], sun: sun || [], sol: sol || [], peak: peak ? { v: peak.v, t: new Date(peak.t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) } : null };
+    this.energyHist = { at: Date.now(), use: use || [], sun: sun || [], sol: sol || [], peak: peak ? { v: peak.v, t: new Date(peak.t).toLocaleTimeString(locale(), timeOpts()) } : null };
   }
   /** plug with a meter: 3 h of power for the sparkline, today's kWh per hour from the recorder */
   async loadPlug(id, powerId, energyId) {
@@ -597,7 +598,7 @@ class HacasaNova extends LitElement {
       <div class="big">${wxIcon(w.state, 58)}<div class="t">${tw(String(Math.round(num(a.temperature) ?? 0)))}<sup>°</sup></div></div>
       <div class="cnd">${condText(w.state)}${wxExpect(this) ? html`<i class="dt"></i>${wxExpect(this)}` : nothing}</div>
       ${line ? html`<div class="hl">${line}</div>` : nothing}
-      ${hours.length || tomorrow ? html`<div class="wbar">${hours.map(f => html`<div>${t("{h}u", { h: new Date(f.datetime).getHours() })}${wxIcon(f.condition, 24)}<b>${Math.round(num(f.temperature) ?? 0)}°</b></div>`)}
+      ${hours.length || tomorrow ? html`<div class="wbar">${hours.map(f => html`<div>${hourLabel(new Date(f.datetime), t("{h}u", { h: new Date(f.datetime).getHours() }))}${wxIcon(f.condition, 24)}<b>${Math.round(num(f.temperature) ?? 0)}°</b></div>`)}
         ${tomorrow ? html`<div class="tm">${t("Morgen")}${wxIcon(tomorrow.condition, 24)}<b>${th != null ? Math.round(th) + "°" : ""}${tl != null ? html`<em> / ${Math.round(tl)}°</em>` : nothing}</b></div>` : nothing}</div>` : nothing}
     </div>`;
   }

@@ -1,6 +1,6 @@
 // Full-page views opened from the t("Meer") menu. They use the same cards as the room pages,
 // laid out in a grid with small uppercase section titles. `ha` = the real HA page (button top-right).
-import { t, tn, locale } from "./i18n.js";
+import { t, tn, locale, timeOpts } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { domain, num, isOn, unavailable, isDown, relTime } from "./util.js";
@@ -133,7 +133,7 @@ function system(p) {
   ].filter(Boolean);
   const ha = [
     srow({ icon: "mdi:home-assistant", svg: "home", name: `Home Assistant ${hc.version || core?.version || "?"}`, sub: core?.update_available ? t("Kernupdate beschikbaar") : (hc.location_name || ""), pill: core?.update_available ? t("Update") : "OK", on: !!core?.update_available, tap: () => p.goPath("/config/info") }),
-    boot ? srow({ icon: "mdi:timer-outline", svg: "timer", name: t("Draait sinds"), sub: new Date(boot.state).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), val: relTime(boot.state), tap: more(boot.entity_id) }) : null,
+    boot ? srow({ icon: "mdi:timer-outline", svg: "timer", name: t("Draait sinds"), sub: new Date(boot.state).toLocaleString(locale(), timeOpts({ day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })), val: relTime(boot.state), tap: more(boot.entity_id) }) : null,
     srow({ icon: "mdi:shape-outline", svg: "shapes", name: t("Entiteiten"), sub: `${Object.keys(p.hass.devices || {}).length} ${t("apparaten")} · ${Object.keys(p.hass.areas || {}).length} ${t("ruimtes")}`, val: fmt(Object.keys(st).length, 0), tap: () => p.goPath("/config/entities") }),
     srow({ icon: "mdi:robot-outline", svg: "robot", name: t("Automatiseringen"), sub: autos.filter(unavailable).length ? t("{n} met fouten", { n: autos.filter(unavailable).length }) : t("Aan"), val: `${autos.filter(a => a.state === "on").length} / ${autos.length}`, tap: () => p.goPath("__automatiseringen__") }),
   ].filter(Boolean);
