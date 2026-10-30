@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **"Nobody home" while everyone was home (#180).** A person in a zone of their own called *Home* has the state `Home` instead of `home`. Their row in *Who is home* said Home, but the count, the presence pill and the Household card did not count them. They count now.
+
 ## 3.1.0
 
 Everything from the six betas below, plus these changes since beta.6:

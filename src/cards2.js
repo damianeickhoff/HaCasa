@@ -4,7 +4,7 @@
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { t, tn, locale } from "./i18n.js";
-import { domain, num, isOn, unavailable, relTime, sinceText, slug } from "./util.js";
+import { domain, num, isOn, unavailable, relTime, sinceText, slug, atHome } from "./util.js";
 import { pressDir, ico, anyIco, cardCfg, label, dot, camStream, uico, customActions, hasActs, infoCls, ovr } from "./cards.js";
 import { name } from "./model.js";
 import { field, select, selectDoms, text, check } from "./settings.js";
@@ -18,7 +18,7 @@ const initial = s => (s.attributes.friendly_name || s.entity_id).trim().charAt(0
 
 /* =========================================================== household =========================================================== */
 /** where a person is: home, away (with since), or the zone they are in */
-export const personWhere = s => s.state === "home" ? t("Thuis") : s.state === "not_home" ? t("Weg") : Cap(s.state.replace(/_/g, " "));
+export const personWhere = s => atHome(s) ? t("Thuis") : s.state === "not_home" ? t("Weg") : Cap(s.state.replace(/_/g, " "));
 /** Proximity (direction_of_travel + distance) or a travel-time sensor named after the person: "on the way · 12 km · 14 min" */
 export function personTravel(p, s) {
   const keys = [...new Set([s.entity_id.split(".")[1], slug(s.attributes.friendly_name || "").replace(/-/g, "_"), s.attributes.id ? String(s.attributes.id).toLowerCase() : null, ...(s.attributes.device_trackers || []).map(id => id.split(".")[1])].filter(Boolean))];
@@ -31,14 +31,14 @@ export function personTravel(p, s) {
   return bits.join(" · ");
 }
 export function peopleCard(p, h) {
-  const list = h.persons, home = list.filter(s => s.state === "home"), away = list.filter(s => s.state !== "home");
+  const list = h.persons, home = list.filter(atHome), away = list.filter(s => !atHome(s));
   const where = s => personTravel(p, s) || (s.state === "not_home" ? t("weg sinds {t}", { t: relTime(s.last_changed) }) : personWhere(s));
   const line = away.length ? away.slice(0, 2).map(s => `${s.attributes.friendly_name} · ${where(s)}`).join(" · ") : t("Iedereen is thuis");
   return html`<div class=${classMap({ card: true, people: true, on: home.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "people" }) })}>
     <div class="i">${ico("mdi:account-group-outline", "people")}</div>
     <div class="c">${t("{n} van {m} thuis", { n: home.length, m: list.length })}</div>
     <div class="n">${t("Huishouden")}</div>
-    <div class="s">${list.map(s => html`<span class=${s.state === "home" ? "" : "away"} title=${`${s.attributes.friendly_name} · ${where(s)}`}>${s.attributes.entity_picture ? html`<img src=${s.attributes.entity_picture} alt="">` : initial(s)}</span>`)}</div>
+    <div class="s">${list.map(s => html`<span class=${atHome(s) ? "" : "away"} title=${`${s.attributes.friendly_name} · ${where(s)}`}>${s.attributes.entity_picture ? html`<img src=${s.attributes.entity_picture} alt="">` : initial(s)}</span>`)}</div>
     <div class="lbl"><span>${line}</span></div>
   </div>`;
 }

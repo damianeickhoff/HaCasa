@@ -15,6 +15,8 @@ export const slug = s => (s || "").toLowerCase().normalize("NFD").replace(/[Ì€-Í
 export const domain = id => id.split(".")[0];
 export const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
 export const isOn = s => !!s && ["on", "open", "playing", "heating", "cooling", "home"].includes(s.state);
+/** a person at home: "home", or "Home" when they are in a zone of their own named Home (#180) */
+export const atHome = s => !!s && String(s.state).trim().toLowerCase() === "home";
 export const unavailable = s => !s || s.state === "unavailable" || s.state === "unknown";
 
 export const comfort = v => v == null ? "" : v < 16 ? t("Erg koud") : v < 18 ? t("Fris") : v < 21 ? t("Comfortabel") : t("Warm");

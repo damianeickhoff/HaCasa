@@ -1,6 +1,6 @@
 // Turns the Home Assistant registries + states into the panel's room/home model.
 // Rooms = areas. An entity belongs to an area directly or through its device.
-import { slug, domain, num, isOn, unavailable, isDown, daysUntil } from "./util.js";
+import { slug, domain, num, isOn, unavailable, isDown, daysUntil, atHome } from "./util.js";
 import { t, locale } from "./i18n.js";
 
 const DOOR = ["door", "garage_door", "opening", "garage"];
@@ -217,7 +217,7 @@ export function buildHome(hass, config, rooms, notifications = []) {
   const calendars = h.calendars || Object.values(hass.states).filter(s => domain(s.entity_id) === "calendar").map(s => s.entity_id);
   return {
     calendars, appliances: (h.appliances || []).filter(a => a.power), sun: hass.states["sun.sun"] || null,
-    persons, home: persons.filter(p => p.state === "home").length,
+    persons, home: persons.filter(atHome).length,
     alarm: pick(hass, h.alarm, "alarm_control_panel"),
     climate: pick(hass, h.climate, "climate"),
     weather: pick(hass, h.weather, "weather"),

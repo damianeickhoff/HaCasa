@@ -2,7 +2,7 @@
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { icon, isOn, unavailable, num, relTime, shortDate, domain } from "./util.js";
+import { icon, isOn, unavailable, num, relTime, shortDate, domain, atHome } from "./util.js";
 import { name, deviceName } from "./model.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
@@ -337,8 +337,8 @@ export function renderPopup(p, pop) {
       return wrap(t("Afval"), home.waste[0] ? `${home.waste[0].label} ${wasteWhen(home.waste[0])}` : t("Geen data"), t("Ophaaldagen"), html`
         <ul>${home.waste.map((w, i) => li("mdi:trash-can-outline", html`<i class="dot" style="background:${wasteColor(w.label)}"></i>${w.label}`, wasteWhen(w), { on: i === 0, sub: w.days > 7 && w.date ? new Date(w.date).toLocaleDateString(locale(), { weekday: "long" }) : "" }))}</ul>`);
     case "people":
-      return wrap(t("Wie is thuis"), t("{n} van {m}", { n: home.home, m: home.persons.length }), home.persons.filter(s => s.state === "home").map(s => s.attributes.friendly_name).join(", ") || t("Niemand thuis"), html`
-        <ul>${home.persons.map(s => li("mdi:account-outline", s.attributes.friendly_name, s.state === "home" ? t("Thuis") : s.state === "not_home" ? t("Weg") : s.state, { on: s.state === "home", sub: personTravel(p, s) || relTime(s.last_changed), img: s.attributes.entity_picture || null }))}</ul>`);
+      return wrap(t("Wie is thuis"), t("{n} van {m}", { n: home.home, m: home.persons.length }), home.persons.filter(atHome).map(s => s.attributes.friendly_name).join(", ") || t("Niemand thuis"), html`
+        <ul>${home.persons.map(s => li("mdi:account-outline", s.attributes.friendly_name, atHome(s) ? t("Thuis") : s.state === "not_home" ? t("Weg") : s.state, { on: atHome(s), sub: personTravel(p, s) || relTime(s.last_changed), img: s.attributes.entity_picture || null }))}</ul>`);
     case "weather": return weatherPopup(p, pop, UI());
     case "defaults": {
       const def = DEFAULT_TYPES.find(x => x.type === pop.ctype); if (!def) return nothing;
