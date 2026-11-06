@@ -37,3 +37,19 @@ export function t(key, vars) {
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(v);
   return s;
 }
+
+// 12/24-hour clock (#181): follows the user's Home Assistant profile (hass.locale.time_format) instead of the panel
+// language's locale, which made English always en-GB / 24-hour. "language" uses HA's own language, "system" the browser.
+// Spread last into time options: `toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", ...hc() })`.
+let hcOpts = {}, hcKey;
+export const setTimeFormat = (fmt, hassLang) => {
+  if (hcKey === `${fmt}|${hassLang}`) return; hcKey = `${fmt}|${hassLang}`;
+  let cycle;
+  try {
+    cycle = fmt === "12" ? "h12" : fmt === "24" ? "h23"
+      : new Intl.DateTimeFormat(fmt === "system" ? undefined : hassLang || undefined, { hour: "numeric" }).resolvedOptions().hourCycle;
+  } catch { cycle = undefined; }
+  // 12-hour: no leading zero ("9:05 PM", not "09:05 PM")
+  hcOpts = cycle === "h12" || cycle === "h11" ? { hourCycle: cycle, hour: "numeric" } : cycle ? { hourCycle: "h23" } : {};
+};
+export const hc = () => hcOpts;
