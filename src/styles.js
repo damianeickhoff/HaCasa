@@ -167,7 +167,11 @@ export const styles = css`
   @media (max-width:1100px){ .wx .wbar{display:none} }
 
   /* ===== card strip ===== */
-  .strip{position:absolute;left:var(--pad);right:0;bottom:85px;display:flex;gap:var(--card-gap);overflow-x:auto;scroll-snap-type:none;scrollbar-width:none;padding:6px 0}
+  /* room above and below the cards for their drop shadow (0 12px 32px, plus the 3px hover lift): a scroll container clips
+     both axes, so 6px cut the shadow off. The extra padding is taken off "bottom", so the cards stay where they were; the
+     strip itself lets clicks through, only the cards catch them */
+  .strip{position:absolute;left:var(--pad);right:0;bottom:calc(85px - 42px);display:flex;gap:var(--card-gap);overflow-x:auto;scroll-snap-type:none;scrollbar-width:none;padding:26px 0 48px;pointer-events:none}
+  .strip>*{pointer-events:auto}
   @media (pointer:coarse){ .strip{scroll-snap-type:x proximity} }
   .strip::-webkit-scrollbar{display:none}
   /* soft shadows on the row's edges: right always, left once scrolled */
@@ -747,7 +751,7 @@ export const styles = css`
     .wx .t sup{font-size:16px;line-height:1.4}
     .wx .cnd{margin:0}
     .wx .hl{margin-top:2px}
-    .strip{position:static;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:6px;padding:4px var(--pad) calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));scroll-snap-type:none;scrollbar-width:none}
+    .strip{position:static;pointer-events:auto;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:6px;padding:4px var(--pad) calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));scroll-snap-type:none;scrollbar-width:none}
     .strip::after{display:none}
     .etools{position:static;padding:8px var(--pad) 6px;flex:none}
     .etools button{height:34px;padding:0 14px 0 10px;font-size:10px}
