@@ -473,4 +473,10 @@ export default {
   "Geen onbereikbare apparaten, lege batterijen of updates": "No unreachable devices, empty batteries or updates",
   "In deze ruimte": "In this room",
   "De entiteit hoort al bij deze ruimte; de kaart komt erbij.": "The entity already belongs to this room; the card is added.",
+  "Stekker": "Plug",
+  "Echt uitzetten?": "Really switch off?",
+  "Echt aanzetten?": "Really switch on?",
+  "met bevestiging": "ask first",
+  "alleen meten": "measure only",
+  "alleen meten: geen schakelknop en de kaart schakelt nooit, voor bijv. een koelkast": "measure only: no switch button and the card never switches, e.g. for a fridge",
 };

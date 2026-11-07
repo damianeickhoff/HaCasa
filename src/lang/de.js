@@ -350,4 +350,10 @@ export default {
   "Geen onbereikbare apparaten, lege batterijen of updates": "Keine unerreichbaren Geräte, leeren Batterien oder Updates",
   "In deze ruimte": "In diesem Raum",
   "De entiteit hoort al bij deze ruimte; de kaart komt erbij.": "Die Entität gehört schon zu diesem Raum; die Karte kommt dazu.",
+  "Stekker": "Stecker",
+  "Echt uitzetten?": "Wirklich ausschalten?",
+  "Echt aanzetten?": "Wirklich einschalten?",
+  "met bevestiging": "mit Rückfrage",
+  "alleen meten": "nur messen",
+  "alleen meten: geen schakelknop en de kaart schakelt nooit, voor bijv. een koelkast": "nur messen: keine Schalttaste, und die Karte schaltet nie, z. B. für einen Kühlschrank",
 };

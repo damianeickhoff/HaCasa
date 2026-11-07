@@ -7,7 +7,7 @@ import { name, deviceName } from "./model.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState } from "./extras2.js";
-import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, groupKind, groupCaps, cardType, anyIco, cardCfg } from "./cards.js";
+import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, groupKind, groupCaps, cardType, anyIco, cardCfg, guardPlug } from "./cards.js";
 import { roomPresets, snapshot, applyPreset, presetMatches, installUpdate, pendingUpdates } from "./features.js";
 import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check, condFields } from "./settings.js";
@@ -156,6 +156,7 @@ function cardForm(p, pop) {
         ${dom === "switch" ? row(t("Vermogenssensor"), select(p.hass, "sensor", draft.power, v => upd({ power: v || undefined }), { empty: t("automatisch (zelfde apparaat)"), filter: s => s.attributes.unit_of_measurement === "W" }), t("maakt er een stekkerkaart van (watt, verbruik, timer)")) : nothing}
         ${dom === "switch" && (applianceCapable(p, id) || draft.power) ? row(t("Apparaatfuncties"), html`<input type="checkbox" .checked=${!cur.noAppliance} @change=${e => p.setApplianceMode(id, e.target.checked)}>`, t("bezig / klaar op basis van het vermogen")) : nothing}
         ${appliance ? row(t("Apparaatfuncties"), html`<input type="checkbox" .checked=${!pop.a.plain} @change=${e => p.setApplianceMode(pop.a.key, e.target.checked)}>`, pop.a.op ? t("bezig / klaar volgens het apparaat zelf") : t("bezig / klaar op basis van het vermogen")) : nothing}
+        ${dom === "switch" || (appliance && pop.a.switch) ? row(t("Stekker"), seg("plug", [{ v: "", l: t("schakelen") }, { v: "confirm", l: t("met bevestiging") }, { v: "lock", l: t("alleen meten") }], ""), t("alleen meten: geen schakelknop en de kaart schakelt nooit, voor bijv. een koelkast")) : nothing}
         ${appliance && pop.a.power ? row(t("Drempel (W)"), html`<input type="number" .value=${String(draft.threshold ?? 5)} @change=${e => upd({ threshold: e.target.value === "" || +e.target.value === 5 ? undefined : +e.target.value })}>`, t("boven = bezig")) : nothing}
       </div>
       ${hasPress ? html`<div class="grp">${sh(t("Gedrag"))}
@@ -224,7 +225,7 @@ export function renderPopup(p, pop) {
     case "switch": {
       const s = hass.states[pop.e.id], on = isOn(s), d = pop.e.id.split(".")[0];
       return wrap(roomName, label(p, pop.e), on ? t("Aan") : t("Uit"), html`
-        ${modes([{ label: on ? t("Uitschakelen") : t("Inschakelen"), on, go: () => p.call(d === "input_boolean" ? "input_boolean" : d === "fan" ? "fan" : "switch", "toggle", { entity_id: pop.e.id }) }], "n2")}
+        ${(go => go ? modes([{ label: on ? t("Uitschakelen") : t("Inschakelen"), on, go }], "n2") : nothing)(guardPlug(p, [pop.e.id], label(p, pop.e), on, () => p.call(d === "input_boolean" ? "input_boolean" : d === "fan" ? "fan" : "switch", "toggle", { entity_id: pop.e.id })))}
         <ul>${li("mdi:history", on ? t("Aan sinds") : t("Uit sinds"), relTime(s.last_changed))}${s.attributes.current_power_w ? li("mdi:flash-outline", t("Verbruik"), `${s.attributes.current_power_w} W`) : nothing}</ul>`);
     }
     case "fan": {
@@ -299,7 +300,8 @@ export function renderPopup(p, pop) {
         const fmt = e => { const s = e && hass.states[e.id]; if (!s || unavailable(s)) return null; const v = hass.formatEntityState?.(s) ?? s.state;
           return v === s.state && /_program_/.test(v) ? v.split("_program_").pop().replace(/_/g, " ").replace(/^\w/, c => c.toUpperCase()) : v; };   // untranslated "dishcare_dishwasher_program_auto_2" → "Auto 2"
         const prog = fmt(a.program), door = a.door ? hass.states[a.door.id]?.state : null, canStop = a.stop && ["running", "waiting"].includes(st.st) && hass.states[a.stop.id] && hass.states[a.stop.id].state !== "unavailable";   // a button's normal state is "unknown"
-        const btns = [...(sw ? [{ label: sw.state === "on" ? t("Uitzetten") : t("Aanzetten"), on: sw.state === "on", go: () => p.call("switch", "toggle", { entity_id: a.switch.id }) }] : []), ...(canStop ? [{ label: t("Programma stoppen"), go: () => p.call("button", "press", { entity_id: a.stop.id }) }] : [])];
+        const swGo = sw ? guardPlug(p, [a.id, a.switch.id], title, sw.state === "on", () => p.call("switch", "toggle", { entity_id: a.switch.id })) : null;
+        const btns = [...(swGo ? [{ label: sw.state === "on" ? t("Uitzetten") : t("Aanzetten"), on: sw.state === "on", go: swGo }] : []), ...(canStop ? [{ label: t("Programma stoppen"), go: () => p.call("button", "press", { entity_id: a.stop.id }) }] : [])];
         return wrap(roomName, title, st.label, html`
           ${btns.length ? modes(btns, "n2") : nothing}
           ${st.progress != null && ["running", "waiting"].includes(st.st) ? html`<div class="pbar" style="margin-top:14px;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden"><i style="display:block;height:100%;width:${Math.max(0, Math.min(100, st.progress))}%;background:#fff"></i></div>` : nothing}
@@ -307,7 +309,7 @@ export function renderPopup(p, pop) {
       }
       const ps = hass.states[a.power.id];
       return wrap(roomName, cfg.name || (hass.devices?.[a.device]?.name_by_user || hass.devices?.[a.device]?.name || t("Apparaat")), st.label, html`
-        ${sw ? modes([{ label: sw.state === "on" ? t("Stekker uit") : t("Stekker aan"), on: sw.state === "on", go: () => p.call("switch", "toggle", { entity_id: a.switch.id }) }], "n2") : nothing}
+        ${(go => go ? modes([{ label: sw.state === "on" ? t("Stekker uit") : t("Stekker aan"), on: sw.state === "on", go }], "n2") : nothing)(sw ? guardPlug(p, [a.id, a.switch.id], cfg.name || (hass.devices?.[a.device]?.name_by_user || hass.devices?.[a.device]?.name || t("Apparaat")), sw.state === "on", () => p.call("switch", "toggle", { entity_id: a.switch.id })) : null)}
         <ul>${li("mdi:flash-outline", t("Vermogen nu"), st.power != null ? `${Math.round(st.power)} W` : "–", { onclick: () => p.moreInfo(a.power.id) })}${li("mdi:tune", t("Drempel"), `${thr} W`, { sub: t("aanpassen via ⋯") })}${st.doneAt ? li("mdi:check", t("Klaar sinds"), relTime(st.doneAt.toISOString())) : nothing}${ps ? li("mdi:history", t("Laatste meting"), relTime(ps.last_updated)) : nothing}</ul>
         <div class="sub" style="margin-top:12px">${t("Bezig zolang het vermogen boven de drempel ligt; daarna \"Klaar\" tot het apparaat weer start.")}</div>`);
     }
