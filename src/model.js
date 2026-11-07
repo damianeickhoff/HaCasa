@@ -35,7 +35,10 @@ function wasteDate(s) {
   }
   return null;
 }
-const isOpState = e => e.reg.translation_key === "operation_state" || /_operation_state$/.test(e.id);
+/** WashData (ha_washdata): learns cycles of a washer, dryer or dishwasher from a smart plug's power and reports them on
+    its own device; its "washer_state" sensor plays the part of Home Connect's operation state */
+const isWD = e => e.reg.platform === "ha_washdata";
+const isOpState = e => e.reg.translation_key === "operation_state" || /_operation_state$/.test(e.id) || (isWD(e) && e.reg.translation_key === "washer_state");
 
 function classify(list, config = {}, hass = {}) {
   const r = { lights: [], switches: [], strips: [], media: [], covers: [], climate: [], fans: [], locks: [], vacuums: [], humidifiers: [], scenes: [], cameras: [], appliances: [], power: [], opstate: [], doors: [], windows: [], motion: [], temp: [], hum: [], battery: [], air: [], other: [], values: [], all: list };
@@ -92,7 +95,10 @@ function classify(list, config = {}, hass = {}) {
     const own = list.filter(e => e.reg.device_id === dev), pick = (tk, re) => own.find(e => e.reg.translation_key === tk || re.test(e.id)) || null;
     const sws = r.switches.filter(s => s.reg.device_id === dev), sw = sws.find(s => s.reg.translation_key === "power" || /_power$/.test(s.id)) || null;
     if (config.cards?.[(sw || op).id]?.noAppliance) continue;
-    const more = { op, progress: pick("program_progress", /_program(me)?_progress$/), finish: pick("program_finish_time", /_program(me)?_finish_time$/), door: pick("door", /^sensor\..*_door$/),
+    const tk = k => own.find(e => e.reg.translation_key === k) || null;
+    const more = isWD(op) ? { op, wd: true, program: tk("washer_program"), progress: tk("cycle_progress"), remain: tk("time_remaining"), phase: tk("current_phase"),
+      stop: tk("force_end_cycle"), pause: tk("pause_cycle"), resume: tk("resume_cycle"), unload: tk("mark_unloaded"), maint: tk("maintenance_due"), extra: [], flags: [] }
+      : { op, progress: pick("program_progress", /_program(me)?_progress$/), finish: pick("program_finish_time", /_program(me)?_finish_time$/), door: pick("door", /^sensor\..*_door$/),
       program: pick("active_program", /^select\..*_active_program(me)?$/), stop: pick("stop_program", /^button\..*_stop_program(me)?$/), extra: sws.filter(s => s !== sw),
       flags: r.other.filter(e => e.reg.device_id === dev) };              // e.g. "remote start": shown in the popup
     const prev = r.appliances.find(a => a.device === dev);

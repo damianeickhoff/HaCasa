@@ -54,6 +54,7 @@ function opState(hass, a) {
   const pct = a.progress ? num(hass.states[a.progress.id]?.state) : null;
   const fin = a.finish && !unavailable(hass.states[a.finish.id]) ? new Date(hass.states[a.finish.id].state) : null, end = fin && !isNaN(fin) && fin > Date.now() ? fin : null;
   const base = { power, progress: pct, end };
+  if (a.wd) return wdState(hass, a, os, op, base);
   if (sw?.state === "off" || op === "inactive" || op === "off") return { ...base, st: "off", label: t("Uit") };
   switch (op) {
     case "run": return { ...base, st: "running", label: pct != null ? t("Bezig · {n}%", { n: Math.round(pct) }) : t("Bezig…") };
@@ -66,6 +67,29 @@ function opState(hass, a) {
     case "ready": return { ...base, st: "idle", label: t("Aan") };
   }
   return unavailable(os) ? { ...base, st: "unknown", label: t("Offline") } : { ...base, st: "idle", label: hass.formatEntityState?.(os) ?? os.state };
+}
+/* WashData states: off, idle, starting, running, paused, user_paused, ending, finished, anti_wrinkle, delay_wait,
+   interrupted, force_stopped, clean (dishwasher done, not unloaded yet), unknown. It reports the minutes left (not a
+   finish time): the end is counted from when that value was last updated, so it does not creep along with every render */
+function wdState(hass, a, os, op, base) {
+  const rs = a.remain ? hass.states[a.remain.id] : null, rem = rs ? num(rs.state) : null;
+  const end = rem != null && rem > 0 ? new Date(new Date(rs.last_updated).getTime() + rem * 60000) : null, b = { ...base, end: end && end > Date.now() ? end : null };
+  const pct = b.progress, done = lbl => ({ ...b, st: "done", label: lbl, doneAt: new Date(os.last_changed) });
+  switch (op) {
+    case "off": return { ...b, st: "off", label: t("Uit") };
+    case "idle": return { ...b, st: "idle", label: t("Standby") };
+    case "starting": return { ...b, st: "running", label: t("Start…") };
+    case "running": return { ...b, st: "running", label: pct != null ? t("Bezig · {n}%", { n: Math.round(pct) }) : t("Bezig…") };
+    case "ending": return { ...b, st: "running", label: t("Bijna klaar") };
+    case "paused": case "user_paused": return { ...b, st: "waiting", label: t("Gepauzeerd") };
+    case "delay_wait": return { ...b, st: "waiting", label: t("Start uitgesteld") };
+    case "finished": return done(t("Klaar · {t}", { t: relTime(os.last_changed) }));
+    case "anti_wrinkle": return done(t("Kreukbescherming"));
+    case "clean": return done(t("Schoon, nog uitruimen"));
+    case "interrupted": return { ...b, st: "alert", label: t("Onderbroken") };
+    case "force_stopped": return { ...b, st: "idle", label: t("Afgebroken") };
+  }
+  return unavailable(os) ? { ...b, st: "unknown", label: t("Offline") } : { ...b, st: "idle", label: hass.formatEntityState?.(os) ?? os.state };
 }
 /** "klaar om 19:47" while a program runs, for the card's bottom line */
 export const applianceEnd = st => st.end ? t("klaar om {t}", { t: hm(st.end) }) : "";

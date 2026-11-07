@@ -266,6 +266,10 @@ export const styles = css`
   .card.media .ctl button{flex:1;height:42px;background:rgba(255,255,255,.12);border:1px solid var(--line)}
   .card.media .ctl button.main{flex:1.6;background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
   /* media card without artwork: the running app in its brand colour */
+  /* appliance: maintenance due (WashData) in the bottom line, the program's progress as a thin bar along the bottom edge */
+  .card .lbl b.mt{font-weight:inherit;color:#ffb8a6}
+  .card .apbar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.14)}
+  .card .apbar i{display:block;height:100%;background:rgba(255,255,255,.85);transition:width .6s var(--ease)}
   .card.appart{background:linear-gradient(135deg,color-mix(in srgb,var(--app,#8a8f96) 70%,#1c1c1c) 0%,color-mix(in srgb,var(--app,#8a8f96) 30%,#1c1c1c) 100%)}
   .card.appart .appi{position:absolute;left:calc(var(--card-w) * .17);top:50%;transform:translate(-50%,-50%);--mdc-icon-size:44px;opacity:.95}
   /* light colour tint */

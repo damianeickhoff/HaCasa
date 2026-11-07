@@ -460,18 +460,24 @@ export function applianceCard(p, a) {
   const opS = a.op ? p.hass.states[a.op.id] : null, prog = a.program ? p.hass.states[a.program.id] : null;
   const line = a.op ? applianceEnd(st) || (opS ? sinceText(opS.last_changed) : "") : a.switch ? html`${isOn(a.switch.state) ? t("Stekker aan") : t("Stekker uit")}${dot()}${sinceText(a.switch.state?.last_changed)}` : "";
   const progName = prog && !unavailable(prog) ? String(p.hass.formatEntityState?.(prog) ?? prog.state).split(".").pop().split("_program_").pop().replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2") : "";   // Home Connect enums: Dishcare.Dishwasher.Program.Auto2 or dishcare_dishwasher_program_auto_2 -> Auto 2
-  const foot = [progName, st.progress != null ? `${Math.round(st.progress)}%` : "", st.power != null ? `${Math.round(st.power)} W` : "", a.door && p.hass.states[a.door.id]?.state === "open" ? t("Deur open") : ""].filter(Boolean);
+  const maint = a.maint && p.hass.states[a.maint.id]?.state === "on";   // WashData: descaling, filter … due
+  const bar = st.progress != null && ["running", "waiting"].includes(st.st) ? Math.max(0, Math.min(100, st.progress)) : null;   // the corner already says "50%" then
+  // WashData while off or idle: its program sensor says "off" (shown translated as "Aus"), progress 0 % and 0 W, all noise;
+  // the bottom line is short, so with maintenance due the watts give way
+  const quiet = a.wd && ["off", "idle", "unknown"].includes(st.st), noProg = a.wd && /^(off|none|unknown)$/i.test(prog?.state || "");
+  const foot = [noProg || /^(off|none|unknown)$/i.test(progName) ? "" : progName, maint ? html`<b class="mt">${t("Onderhoud nodig")}</b>` : "", st.progress != null && bar == null && !quiet ? `${Math.round(st.progress)}%` : "", st.power != null && !(a.wd && (quiet || maint)) ? `${Math.round(st.power)} W` : "", a.door && p.hass.states[a.door.id]?.state === "open" ? t("Deur open") : ""].filter(Boolean);
   const acts = [];
-  if (a.stop && !a.plain && ["running", "waiting"].includes(st.st)) acts.push({ icon: "mdi:stop", label: t("Stop"), run: () => p.call("button", "press", { entity_id: a.stop.id }) });
+  if (a.stop && !a.plain && !a.wd && ["running", "waiting"].includes(st.st)) acts.push({ icon: "mdi:stop", label: t("Stop"), run: () => p.call("button", "press", { entity_id: a.stop.id }) });
   if (a.switch && a.op && !unavailable(a.switch.state)) acts.push({ icon: "mdi:power", label: isOn(a.switch.state) ? t("Uit") : t("Aan"), on: isOn(a.switch.state), run: () => p.call("switch", "toggle", { entity_id: a.switch.id }) });
   if (!a.op && a.power) return plugCard(p, a, st, title, cfg, acts);
   return html`<div class=${classMap({ card: true, appl: acts.length > 0, on: APPLIANCE_ACTIVE.includes(st.st), running: st.st === "running", unavailable: st.st === "unknown" })}
       ${pressDir(p, { tap: () => p.openPopup({ type: "appliance", a }), hold: () => p.openPopup({ type: "appliance", a }) })}>
     ${st.st === "unknown" ? ua() : nothing}
-    <div class="i">${uico(cfg.icon, applianceIcon(title))}</div>
+    <div class="i">${uico(cfg.icon, a.wd && opS?.attributes?.icon || applianceIcon(title))}</div>
     <div class="c">${st.label}</div>
     <div class="n">${title}</div><div class="s">${line || st.label}</div>
     ${foot.length ? html`<div class="lbl">${foot.map((x, i) => html`${i ? dot() : nothing}${x}`)}</div>` : nothing}
+    ${bar != null ? html`<div class="apbar"><i style="width:${bar.toFixed(1)}%"></i></div>` : nothing}
     ${acts.length ? html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>${acts.map(x => html`<button class=${classMap({ on: !!x.on })} @click=${x.run}><ha-icon icon=${x.icon}></ha-icon>${x.label}</button>`)}</div>` : nothing}
   </div>`;
 }
