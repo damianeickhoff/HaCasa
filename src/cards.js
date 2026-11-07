@@ -462,7 +462,10 @@ export function applianceCard(p, a) {
   const progName = prog && !unavailable(prog) ? String(p.hass.formatEntityState?.(prog) ?? prog.state).split(".").pop().split("_program_").pop().replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2") : "";   // Home Connect enums: Dishcare.Dishwasher.Program.Auto2 or dishcare_dishwasher_program_auto_2 -> Auto 2
   const maint = a.maint && p.hass.states[a.maint.id]?.state === "on";   // WashData: descaling, filter … due
   const bar = st.progress != null && ["running", "waiting"].includes(st.st) ? Math.max(0, Math.min(100, st.progress)) : null;   // the corner already says "50%" then
-  const foot = [/^(off|none|unknown)$/i.test(progName) ? "" : progName, maint ? html`<b class="mt">${t("Onderhoud nodig")}</b>` : "", st.progress != null && bar == null ? `${Math.round(st.progress)}%` : "", st.power != null ? `${Math.round(st.power)} W` : "", a.door && p.hass.states[a.door.id]?.state === "open" ? t("Deur open") : ""].filter(Boolean);
+  // WashData while off or idle: its program sensor says "off" (shown translated as "Aus"), progress 0 % and 0 W, all noise;
+  // the bottom line is short, so with maintenance due the watts give way
+  const quiet = a.wd && ["off", "idle", "unknown"].includes(st.st), noProg = a.wd && /^(off|none|unknown)$/i.test(prog?.state || "");
+  const foot = [noProg || /^(off|none|unknown)$/i.test(progName) ? "" : progName, maint ? html`<b class="mt">${t("Onderhoud nodig")}</b>` : "", st.progress != null && bar == null && !quiet ? `${Math.round(st.progress)}%` : "", st.power != null && !(a.wd && (quiet || maint)) ? `${Math.round(st.power)} W` : "", a.door && p.hass.states[a.door.id]?.state === "open" ? t("Deur open") : ""].filter(Boolean);
   const acts = [];
   if (a.stop && !a.plain && !a.wd && ["running", "waiting"].includes(st.st)) acts.push({ icon: "mdi:stop", label: t("Stop"), run: () => p.call("button", "press", { entity_id: a.stop.id }) });
   if (a.switch && a.op && !unavailable(a.switch.state)) acts.push({ icon: "mdi:power", label: isOn(a.switch.state) ? t("Uit") : t("Aan"), on: isOn(a.switch.state), run: () => p.call("switch", "toggle", { entity_id: a.switch.id }) });
