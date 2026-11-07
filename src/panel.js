@@ -633,7 +633,7 @@ class HacasaNova extends LitElement {
     const e = r.ents, pc = this.pageCfg(r.id), added = new Set([...(pc.add || []), ...(pc.keep || [])]), ok = x => !isDown(x);
     const def = new Set([...e.lights.filter(ok), ...e.switches.filter(ok), ...e.motion.filter(ok)].map(x => x.id));
     for (const st of e.strips) if (st.switches.some(ok)) def.add(st.id);
-    for (const a of e.appliances) if (a.power && !a.op && !isDown(a.power)) def.add(a.id);
+    for (const a of e.appliances) if (a.power && (!a.op || a.wd) && !isDown(a.power)) def.add(a.id);   // a WashData device shows like the plug it watches
     return list.filter(x => def.has(x.key) || added.has(x.key) || (x.alias || []).some(k => added.has(k)) || x.key.startsWith("group:") || x.key.startsWith("graph:") || x.key.startsWith("tpl") || (x.key.includes(".") && e.all.some(y => y.id === x.key && y.added)));
   }
   roomAllCards(r) {

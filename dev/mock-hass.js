@@ -157,6 +157,20 @@ export function makeHass(onChange) {
   add("calendar.work", null, "off", { friendly_name: "Work" });
   add("sun.sun", null, "above_horizon", { next_rising: new Date(Date.now() + 10 * 3600000).toISOString(), next_setting: new Date(Date.now() + 2 * 3600000).toISOString() });
   add("sensor.washing_machine_power", null, "0", { friendly_name: "Washing machine power", unit_of_measurement: "W", device_class: "power" }, { device: dWas });
+  // WashData (ha_washdata): a learned washer cycle on its own device, from a plug's power
+  const dWd = dev("dev_washdata_dryer", "attic"); devices[dWd].name = "Dryer";
+  const wd = (id, state, attr, tk) => add(id, null, state, attr, { device: dWd, reg: { translation_key: tk, platform: "ha_washdata" } });
+  wd("sensor.dryer_state", "running", { friendly_name: "Dryer State", device_class: "enum", icon: "mdi:tumble-dryer", current_program_guess: "Cotton dry" }, "washer_state");
+  wd("sensor.dryer_program", "Cotton dry", { friendly_name: "Dryer Program", device_class: "enum" }, "washer_program");
+  wd("sensor.dryer_time_remaining", "77", { friendly_name: "Dryer Time remaining", device_class: "duration", unit_of_measurement: "min" }, "time_remaining");
+  wd("sensor.dryer_cycle_progress", "50", { friendly_name: "Dryer Progress", unit_of_measurement: "%", projected_energy_kwh: 0.811, projected_cost: 0.34 }, "cycle_progress");
+  wd("sensor.dryer_current_power", "89.6", { friendly_name: "Dryer Current power", device_class: "power", unit_of_measurement: "W" }, "current_power");
+  wd("sensor.dryer_current_phase", "Spin", { friendly_name: "Dryer Current phase" }, "current_phase");
+  wd("binary_sensor.dryer_maintenance_due", "on", { friendly_name: "Dryer Maintenance due", due_tasks: [{ id: "filter_clean", name: "Clean filter" }] }, "maintenance_due");
+  wd("button.dryer_force_end_cycle", "unknown", { friendly_name: "Dryer Force end cycle" }, "force_end_cycle");
+  wd("button.dryer_pause_cycle", "unknown", { friendly_name: "Dryer Pause cycle" }, "pause_cycle");
+  wd("button.dryer_resume_cycle", "unavailable", { friendly_name: "Dryer Resume cycle" }, "resume_cycle");
+  wd("button.dryer_mark_unloaded", "unavailable", { friendly_name: "Dryer Mark unloaded" }, "mark_unloaded");
   add("scene.living_room_movie", "living_room", "unknown", { friendly_name: "Movie", icon: "mdi:movie-open-outline" });
   add("scene.morning", null, "unknown", { friendly_name: "Morning", icon: "mdi:weather-sunset-up" });
   add("scene.film", null, "unknown", { friendly_name: "Movie", icon: "mdi:movie-open-outline" });
