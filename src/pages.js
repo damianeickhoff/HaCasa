@@ -1,6 +1,6 @@
 // Full-page views opened from the t("Meer") menu. They use the same cards as the room pages,
 // laid out in a grid with small uppercase section titles. `ha` = the real HA page (button top-right).
-import { t, tn, locale } from "./i18n.js";
+import { t, tn, locale, timeOpts } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { domain, num, isOn, unavailable, isDown, relTime } from "./util.js";
@@ -89,7 +89,7 @@ function energy(p) {
   const watts = Object.values(st).filter(s => domain(s.entity_id) === "sensor" && s.attributes.unit_of_measurement === "W" && num(s.state) > 0 && !skip.has(s.entity_id) && !p.hass.entities?.[s.entity_id]?.hidden).sort((a, b) => num(b.state) - num(a.state));
   const nowH = p.netHist?.[en.power?.entity_id];
   const kpis = [
-    kpi({ icon: "mdi:flash-outline", svg: "electric", em: t("Nu"), v: en.power ? fmt(val(en.power), 0) : "–", unit: "W", n: eh.peak ? t("piek vandaag {w} W om {t}", { w: fmt(eh.peak.v, 0), t: eh.peak.t }) : "", on: !!en.power, spark: nowH, tap: en.power ? () => p.moreInfo(en.power.entity_id) : null }),
+    kpi({ icon: "mdi:flash-outline", svg: "electric", em: t("Nu"), v: en.power ? fmt(val(en.power), 0) : "–", unit: "W", n: eh.peak ? t("piek vandaag {w} W om {t}", { w: fmt(eh.peak.v, 0), t: eh.peak.t.toLocaleTimeString(locale(), timeOpts()) }) : "", on: !!en.power, spark: nowH, tap: en.power ? () => p.moreInfo(en.power.entity_id) : null }),
     kpi({ icon: "mdi:home-import-outline", svg: "home", em: t("Verbruik"), v: fmt(val(en.today)), unit: "kWh", n: t("vandaag"), bar: eh.total ? Math.min(100, val(en.today) / Math.max(eh.total, 1) * 100) : null, tap: en.today ? () => p.moreInfo(en.today.entity_id) : null }),
     kpi({ icon: "mdi:solar-power-variant-outline", svg: "solar", em: t("Zon"), v: fmt(val(en.returned)), unit: "kWh", n: t("teruggeleverd"), tap: en.returned ? () => p.moreInfo(en.returned.entity_id) : null }),
     kpi({ icon: "mdi:fire", svg: "gas", em: t("Gas"), v: fmt(val(en.gas)), unit: "m³", n: t("vandaag"), tap: en.gas ? () => p.moreInfo(en.gas.entity_id) : null }),
@@ -133,7 +133,7 @@ function system(p) {
   ].filter(Boolean);
   const ha = [
     srow({ icon: "mdi:home-assistant", svg: "home", name: `Home Assistant ${hc.version || core?.version || "?"}`, sub: core?.update_available ? t("Kernupdate beschikbaar") : (hc.location_name || ""), pill: core?.update_available ? t("Update") : "OK", on: !!core?.update_available, tap: () => p.goPath("/config/info") }),
-    boot ? srow({ icon: "mdi:timer-outline", svg: "timer", name: t("Draait sinds"), sub: new Date(boot.state).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), val: relTime(boot.state), tap: more(boot.entity_id) }) : null,
+    boot ? srow({ icon: "mdi:timer-outline", svg: "timer", name: t("Draait sinds"), sub: new Date(boot.state).toLocaleString(locale(), timeOpts({ day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })), val: relTime(boot.state), tap: more(boot.entity_id) }) : null,
     srow({ icon: "mdi:shape-outline", svg: "shapes", name: t("Entiteiten"), sub: `${Object.keys(p.hass.devices || {}).length} ${t("apparaten")} · ${Object.keys(p.hass.areas || {}).length} ${t("ruimtes")}`, val: fmt(Object.keys(st).length, 0), tap: () => p.goPath("/config/entities") }),
     srow({ icon: "mdi:robot-outline", svg: "robot", name: t("Automatiseringen"), sub: autos.filter(unavailable).length ? t("{n} met fouten", { n: autos.filter(unavailable).length }) : t("Aan"), val: `${autos.filter(a => a.state === "on").length} / ${autos.length}`, tap: () => p.goPath("__automatiseringen__") }),
   ].filter(Boolean);

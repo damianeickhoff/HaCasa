@@ -350,4 +350,13 @@ export default {
   "Geen onbereikbare apparaten, lege batterijen of updates": "Keine unerreichbaren Geräte, leeren Batterien oder Updates",
   "In deze ruimte": "In diesem Raum",
   "De entiteit hoort al bij deze ruimte; de kaart komt erbij.": "Die Entität gehört schon zu diesem Raum; die Karte kommt dazu.",
+  "Tijdnotatie": "Zeitformat",
+  "automatisch (zoals Home Assistant)": "automatisch (wie Home Assistant)",
+  "12-uurs (2:30 PM)": "12 Stunden (2:30 PM)",
+  "24-uurs (14:30)": "24 Stunden (14:30)",
+  "automatisch volgt de tijdnotatie in je Home Assistant-profiel": "automatisch folgt dem Zeitformat in deinem Home-Assistant-Profil",
+  "vraagt het na voordat de kaart schakelt": "fragt nach, bevor die Karte schaltet",
+  "vraagt het na voordat de actie loopt": "fragt nach, bevor die Aktion läuft",
+  "Vraag": "Frage",
+  "optioneel, je eigen tekst in de bevestiging": "optional, dein eigener Text in der Bestätigung",
 };

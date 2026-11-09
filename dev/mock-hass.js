@@ -170,9 +170,11 @@ export function makeHass(onChange) {
   const bumpTodo = () => { states["todo.shopping_list"] = { ...states["todo.shopping_list"], state: String(todoItems.filter(x => x.status !== "completed").length), last_updated: now() }; };
   const notifSubs = [];
   const notifications = [{ notification_id: "update_available", title: "Update available", message: "Home Assistant 2026.10.1 is available.", created_at: ago(40) }];
+  const lang = new URLSearchParams(location.search).get("lang") || "en";
   const hass = {
     user: { id: "u1", name: "Alex", is_admin: true },
-    areas, devices, entities, states, floors, language: new URLSearchParams(location.search).get("lang") || "en",
+    areas, devices, entities, states, floors, language: lang,
+    locale: { language: lang, time_format: new URLSearchParams(location.search).get("time") || "language" },  // ?time=12 | 24 | language | system
     connection: { subscribeMessage(cb, msg) { console.log("[mock] subscribe", msg.type); if (msg.type === "render_template") {
       // like HA with report_errors: an unknown entity ($entity left in) errors, a little later than a normal result; "warn" sends a WARNING first
       if (/\$entity(?!\w)/.test(msg.template)) { setTimeout(() => cb({ error: "UndefinedError: 'None' has no attribute 'last_changed'", level: "ERROR" }), 300); return Promise.resolve(() => {}); }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **12-hour times (#181, #179)**, thanks to jimmy-ungerman. HaCasa now follows the time format in your Home Assistant profile, so English shows "Rain from 2:00 pm" when Home Assistant does. Settings → Appearance → *Time format* lets you pick 12-hour or 24-hour yourself.
+- **Confirm before switching.** Every card that switches on a tap (switches, plugs, lights, fans, locks) has a *Confirm first* option in its settings (⋯), with a question of your own. Meant for the things you do not want to switch by accident.
+- **Template cards can ask first (#184).** A template card that toggles an entity or runs an action has a *Confirm first* option, with a question of your own ("Did you really water the plants?").
+- **Camera popup plays through Home Assistant's own player (#189).** A camera that streams (HLS or WebRTC) now opens in the same player as Home Assistant's details dialog, with sound controls. Cameras without a stream keep the MJPEG view, and when that fails to load the popup tries Home Assistant's player too.
 - **"Nobody home" while everyone was home (#180).** A person in a zone of their own called *Home* has the state `Home` instead of `home`. Their row in *Who is home* said Home, but the count, the presence pill and the Household card did not count them. They count now.
 
 ## 3.1.0

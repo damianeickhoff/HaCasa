@@ -19,6 +19,22 @@ let lang = "nl", dict = null;
 export const setLang = l => { lang = LANGS[l] ? l : "en"; dict = LANGS[lang].dict || null; };
 export const getLang = () => lang;
 export const locale = () => LANGS[lang].locale;
+
+// 12 or 24-hour clock, as set in the Home Assistant profile (Profile → Time format), unless HaCasa's own setting
+// (Settings → Appearance → Time format: "12" or "24") says otherwise. null = whatever the locale uses.
+let h12 = null;
+export const setTimeFormat = (hl, own) => {
+  const f = own === "12" || own === "24" ? own : hl?.time_format;
+  const was = h12;
+  if (f === "12" || f === "24") h12 = f === "12";
+  else if (f !== "language" && f !== "system") h12 = null;   // older Home Assistant, or no profile (dev page)
+  else try { h12 = !!new Intl.DateTimeFormat(f === "language" ? hl.language : undefined, { hour: "numeric" }).resolvedOptions().hour12; } catch { h12 = null; }
+  return was !== h12;   // true when it changed: the panel redraws its clock right away
+};
+/** Intl options for a time of day; pass your own for a date with a time. 12-hour drops the leading zero (2:00 PM). */
+export const timeOpts = (o = { hour: "2-digit", minute: "2-digit" }) => h12 == null ? o : { ...o, hourCycle: h12 ? "h12" : "h23", ...(h12 && o.hour === "2-digit" ? { hour: "numeric" } : {}) };
+/** An hour of the day as a label (forecast bar, chart tooltips): "2 PM" in 12-hour, otherwise `fallback`, the text each place already had. */
+export const hourLabel = (d, fallback) => h12 ? d.toLocaleTimeString(locale(), timeOpts({ hour: "numeric" })) : fallback;
 export const LANGUAGES = Object.fromEntries(Object.entries(LANGS).sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, v]) => [k, v.name]));
 
 // Home Assistant language ("de", "de-CH", "pt-BR", "zh-Hans") → our code: exact match first, then the base language.

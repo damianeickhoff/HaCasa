@@ -3,14 +3,14 @@
 // column with what is on now, what is next, the calendars to hide and the event that was tapped.
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { t, locale } from "./i18n.js";
+import { t, locale, timeOpts } from "./i18n.js";
 import { relTime } from "./util.js";
 
 const DAY = 86400000, HOUR_PX = 44;
 export const CAL_COLORS = ["#7db8ff", "#f2b63a", "#8fd16a", "#c58cff", "#f27a5c", "#5fd4c8", "#ff9ecf", "#d9c27a"];
 export const calColor = (home, cal) => CAL_COLORS[Math.max(0, (home?.calendars || []).indexOf(cal)) % CAL_COLORS.length];
 const calName = (p, cal) => p.hass.states[cal]?.attributes.friendly_name || cal.replace(/^calendar\./, "").replace(/_/g, " ");
-const hm = d => d.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+const hm = d => d.toLocaleTimeString(locale(), timeOpts());
 const sod = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
 /** Monday of the week that holds d */
 const monday = d => { const x = sod(d); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; };

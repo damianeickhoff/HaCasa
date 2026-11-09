@@ -1,5 +1,5 @@
 // Card renderers. Each returns a lit template. `p` is the panel (for hass, popups, services).
-import { t, locale } from "./i18n.js";
+import { t, locale, timeOpts } from "./i18n.js";
 import { html, nothing } from "lit";
 import { directive, Directive, PartType } from "lit/directive.js";
 import { classMap } from "lit/directives/class-map.js";
@@ -99,10 +99,15 @@ export function condHiddenBy(p, c, tplKey) {
   return false;
 }
 /** tap / hold handlers from the settings: tap = toggle (default when the card can toggle) | popup | more | none; hold = popup (default) | more | none */
-export function pressFor(p, id, toggle, popup) {
-  const cfg = cardCfg(p, id), run = k => k === "toggle" && toggle ? toggle : k === "popup" ? popup : k === "more" ? () => p.moreInfo(id.startsWith("device:") ? cfg.key || id : id) : k === "none" ? () => {} : null;
+export function pressFor(p, id, toggle0, popup, title) {
+  const cfg = cardCfg(p, id), toggle = toggle0 && cfg.confirm ? () => confirmFor(p, id, toggle0, title) : toggle0, run = k => k === "toggle" && toggle ? toggle : k === "popup" ? popup : k === "more" ? () => p.moreInfo(id.startsWith("device:") ? cfg.key || id : id) : k === "none" ? () => {} : null;
   const tap = run(cfg.tap) || (toggle || popup), hold = run(cfg.hold) || popup;
   return { tap, hold };
+}
+/** runs `go`, after a "are you sure?" popup when the card has "confirm first" on (per card, in its settings) */
+export function confirmFor(p, id, go, title) {
+  const cfg = cardCfg(p, id); if (!cfg.confirm) return go();
+  p.openPopup({ type: "confirm", title: t("Bevestigen"), big: title || cfg.name || p.hass.states[id]?.attributes.friendly_name || "", sub: cfg.confirmText || t("Weet je het zeker?"), okLabel: t("Ja"), ok: go });
 }
 /** classes that hide the name, subtitle or corner state when the user switched them off */
 export const infoCls = cfg => ({ noname: !!cfg.hideName, nosub: !!cfg.hideSub, nostate: !!cfg.hideState });
@@ -439,9 +444,9 @@ function plugCard(p, a, st, title, cfg, acts) {
   if (mode === "timer") bottom = html`<div class="lbl chips" @click=${ev => ev.stopPropagation()}>${[15, 30, 60].map(m => html`<button class=${classMap({ on: tmr?.min === m })} @click=${() => p.setPlugTimer(a, m)}>${m}</button>`)}</div>`;
   else if (mode === "cost") bottom = price ? html`<div class="lbl cost"><span>${h?.today != null ? html`${t("Vandaag")} <b>${eur(h.today * price)}</b>` : ""}${!on && W > 0.5 ? html`${h?.today != null ? dot() : nothing}${t("Sluipverbruik")} <b>${eur(W * 24 * 30 / 1000 * price)}</b> / ${t("maand")}` : nothing}</span></div>` : html`<div class="lbl"><span>${t("Stel een kWh-prijs in bij Energie")}</span></div>`;
   else if (mode === "bars") bottom = h?.rows ? html`<div class="lbl bars">${h.rows.map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(9, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : html`<div class="lbl"><span>…</span></div>`;
-  else if (mode === "spark" && h?.peak) bottom = html`<div class="lbl"><span>${t("piek {w} W om {t}", { w: h.peak.v, t: new Date(h.peak.t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) })}</span></div>`;
+  else if (mode === "spark" && h?.peak) bottom = html`<div class="lbl"><span>${t("piek {w} W om {t}", { w: h.peak.v, t: new Date(h.peak.t).toLocaleTimeString(locale(), timeOpts()) })}</span></div>`;
   return html`<div class=${classMap({ card: true, plug: true, appl: acts.length > 0, hasspk: mode === "spark" && !!h?.spark?.length, on, unavailable: st.st === "unknown", ...infoCls(cfg) })}
-      ${pressDir(p, pressFor(p, a.id, sw ? () => p.call("switch", "toggle", { entity_id: sw.id }) : null, () => p.openPopup({ type: "appliance", a })))}>
+      ${pressDir(p, pressFor(p, a.id, sw ? () => p.call("switch", "toggle", { entity_id: sw.id }) : null, () => p.openPopup({ type: "appliance", a }), title))}>
     ${st.st === "unknown" ? ua() : nothing}
     <div class="i">${uico(cfg.icon, "mdi:power-plug-outline", "plug")}</div>
     <div class="c">${ovr(p, a.id, "state") ?? (left != null ? html`<i></i>${t("uit over {n} min", { n: left })}` : st.st === "unknown" ? t("Geen meting") : plain ? (on ? t("Aan") : t("Uit")) : st.st === "running" ? t("Bezig") : st.st === "done" ? t("Klaar") : on ? (W > 0.5 ? t("Standby") : t("Aan")) : t("Uit"))}</div>
@@ -481,7 +486,9 @@ export const applianceIcon = n => /was|wash/i.test(n) && !/vaat|dish/i.test(n) ?
 export function templateCard(p, tc, i) {
   const r = p.templates?.[tc.id] || {}, on = /^(on|aan|true|open|playing|home|thuis)$/i.test(String(r.state || "").trim()) || r.state?.startsWith?.("!");
   const state = String(r.state ?? "…").replace(/^!/, "");
-  const tap = () => { if (tc.tap === "toggle" && tc.entity) p.call(tc.entity.split(".")[0] === "input_boolean" ? "input_boolean" : "homeassistant", "toggle", { entity_id: tc.entity }); else if (tc.tap === "service" && tc.service) { const [d, s] = tc.service.split("."); let data = {}; try { data = JSON.parse(tc.data || "{}"); } catch {} p.call(d, s, data); } else if (tc.tap === "navigate" && tc.path) p.goPath(tc.path); else if (tc.entity) p.moreInfo(tc.entity); };
+  // toggle and action can ask first, with a question of your own (#184)
+  const sure = go => tc.confirm ? p.openPopup({ type: "confirm", title: t("Bevestigen"), big: tc.name || t("Template"), sub: tc.confirmText || t("Weet je het zeker?"), okLabel: t("Ja"), ok: go }) : go();
+  const tap = () => { if (tc.tap === "toggle" && tc.entity) sure(() => p.call(tc.entity.split(".")[0] === "input_boolean" ? "input_boolean" : "homeassistant", "toggle", { entity_id: tc.entity })); else if (tc.tap === "service" && tc.service) sure(() => { const [d, s] = tc.service.split("."); let data = {}; try { data = JSON.parse(tc.data || "{}"); } catch {} return p.call(d, s, data); }); else if (tc.tap === "navigate" && tc.path) p.goPath(tc.path); else if (tc.entity) p.moreInfo(tc.entity); };
   return html`<div class=${classMap({ card: true, on, unavailable: r.error })} ${pressDir(p, { tap, hold: tc.entity ? () => p.moreInfo(tc.entity) : null })}>
     <div class="n">${tc.name || t("Template")}</div><div class="s" title=${r.error && p.hass.user?.is_admin ? r.msg || "" : ""}>${r.error ? (p.hass.user?.is_admin ? t("Templatefout") : t("alleen voor beheerders")) : state}</div>
     ${r.label ? html`<div class="lbl">${r.label}</div>` : nothing}
@@ -663,7 +670,7 @@ function homeAllCards(p, h) {
     <div class="n">${t("Scènes")}</div><div class="s">${h.scenes.slice(0, 4).map(s => html`<button title=${s.attributes.friendly_name} @click=${ev => { ev.stopPropagation(); p.call("scene", "turn_on", { entity_id: s.entity_id }); }}><ha-icon icon=${s.attributes.icon || "mdi:palette-outline"}></ha-icon><small>${s.attributes.friendly_name}</small></button>`)}</div></div>`);
   // agenda: next event (events are fetched by the panel into p.events)
   if (h.calendars.length && p.events) { const ev = nextEvent(p.events), later = p.events.filter(x => x !== ev && x.end > new Date()).slice(0, 2);
-    const when = x => { const today = new Date(); today.setHours(0, 0, 0, 0); const d = x.start < new Date(today.getTime() + 86400000) ? "" : x.start < new Date(today.getTime() + 2 * 86400000) ? t("Morgen") + " " : x.start.toLocaleDateString(locale(), { weekday: "short" }).replace(".", "") + " "; return d + (x.allDay ? t("hele dag") : x.start.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })); };
+    const when = x => { const today = new Date(); today.setHours(0, 0, 0, 0); const d = x.start < new Date(today.getTime() + 86400000) ? "" : x.start < new Date(today.getTime() + 2 * 86400000) ? t("Morgen") + " " : x.start.toLocaleDateString(locale(), { weekday: "short" }).replace(".", "") + " "; return d + (x.allDay ? t("hele dag") : x.start.toLocaleTimeString(locale(), timeOpts())); };
     add("agenda", t("Agenda"), html`<div class=${classMap({ card: true, hassub: later.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "agenda" }) })}>
     <div class="i">${ico("mdi:calendar-blank-outline", "calendar")}</div>
     <div class="n">${ev ? ev.summary : t("Niets gepland")}</div><div class="s">${ev ? eventWhen(ev) : t("vandaag en morgen")}</div>
@@ -686,7 +693,7 @@ const PRECIP = { rainy: "Regen", pouring: "Stortregen", lightning: "Onweer", "li
 /** "Regen verwacht rond 16:00" from the next twelve hours, "Droog de komende uren" when nothing is coming, "" without a forecast */
 export function wxExpect(p, short = false) {
   const soon = (p.wx?.hourly || []).filter(f => new Date(f.datetime) > new Date() && new Date(f.datetime) - Date.now() < 12 * 3600000).find(f => PRECIP[f.condition]);
-  const at = soon ? new Date(soon.datetime).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) : "";
+  const at = soon ? new Date(soon.datetime).toLocaleTimeString(locale(), timeOpts()) : "";
   if (short) return soon ? t("{what} rond {t}", { what: t(PRECIP[soon.condition]), t: at }) : p.wx?.hourly?.length ? t("Droog") : "";
   return soon ? t("{what} verwacht rond {t}", { what: t(PRECIP[soon.condition]), t: at }) : p.wx?.hourly?.length ? t("Droog de komende uren") : "";
 }

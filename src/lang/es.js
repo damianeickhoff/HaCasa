@@ -222,4 +222,13 @@ export default {
   "Afgelopen {n} uur": "Últimas {n} horas",
   "Afgelopen {n} dagen": "Últimos {n} días",
   "Gemiddeld": "Promedio",
+  "Tijdnotatie": "Formato de hora",
+  "automatisch (zoals Home Assistant)": "automático (como Home Assistant)",
+  "12-uurs (2:30 PM)": "12 horas (2:30 PM)",
+  "24-uurs (14:30)": "24 horas (14:30)",
+  "automatisch volgt de tijdnotatie in je Home Assistant-profiel": "automático sigue el formato de hora de tu perfil de Home Assistant",
+  "vraagt het na voordat de kaart schakelt": "pregunta antes de que la tarjeta conmute",
+  "vraagt het na voordat de actie loopt": "pregunta antes de ejecutar la acción",
+  "Vraag": "Pregunta",
+  "optioneel, je eigen tekst in de bevestiging": "opcional, tu propio texto en la confirmación",
 };
