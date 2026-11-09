@@ -3,6 +3,7 @@
 ## Unreleased
 
 - **12-hour times (#181, #179)**, thanks to jimmy-ungerman. HaCasa now follows the time format in your Home Assistant profile, so English shows "Rain from 2:00 pm" when Home Assistant does. Settings → Appearance → *Time format* lets you pick 12-hour or 24-hour yourself.
+- **Measure only for plugs (#191)**, thanks to coasting24 for the idea and the groundwork. A switch or plug card has a *Measure only* option in its settings (⋯): the card never switches and its popup has no switch button. For the fridge, the freezer or the server.
 - **Confirm before switching.** Every card that switches on a tap (switches, plugs, lights, fans, locks) has a *Confirm first* option in its settings (⋯), with a question of your own. Meant for the things you do not want to switch by accident.
 - **Template cards can ask first (#184).** A template card that toggles an entity or runs an action has a *Confirm first* option, with a question of your own ("Did you really water the plants?").
 - **Camera popup plays through Home Assistant's own player (#189).** A camera that streams (HLS or WebRTC) now opens in the same player as Home Assistant's details dialog, with sound controls. Cameras without a stream keep the MJPEG view, and when that fails to load the popup tries Home Assistant's player too.

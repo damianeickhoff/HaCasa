@@ -355,6 +355,8 @@ export default {
   "12-uurs (2:30 PM)": "12 Stunden (2:30 PM)",
   "24-uurs (14:30)": "24 Stunden (14:30)",
   "automatisch volgt de tijdnotatie in je Home Assistant-profiel": "automatisch folgt dem Zeitformat in deinem Home-Assistant-Profil",
+  "Alleen meten": "Nur messen",
+  "geen schakelknop en de kaart schakelt nooit, voor bijv. een koelkast": "keine Schalttaste, und die Karte schaltet nie, z. B. für einen Kühlschrank",
   "vraagt het na voordat de kaart schakelt": "fragt nach, bevor die Karte schaltet",
   "vraagt het na voordat de actie loopt": "fragt nach, bevor die Aktion läuft",
   "Vraag": "Frage",
