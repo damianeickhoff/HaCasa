@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.0-beta.1 (beta)
 
 - **12-hour times (#181, #179)**, thanks to jimmy-ungerman. HaCasa now follows the time format in your Home Assistant profile, so English shows "Rain from 2:00 pm" when Home Assistant does. Settings → Appearance → *Time format* lets you pick 12-hour or 24-hour yourself.
 - **Room bar on narrower screens (#195).** Rooms that don't fit in the bar (a laptop with the Home Assistant sidebar open, or display scaling) now go under a *+N* pill with a dropdown, instead of disappearing off the end of the bar. *More* and search always stay visible, and the open room always stays in the bar. Thanks heikoa74 for the report.
