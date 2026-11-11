@@ -1282,4 +1282,7 @@ export default {
   "Geen onbereikbare apparaten, lege batterijen of updates": "Aucun appareil injoignable, batterie vide ou mise à jour",
   "In deze ruimte": "Dans cette pièce",
   "De entiteit hoort al bij deze ruimte; de kaart komt erbij.": "L’entité appartient déjà à cette pièce ; la carte est ajoutée.",
+  "Personen": "Personnes",
+  "tik om iemand te verbergen, bijv. een gastaccount": "touchez pour masquer quelqu'un, p. ex. un compte invité",
+  "automatisch (sensoren in de kamer)": "automatique (capteurs de la pièce)",
 };

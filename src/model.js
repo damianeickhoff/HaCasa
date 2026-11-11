@@ -154,7 +154,9 @@ export function buildRooms(hass, config) {
       // photo file named after the area name, or else after the area id (stays put when the area is renamed)
       images: pg.image || a.picture || !config.roomImage ? null : [...new Set([s, slug(a.area_id)])].map(x => config.roomImage.replace("{slug}", x)),
       ents,
-      temp: avg(ents.temp), hum: avg(ents.hum),
+      temp: pg.temperature ? num(hass.states[pg.temperature]?.state) : avg(ents.temp),   // Page settings → Temperature / Humidity
+      tempId: pg.temperature || null, humId: pg.humidity || null,
+      hum: pg.humidity ? num(hass.states[pg.humidity]?.state) : avg(ents.hum),
       motion: latest(ents.motion),
       motionOn: ents.motion.filter(e => !config.home?.bannerSensors || config.home.bannerSensors.includes(e.id)).some(e => isOn(e.state)),
       lightsOn: ents.lights.filter(e => isOn(e.state)).length,
@@ -193,7 +195,8 @@ export function buildHome(hass, config, rooms, notifications = []) {
   const lights = all.filter(e => domain(e.id) === "light" && !e.reg.entity_category);
   const doors = rooms.flatMap(r => r.ents.doors.map(e => ({ ...e, room: r })));
   const windows = rooms.flatMap(r => r.ents.windows.map(e => ({ ...e, room: r })));
-  const persons = Object.values(hass.states).filter(s => domain(s.entity_id) === "person");
+  const everyone = Object.values(hass.states).filter(s => domain(s.entity_id) === "person");
+  const hidePeople = new Set(config.cards?.people?.hide || []), persons = everyone.filter(s => !hidePeople.has(s.entity_id));   // Household card → settings
 
   const low = h.lowBattery ?? 20;
   const attention = [];
@@ -220,7 +223,7 @@ export function buildHome(hass, config, rooms, notifications = []) {
   const calendars = h.calendars || Object.values(hass.states).filter(s => domain(s.entity_id) === "calendar").map(s => s.entity_id);
   return {
     calendars, appliances: (h.appliances || []).filter(a => a.power), sun: hass.states["sun.sun"] || null,
-    persons, home: persons.filter(atHome).length,
+    persons, everyone, home: persons.filter(atHome).length,
     alarm: pick(hass, h.alarm, "alarm_control_panel"),
     climate: pick(hass, h.climate, "climate"),
     weather: pick(hass, h.weather, "weather"),

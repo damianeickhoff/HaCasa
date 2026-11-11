@@ -130,7 +130,7 @@ function cardForm(p, pop) {
     </div>
     <div class="form">
       <div class="grp">${sh(t("Weergave"))}
-        ${builtin && !gd && !["ev", "garden", "todo"].includes(id) ? row(t("Kaart van het paneel"), html`<span class="note">${t("Naam en inhoud volgen de instellingen van het paneel; hieronder kun je de kaart op voorwaarde verbergen.")}</span>`) : nothing}
+        ${builtin && !gd && !["ev", "garden", "todo", "people"].includes(id) ? row(t("Kaart van het paneel"), html`<span class="note">${t("Naam en inhoud volgen de instellingen van het paneel; hieronder kun je de kaart op voorwaarde verbergen.")}</span>`) : nothing}
         ${builtin ? panelCardFields(p, id, draft, upd, row) : nothing}
         ${grp ? html`${row(t("Naam"), html`<div class="two"><input type="text" .value=${gd.name || ""} @change=${e => gupd({ name: e.target.value || undefined })}>${iconInput(p, gd.icon, v => gupd({ icon: v }), "mdi:shape-outline")}</div>`)}
           ${row(t("Soort"), html`<div class="seg">${[["light", t("Lampen")], ["plug", t("Stekkers & schakelaars")]].map(([v, l]) => html`<button class=${gkind === v ? "on" : ""} @click=${() => gupd({ kind: v, members: (gd.members || []).filter(x => x.startsWith("light.") === (v === "light")) })}>${l}</button>`)}</div>`, gkind === "light" ? t("helderheid-stappen of kleuren onderaan, zoals op een lampkaart") : t("schakelaars, stekkers en ventilatoren"))}
@@ -358,7 +358,7 @@ export function renderPopup(p, pop) {
     }
     case "page": {
       const key = pop.key, isHome = key === "home", r = isHome ? null : p.rooms.find(x => x.id === key); if (!isHome && !r) return nothing;
-      const cur = p.pageCfg(key), d = pop.draft || { ...cur, hidden: [...(cur.hidden || [])], order: [...(cur.order || [])], ticker: { ...(cur.ticker || {}) }, lines: (cur.lines || []).map(l => ({ ...l })), pills: cur.pills ? cur.pills.map(x => ({ ...x })) : undefined };
+      const cur = isHome ? { ...p.pageCfg(key), temperature: p.userConfig?.home?.temperature, humidity: p.userConfig?.home?.humidity } : p.pageCfg(key), d = pop.draft || { ...cur, hidden: [...(cur.hidden || [])], order: [...(cur.order || [])], ticker: { ...(cur.ticker || {}) }, lines: (cur.lines || []).map(l => ({ ...l })), pills: cur.pills ? cur.pills.map(x => ({ ...x })) : undefined };
       const upd = patch => p.openPopup({ ...pop, draft: { ...d, ...patch } });
       const all = p.orderCards(p.pageCards(key), d.order), hid = new Set(d.hidden);
       const move = (i, dir) => { const keys = all.map(c => c.key), j = i + dir; if (j < 0 || j >= keys.length) return; [keys[i], keys[j]] = [keys[j], keys[i]]; upd({ order: keys }); };
@@ -369,6 +369,9 @@ export function renderPopup(p, pop) {
         <div class="form">
           <label class="f"><span>${t("Titel")}</span><input type="text" .value=${d.title || ""} placeholder=${isHome ? (p.config.home?.greeting || t("automatisch (Goedemorgen …)")) : (p.hass.areas?.[key]?.name || r.name)} @change=${e => upd({ title: e.target.value || undefined })}></label>
           <label class="f"><span>${t("Foto")}<small>${t("pad of URL")}</small></span><input type="text" .value=${d.image || ""} placeholder=${defImage} @change=${e => upd({ image: e.target.value || undefined })}></label>
+          ${html`
+          ${field(t("Temperatuur"), select(hass, "sensor", d.temperature, v => upd({ temperature: v || undefined }), { empty: isHome ? t("gemiddelde van de kamers") : t("automatisch (sensoren in de kamer)"), filter: s => s.attributes.device_class === "temperature" }))}
+          ${field(t("Luchtvochtigheid"), select(hass, "sensor", d.humidity, v => upd({ humidity: v || undefined }), { empty: isHome ? t("gemiddelde van de kamers") : t("automatisch (sensoren in de kamer)"), filter: s => s.attributes.device_class === "humidity" }))}`}
         </div>
         <div class="prow" style="margin-top:18px"><span>${t("Kaarten")}</span><b>${t("{a} van {b} zichtbaar", { a: all.length - hid.size, b: all.length })}</b></div>
         <ul class="plist" data-drag>${all.map((c, i) => html`<li data-k=${c.key} class=${[hid.has(c.key) ? "off" : "", pop.drag === c.key ? "drag" : ""].join(" ")}><span class="grip" title=${t("Sleep om te verplaatsen")} @pointerdown=${ev => drag(ev, c.key)}><ha-icon icon="mdi:drag"></ha-icon></span><div>${c.label}<small>${c.key.includes(".") || c.key.startsWith("device:") ? c.key : ""}</small></div>
@@ -381,7 +384,8 @@ export function renderPopup(p, pop) {
           <button class="addline" @click=${() => upd({ lines: [...(d.lines || []), { icon: "mdi:text", text: "" }] })}>${t("+ eigen regel")}</button></div>
         ${pillEditor(p, pop, key, d, upd)}
         <div class="modes n3" style="margin-top:18px">
-          <button class="on" @click=${() => p.savePage(key, { title: d.title, image: d.image, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined, add: d.add, keep: d.keep, pills: d.pills })}>${t("Opslaan")}</button>
+          <button class="on" @click=${async () => { if (isHome) { const hm = { ...(p.userConfig?.home || {}), temperature: d.temperature, humidity: d.humidity }; if (hm.temperature !== p.userConfig?.home?.temperature || hm.humidity !== p.userConfig?.home?.humidity) await p.saveUser({ home: hm }); }
+            p.savePage(key, { title: d.title, image: d.image, temperature: isHome ? undefined : d.temperature, humidity: isHome ? undefined : d.humidity, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined, add: d.add, keep: d.keep, pills: d.pills }); }}>${t("Opslaan")}</button>
           <button @click=${() => p.savePage(key, null)}>${t("Herstel")}</button>
           <button data-close>${t("Annuleren")}</button></div></div>`;
     }

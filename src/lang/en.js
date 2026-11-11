@@ -490,4 +490,7 @@ export default {
   "vraagt het na voordat de actie loopt": "asks before the action runs",
   "Vraag": "Question",
   "optioneel, je eigen tekst in de bevestiging": "optional, your own text in the confirmation",
+  "Personen": "People",
+  "tik om iemand te verbergen, bijv. een gastaccount": "tap to hide someone, e.g. a guest account",
+  "automatisch (sensoren in de kamer)": "automatic (sensors in the room)",
 };

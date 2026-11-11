@@ -473,4 +473,7 @@ export default {
   "Geen onbereikbare apparaten, lege batterijen of updates": "Brak niedostępnych urządzeń, rozładowanych baterii i aktualizacji",
   "In deze ruimte": "W tym pomieszczeniu",
   "De entiteit hoort al bij deze ruimte; de kaart komt erbij.": "Encja już należy do tego pomieszczenia; karta zostanie dodana.",
+  "Personen": "Osoby",
+  "tik om iemand te verbergen, bijv. een gastaccount": "dotknij, aby ukryć osobę, np. konto gościa",
+  "automatisch (sensoren in de kamer)": "automatycznie (czujniki w pokoju)",
 };

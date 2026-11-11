@@ -436,4 +436,7 @@ export default {
   "alleen in de automatische stand: leeg = alle ruimtes met apparaten (3.0 stopte stil bij 9)": "nur im automatischen Modus: leer = alle Bereiche mit Geräten (3.0 hörte still bei 9 auf)",
   "sjablonen met Jinja; plaatsen doe je per pagina via Bewerken → Kaart toevoegen": "Vorlagen mit Jinja; platzieren pro Seite über Bearbeiten → Karte hinzufügen",
   "templates rendert Home Assistant alleen voor beheerders": "Templates rendert Home Assistant nur für Administratoren", "{n} invulvelden": "{n} Eingabefelder",
+  "Personen": "Personen",
+  "tik om iemand te verbergen, bijv. een gastaccount": "tippen, um jemanden auszublenden, z. B. ein Gastkonto",
+  "automatisch (sensoren in de kamer)": "automatisch (Sensoren im Raum)",
 };

@@ -239,4 +239,7 @@ export default {
   "vraagt het na voordat de actie loopt": "pregunta antes de ejecutar la acción",
   "Vraag": "Pregunta",
   "optioneel, je eigen tekst in de bevestiging": "opcional, tu propio texto en la confirmación",
+  "Personen": "Personas",
+  "tik om iemand te verbergen, bijv. een gastaccount": "toca para ocultar a alguien, p. ej. una cuenta de invitado",
+  "automatisch (sensoren in de kamer)": "automático (sensores de la habitación)",
 };

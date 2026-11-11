@@ -31,7 +31,7 @@ export function personTravel(p, s) {
   return bits.join(" · ");
 }
 export function peopleCard(p, h) {
-  const list = h.persons, home = list.filter(atHome), away = list.filter(s => !atHome(s));
+  const hide = new Set(cardCfg(p, "people").hide || []), list = (h.everyone || h.persons).filter(s => !hide.has(s.entity_id)), home = list.filter(atHome), away = list.filter(s => !atHome(s));
   const where = s => personTravel(p, s) || (s.state === "not_home" ? t("weg sinds {t}", { t: relTime(s.last_changed) }) : personWhere(s));
   const line = away.length ? away.slice(0, 2).map(s => `${s.attributes.friendly_name} · ${where(s)}`).join(" · ") : t("Iedereen is thuis");
   return html`<div class=${classMap({ card: true, people: true, on: home.length > 0 })} ${pressDir(p, { tap: () => p.openPopup({ type: "people" }) })}>
@@ -114,7 +114,7 @@ const RATE = () => [t("Goed"), t("Matig"), t("Slecht")];
 /** the readings of a room: the air sensors plus its humidity, each with a rating */
 export function airReadings(p, r) {
   const out = r.ents.air.map(e => { const dc = e.state?.attributes.device_class, v = num(e.state?.state); return { e, dc, l: AIR[dc]?.l || dc, v, unit: e.state?.attributes.unit_of_measurement || "", rate: unavailable(e.state) ? 0 : airRate(dc, v), un: unavailable(e.state) }; });
-  if (r.hum != null) out.push({ e: r.ents.hum[0], dc: "humidity", l: t("Vocht"), v: r.hum, unit: "%", rate: airRate("humidity", r.hum), un: false });
+  if (r.hum != null) out.push({ e: r.humId ? { id: r.humId, reg: p.hass.entities?.[r.humId] || {}, state: p.hass.states[r.humId] } : r.ents.hum[0], dc: "humidity", l: t("Vocht"), v: r.hum, unit: "%", rate: airRate("humidity", r.hum), un: false });
   const order = ["carbon_dioxide", "pm25", "volatile_organic_compounds", "volatile_organic_compounds_parts", "aqi", "pm10", "pm1", "nitrogen_dioxide", "ozone", "humidity"];
   return out.sort((a, b) => order.indexOf(a.dc) - order.indexOf(b.dc));
 }
@@ -276,7 +276,11 @@ const zoneLike = s => /sproei|irrig|beregen|water|tuin|garden|zone|kraan|valve|s
 /** the fields the Car, Garden and List cards need, drawn inside the card settings form (saved as cards[key]) */
 export function panelCardFields(p, key, draft, upd, row) {
   const hass = p.hass, W = s => ["W", "kW"].includes(s.attributes.unit_of_measurement), PCT = s => s.attributes.unit_of_measurement === "%";
-  const set = (k2, v) => upd({ [k2]: v || undefined });
+  const set = (k2, v) => upd({ [k2]: (Array.isArray(v) ? v.length : v) ? v : undefined });
+  if (key === "people") {
+    const all = Object.values(hass.states).filter(s => domain(s.entity_id) === "person").sort((x, y) => (x.attributes.friendly_name || "").localeCompare(y.attributes.friendly_name || "")), hide = draft.hide || [];
+    return row(t("Personen"), html`<div class="chips">${all.map(s => { const off = hide.includes(s.entity_id); return html`<button class=${off ? "" : "on"} title=${s.entity_id} @click=${() => set("hide", off ? hide.filter(x => x !== s.entity_id) : [...hide, s.entity_id])}>${s.attributes.friendly_name || s.entity_id}</button>`; })}</div>`, t("tik om iemand te verbergen, bijv. een gastaccount"));
+  }
   if (key === "todo") return row(t("Lijst"), select(hass, "todo", draft.entity, v => set("entity", v), { empty: t("automatisch (boodschappenlijst)") }), t("elke to-do-entiteit, ook de boodschappenlijst van Home Assistant"));
   if (key === "ev") return html`
     ${row(t("Accu"), select(hass, "sensor", draft.battery, v => set("battery", v), { empty: t("kies"), filter: PCT }), t("de kaart verschijnt zodra de accu is gekozen"))}
