@@ -8,7 +8,7 @@ import { styles } from "./styles.js";
 import { buildRooms, buildHome, name } from "./model.js";
 import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateInstance } from "./cards.js";
 import { editStrip, editBar, editTools, canEdit } from "./edit.js";
-import { renderPopup } from "./popups.js";
+import { renderPopup, moreItems } from "./popups.js";
 import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
 import { renderPage, PAGES, PAGE_ALIAS } from "./pages.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
@@ -20,10 +20,10 @@ import { iconPicker } from "./iconpicker.js";
 import { quickRow, watchTriggers, presetCard, selfUpdate } from "./features.js";
 import { searchBar, openFor } from "./search.js";
 import { graphCard } from "./graph.js";
-import { fetchNumeric, batteryEta, modeList } from "./extras3.js";
+import { fetchNumeric, batteryEta, modeList, toggleMode } from "./extras3.js";
 import { airCard } from "./cards2.js";
 import { deviceName } from "./model.js";
-import { BASE, TAG, icon, slug, isOn, unavailable, isDown, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
+import { VERSION, BASE, TAG, icon, slug, isOn, unavailable, isDown, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
 import { ghost, tw, afterRender, setMotion } from "./motion.js";
 
 /** numbers with their unit (6,8 kWh · 50% · 12 min · 14:02) rendered white inside a notice */
@@ -76,7 +76,7 @@ class HacasaNova extends LitElement {
     this.addEventListener("pointerdown", this._swipeDown); this.addEventListener("pointerup", this._swipeUp);
     // floor dropdown: a tap anywhere else closes it
     this.addEventListener("pointerdown", e => { if (this.navFloor != null && !this.drawer && !e.composedPath().some(el => el.classList?.contains("fl"))) this.navFloor = null; });
-    this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab"))) this.drawer = false; });
+    this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab") || (el.tagName === "BUTTON" && el.classList.contains("menu")))) this.drawer = false; });   // the menu and rooms buttons toggle it themselves
   }
   disconnectedCallback() { super.disconnectedCallback(); this._ro?.disconnect(); clearTimeout(this._userRetry); if (this.userConfig === undefined) this._userLoaded = false; clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); this._unsubNotif = null; }
   wake() { this.idle = false; this._lastActivity = Date.now(); }
@@ -611,9 +611,19 @@ class HacasaNova extends LitElement {
   /** navigation: one pill per room, or (config.navMode "floors") one per floor with a room dropdown — hover on desktop, tap on touch/mobile */
   renderLinks(room, isPage) {
     if (this.searchOpen && !this.drawer && !matchMedia("(max-width:900px)").matches) return html`<div class="links pill srch">${searchBar(this)}</div>`;
-    const more = html`<span class="sep"></span><a class=${classMap({ more: true, active: !!isPage })} @click=${() => this.openPopup({ type: "more" })}>${t("Meer")}</a><a class=${classMap({ search: true, active: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; }}><img class="ico" src=${icon("search")} alt=""></a>`;
+    let more = html`<span class="sep"></span><a class=${classMap({ more: true, active: !!isPage })} @click=${() => { this.drawer = false; this.openPopup({ type: "more" }); }}>${t("Meer")}</a><a class=${classMap({ search: true, active: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; }}><img class="ico" src=${icon("search")} alt=""></a>`;
     const groups = this.config.navMode === "floors" ? this.floorGroups : [];
-    const homeLink = nothing;   // (the bar has its own home tab)
+    let homeLink = nothing;   // (the bar has its own home tab)
+    if (this.drawer && this.config.phoneNav === "top" && matchMedia("(max-width:900px)").matches) {
+      // menu at the top: no bottom bar, so the drawer holds everything More has, with the logo above and the version below
+      homeLink = html`<a class="dhead" @click=${() => this.go(null)}><span class="mark"><img class="ico" src=${icon("hacasa")} alt=""></span>${brandTitle(this.config.title || t("Thuis") + ".")}</a>`;
+      const modes = modeList(this);
+      more = html`<span class="sep"></span>
+        ${modes.map(m => html`<a class=${classMap({ mi: true, mode: true, on: m.on })} @click=${() => toggleMode(this, m)}>${anyIco(m.icon || "mdi:account-switch-outline")}<span>${m.label}</span><i></i></a>`)}
+        ${modes.length ? html`<span class="sep"></span>` : nothing}
+        ${moreItems(this).map(m => html`<a class=${classMap({ mi: true, active: m.key === "settings" ? !!this.settings : !!m.key && this.page === m.key })} @click=${() => { this.drawer = false; m.action ? m.action() : this.goPath(m.path); }}>${anyIco(m.icon)}<span>${m.label}</span></a>`)}
+        <div class="dver">HaCasa Nova ${VERSION}</div>`;
+    }
     if (groups.length < 2) return html`<div class="links pill">${homeLink}
       <div class="rl">${this.rooms.map(r => html`<a class=${classMap({ active: room?.id === r.id })} @click=${() => this.go(r)}>${r.name}</a>`)}
         <div class=${classMap({ fl: true, ovf: true, open: this.navFloor === "ovf" })} @mouseleave=${() => { if (this.navFloor === "ovf") this.navFloor = null; }}>

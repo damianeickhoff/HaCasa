@@ -681,6 +681,18 @@ export const styles = css`
     .nav.topnav.open .links a{height:46px;font-size:17px}
     .nav.topnav.open .links.floors{position:fixed;background:rgba(28,28,32,.55);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border:0;border-right:1px solid var(--line);box-shadow:20px 0 60px rgba(0,0,0,.35)}
     .btabs a.ic ha-icon{opacity:.85}
+    /* no bottom bar here, so the drawer holds the More items too: logo on top, rooms, modes, pages, version at the bottom */
+    .nav.topnav.open .links{padding-top:calc(22px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));gap:2px}
+    .nav.topnav.open .links .sep{display:block;width:auto;height:1px;margin:12px 0;align-self:stretch;flex:none}
+    .nav.topnav.open .links a.dhead{display:flex;align-items:center;gap:10px;height:46px;padding:0;margin-bottom:22px;font-size:17px;font-weight:800;letter-spacing:-.4px;background:none;flex:none}
+    .nav.topnav.open .links a.dhead .mark{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.14);border:1px solid var(--line);display:grid;place-items:center;flex:none}
+    .nav.topnav.open .links a.dhead .mark img.ico{width:20px;height:20px}
+    .nav.topnav.open .links a.mi{display:flex;align-items:center;gap:12px;height:42px;font-size:15px;flex:none}
+    .nav.topnav.open .links a.mi ha-icon,.nav.topnav.open .links a.mi img.ico{--mdc-icon-size:20px;width:20px;height:20px;opacity:.75;flex:none}
+    .nav.topnav.open .links a.mi span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+    .nav.topnav.open .links a.mode i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);flex:none}
+    .nav.topnav.open .links a.mode.on i{background:#fff}
+    .nav.topnav.open .links .dver{margin-top:auto;padding:20px 12px 0;font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-3, rgba(255,255,255,.45));flex:none}
   }
 
   /* one look for every choice button: the pill from the card settings (also the chip lists in popups and settings) */

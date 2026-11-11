@@ -203,6 +203,9 @@ function haCamPlayer(p) {
   return false;
 }
 
+/** what the More menu offers: edit this page, the overview pages, the user's own links, Home Assistant and settings (popup and phone drawer) */
+export const moreItems = p => [...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...Object.entries(PAGES).map(([k, v]) => ({ key: k, label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { key: "settings", label: t("HaCasa instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }];
+
 export function renderPopup(p, pop) {
   CUR = { p, pop };
   const hass = p.hass, home = p.home, roomName = pop.room?.name || p.room?.name || t("Thuis");   // pop.room: opened from a page outside the room (security page)
@@ -510,7 +513,7 @@ export function renderPopup(p, pop) {
     case "more":
       return wrap(t("Meer"), t("Overzichten"), t("Pagina's die niet bij een kamer horen"), html`
         ${modeList(p).length ? html`<div class="prow" style="margin-top:14px"><span>${t("Modi")}</span><b>${modeList(p).filter(m => m.on).map(m => m.label).join(", ") || ""}</b></div><ul style="margin-top:8px">${modeList(p).map(m => li(m.icon || "mdi:account-switch-outline", m.label, m.on ? t("Actief") : t("Uit"), { on: m.on, sub: m.s.attributes.friendly_name, onclick: () => toggleMode(p, m) }))}</ul>` : nothing}
-        <div class="pages">${[...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...Object.entries(PAGES).map(([k, v]) => ({ label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("HaCasa instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}>${anyIco(m.icon)}<div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
+        <div class="pages">${moreItems(p).map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}>${anyIco(m.icon)}<div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
     case "security": return securityPopup(p, pop, wrap, li, modes);
     case "todo": return todoPopup(p, pop, wrap, li, modes);
     case "air": return airPopup(p, pop, wrap, li);
