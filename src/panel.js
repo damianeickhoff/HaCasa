@@ -68,6 +68,7 @@ class HacasaNova extends LitElement {
     this._lastActivity = Date.now();
     this._onResize = () => { clearTimeout(this._rsT); this._rsT = setTimeout(() => this.requestUpdate(), 150); }; addEventListener("resize", this._onResize);
     this._mq = matchMedia("(max-width:900px)"); this._mq.addEventListener("change", this._onResize);   // phone ⇄ desktop layout is decided in render()
+    this._ro = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width); if (w !== this._hostW) { this._hostW = w; this.requestUpdate(); } }); this._ro.observe(this);   // the HA sidebar opening changes the panel's width, not the window's
     this._idleT = setInterval(() => { const m = +(this.config.idleMinutes ?? 0); if (m > 0 && !this.idle && Date.now() - this._lastActivity > m * 60000) this.idle = true; }, 5000);
     // swipe between rooms (touch only, outside the card strip)
     this._swipeDown = e => { if (e.pointerType !== "touch" || e.composedPath().some(el => el.classList && (el.classList.contains("strip") || el.classList.contains("overlay") || el.classList.contains("page") || el.classList.contains("settings") || el.classList.contains("nav")))) { this._sw = null; return; } this._sw = { x: e.clientX, y: e.clientY, t: Date.now() }; };
@@ -77,7 +78,7 @@ class HacasaNova extends LitElement {
     this.addEventListener("pointerdown", e => { if (this.navFloor != null && !this.drawer && !e.composedPath().some(el => el.classList?.contains("fl"))) this.navFloor = null; });
     this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab"))) this.drawer = false; });
   }
-  disconnectedCallback() { super.disconnectedCallback(); clearTimeout(this._userRetry); if (this.userConfig === undefined) this._userLoaded = false; clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
+  disconnectedCallback() { super.disconnectedCallback(); this._ro?.disconnect(); clearTimeout(this._userRetry); if (this.userConfig === undefined) this._userLoaded = false; clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
   wake() { this.idle = false; this._lastActivity = Date.now(); }
   /** go to the previous/next room in nav order (home is before the first room) */
   swipe(dir) { const order = [null, ...this.rooms]; const i = order.findIndex(r => (r?.id || null) === (this.room?.id || null)); const n = order[i + dir]; if (n !== undefined) this.go(n); }
@@ -170,6 +171,8 @@ class HacasaNova extends LitElement {
   willUpdate(changed) {
     if (!this.hass) return;
     setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
+    if (this.settings || this.page) this.classList.remove("rows2");   // set per view by stripRows()
+    { const sc = this.cardScale(); if (!sc) { this.style.removeProperty("--u"); this.style.removeProperty("--cz"); } else if (!this.classList.contains("rows2")) { this.style.setProperty("--u", sc.u1 + "px"); this.style.setProperty("--cz", sc.u1); } }   // card size for pages and popups too
     if (setTimeFormat(this.hass.locale, this.config.timeFormat)) this.now = clock();   // a changed time format shows at once, not at the next tick
     const still = !!this.config.noMotion || matchMedia("(prefers-reduced-motion: reduce)").matches; this.classList.toggle("still", still); setMotion(!still);
     if (changed.has("popup")) { const was = changed.get("popup"); if (was && !this.popup) ghost(this, ".overlay", "pop-out", 200); else if (was?.menu && this.popup && !this.popup.menu && this.popup.type === was.type) ghost(this, ".pmenu", "menu-out", 170, (c, el) => { const r = el.getBoundingClientRect(); c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;right:auto;bottom:auto;width:${r.width}px`; }); }
@@ -200,6 +203,7 @@ class HacasaNova extends LitElement {
   updated() {
     if (this._viewSwitch) { this._viewSwitch = false; requestAnimationFrame(() => { this.style.transform = "translateZ(0)"; requestAnimationFrame(() => { this.style.transform = ""; }); }); }
     afterRender(this);
+    this.fitRooms(); this.stripEnd();
   }
 
   /* ---------- actions ---------- */
@@ -348,7 +352,9 @@ class HacasaNova extends LitElement {
   }
   /** photo for a room (or home): the first candidate path that loads, trying .jpg/.jpeg/.png/.webp for each */
   bgUrl(room) {
-    const ver = u => u + (u.includes("?") ? "" : "?v=" + BUILD);
+    // no cache-bust for an area picture from HA: a new upload gets a new image id, so its address never shows a stale photo
+    // and the (full size) original is not downloaded again every hour
+    const ver = u => u.includes("?") || u.startsWith("/api/image/serve/") ? u : u + "?v=" + BUILD;
     const base = room ? room.images || [room.image] : [this.homeImage];
     const all = base.filter(Boolean).flatMap(u => {
       const m = u.match(/^(.*)\.(jpe?g|png|webp)$/i);
@@ -396,7 +402,38 @@ class HacasaNova extends LitElement {
   }
 
   /* ---------- strip: wheel + mouse drag ---------- */
-  _stripScroll(e) { const on = e.currentTarget.scrollLeft > 4; if (on !== !!this.stripScrolled) this.stripScrolled = on; }
+  _stripScroll(e) { const on = e.currentTarget.scrollLeft > 4; if (on !== !!this.stripScrolled) this.stripScrolled = on; this.stripEnd(); }
+  /** the right-hand fade only while there are cards further along */
+  stripEnd() { const st = this.renderRoot.querySelector(".strip"), f = this.renderRoot.querySelector(".sfade.r"); if (st && f) f.classList.toggle("off", st.scrollLeft >= st.scrollWidth - st.clientWidth - 4); }
+  /** "Rijen kaarten: 2": the first half of the cards on the top row, the rest below; CSS decides whether two rows fit (desktop, tall enough) */
+  /** card size on a desktop: --u (1 = a 320 × 200 card) so that five cards and their gaps fill the width between the page
+      margins, the fifth ending where the weather block ends; never taller than the screen allows (u2: two rows under the
+      title) and between .8 and 1.5. Phones and the dashboard card keep the CSS value. */
+  cardScale() {
+    if (this.classList.contains("in-card") || innerWidth <= 900) return null;
+    const pad = .08 * innerWidth, inner = (this._hostW || innerWidth) - 2 * pad, uW = (inner - 4 * 6) / 5 / 320;
+    const MIN = .9, cl = v => Math.min(1.5, Math.max(MIN, v));   // everything in a card scales with it (zoom), so not smaller than 90%
+    // two rows always run exactly from the title to the end of the weather block: the largest card that still fits the
+    // screen height (and 1.5) decides how many go in a row (5 on a 1080p screen), then the card grows a little to fill it;
+    // one column fewer when that would make it smaller than MIN
+    const fill = c => (inner - (c - 1) * 6) / c / 320, cap = Math.min(1.5, (innerHeight - 480) / 412);
+    let cols = Math.max(1, Math.ceil((inner + 6) / (320 * cap + 6) - 1e-6));
+    if (cols > 1 && fill(cols) < MIN) cols--;
+    return { inner, u1: cl(Math.min(uW, .12 * innerHeight / 100)), u2: fill(cols), cols };
+  }
+  /** cards that fit side by side in the width between the margins at scale u */
+  cardsFit(inner, u) { return Math.max(1, Math.floor((inner + 6) / (320 * u + 6) + 1e-6)); }
+  stripRows(list) {
+    const sc = this.cardScale(), n = list.length;
+    // two rows only when the option is on, the screen is tall enough (same test as the CSS) and the cards don't fit in one row
+    const two = !!sc && this.config.cardRows === 2 && matchMedia("(min-height:850px)").matches && n > this.cardsFit(sc.inner, sc.u1);
+    this.classList.toggle("rows2", two);
+    if (sc) { const u = two ? sc.u2 : sc.u1; this.style.setProperty("--u", u + "px"); this.style.setProperty("--cz", u); }
+    if (!two) return list;
+    // the top row is filled first; more than two rows' worth: split evenly and both rows scroll
+    const f = sc.cols, k = n > 2 * f ? Math.ceil(n / 2) : Math.min(f, n - 1);
+    return html`<div class="cardrow">${list.slice(0, k)}</div><div class="cardrow">${list.slice(k)}</div>`;
+  }
   stripFades() { return html`<div class=${classMap({ sfade: true, l: true, on: !!this.stripScrolled })}></div><div class="sfade r"></div>`; }
   /** energy page: today's use and return per hour, power peak and a 3 h sparkline */
   async loadEnergyToday() {
@@ -469,7 +506,7 @@ class HacasaNova extends LitElement {
   _glide(st, x, snap) {
     const max = st.scrollWidth - st.clientWidth, pad = parseFloat(getComputedStyle(st).paddingLeft) || 0;
     if (snap) {
-      const starts = [...new Set([...[...st.children].map(c => c.offsetLeft - pad).filter(v => v >= 0 && v < max), max])], from = st.scrollLeft, dir = this._wheelDir || 0; this._wheelDir = 0;
+      const starts = [...new Set([...(st.querySelector(".cardrow") ? [...st.querySelectorAll(".cardrow>*")] : [...st.children]).map(c => c.getBoundingClientRect().left - st.getBoundingClientRect().left + st.scrollLeft - pad).filter(v => v >= 0 && v < max), max])], from = st.scrollLeft, dir = this._wheelDir || 0; this._wheelDir = 0;
       const ahead = dir > 0 ? starts.filter(v => v > from + 2) : dir < 0 ? starts.filter(v => v < from - 2).reverse() : [];
       if (ahead.length && Math.abs(x - from) < Math.abs(ahead[0] - from)) x = ahead[0];   // a small nudge still moves one card in that direction
       else if (starts.length) x = starts.reduce((a, b) => Math.abs(b - x) < Math.abs(a - x) ? b : a);
@@ -548,14 +585,40 @@ class HacasaNova extends LitElement {
       <button class=${classMap({ sbtn: true, on: srch })} title=${t("Zoeken")} @click=${toggleSearch}><img src=${icon(srch ? "close" : "search")} alt=""></button>
     </div>`;
   }
+    /** rooms that don't fit in the bar go under the "+N" pill (#195); the open room always stays in the bar.
+      Runs after every render but only measures when the rooms, the open room or the panel width changed */
+  fitRooms() {
+    const rl = this.renderRoot.querySelector(".links:not(.floors) .rl"), ovf = rl?.querySelector(".ovf");
+    if (!ovf || matchMedia("(max-width:900px)").matches) return;
+    const links = [...rl.children].filter(a => a.tagName === "A");
+    const sig = [this.offsetWidth, ...links.map(a => a.textContent + a.classList.contains("active"))].join("|");
+    if (!links.length || rl.dataset.fit === sig) return;
+    rl.dataset.fit = sig;
+    for (const a of links) a.classList.remove("ovh");
+    ovf.classList.add("ovh");
+    const rowH = links[0].offsetHeight + (parseFloat(getComputedStyle(rl).rowGap) || 0);
+    const fits = () => { const on = [...links, ovf].filter(el => !el.classList.contains("ovh")), t0 = Math.min(...on.map(el => el.offsetTop));   // the bar centres its rows, so the first row moves as rows go
+      return on.every(el => Math.round((el.offsetTop - t0) / rowH) < 1); };
+    if (!fits()) {
+      ovf.classList.remove("ovh");
+      for (let i = links.length - 1; i >= 0 && !fits(); i--) if (!links[i].classList.contains("active")) links[i].classList.add("ovh");
+    }
+    const hidden = links.filter(a => a.classList.contains("ovh"));
+    ovf.querySelector(".cnt").textContent = "+" + hidden.length;
+    ovf.querySelectorAll(".dd>a").forEach((a, i) => a.classList.toggle("ovh", !links[i].classList.contains("ovh")));
+  }
   /** navigation: one pill per room, or (config.navMode "floors") one per floor with a room dropdown — hover on desktop, tap on touch/mobile */
   renderLinks(room, isPage) {
     if (this.searchOpen && !this.drawer && !matchMedia("(max-width:900px)").matches) return html`<div class="links pill srch">${searchBar(this)}</div>`;
-    const more = html`<a class=${classMap({ more: true, active: !!isPage })} @click=${() => this.openPopup({ type: "more" })}>${t("Meer")}</a><span class="sep"></span><a class=${classMap({ search: true, active: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; }}><img class="ico" src=${icon("search")} alt=""></a>`;
+    const more = html`<span class="sep"></span><a class=${classMap({ more: true, active: !!isPage })} @click=${() => this.openPopup({ type: "more" })}>${t("Meer")}</a><a class=${classMap({ search: true, active: !!this.searchOpen })} title=${t("Zoeken")} @click=${() => { this.searchOpen = !this.searchOpen; if (!this.searchOpen) this.search = ""; }}><img class="ico" src=${icon("search")} alt=""></a>`;
     const groups = this.config.navMode === "floors" ? this.floorGroups : [];
     const homeLink = nothing;   // (the bar has its own home tab)
     if (groups.length < 2) return html`<div class="links pill">${homeLink}
-      ${this.rooms.map(r => html`<a class=${classMap({ active: room?.id === r.id })} @click=${() => this.go(r)}>${r.name}</a>`)}${more}</div>`;
+      <div class="rl">${this.rooms.map(r => html`<a class=${classMap({ active: room?.id === r.id })} @click=${() => this.go(r)}>${r.name}</a>`)}
+        <div class=${classMap({ fl: true, ovf: true, open: this.navFloor === "ovf" })} @mouseleave=${() => { if (this.navFloor === "ovf") this.navFloor = null; }}>
+          <a @click=${() => { this.navFloor = this.navFloor === "ovf" ? null : "ovf"; }}><b class="cnt"></b><ha-icon icon="mdi:chevron-down"></ha-icon></a>
+          <div class="dd">${this.rooms.map(r => html`<a class=${classMap({ active: room?.id === r.id })} @click=${() => { this.navFloor = null; this.go(r); }}>${r.name}</a>`)}</div>
+        </div></div>${more}</div>`;
     const all = this.drawer && this.config.navExpand;   // mobile menu: every floor open, headers are just headings
     return html`<div class=${classMap({ links: true, pill: true, floors: true, expanded: all })}>${homeLink}
       ${groups.map(g => { const here = g.rooms.includes(room);
@@ -615,11 +678,11 @@ class HacasaNova extends LitElement {
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));
     const su = selfUpdate(this);   // a newer HaCasa Nova: first in the row, tap = what's new (+ install via HACS)
     if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("HaCasa Nova {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
-    const editing = this.editing("home"), cards = editing ? [editStrip(this, "home")] : this.applyPage("home", homeCards(this, h)).map(c => c.tpl);
+    const editing = this.editing("home"), cards = editing ? editStrip(this, "home") : this.applyPage("home", homeCards(this, h)).map(c => c.tpl);
     return html`
       ${this.renderTitle(h.temp, t(this.pageCfg("home").title || this.config.home?.greeting || "") || greeting(), "", this.tickerOn("home", items), html`${this.renderPills(h)}${quickRow(this)}`, "home", this.renderWx(h.weather), h.hum)}
       ${editing ? editTools(this, "home") : nothing}
-      <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
+      <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${this.stripRows(cards)}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen kaarten: wijs entiteiten toe aan ruimtes in Home Assistant.")}</div>` : nothing}
       ${editing ? editBar(this, "home") : nothing}
       <div class=${classMap({ banner: true, show: h.motion.length > 0 && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in {rooms}", { rooms: h.motion.map(r => inText(r.name)).join(", ") })}</div>`;
@@ -701,11 +764,11 @@ class HacasaNova extends LitElement {
     for (const b of e.battery.filter(x => +x.state?.state <= (this.config.home?.lowBattery ?? 20))) items.push({ k: "battery", icon: "mdi:battery-20", title: name(this.hass, b), text: t("Batterij {n}%", { n: b.state.state }) });
     if (e.lights.length) items.push({ k: "lights", icon: "mdi:lightbulb-outline", title: t("Lampen"), text: r.lightsOn ? t("{n} van {m} aan", { n: r.lightsOn, m: e.lights.length }) : t("Alles uit") });
     if (r.motion) items.push({ k: "motion", icon: "mdi:motion-sensor", title: t("Beweging"), text: r.motionOn ? t("Nu") : relTime(r.motion.last_changed) });
-    const editing = this.editing(r.id), cards = editing ? [editStrip(this, r.id)] : this.applyPage(r.id, this.roomCards(r)).map(c => c.tpl);
+    const editing = this.editing(r.id), cards = editing ? editStrip(this, r.id) : this.applyPage(r.id, this.roomCards(r)).map(c => c.tpl);
     return html`
       ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), this.renderPills(null, r.id), r.id, nothing, r.hum)}
       ${editing ? editTools(this, r.id) : nothing}
-      <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
+      <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${this.stripRows(cards)}</div>${this.stripFades()}
       ${!cards.length ? html`<div class="empty">${t("Geen apparaten in deze ruimte.")}</div>` : nothing}
       ${editing ? editBar(this, r.id) : nothing}
       <div class=${classMap({ banner: true, show: r.motionOn && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in de {room}", { room: inText(r.name) })}</div>`;

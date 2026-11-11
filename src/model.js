@@ -2,6 +2,9 @@
 // Rooms = areas. An entity belongs to an area directly or through its device.
 import { slug, domain, num, isOn, unavailable, isDown, daysUntil, atHome } from "./util.js";
 import { t, locale } from "./i18n.js";
+/** an area picture as HA stores it is its 512 px preview (/api/image/serve/<id>/512x512): stretched over a whole screen it is
+ *  blurred and blocky, so the background takes the uploaded original from the same place (#194, coasting24) */
+const fullPic = u => u ? u.replace(/^(\/api\/image\/serve\/[^/]+\/)\d+x\d+$/, "$1original") : u;
 
 const DOOR = ["door", "garage_door", "opening", "garage"];
 const WINDOW = ["window"];
@@ -147,7 +150,7 @@ export function buildRooms(hass, config) {
     const s = slug(a.name), pg = config.pages?.[a.area_id] || {};
     return {
       id: a.area_id, name: pg.title || a.name, slug: s, floor: a.floor_id || null,
-      image: pg.image || a.picture || (config.roomImage || "").replace("{slug}", s),
+      image: pg.image || fullPic(a.picture) || (config.roomImage || "").replace("{slug}", s),
       // photo file named after the area name, or else after the area id (stays put when the area is renamed)
       images: pg.image || a.picture || !config.roomImage ? null : [...new Set([s, slug(a.area_id)])].map(x => config.roomImage.replace("{slug}", x)),
       ents,

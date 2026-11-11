@@ -29,21 +29,22 @@ function editDown(p, key, ev) {
   if (ev.button) return;
   ev.stopPropagation();                                                  // not the strip's own drag-to-scroll
   const shield = ev.currentTarget, touch = ev.pointerType !== "mouse", x0 = ev.clientX, y0 = ev.clientY;
-  let dragging = false, moved = false, timer = null, ghost = null, ox = 0, oy = 0;
+  let dragging = false, moved = false, timer = null, ghost = null, ox = 0, oy = 0, z = 1;
   // the card itself turns into a dashed slot; a copy of it follows the pointer (slightly lifted and tilted)
   const start = () => {
     dragging = true; p.editDrag = key; try { shield.setPointerCapture(ev.pointerId); } catch {}
     const card = shield.parentElement.querySelector(".card"), r = card.getBoundingClientRect();
     ox = x0 - r.left; oy = y0 - r.top;
-    ghost = card.cloneNode(true); ghost.classList.add("dragghost"); ghost.style.width = r.width + "px"; ghost.style.height = r.height + "px";
-    ghost.style.transform = `translate(${r.left}px,${r.top}px)`; shield.getRootNode().appendChild(ghost);
+    z = parseFloat(getComputedStyle(card).zoom) || 1;
+    ghost = card.cloneNode(true); ghost.classList.add("dragghost"); ghost.style.zoom = z; ghost.style.width = r.width / z + "px"; ghost.style.height = r.height / z + "px";
+    ghost.style.transform = `translate(${r.left / z}px,${r.top / z}px)`; shield.getRootNode().appendChild(ghost);
     requestAnimationFrame(() => ghost && ghost.classList.add("up"));
   };
   if (touch) timer = setTimeout(() => { if (!moved) start(); }, 300);
   const move = e => {
     if (!dragging) { if (Math.abs(e.clientX - x0) > 6 || Math.abs(e.clientY - y0) > 6) { moved = true; clearTimeout(timer); if (!touch) start(); } if (!dragging) return; }
     e.preventDefault();
-    if (ghost) ghost.style.transform = `translate(${e.clientX - ox}px,${e.clientY - oy}px)`;
+    if (ghost) ghost.style.transform = `translate(${(e.clientX - ox) / z}px,${(e.clientY - oy) / z}px)`;
     const strip = shield.closest(".strip"), cards = [...strip.querySelectorAll(".ecard")], keys = cards.map(c => c.dataset.key);
     // drop slot: the card nearest to the pointer (a row on desktop, a grid on phones), after it when the pointer is past its centre
     let near = -1, best = Infinity, rects = cards.map(c => c.getBoundingClientRect());
@@ -69,15 +70,20 @@ export const hiddenCards = (p, key) => { const hid = new Set(p.pageCfg(key).hidd
 
 export function editStrip(p, key) {
   const pc = p.pageCfg(key), hid = new Set(pc.hidden || []), all = p.orderCards(p.pageCards(key), p.editOrder || pc.order).filter(c => !hid.has(c.key));
-  return html`${all.map(c => { const cond = p.condHiddenCard(c.key);
+  const keys = all.map(c => c.key);
+  /** one place earlier (-1) or later (+1): for touch screens, keyboards and anyone who'd rather not drag (#195) */
+  const shift = (k, d) => { const i = keys.indexOf(k), j = i + d; if (j < 0 || j >= keys.length) return; const next = [...keys]; [next[i], next[j]] = [next[j], next[i]]; p.editOrder = next; p.saveOrder(); };
+  return all.map((c, i) => { const cond = p.condHiddenCard(c.key);
     return html`<div class=${classMap({ ecard: true, hid: cond, lift: p.editDrag === c.key })} data-key=${c.key}>
       ${c.tpl}
-      <div class="shield" @pointerdown=${ev => editDown(p, c.key, ev)}></div>
+      <div class="shield" @pointerdown=${ev => editDown(p, c.key, ev)} @contextmenu=${ev => ev.preventDefault()}></div>
+      ${i > 0 ? html`<button class="mv l" title=${t("Naar voren")} @click=${() => shift(c.key, -1)}><ha-icon icon="mdi:chevron-left"></ha-icon></button>` : nothing}
+      ${i < keys.length - 1 ? html`<button class="mv r" title=${t("Naar achteren")} @click=${() => shift(c.key, 1)}><ha-icon icon="mdi:chevron-right"></ha-icon></button>` : nothing}
       ${cond ? html`<button class="x" title=${t("Kaart instellen")} @click=${() => p.openCardForm(c.key)}><ha-icon icon="mdi:tune"></ha-icon></button>`
         : ownCard(p, key, c.key) ? html`<button class="x" title=${t("Verwijderen")} @click=${() => p.removeAdded(key, c.key)}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button>`
         : html`<button class="x" title=${t("Verbergen")} @click=${() => p.setHidden(key, c.key, true)}><ha-icon icon="mdi:eye-off-outline"></ha-icon></button>`}
       ${cond ? html`<div class="hban"><ha-icon icon="mdi:code-braces"></ha-icon>${t("Verborgen door voorwaarde")}</div>` : html`<div class="grip"><ha-icon icon="mdi:drag-vertical"></ha-icon></div>`}
-    </div>`; })}`;
+    </div>`; });
 }
 /** buttons above the strip while editing: the hidden cards of this page and add a card */
 export function editTools(p, key) {
