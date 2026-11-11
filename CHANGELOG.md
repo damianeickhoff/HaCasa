@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.2.0-beta.2 (beta)
+
+- **Phone menu at the top: the sidebar holds everything.** With the phone menu at the top there is no bottom bar, so *More* was missing from the sidebar. The sidebar now has the HaCasa logo on top, then your rooms or floors, your modes, every page from *More* (and your own links, Home Assistant, profile and settings), and the version at the bottom. With the menu at the bottom nothing changes.
+- **The X closes the sidebar again.** Tapping the X of the open sidebar opened it straight away again.
+
 ## 3.2.0-beta.1 (beta)
 
 - **12-hour times (#181, #179)**, thanks to jimmy-ungerman. HaCasa now follows the time format in your Home Assistant profile, so English shows "Rain from 2:00 pm" when Home Assistant does. Settings → Appearance → *Time format* lets you pick 12-hour or 24-hour yourself.
