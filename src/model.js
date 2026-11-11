@@ -1,6 +1,6 @@
 // Turns the Home Assistant registries + states into the panel's room/home model.
 // Rooms = areas. An entity belongs to an area directly or through its device.
-import { slug, domain, num, isOn, unavailable, isDown, daysUntil, atHome } from "./util.js";
+import { slug, roomSlug, domain, num, isOn, unavailable, isDown, daysUntil, atHome } from "./util.js";
 import { t, locale } from "./i18n.js";
 /** an area picture as HA stores it is its 512 px preview (/api/image/serve/<id>/512x512): stretched over a whole screen it is
  *  blurred and blocky, so the background takes the uploaded original from the same place (#194, coasting24) */
@@ -147,7 +147,7 @@ export function buildRooms(hass, config) {
     const extra = (config.pages?.[a.area_id]?.add || []).filter(id => hass.states[id] && !own.some(e => e.id === id)).map(id => ({ id, reg: hass.entities?.[id] || {}, state: hass.states[id], added: true }));
     const ents = classify([...own, ...extra], config, hass);
     ents.media = linkMedia(hass, ents.media, config, new Set(config.pages?.[a.area_id]?.add || []));
-    const s = slug(a.name), pg = config.pages?.[a.area_id] || {};
+    const s = roomSlug(a.name, a.area_id), pg = config.pages?.[a.area_id] || {};
     return {
       id: a.area_id, name: pg.title || a.name, slug: s, floor: a.floor_id || null,
       image: pg.image || fullPic(a.picture) || (config.roomImage || "").replace("{slug}", s),

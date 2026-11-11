@@ -12,6 +12,9 @@ export const VERSION = typeof __VERSION__ === "string" ? __VERSION__ : "dev";
 export const slug = s => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
   .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+/** a room's address: its name as a slug, or its area id when the name has no Latin letters or digits (客厅, Спальня) (#196) */
+export const roomSlug = (name, id) => slug(name) || slug(id) || id || "";
+
 export const domain = id => id.split(".")[0];
 export const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
 export const isOn = s => !!s && ["on", "open", "playing", "heating", "cooling", "home"].includes(s.state);

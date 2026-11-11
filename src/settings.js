@@ -3,7 +3,7 @@
 // The page is split into tabs (left) so each topic stays small.
 import { t, locale, LANGUAGES } from "./i18n.js";
 import { html, nothing } from "lit";
-import { domain, slug, SUFFIX, VERSION } from "./util.js";
+import { domain, slug, roomSlug, SUFFIX, VERSION } from "./util.js";
 import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates, selfUpdate } from "./features.js";
 import { PAGES } from "./pages.js";
 import { defaultsGrid } from "./defaults.js";
@@ -92,7 +92,7 @@ export function renderSettings(p) {
   const setBell = (k, v) => setHome("doorbell", { ...(d.home?.doorbell || {}), [k]: v });
 
   // rooms: ordered list of selected areas + the rest
-  const areas = Object.values(hass.areas || {}).map(a => ({ id: a.area_id, name: a.name, slug: slug(a.name) }));
+  const areas = Object.values(hass.areas || {}).map(a => ({ id: a.area_id, name: a.name, slug: roomSlug(a.name, a.area_id) }));
   const selected = Array.isArray(d.rooms) ? d.rooms.map(k => areas.find(a => a.id === k || a.slug === k || a.name === k)).filter(Boolean) : p.rooms.map(r => areas.find(a => a.id === r.id)).filter(Boolean);
   const rest = areas.filter(a => !selected.some(s => s.id === a.id)).sort((a, b) => a.name.localeCompare(b.name, locale()));
   const setRooms = list => set("rooms", list.map(a => a.id));
@@ -290,7 +290,7 @@ export const settingsStyles = `
   .settings .actions button.pulse{animation:pulse 1.6s ease-in-out infinite}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
   @media (max-width:900px){
-    .settings.page{padding-top:calc(96px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))}   /* no eyebrow line above the title here, so less room under the top bar */
+    .settings.page{padding-top:24px}   /* no eyebrow line above the title here, so less room under the top bar */
     .settings .phead{margin-bottom:20px}
     .settings .sbody{grid-template-columns:1fr}
     .settings .tabs{flex-direction:row;overflow-x:auto;position:static;scrollbar-width:none;padding-bottom:2px}

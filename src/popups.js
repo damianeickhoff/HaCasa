@@ -205,7 +205,7 @@ function haCamPlayer(p) {
 
 export function renderPopup(p, pop) {
   CUR = { p, pop };
-  const hass = p.hass, home = p.home, roomName = p.room?.name || t("Thuis");
+  const hass = p.hass, home = p.home, roomName = pop.room?.name || p.room?.name || t("Thuis");   // pop.room: opened from a page outside the room (security page)
   switch (pop.type) {
     case "light": {
       const s = hass.states[pop.e.id] || pop.e.state, on = isOn(s), un = unavailable(s);
@@ -294,7 +294,7 @@ export function renderPopup(p, pop) {
     }
     case "sensor": {
       const s = hass.states[pop.e.id], on = isOn(s);
-      const batt = p.room?.ents.battery.find(b => b.reg.device_id && b.reg.device_id === pop.e.reg.device_id);
+      const batt = (pop.room || p.room)?.ents.battery.find(b => b.reg.device_id && b.reg.device_id === pop.e.reg.device_id);
       if (pop.history === undefined) p.loadHistory(pop);
       return wrap(roomName, label(p, pop.e), pop.kind === "motion" ? (on ? t("Beweging") : t("Geen beweging")) : on ? t("Open") : t("Dicht"), html`
         <ul>${li("mdi:history", t("Laatst gewijzigd"), relTime(s.last_changed))}${batt ? li("mdi:battery", t("Batterij"), `${batt.state.state}%`) : nothing}</ul>

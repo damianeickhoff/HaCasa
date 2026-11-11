@@ -15,7 +15,7 @@ export const PAGES = {
   automatiseringen: { label: t("Automatiseringen"), sub: t("aan, uit en fouten"), icon: "mdi:robot-outline", ha: "/config/automation/dashboard" },
   sensoren: { label: t("Sensoren"), sub: t("batterijen, updates, per ruimte"), icon: "mdi:radar", ha: "/config/entities" },
   energie: { label: t("Energie"), sub: t("verbruik en opwek"), icon: "mdi:lightning-bolt-outline", ha: "/energy" },
-  cameras: { label: t("Camera's"), sub: t("live beeld"), icon: "mdi:cctv", ha: null },
+  beveiliging: { label: t("Beveiliging"), sub: t("alarm, camera's, deuren en sloten"), icon: "mdi:shield-home-outline", ha: null },
   systeem: { label: "Systeem", sub: "server, updates, netwerk", icon: "mdi:server-outline", ha: "/config/system" },
 };
 
@@ -29,7 +29,7 @@ const card = (p, { n, s, lbl = "", icon, on = false, dim = false, tap = null, ho
 
 export function renderPage(p, key) {
   const def = PAGES[key];
-  const page = { automatiseringen: automations, sensoren: sensors, energie: energy, cameras: cameras, systeem: system }[key](p);
+  const page = { automatiseringen: automations, sensoren: sensors, energie: energy, beveiliging: security, systeem: system }[key](p);
   return html`<section class="page">
     <header class="phead">
       <div><div class="peb">${t("Meer")}<i class="dt"></i>${page.sub}</div><h1>${t(def.label)}</h1>${page.head || nothing}</div>
@@ -190,25 +190,96 @@ function sensors(p) {
       </div>` };
 }
 
-/* ---------- cameras: live snapshots as cards, tap for the stream ---------- */
-function cameras(p) {
-  const cams = Object.values(p.hass.states).filter(s => domain(s.entity_id) === "camera");
-  const c = s => {
+/* ---------- security: the alarm, cameras, doors & windows, locks and motion on one page (was the camera page, #179).
+   "Kiezen" switches to picking: tap a camera or sensor to leave it off the page (config.security.hide) ---------- */
+const ALARM_MODES = () => [["alarm_disarm", "disarmed", t("Uit"), 0], ["alarm_arm_home", "armed_home", t("Thuis"), 1], ["alarm_arm_away", "armed_away", t("Weg"), 2], ["alarm_arm_night", "armed_night", t("Nacht"), 4]];
+const ALARM_STATE = () => ({ disarmed: t("Uit"), armed_home: t("Thuis"), armed_away: t("Weg"), armed_night: t("Nacht"), triggered: t("Alarm!"), arming: t("Inschakelen…"), pending: t("Inschakelen…") });
+function security(p) {
+  const h = p.home, hass = p.hass, alarm = h.alarm, pick = !!p.pageFilter?.secPick, hide = new Set(p.config.security?.hide || []);
+  const toggleHide = id => { const next = hide.has(id) ? [...hide].filter(x => x !== id) : [...hide, id]; p.saveUser({ security: { ...(p.userConfig?.security || {}), hide: next.length ? next : undefined } }); };
+  const shown = id => pick || !hide.has(id), tap = (id, go) => pick ? () => toggleHide(id) : go, off = id => pick && hide.has(id);
+  const inRoom = id => p.rooms.find(r => r.ents.all.some(e => e.id === id));
+  const cams = Object.values(hass.states).filter(s => domain(s.entity_id) === "camera" && shown(s.entity_id));
+  const openings = [...h.doors.map(e => ({ e, kind: "door" })), ...h.windows.map(e => ({ e, kind: "window" }))].filter(x => shown(x.e.id)).sort((a, b) => isOn(b.e.state) - isOn(a.e.state));
+  const locks = p.rooms.flatMap(r => r.ents.locks.map(e => ({ e, r }))).filter(x => shown(x.e.id)), motion = p.rooms.flatMap(r => r.ents.motion.map(e => ({ e, r }))).filter(x => shown(x.e.id));
+  const live = x => !hide.has(x.e.id);
+  const open = openings.filter(x => live(x) && isOn(x.e.state)), unlocked = locks.filter(x => live(x) && x.e.state?.state !== "locked"), moving = motion.filter(x => live(x) && isOn(x.e.state));
+  // while choosing, every camera and row says plainly whether it is on the page (eye + Visible / Hidden); a tap flips it
+  const eyeTxt = id => html`<ha-icon icon=${hide.has(id) ? "mdi:eye-off-outline" : "mdi:eye-outline"}></ha-icon>${hide.has(id) ? t("Verborgen") : t("Zichtbaar")}`;
+  // how often it went on (opened, saw motion) in the last 24 hours: 12 bars of two hours, oldest left, and the total
+  const hitBar = e => {
+    const hh = p.lightHist?.[e.id]; if (!hh?.hits) { p.loadLightHist(e.id); return html`<div class="sechits"></div>`; }
+    const g = Array.from({ length: 12 }, (_, i) => hh.hits[2 * i] + hh.hits[2 * i + 1]), mx = Math.max(1, ...g);
+    return html`<div class="sechits" title=${t("{n}× in 24 uur", { n: hh.count })}><span>${g.map(v => html`<i class=${classMap({ on: v > 0 })} style="height:${v ? Math.max(25, v / mx * 100) : 10}%"></i>`)}</span><b>${hh.count}×</b></div>`;
+  };
+
+  // alarm: the modes it supports (supported_features: 1 home, 2 away, 4 night); a code opens the keypad in the security popup
+  const needsCode = svc => !!alarm?.attributes.code_format && (svc === "alarm_disarm" || alarm.attributes.code_arm_required !== false);
+  const arm = svc => needsCode(svc) ? p.openPopup({ type: "security", pending: svc, code: "" }) : p.call("alarm_control_panel", svc, { entity_id: alarm.entity_id });
+  const feats = alarm?.attributes.supported_features ?? 7, modes = ALARM_MODES().filter(([, , , bit]) => !bit || feats & bit);
+  const alarmTxt = alarm ? ALARM_STATE()[alarm.state] || alarm.state : "";
+  const armed = alarm && !["disarmed", "unavailable", "unknown"].includes(alarm.state);
+  // HaCasa's own popups (with history, battery, lock buttons), the room passed along for the title
+  const sensorPop = (e, r, kind) => () => p.openPopup({ type: "sensor", e, kind, room: r });
+
+  // the alarm panel at the top: the state big, the modes as large buttons; without an alarm, the overall state
+  const hero = html`<div class=${classMap({ sechero: true, armed, alert: alarm?.state === "triggered" })}>
+    <div class="sechst" @click=${() => p.openPopup({ type: "security" })}>
+      <em>${alarm ? t("Alarm") : t("Beveiliging")}</em>
+      <b>${alarm ? alarmTxt : open.length ? t("{n} open", { n: open.length }) : t("Veilig")}</b>
+      <small>${alarm ? (alarm.attributes.changed_by ? t("door {by}, {t}", { by: alarm.attributes.changed_by, t: relTime(alarm.last_changed) }) : relTime(alarm.last_changed)) : [open.length ? tn(open.length, "{n} deur of raam open", "{n} deuren of ramen open") : t("alles dicht"), unlocked.length ? tn(unlocked.length, "{n} slot open", "{n} sloten open") : null].filter(Boolean).join(" · ")}</small>
+    </div>
+    ${alarm ? html`<div class="secmodes">${modes.map(([svc, st, l]) => html`<button class=${classMap({ on: alarm.state === st })} @click=${() => arm(svc)}>${l}</button>`)}</div>` : nothing}
+  </div>`;
+
+  const kpis = [
+    openings.length ? kpi({ icon: "mdi:door", svg: "door", em: t("Deuren & ramen"), v: open.length, unit: ` / ${openings.filter(live).length}`, n: open.length ? `${name(hass, open[0].e)} ${t("open")}${open.length > 1 ? ` +${open.length - 1}` : ""}` : t("alles dicht"), on: open.length > 0, tap: () => p.openPopup({ type: "doors" }) }) : null,
+    locks.length ? kpi({ icon: "mdi:lock", svg: unlocked.length ? "lock_open" : "lock", em: t("Sloten"), v: locks.filter(live).length - unlocked.length, unit: ` / ${locks.filter(live).length}`, n: unlocked.length ? `${label(p, unlocked[0].e)} ${t("niet op slot")}` : t("alles op slot"), on: unlocked.length > 0, tap: () => { const x = unlocked[0] || locks[0]; p.openPopup({ type: "lock", e: x.e, room: x.r }); } }) : null,
+    motion.length ? kpi({ icon: "mdi:motion-sensor", svg: "motion", em: t("Beweging"), v: moving.length, unit: ` / ${motion.filter(live).length}`, n: moving.length ? [...new Set(moving.map(x => x.r.name))].join(", ") : t("nergens beweging"), tap: () => { const x = moving[0] || [...motion].sort((a, b) => new Date(b.e.state?.last_changed || 0) - new Date(a.e.state?.last_changed || 0))[0]; sensorPop(x.e, x.r, "motion")(); } }) : null,
+  ].filter(Boolean);
+
+  const camCard = s => {
     const pic = s.attributes.entity_picture || null; // <hcn-cam-snap> refreshes every 10 s without flicker
-    const roomName = p.rooms.find(r => r.ents.all.some(e => e.id === s.entity_id))?.name || "";
-    return html`<div class=${classMap({ card: true, cam: true, unavailable: unavailable(s) })}
-        ${pressDir(p, { tap: () => p.openPopup({ type: "camera", s }), hold: () => p.moreInfo(s.entity_id) })}>
+    const roomName = inRoom(s.entity_id)?.name || "";
+    return html`<div class=${classMap({ card: true, cam: true, unavailable: unavailable(s), secoff: off(s.entity_id) })}
+        ${pressDir(p, { tap: tap(s.entity_id, () => p.openPopup({ type: "camera", s })), hold: pick ? null : () => p.moreInfo(s.entity_id) })}>
       ${pic ? html`<hcn-cam-snap .src=${pic} .stream=${camStream(s)} .live=${!!cardCfg(p, s.entity_id).live}></hcn-cam-snap>` : nothing}
       <div class="n">${s.attributes.friendly_name || s.entity_id}</div>
       <div class="s">${unavailable(s) ? t("Onbereikbaar") : s.state === "recording" ? t("Neemt op") : s.state === "streaming" ? t("Live") : roomName || t("Inactief")}</div>
       ${!pic ? html`<div class="i">${ico("mdi:cctv")}</div>` : nothing}
+      ${pick ? html`<span class=${classMap({ seceye: true, on: !hide.has(s.entity_id) })}>${eyeTxt(s.entity_id)}</span>` : nothing}
     </div>`;
   };
-  return { sub: cams.length ? t("{n} camera's · tik voor live beeld", { n: cams.length }) : t("Geen camera's gevonden"), body: sec(t("Camera's"), cams.map(c)) };
+  const since = e => relTime(e.state?.last_changed);
+  const rowOpen = ({ e, kind }) => srow({ icon: kind === "window" ? (isOn(e.state) ? "mdi:window-open-variant" : "mdi:window-closed-variant") : isOn(e.state) ? "mdi:door-open" : "mdi:door", svg: kind === "window" ? (isOn(e.state) ? "window_open" : "window") : "door", name: label(p, e), sub: `${e.room?.name || ""} · ${isOn(e.state) ? t("open sinds {t}", { t: since(e) }) : t("dicht sinds {t}", { t: since(e) })}`, tr: pick ? nothing : hitBar(e), pill: pick ? eyeTxt(e.id) : unavailable(e.state) ? t("Onbereikbaar") : isOn(e.state) ? t("Open") : t("Dicht"), on: pick ? !hide.has(e.id) : isOn(e.state), dim: unavailable(e.state) || off(e.id), tap: tap(e.id, sensorPop(e, e.room, kind)) });
+  const rowLock = ({ e, r }) => { const locked = e.state?.state === "locked"; return srow({ icon: locked ? "mdi:lock" : "mdi:lock-open-variant", svg: locked ? "lock" : "lock_open", name: label(p, e), sub: `${r.name} · ${since(e)}`, pill: pick ? eyeTxt(e.id) : unavailable(e.state) ? t("Onbereikbaar") : locked ? t("Op slot") : t("Open"), on: pick ? !hide.has(e.id) : !locked, dim: unavailable(e.state) || off(e.id), tap: tap(e.id, () => p.openPopup({ type: "lock", e, room: r })) }); };
+  const rowMotion = ({ e, r }) => srow({ icon: "mdi:motion-sensor", svg: "motion", name: label(p, e), sub: `${r.name} · ${isOn(e.state) ? t("beweging nu") : t("laatst {t}", { t: since(e) })}`, tr: pick ? nothing : hitBar(e), pill: pick ? eyeTxt(e.id) : isOn(e.state) ? t("Nu") : t("Rustig"), on: pick ? !hide.has(e.id) : isOn(e.state), dim: unavailable(e.state) || off(e.id), tap: tap(e.id, sensorPop(e, r, "motion")) });
+
+  const nothingHere = !alarm && !cams.length && !openings.length && !locks.length && !motion.length;
+  const sub = [alarm ? `${t("Alarm")} ${alarmTxt.toLowerCase()}` : null, open.length ? tn(open.length, "{n} deur of raam open", "{n} deuren of ramen open") : openings.length ? t("alles dicht") : null, unlocked.length ? tn(unlocked.length, "{n} slot open", "{n} sloten open") : null, cams.length ? tn(cams.length, "{n} camera", "{n} camera's") : null].filter(Boolean).join(" · ");
+  return {
+    sub: nothingHere ? t("Geen alarm, camera's of sensoren gevonden") : [sub, hide.size && !pick ? t("{n} verborgen", { n: hide.size }) : ""].filter(Boolean).join(" · "),
+    tools: html`<div class="seg pseg"><button class=${pick ? "on" : ""} @click=${() => { p.pageFilter = { ...(p.pageFilter || {}), secPick: !pick }; }}>${pick ? t("Klaar") : t("Kiezen")}</button></div>`,
+    body: html`
+      ${pick ? html`<div class="secpick"><ha-icon icon="mdi:eye-outline"></ha-icon><span>${t("Tik op een camera of sensor om hem te verbergen of weer te tonen.")}</span><b>${t("{n} verborgen", { n: hide.size })}</b></div>` : nothing}
+      <div class="secw">
+        <div class="secmain">
+          ${hero}
+          ${kpis.length ? html`<div class="kpis">${kpis}</div>` : nothing}
+          ${cams.length ? html`<section class="sec"><h3>${t("Camera's")}<b>${tn(cams.length, "{n} camera", "{n} camera's")}</b></h3><div class="cgrid seccams">${cams.map(camCard)}</div></section>` : nothing}
+        </div>
+        <div class="secside">
+          ${sblock(t("Deuren & ramen"), openings.map(rowOpen), open.length ? t("{n} open", { n: open.length }) : t("alles dicht"))}
+          ${sblock(t("Sloten"), locks.map(rowLock), unlocked.length ? tn(unlocked.length, "{n} slot open", "{n} sloten open") : t("alles op slot"))}
+          ${sblock(t("Beweging"), motion.map(rowMotion), moving.length ? t("{n} nu", { n: moving.length }) : "")}
+        </div>
+      </div>` };
 }
+/** old name of the security page: links, bookmarks and phone shortcuts to it still work */
+export const PAGE_ALIAS = { cameras: "beveiliging" };
 
 export const pageStyles = `
-  .page{position:absolute;inset:calc(158px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 0 0 0;overflow:auto;padding:0 var(--pad) 60px;scrollbar-width:thin}
+  .page{position:absolute;inset:calc(142px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 0 0 0;overflow:auto;padding:16px var(--pad) 60px;scrollbar-width:thin;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16px);mask-image:linear-gradient(to bottom,transparent 0,#000 16px)}
   .phead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px}
   .phead h1{font-size:48px;font-weight:600;letter-spacing:-2.4px;line-height:1;margin-top:8px}
   .peb{font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--fg-2);display:flex;align-items:center}
@@ -279,12 +350,73 @@ export const pageStyles = `
   .cgrid .card{width:auto;height:150px}
   .cgrid .card.kpi .s{font-size:30px;font-weight:700;letter-spacing:-1px;opacity:1;margin-top:2px}
   .cgrid .card.cam{height:200px}
+  .cgrid .card.secoff,.srow.secoff{opacity:.35}
+  .secpick{display:flex;align-items:center;gap:12px;margin-top:18px;padding:12px 18px;border-radius:var(--r);background:rgba(255,255,255,.9);color:#1d1d1f;font-size:14px;font-weight:600}
+  .secpick ha-icon{--mdc-icon-size:20px;flex:none}
+  .secpick span{flex:1;min-width:0}
+  .secpick b{flex:none;font-weight:700}
+  .cgrid .card.cam .seceye{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;background:rgba(20,20,20,.6);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;z-index:1}
+  .cgrid .card.cam .seceye.on{background:rgba(255,255,255,.92);color:#1d1d1f}
+  .cgrid .card.cam .seceye ha-icon{--mdc-icon-size:16px}
+  .cgrid .card.cam.secoff{filter:grayscale(1)}
+  .srow .st ha-icon{--mdc-icon-size:14px;margin:-1px 5px 0 -2px}
+  .sechits{display:flex;align-items:center;gap:8px;justify-self:end}
+  .sechits span{display:flex;align-items:flex-end;gap:2px;height:calc(20 * var(--su, 1px));width:calc(66 * var(--su, 1px))}
+  .sechits i{flex:1;border-radius:1px;background:rgba(255,255,255,.2)}
+  .sechits i.on{background:#fff}
+  .sechits b{min-width:calc(26 * var(--su, 1px));font-size:calc(12 * var(--su, 1px));font-weight:700;color:var(--fg-2);text-align:right}
+  /* security page: the alarm, tiles and cameras on the left, the lists on the right; sizes follow the card scale (--u) */
+  .secw{--su:var(--u,1px);display:grid;grid-template-columns:minmax(0,1fr) minmax(420px,.62fr);gap:calc(var(--card-gap) * 2);margin-top:22px;align-items:start}
+  .secmain{display:flex;flex-direction:column;gap:var(--card-gap);min-width:0}
+  .secmain .kpis{margin-top:0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .secmain .kpi{height:calc(128 * var(--su));padding:calc(18 * var(--su)) calc(20 * var(--su))}
+  .secmain .kpi .v{font-size:calc(32 * var(--su))}
+  .secmain .kpi .n{font-size:calc(14 * var(--su));padding-right:0}
+  .secmain .sec{margin-top:calc(14 * var(--su))}
+  .sechero{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;border-radius:var(--r);background:rgba(255,255,255,.08);border:1px solid var(--line);box-shadow:0 1px 0 rgba(255,255,255,.08) inset;padding:calc(24 * var(--su)) calc(28 * var(--su));backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%)}
+  .sechero.armed{background:rgba(255,255,255,.2);border-color:var(--line-on)}
+  .sechero.alert{background:rgba(242,122,92,.45);border-color:rgba(242,122,92,.8)}
+  .sechst{cursor:pointer;min-width:0}
+  .sechst em{display:block;font-style:normal;font-size:calc(12 * var(--su));font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--fg-2)}
+  .sechst b{display:block;font-size:calc(52 * var(--su));font-weight:600;letter-spacing:-2px;line-height:1.05;margin-top:calc(8 * var(--su))}
+  .sechst small{display:block;font-size:calc(14 * var(--su));font-weight:600;color:var(--fg-2);margin-top:calc(6 * var(--su))}
+  .secmodes{display:flex;gap:6px;flex-wrap:wrap}
+  .secmodes button{height:calc(54 * var(--su));min-width:calc(100 * var(--su));padding:0 calc(22 * var(--su));border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:calc(15 * var(--su));font-weight:700;cursor:pointer}
+  .secmodes button:hover{background:rgba(255,255,255,.18)}
+  .secmodes button.on{background:rgba(255,255,255,.92);color:#1d1d1f}
+  .cgrid.seccams{grid-template-columns:repeat(auto-fill,minmax(calc(300 * var(--su)),1fr))}
+  .cgrid.seccams .card.cam{height:auto;aspect-ratio:16/9}
+  .cgrid.seccams .card.cam .n{font-size:calc(17 * var(--su))}
+  .secside{display:flex;flex-direction:column;gap:var(--card-gap)}
+  .secside .sblk{margin:0}
+  .secside .sblk h3{font-size:calc(12 * var(--su));padding:calc(14 * var(--su)) 22px calc(10 * var(--su))}
+  .secside .srow{font-size:calc(15 * var(--su));padding:calc(13 * var(--su)) 22px;grid-template-columns:calc(26 * var(--su)) minmax(0,1fr) max-content max-content}
+  .secside .srow img.ico,.secside .srow ha-icon{width:calc(24 * var(--su));height:calc(24 * var(--su));--mdc-icon-size:calc(24 * var(--su))}
+  .secside .srow .nm small{font-size:calc(12 * var(--su))}
+  .secside .srow .st{height:calc(26 * var(--su));padding:1px calc(11 * var(--su)) 0 calc(12 * var(--su));font-size:calc(11 * var(--su))}
+  @media (max-width:1200px){ .secw{grid-template-columns:1fr} }
+  @media (max-width:900px){
+    .secw{--su:1px;margin-top:16px}
+    .sechero{padding:18px 20px;gap:14px}
+    .sechst b{font-size:38px}
+    .secmodes{width:100%}
+    .secmodes button{flex:1;min-width:0;height:46px;padding:0 8px}
+    .secmain .kpis{grid-template-columns:1fr 1fr}
+    .secmain .kpi{height:110px;padding:12px 14px}
+    .secmain .kpi .v{font-size:22px}
+    .cgrid.seccams{grid-template-columns:1fr}
+    .secside .srow{padding:12px 16px;gap:10px}
+    .sechits{gap:5px}
+    .sechits span{width:34px;height:16px;gap:1px}
+    .sechits b{min-width:0;font-size:11px}
+  }
   .cgrid .card.cam hcn-cam-snap{z-index:-1}
   .cgrid .card.cam::before{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(20,20,20,.75),rgba(20,20,20,0) 60%);pointer-events:none}
   .cgrid .card.cam .n,.cgrid .card.cam .s,.cgrid .card.cam .i{position:relative}
   .popup .stream{display:block;width:100%;max-width:100%;border-radius:var(--r);margin-top:14px;background:rgba(0,0,0,.3);min-height:200px}
   @media (max-width:900px){
-    .page{position:static;flex:1;min-height:0;overflow:auto;padding:calc(124px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) var(--pad) calc(60px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))}
+    /* the page scrolls in its own area starting just under the top bar, so nothing slides under its buttons */
+    .page{position:static;flex:1;min-height:0;overflow:auto;margin-top:calc(76px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18px);mask-image:linear-gradient(to bottom,transparent 0,#000 18px);padding:48px var(--pad) calc(60px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))}
     .phead{flex-direction:column;gap:10px;margin-bottom:0}
     .phead h1{font-size:34px;letter-spacing:-1.6px}
     .peb{font-size:11px;letter-spacing:1.4px}

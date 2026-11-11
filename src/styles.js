@@ -96,21 +96,21 @@ export const styles = css`
   @media (hover:hover) and (min-width:901px){ .links .fl:hover .dd{display:flex} .links .fl:hover>a ha-icon{transform:rotate(180deg)} }
   @media (max-width:1700px){ .links a{padding:0 clamp(6px,.75vw,12px)} .nav{--navgap:clamp(8px,1.1vw,14px)} }
   @media (max-width:1200px){ .links a{padding:0 clamp(6px,.8vw,12px);font-size:clamp(11px,1vw,13px)} .nav{--navgap:clamp(8px,1.2vw,14px)} }
-  .people{display:inline-flex;align-items:center;gap:7px;padding:0 14px 0 12px;cursor:pointer;font-size:14px;font-weight:700}
-  .people ha-icon{--mdc-icon-size:18px}
-  .people .pc small{font-weight:700;color:var(--fg-3);font-size:inherit}
-  .people + .alarm{margin-left:calc(8px - var(--navgap))}
-  .alarm{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:0 16px;cursor:pointer;white-space:nowrap}
-  .alarm ha-icon{--mdc-icon-size:17px}
-  .alarm i{width:8px;height:8px;border-radius:50%;background:#fff;opacity:.4;flex:none}
-  .alarm.off i{background:#fff;opacity:.4;box-shadow:none}
-  .alarm.armed{background:rgba(255,255,255,.4)}
-  .alarm.armed i{background:#f2b63a;opacity:1;box-shadow:0 0 8px rgba(242,182,58,.7)}
-  .alarm.home i{background:#8fd16a;opacity:1;box-shadow:0 0 8px rgba(143,209,106,.7)}
-  .alarm.arming i{background:#f2b63a;opacity:1;animation:blink 1s ease-in-out infinite}
-  .alarm.triggered{background:rgba(242,122,92,.6)}
-  .alarm.triggered i{background:#f27a5c;opacity:1;animation:blink .5s ease-in-out infinite}
-  .alarm.unavailable i{opacity:.3}
+  .people.pill{display:inline-flex;align-items:center;gap:7px;padding:0 14px 0 12px;cursor:pointer;font-size:14px;font-weight:700}
+  .people.pill ha-icon{--mdc-icon-size:18px}
+  .people.pill .pc small{font-weight:700;color:var(--fg-3);font-size:inherit}
+  .people.pill + .alarm.pill{margin-left:calc(8px - var(--navgap))}
+  .alarm.pill{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:0 16px;cursor:pointer;white-space:nowrap}
+  .alarm.pill ha-icon{--mdc-icon-size:17px}
+  .alarm.pill i{width:8px;height:8px;border-radius:50%;background:#fff;opacity:.4;flex:none}
+  .alarm.pill.off i{background:#fff;opacity:.4;box-shadow:none}
+  .alarm.pill.armed{background:rgba(255,255,255,.4)}
+  .alarm.pill.armed i{background:#f2b63a;opacity:1;box-shadow:0 0 8px rgba(242,182,58,.7)}
+  .alarm.pill.home i{background:#8fd16a;opacity:1;box-shadow:0 0 8px rgba(143,209,106,.7)}
+  .alarm.pill.arming i{background:#f2b63a;opacity:1;animation:blink 1s ease-in-out infinite}
+  .alarm.pill.triggered{background:rgba(242,122,92,.6)}
+  .alarm.pill.triggered i{background:#f27a5c;opacity:1;animation:blink .5s ease-in-out infinite}
+  .alarm.pill.unavailable i{opacity:.3}
   @keyframes blink{0%,100%{opacity:1;box-shadow:0 0 8px rgba(242,182,58,.8)}50%{opacity:.25;box-shadow:none}}
   .time{align-items:center;justify-content:center;white-space:nowrap}
   .time b{font-size:19px;font-weight:800;letter-spacing:-.4px}
@@ -702,14 +702,14 @@ export const styles = css`
     .logo{font-size:17px;flex:1;min-width:0}
     @media (max-width:400px){.logo .bt{display:none}}   /* small phones: the pills need the room, the home mark stays */
     /* compact glass pills: count and status dot sit inside the pill, like on desktop (no badges on top) */
-    .people{justify-self:end;min-width:44px;padding:0 13px 0 12px;justify-content:center;gap:6px}
-    .people .pc{font-size:13px}
-    .people .pc small{display:none}
-    .people + .alarm{margin-left:0}
+    .people.pill{justify-self:end;min-width:44px;padding:0 13px 0 12px;justify-content:center;gap:6px}
+    .people.pill .pc{font-size:13px}
+    .people.pill .pc small{display:none}
+    .people.pill + .alarm.pill{margin-left:0}
     .time{display:none}
-    .alarm{min-width:44px;padding:0 13px 0 12px;justify-content:center;gap:7px}
-    .alarm .al{display:none}
-    .alarm i{width:7px;height:7px}
+    .alarm.pill{min-width:44px;padding:0 13px 0 12px;justify-content:center;gap:7px}
+    .alarm.pill .al{display:none}
+    .alarm.pill i{width:7px;height:7px}
     .links{display:none}
     /* ===== bottom bar: glass pill (home · rooms · more) + detached search; the room sheet opens above it ===== */
     .bnav{position:fixed;left:var(--pad);right:var(--pad);bottom:calc(10px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));z-index:41;display:flex;gap:8px;align-items:flex-end;animation:upT .5s var(--ease) both}
