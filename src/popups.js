@@ -11,7 +11,7 @@ import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, a
 import { roomPresets, snapshot, applyPreset, presetMatches, installUpdate, pendingUpdates } from "./features.js";
 import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check, condFields } from "./settings.js";
-import { pillEditor } from "./pills.js";
+import { pillEditor, pillList, pillMatches } from "./pills.js";
 import { dragRows } from "./drag.js";
 import { defaultsForm, DEFAULT_TYPES } from "./defaults.js";
 import { LANGUAGES } from "./i18n.js";
@@ -333,6 +333,18 @@ export function renderPopup(p, pop) {
         <ul>${list.map(e => li(isDoor(e) ? "mdi:door" : "mdi:window-closed-variant", name(hass, e), isOn(e.state) ? t("Open") : t("Dicht"), { on: isOn(e.state), sub: `${e.room.name} · ${relTime(e.state?.last_changed)}`, svg: isDoor(e) ? "door" : "window", onclick: () => p.go(e.room) }))}</ul>`);
     }
     case "lights": return lightsPopup(p, UI());
+    case "pilllist": {   // a status pill with tap "Lijst": its entities, each opening its own popup, and an optional button for all
+      const x = pillList(p, pop.key).find(y => y.id === pop.pill) || {}, m = pillMatches(p, x);
+      const POP = { light: "light", switch: "switch", input_boolean: "switch", cover: "cover", climate: "climate", fan: "fan", humidifier: "humidifier", lock: "lock", vacuum: "vacuum", media_player: "media", sensor: "sensor" };
+      const areaOf = id => { const r = hass.entities?.[id] || {}; return hass.areas?.[r.area_id || hass.devices?.[r.device_id]?.area_id]?.name || ""; };
+      const open = s => { const d = s.entity_id.split(".")[0]; if (POP[d]) p.openPopup({ type: POP[d], e: { id: s.entity_id, state: s }, back: pop }); else p.moreInfo(s.entity_id); };
+      const [sd, sv] = String(x.listService || "").split(".");
+      const title = x.listTitle || (x.text && !/\{[{%]/.test(x.text) ? x.text : t("Lijst"));
+      return wrap(title, m.length ? t("{n} entiteiten", { n: m.length }) : t("Niets gevonden"), [x.listDomain, x.listState, x.listArea && hass.areas?.[x.listArea]?.name].filter(Boolean).join(" · "), html`
+        ${sd && sv && m.length ? modes([{ label: x.listButton || t("Voor alle"), go: () => p.call(sd, sv, { entity_id: m.map(s => s.entity_id) }) }], "n2") : nothing}
+        <ul>${m.map(s => li(s.attributes.icon || "mdi:" + ({ light: "lightbulb-outline", switch: "toggle-switch-outline", cover: "window-shutter", media_player: "speaker", binary_sensor: "radiobox-marked", lock: "lock-outline", climate: "thermostat", fan: "fan" }[s.entity_id.split(".")[0]] || "circle-outline"),
+          s.attributes.friendly_name || s.entity_id, String(hass.formatEntityState?.(s) ?? s.state), { on: isOn(s), sub: areaOf(s.entity_id), onclick: () => open(s) }))}</ul>`);
+    }
     case "waste":
       return wrap(t("Afval"), home.waste[0] ? `${home.waste[0].label} ${wasteWhen(home.waste[0])}` : t("Geen data"), t("Ophaaldagen"), html`
         <ul>${home.waste.map((w, i) => li("mdi:trash-can-outline", html`<i class="dot" style="background:${wasteColor(w.label)}"></i>${w.label}`, wasteWhen(w), { on: i === 0, sub: w.days > 7 && w.date ? new Date(w.date).toLocaleDateString(locale(), { weekday: "long" }) : "" }))}</ul>`);
