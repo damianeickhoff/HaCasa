@@ -4,7 +4,7 @@
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { t, tn, locale, timeOpts } from "./i18n.js";
-import { domain, num, isOn, unavailable, relTime, sinceText, slug, atHome } from "./util.js";
+import { domain, num, isOn, unavailable, relTime, untilText, sinceText, slug, atHome } from "./util.js";
 import { pressDir, ico, anyIco, cardCfg, label, dot, camStream, uico, customActions, hasActs, infoCls, ovr } from "./cards.js";
 import { name } from "./model.js";
 import { field, select, selectDoms, text, check } from "./settings.js";
@@ -252,7 +252,7 @@ const zoneOn = s => isOn(s) || s?.state === "open";
 const zoneToggle = (p, id) => { const s = st(p, id); const d = domain(id); if (d === "valve") return p.call("valve", zoneOn(s) ? "close_valve" : "open_valve", { entity_id: id }); return p.call(d === "input_boolean" ? "input_boolean" : "switch", "toggle", { entity_id: id }); };
 export function gardenCard(p) {
   const c = gardenCfg(p), zones = (c.zones || []).map(id => st(p, id)).filter(Boolean), on = zones.filter(zoneOn), key = "garden", cfg = cardCfg(p, key);
-  const next = st(p, c.next), rain = val(p, c.rain), nextTxt = next && !unavailable(next) ? (next.attributes.device_class === "timestamp" && !isNaN(new Date(next.state)) ? relTime(next.state).replace(/^(\d)/, t("over") + " $1") : next.state) : null;
+  const next = st(p, c.next), rain = val(p, c.rain), nextTxt = next && !unavailable(next) ? (next.attributes.device_class === "timestamp" && !isNaN(new Date(next.state)) ? (new Date(next.state) > new Date() ? untilText(next.state) : relTime(next.state)) : next.state) : null;
   const zname = s => (cardCfg(p, s.entity_id).name || s.attributes.friendly_name || s.entity_id).replace(/\b(sproei|irrigat|zone)\w*/gi, "").trim() || s.attributes.friendly_name;
   const line = [on.length ? t("Bezig: {z}", { z: on.map(zname).join(", ") }) : null, nextTxt ? t("Volgende {t}", { t: nextTxt }) : null, rain != null ? t("{n} mm regen vandaag", { n: fmt(rain) }) : null].filter(Boolean);
   return html`<div class=${classMap({ card: true, garden: true, on: on.length > 0, ...infoCls(cfg) })} ${pressDir(p, { tap: () => p.openPopup({ type: "garden" }) })}>

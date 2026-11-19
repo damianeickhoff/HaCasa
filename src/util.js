@@ -40,6 +40,19 @@ export function relTime(iso) {
   if (diff < 7 * DAY) return t("{n} dagen geleden", { n: Math.round(diff / DAY) });
   return d.toLocaleDateString(locale(), { day: "numeric", month: "short" });
 }
+/** a time in the future: "now" / "in 12 min" / "14:30" (later today) / "tomorrow 06:00" / "Sat 06:00". relTime() is for the past */
+export function untilText(iso) {
+  if (!iso) return "";
+  const d = new Date(iso), now = new Date(), ahead = d - now;
+  if (isNaN(d)) return "";
+  if (ahead < 60000) return t("nu");
+  if (ahead < 3600000) return t("over {t}", { t: t("{m} min", { m: Math.round(ahead / 60000) }) });
+  const hm = d.toLocaleTimeString(locale(), timeOpts());
+  const days = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / DAY);
+  if (days === 0) return hm;
+  if (days === 1) return `${t("morgen")} ${hm}`;
+  return `${d.toLocaleDateString(locale(), { weekday: "short" }).replace(".", "")} ${hm}`;
+}
 export function shortDate(iso) {
   const d = iso instanceof Date ? iso : new Date(iso);
   if (isNaN(d)) return "";
