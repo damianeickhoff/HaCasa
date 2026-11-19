@@ -397,7 +397,7 @@ export function renderPopup(p, pop) {
       const upd = patch => p.openPopup({ ...pop, draft: { ...d, ...patch } });
       const updHome = (k, v) => upd({ home: { ...d.home, [k]: v } }), updEnergy = (k, v) => updHome("energy", { ...(d.home.energy || {}), [k]: v });
       const goStep = s => p.openPopup({ ...pop, draft: d, step: s });
-      const areas = Object.values(hass.areas || {}).sort((a, b) => a.name.localeCompare(b.name, "nl"));
+      const areas = Object.values(hass.areas || {}).sort((a, b) => a.name.localeCompare(b.name, locale()));
       const steps = [
         { title: t("Welkom"), body: html`<div class="sub">${t("In vier stappen staat het panel klaar. Alles is later aan te passen bij HaCasa instellingen.")}</div><div class="form">
             ${field(t("Taal"), html`<select @change=${e => { upd({ language: e.target.value || undefined }); }}><option value="" ?selected=${!d.language}>${t("automatisch (taal van Home Assistant)")}</option>${Object.entries(LANGUAGES).map(([k, l]) => html`<option value=${k} ?selected=${d.language === k}>${l}</option>`)}</select>`)}

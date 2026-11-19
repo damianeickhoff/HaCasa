@@ -1,7 +1,7 @@
 // Search bar under the navigation: rooms, pages and entities. Tap = open the matching popup (or HA's dialog).
 import { html, nothing } from "lit";
 import { anyIco } from "./cards.js";
-import { t } from "./i18n.js";
+import { t, locale } from "./i18n.js";
 import { domain, num, isOn, unavailable, icon } from "./util.js";
 import { PAGES } from "./pages.js";
 
@@ -42,7 +42,7 @@ export function searchResults(p, q) {
     const m = inRoom.get(s.entity_id);
     hits.push({ label: n, sub: m ? m.r.name : d.replace(/_/g, " "), icon: (p.config.cards || {})[s.entity_id]?.icon || s.attributes.icon || DOM_ICON[d] || "mdi:circle-outline", state: stateText(s), rank: (starts(n) ? 0 : 2) + (m ? 0 : 1), go: () => { p.search = ""; openFor(p, s, m); } });
   }
-  return hits.sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label, "nl"));
+  return hits.sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label, locale()));
 }
 
 export function searchBar(p) {

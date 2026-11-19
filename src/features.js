@@ -47,7 +47,7 @@ export function watchTriggers(p) {
 }
 /** candidates for the trigger chips: doorbell-like binary sensors and event entities */
 export const triggerCandidates = hass => Object.values(hass.states).filter(s => (domain(s.entity_id) === "binary_sensor" && ["occupancy", "motion", "sound", "vibration", "door", "opening", undefined].includes(s.attributes.device_class)) || domain(s.entity_id) === "event")
-  .sort((a, b) => (a.attributes.friendly_name || a.entity_id).localeCompare(b.attributes.friendly_name || b.entity_id, "nl"));
+  .sort((a, b) => (a.attributes.friendly_name || a.entity_id).localeCompare(b.attributes.friendly_name || b.entity_id, locale()));
 
 /* ---------- pending updates ---------- */
 export function pendingUpdates(hass) {
@@ -55,7 +55,7 @@ export function pendingUpdates(hass) {
     .filter(s => domain(s.entity_id) === "update" && s.state === "on" && !(s.attributes.skipped_version && s.attributes.skipped_version === s.attributes.latest_version))
     .map(s => ({ s, id: s.entity_id, title: s.attributes.title || (s.attributes.friendly_name || s.entity_id).replace(/ update$/i, ""), kind: s.attributes.device_class === "firmware" ? t("Firmware") : t("Software"),
       from: s.attributes.installed_version, to: s.attributes.latest_version, busy: !!s.attributes.in_progress, canInstall: (s.attributes.supported_features & 1) === 1, summary: s.attributes.release_summary }))
-    .sort((a, b) => a.title.localeCompare(b.title, "nl"));
+    .sort((a, b) => a.title.localeCompare(b.title, locale()));
 }
 export function installUpdate(p, u) {
   if (!u.canInstall || !p.hass.user?.is_admin) return p.moreInfo(u.id);   // update.install is refused for non-admins (#144): show HA's dialog instead
