@@ -46,7 +46,9 @@ export function shortDate(iso) {
   return d.toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" });
 }
 export function daysUntil(iso) {
-  const d = new Date(iso); if (isNaN(d)) return null;
+  // a bare "YYYY-MM-DD" parses as UTC midnight, which is the evening before west of UTC: read it as a local date
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(iso); if (isNaN(d)) return null;
   const a = new Date(); a.setHours(0, 0, 0, 0); d.setHours(0, 0, 0, 0);
   return Math.round((d - a) / DAY);
 }
