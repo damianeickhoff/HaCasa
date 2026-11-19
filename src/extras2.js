@@ -17,10 +17,25 @@ export async function fetchEvents(hass, calendars, days = 2, from = null) {
     return out.sort((a, b) => a.start - b.start);
   } catch (e) { console.warn("[hacasa-nova] calendar.get_events failed", e); return []; }
 }
+/** calendar days from today to the event: 0 today, 1 tomorrow. An event that started earlier and is still running counts as today.
+    Counted in calendar days (not 24 h steps), so a DST change doesn't shift it. */
+export const eventDay = ev => {
+  const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (ev.start < today && ev.end > today) return 0;
+  const d = new Date(ev.start.getFullYear(), ev.start.getMonth(), ev.start.getDate());
+  return Math.round((d - today) / 86400000);
+};
+/** the time to show next to the day: the start, or "until …" for an event that began before today */
+export const eventTime = ev => {
+  const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (ev.allDay) return t("hele dag");
+  if (ev.start >= today) return ev.start.toLocaleTimeString(locale(), timeOpts());
+  const endsToday = ev.end < new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  return t("tot {t}", { t: endsToday ? ev.end.toLocaleTimeString(locale(), timeOpts()) : ev.end.toLocaleDateString(locale(), { weekday: "short" }).replace(".", "") });
+};
 export const eventWhen = ev => {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const day = ev.start >= today && ev.start < new Date(today.getTime() + 86400000) ? t("Vandaag") : ev.start < new Date(today.getTime() + 2 * 86400000) ? t("Morgen") : ev.start.toLocaleDateString(locale(), { weekday: "long" });
-  return ev.allDay ? `${day} · ${t("hele dag")}` : `${day} · ${ev.start.toLocaleTimeString(locale(), timeOpts())}`;
+  const k = eventDay(ev), day = k === 0 ? t("Vandaag") : k === 1 ? t("Morgen") : ev.start.toLocaleDateString(locale(), { weekday: "long" });
+  return `${day} · ${eventTime(ev)}`;
 };
 export const nextEvent = events => events.find(ev => ev.end > new Date()) || null;
 
