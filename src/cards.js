@@ -235,8 +235,8 @@ const APPS = [
   [/videoland/i, "Videoland", "#e3001b", "mdi:filmstrip"], [/npo/i, "NPO Start", "#ff6d00", "mdi:television-classic"], [/hbo|com\.wbd\.stream|^max$/i, "Max", "#002be7", "mdi:filmstrip"],
   [/skyshowtime/i, "SkyShowtime", "#5d2ec6", "mdi:filmstrip"], [/kodi/i, "Kodi", "#17b2e7", "mdi:kodi"], [/twitch/i, "Twitch", "#9146ff", "mdi:twitch"],
   [/com\.apple\.tv|^tv$|apple ?tv/i, "Apple TV", "#555555", "mdi:apple"], [/ziggo/i, "Ziggo GO", "#f48c00", "mdi:television-classic"], [/kpn/i, "KPN TV", "#00c300", "mdi:television-classic"],
-  [/hulu/i, "Hulu", "#1ce783", "mdi:hulu"], [/paramount|com\.cbs\.ott/i, "Paramount+", "#0064ff", "mdi:image-filter-hdr"], [/peacock/i, "Peacock", "#000000", "mdi:alpha-p-circle"],
-  [/tubi/i, "Tubi", "#7408ff", "mdi:alpha-t-circle"], [/pluto/i, "Pluto TV", "#fff200", "mdi:alpha-p-box"], [/espn/i, "ESPN", "#cc0000", "mdi:alpha-e-circle"],
+  [/hulu/i, "Hulu", "#1ce783", "mdi:hulu"], [/paramount|com\.cbs\.ott/i, "Paramount+", "#0064ff", "hacasa-brand:paramount_plus"], [/peacock/i, "Peacock", "#000000", "mdi:alpha-p-circle"],
+  [/tubi/i, "Tubi", "#7408ff", "hacasa-brand:tubi"], [/pluto/i, "Pluto TV", "#fff200", "mdi:alpha-p-box"], [/espn/i, "ESPN", "#cc0000", "mdi:alpha-e-circle"],
   [/^sling( ?tv)?$|com\.sling/i, "Sling TV", "#0072ce", "mdi:alpha-s-circle"],
 ];
 const LAUNCHER = /launcher|leanback|com\.google\.android\.tvlauncher|^home$|^startscherm$/i;
