@@ -33,7 +33,9 @@ function editDown(p, key, ev) {
   // the card itself turns into a dashed slot; a copy of it follows the pointer (slightly lifted and tilted)
   const start = () => {
     dragging = true; p.editDrag = key; try { shield.setPointerCapture(ev.pointerId); } catch {}
-    const card = shield.parentElement.querySelector(".card"), r = card.getBoundingClientRect();
+    const card = shield.parentElement.querySelector(".card");
+    if (!card) return;                                                   // a card that renders nothing (its entity is gone): the slot still moves, just without a lifted copy
+    const r = card.getBoundingClientRect();
     ox = x0 - r.left; oy = y0 - r.top;
     z = parseFloat(getComputedStyle(card).zoom) || 1;
     ghost = card.cloneNode(true); ghost.classList.add("dragghost"); ghost.style.zoom = z; ghost.style.width = r.width / z + "px"; ghost.style.height = r.height / z + "px";
