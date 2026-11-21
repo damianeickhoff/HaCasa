@@ -702,7 +702,7 @@ export const styles = css`
 
   /* ===== tablet portrait & phone ===== */
   @media (max-width:900px){
-    :host(.in-card){position:relative;height:100%}
+    :host(.in-card){position:relative;height:100%;display:flex !important}   /* the card wrapper sets hacasa-nova{display:block}, which beats :host; without flex the strip never gets a bounded height and cannot scroll */
     :host{--pad:20px;--u:1px;--card-h:132px;position:fixed;inset:0;height:auto;max-height:none;overflow:hidden;overscroll-behavior:none;touch-action:none;display:flex;flex-direction:column}
     .strip,.page,.settings,.popup,.nav.open .links{touch-action:pan-y}
     .links .rl{display:contents}   /* phone menu: the rooms are a plain list again */
