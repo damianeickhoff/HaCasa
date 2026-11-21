@@ -42,7 +42,7 @@ class HacasaNova extends LitElement {
   static styles = styles;
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
-    config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, iconPick: { state: true }, tick: { state: true }, now: { state: true },
+    config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, iconPick: { state: true }, now: { state: true },
     draft: { state: true }, saved: { state: true }, roomDrag: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true }, todo: { state: true },
   };
 
@@ -57,7 +57,7 @@ class HacasaNova extends LitElement {
     super.connectedCallback();
     this.loadConfig();
     this._clock = setInterval(() => { this.now = clock(); }, 15000);
-    this._ticker = setInterval(() => { this.tick++; }, 4000);
+    this._ticker = setInterval(() => this.nextTickerLine(), 4000);
     this._onKey = e => { if (e.key === "Escape") { if (this.iconPick) { this.iconPick = null; return; } if (this.popup?.menu) { this.popup = { ...this.popup, menu: false }; return; } if (!this.popup && this.edit) { this.stopEdit(); return; } this.popup = null; this.search = ""; this.searchOpen = false; } };
     addEventListener("keydown", this._onKey);
     // inside a Lovelace card the dashboard owns the URL path, so rooms are routed through the hash
@@ -646,6 +646,15 @@ class HacasaNova extends LitElement {
         </div>`; })}${more}</div>`;
   }
 
+  /** the title ticker shows its next line by moving the "show" class, without re-rendering the whole panel every 4 s
+   *  (#198, P2). tick is a plain field: the next render picks the same line, so Lit leaves the classes as they are */
+  nextTickerLine() {
+    this.tick++;
+    for (const tk of this.renderRoot?.querySelectorAll(".ticker") || []) {
+      const rows = [...tk.children]; if (rows.length < 2) continue;
+      const i = this.tick % rows.length; rows.forEach((d, k) => d.classList.toggle("show", k === i));
+    }
+  }
   renderTitle(temp, title, sub, items, extra = nothing, pageKey = "home", aside = nothing, hum = null) {
     const i = items.length ? this.tick % items.length : 0;
     const date = new Date().toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
