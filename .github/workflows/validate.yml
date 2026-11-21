@@ -23,7 +23,7 @@ jobs:
       # leave it alone; a release tag must point at a commit whose dist/ matches the source.
       - name: dist is up to date (release tags)
         if: startsWith(github.ref, 'refs/tags/v')
-        run: git diff --exit-code -- dist/hacasa-nova.js || (echo "Run npm run build and commit dist/hacasa-nova.js before tagging" && exit 1)
+        run: git diff --exit-code -- dist/leics-dashboard.js || (echo "Run npm run build and commit dist/leics-dashboard.js before tagging" && exit 1)
 
   hacs:
     runs-on: ubuntu-latest
