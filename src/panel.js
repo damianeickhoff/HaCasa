@@ -1,6 +1,7 @@
 // HaCasa Nova: a Home Assistant custom panel (panel_custom) that builds a home view and one
 // page per area, straight from the area/device/entity registries.
 import { t, locale, setLang, setTimeFormat, pickLang, inText, timeOpts, hourLabel } from "./i18n.js";
+import { setPlugTimer } from "./plugtimer.js";
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
@@ -458,14 +459,9 @@ class HacasaNova extends LitElement {
     this._plugBusy.delete(id);
   }
   /** off-timer on a plug (on-timer when it is off): runs while the panel is open */
-  setPlugTimer(a, min) {
-    const cur = this.plugTimers?.[a.id]; if (cur) clearTimeout(cur.h);
-    if (cur?.min === min) { const n = { ...this.plugTimers }; delete n[a.id]; this.plugTimers = n; return; }
-    const sw = a.switch; if (!sw) return;
-    const off = isOn(sw.state); if (!off) this.call("switch", "turn_on", { entity_id: sw.id });
-    const h = setTimeout(() => { this.call("switch", "turn_off", { entity_id: sw.id }); const n = { ...this.plugTimers }; delete n[a.id]; this.plugTimers = n; }, min * 60000);
-    this.plugTimers = { ...(this.plugTimers || {}), [a.id]: { min, at: Date.now() + min * 60000, off: true, h } };
-  }
+  /** plug timer: on the plug, in Home Assistant or in this browser; see plugtimer.js (#150) */
+  setPlugTimer(a, min) { return setPlugTimer(this, a, min).catch(() => {}); }
+
   /** 24-hour on/off history of a light for the "today" card bottom: minutes on per clock hour, total and switch count */
   async loadLightHist(id) {
     const cur = this.lightHist?.[id]; if (cur?.hits && Date.now() - cur.at < 10 * 60000) return; if (this._lhBusy?.has(id)) return;

@@ -10,6 +10,7 @@ import { defaultsGrid } from "./defaults.js";
 import { dragRows } from "./drag.js";
 import { iconInput } from "./iconpicker.js";
 import { solarSettings } from "./cards2.js";
+import { timerScriptId, installTimerScript } from "./plugtimer.js";
 
 export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
 
@@ -134,6 +135,10 @@ export function renderSettings(p) {
         ${field(t("Batterij-grens"), number(d.home?.lowBattery ?? 20, v => setHome("lowBattery", v)), t("onder dit percentage in Aandacht"))}
         ${field(t("Controleren op updates"), check(!d.noUpdateCheck, v => set("noUpdateCheck", v ? undefined : true)), t("melding op de startpagina als er een nieuwe HaCasa Nova is (alleen voor beheerders)"))}
         ${field(t("Lichtscènes"), check(!d.noPresets, v => set("noPresets", v ? undefined : true)), t("kaart in elke kamer met lampen: sla lampstanden op en roep ze terug"))}
+        ${p.hass.user?.is_admin ? field(t("Plug-timers"), p.hass.states[timerScriptId]
+          ? html`<span class="ok">${t("lopen in Home Assistant")}</span>`
+          : html`<button @click=${async () => { try { await installTimerScript(p); p.showToast(t("Script toegevoegd: plug-timers lopen nu in Home Assistant"), 4000, "ok"); } catch (e) { p.showToast(e?.body?.message || e?.message || t("Opslaan mislukt")); } }}>${t("Laat ze in Home Assistant lopen")}</button>`,
+          t("zonder dit loopt een timer in de browser en stopt hij als je het paneel sluit. Plugs met een eigen countdown gebruiken die altijd")) : nothing}
         <div class="f"><span>${t("Slaapstand na")}<small>${t("minuten zonder aanraking; 0 = uit")}</small></span><div class="row" style="grid-template-columns:1fr max-content;margin:0">${number(d.idleMinutes ?? 0, v => set("idleMinutes", v))}<button @click=${() => p.showIdle()}>${t("Nu tonen")}</button></div></div>
         <div class="f"><span>${t("Installatiehulp")}<small>${t("opnieuw doorlopen; wijzigt alleen wat je invult")}</small></span><button @click=${() => p.openPopup({ type: "wizard", step: 0 })}>${t("Opnieuw starten")}</button></div>
         ${p.hashMode ? nothing : html`<div class="f"><span>${t("Startpagina van HA")}<small>${t("Home Assistant opent dan met dit panel (per gebruiker)")}</small></span><button class=${p.isDefault ? "on" : ""} @click=${() => p.setDefault(!p.isDefault)}>${p.isDefault ? t("HaCasa Nova is de startpagina") : t("Maak HaCasa Nova de startpagina")}</button></div>`}`)}`,

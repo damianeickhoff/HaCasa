@@ -42,6 +42,12 @@ A thin vertical bar on the right sets the brightness (drag it; dragging to 0 tur
 
 A switch toggles on tap. A switch whose device also reports **power** becomes a plug card: live watts big, kWh used today, and a three-hour sparkline. The bottom line can also be a **timer** (switch off after 15, 30, 60 … minutes), the **cost** today (set your price under *Settings → Energy*), or hourly **bars**. You can link a power sensor by hand when it lives on another device.
 
+Where the timer runs:
+
+- **On the plug** when it has its own countdown (many Tuya and Zigbee plugs: a `number.…countdown` entity on the same device). It keeps running whatever happens, and every device shows the time left.
+- **In Home Assistant** once an admin has pressed *Settings → General → Plug timers → Run them in Home Assistant*. That adds one script, `script.hacasa_nova_switch_timer`, which you can see in the script editor. The timer keeps running when you close the panel; a restart of Home Assistant stops it.
+- **In the browser** otherwise: closing the panel stops the timer.
+
 <div class="grid2" markdown>
 <figure markdown>
 ![Power strip card](assets/cards/strip.webp)

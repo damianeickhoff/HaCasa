@@ -12,6 +12,7 @@ import { sky, feelsLike } from "./sky.js";
 import { graphCard, stepGraph } from "./graph.js";
 import { peopleCard, securityCard, todoCard, todoEntity, evCard, evReady, timersCard, timerList, solarCard, solarReady, gardenCard, gardenReady } from "./cards2.js";
 import "./camsnap.js";
+import { timerLeft } from "./plugtimer.js";
 
 const HOLD_MS = 500;
 
@@ -454,7 +455,7 @@ function plugCard(p, a, st, title, cfg, acts) {
   const en = energyOf(p, a.device), h = p.plugHist?.[a.id]; if (!h || Date.now() - h.at > 5 * 60000) p.loadPlug(a.id, a.power.id, en?.entity_id);
   const mode = cfg.bottom || "spark", price = num(p.config.home?.energy?.price);
   const since = sw?.state?.last_changed ? sinceText(sw.state.last_changed) : "";
-  const tmr = p.plugTimers?.[a.id], left = tmr ? Math.max(0, Math.round((tmr.at - Date.now()) / 60000)) : null, plain = !!a.plain;
+  const tmr = timerLeft(p, a), left = tmr ? tmr.left : null, plain = !!a.plain;
   let bottom = nothing;
   const locked = measureOnly(p, a.id, sw?.id);
   if (mode === "timer" && !locked) bottom = html`<div class="lbl chips" @click=${ev => ev.stopPropagation()}>${[15, 30, 60].map(m => html`<button class=${classMap({ on: tmr?.min === m })} @click=${() => p.setPlugTimer(a, m)}>${m}</button>`)}</div>`;
