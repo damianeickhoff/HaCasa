@@ -1,11 +1,11 @@
 // Bundles src/panel.js into one self-contained file (HACS serves a single file), with the SVG icons from icons/
 // inlined as data: URLs, every language file in src/lang/ gathered as "hcn:langs" and the Material Design Icons names
 // (from @mdi/svg, the version Home Assistant ships) as "hcn:mdi" for the icon picker. Also writes version.json.
-// `node build.mjs` is the release build: dist/hacasa-nova.js, committed only with a release (HACS reads it from
+// `node build.mjs` is the release build: dist/leics-dashboard.js, committed only with a release (HACS reads it from
 // the release commit). It is copied to dev/build/ too, so the dev pages always load the newest build.
 // `node build.mjs --local` (npm run dev) and `--watch` build into dev/build/ only (git-ignored), for working on the code.
-// `node build.mjs --dev` builds the dev variant into dist-dev/hacasa-nova-dev.js: element <hacasa-nova-dev>,
-// card custom:hacasa-nova-dev-card and its own settings key, so it runs next to the HACS install.
+// `node build.mjs --dev` builds the dev variant into dist-dev/leics-dashboard-dev.js: element <leics-dashboard-dev>,
+// card custom:leics-dashboard-dev-card and its own settings key, so it runs next to the HACS install.
 import * as esbuild from "esbuild";
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -16,7 +16,7 @@ const local = watch || process.argv.includes("--local");
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 const version = pkg.version + (dev ? "-dev" : "");
 const outdir = dev ? "dist-dev" : local ? "dev/build" : "dist";
-const name = dev ? "hacasa-nova-dev" : "hacasa-nova";
+const name = dev ? "leics-dashboard-dev" : "leics-dashboard";
 mkdirSync(outdir, { recursive: true });
 mkdirSync("dev/build", { recursive: true });
 
@@ -70,7 +70,7 @@ const stamp = {
       const v = Date.now().toString(36);
       writeFileSync(`${outdir}/version.json`, JSON.stringify({ v, version, built: new Date().toISOString() }));
       if (outdir === "dist") copyFileSync(`dist/${name}.js`, `dev/build/${name}.js`);
-      console.log(`[hacasa-nova] built ${version} v=${v}`);
+      console.log(`[leics-dashboard] built ${version} v=${v}`);
     });
   },
 };
