@@ -1,11 +1,11 @@
 {
-  "name": "hacasa-nova",
+  "name": "leics-dashboard",
   "version": "3.1.1",
   "private": true,
   "type": "module",
-  "description": "HaCasa Nova: the HaCasa reboot, a room-first Home Assistant panel built on the Homio design.",
+  "description": "LEICS Dasboard: the HaCasa reboot, a room-first Home Assistant panel built on the Homio design.",
   "license": "MIT",
-  "repository": "github:damianeickhoff/HaCasa",
+  "repository": "github:luke1699/LEICS-Dashboard",
   "scripts": {
     "build": "node build.mjs",
     "dev": "node build.mjs --local",

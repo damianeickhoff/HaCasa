@@ -11,10 +11,10 @@ import { dragRows } from "./drag.js";
 import { iconInput } from "./iconpicker.js";
 import { solarSettings } from "./cards2.js";
 
-export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
+export const USER_DATA_KEY = "leics_dashboard" + (SUFFIX ? "_dev" : "");
 
 // carried over once when the key is empty: pre-release names, or (dev build) a copy of the real settings
-const OLD_USER_DATA_KEYS = SUFFIX ? ["hacasa_nova"] : ["kamer_panel", "homio_panel"];
+const OLD_USER_DATA_KEYS = SUFFIX ? ["leics_dashboard"] : ["kamer_panel", "homio_panel"];
 /** null = nothing stored yet. Throws when Home Assistant could not be asked (connection lost, HA starting):
  *  that must never look like an empty store, or the wizard opens and saving it wipes the real settings (#172) */
 export async function loadUserConfig(hass) {
@@ -22,7 +22,7 @@ export async function loadUserConfig(hass) {
   if (r?.value) return r.value;
   for (const key of OLD_USER_DATA_KEYS) {
     const o = await hass.callWS({ type: "frontend/get_user_data", key });
-    if (o?.value) { await hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value: o.value }); console.info(`[hacasa-nova] settings migrated from ${key}`); return o.value; }
+    if (o?.value) { await hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value: o.value }); console.info(`[leics-dashboard] settings migrated from ${key}`); return o.value; }
   }
   return null;
 }

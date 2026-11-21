@@ -91,7 +91,7 @@ class HacasaNova extends LitElement {
     try {
       const res = await fetch(new URL("../config.json?" + Date.now(), BASE), { cache: "no-store" });
       if (res.ok) this.fileConfig = await res.json();
-    } catch (e) { console.warn("[hacasa-nova] config.json not loaded, using defaults", e); }
+    } catch (e) { console.warn("[leics-dashboard] config.json not loaded, using defaults", e); }
     this.applyConfig();
   }
   /** user settings; a config.json next to the panel is imported into them once (so updates never overwrite anything) */
@@ -101,14 +101,14 @@ class HacasaNova extends LitElement {
     catch (e) {
       // userConfig stays undefined: no wizard, no saves; try again (2 s, 4 s, … up to 30 s)
       this._userTries = (this._userTries || 0) + 1;
-      console.warn(`[hacasa-nova] settings could not be loaded (attempt ${this._userTries}), retrying`, e);
+      console.warn(`[leics-dashboard] settings could not be loaded (attempt ${this._userTries}), retrying`, e);
       clearTimeout(this._userRetry); this._userRetry = setTimeout(() => this.loadUser(), Math.min(30000, 1000 * 2 ** this._userTries));
       return;
     }
     this._userTries = 0;
     if (this.fileConfig && Object.keys(this.fileConfig).length && !u?.importedAt) {
       u = { ...mergeConfig(this.fileConfig, u || {}), importedAt: new Date().toISOString(), setupDone: true };
-      try { await saveUserConfig(this.hass, u); console.info("[hacasa-nova] config.json imported into the user settings"); } catch (e) { console.warn("[hacasa-nova] could not store the imported config.json", e); }
+      try { await saveUserConfig(this.hass, u); console.info("[leics-dashboard] config.json imported into the user settings"); } catch (e) { console.warn("[leics-dashboard] could not store the imported config.json", e); }
     }
     this.userConfig = u; this.applyConfig();
   }
@@ -116,7 +116,7 @@ class HacasaNova extends LitElement {
   /** settings as a downloadable JSON file (the old config.json role) */
   exportSettings() {
     const blob = new Blob([JSON.stringify(this.userConfig || {}, null, 2)], { type: "application/json" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "hacasa-nova-settings.json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "leics-dashboard-settings.json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   /** merge a JSON file (export or an old config.json) into the settings */
   importSettings(file) {
@@ -162,7 +162,7 @@ class HacasaNova extends LitElement {
     }
   }
   get settingsPath() { return `${this.basePath()}/instellingen`; }
-  async saveSettings() { if (this.notLoaded()) return; try { await saveUserConfig(this.hass, this.draft); } catch (e) { console.warn("[hacasa-nova] save failed", e); this.showToast(t("Opslaan mislukt")); return; } this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); this.showToast(t("Instellingen opgeslagen"), 2500, "ok"); }
+  async saveSettings() { if (this.notLoaded()) return; try { await saveUserConfig(this.hass, this.draft); } catch (e) { console.warn("[leics-dashboard] save failed", e); this.showToast(t("Opslaan mislukt")); return; } this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); this.showToast(t("Instellingen opgeslagen"), 2500, "ok"); }
   /** back to the defaults (a config.json next to the panel is imported again on the next load) */
   async resetSettings() { await saveUserConfig(this.hass, null); this.userConfig = null; this.applyConfig(); this.draft = mergeConfig(DEFAULT_CONFIG, this.cardConfig); }
 
@@ -205,7 +205,7 @@ class HacasaNova extends LitElement {
   /** service call with visible feedback: errors from HA (wrong alarm code, unavailable device, …) show as a toast */
   async call(domain, service, data) {
     try { return await this.hass.callService(domain, service, data); }
-    catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
+    catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[leics-dashboard] service failed", domain, service, data, e); this.showToast(msg); throw e; }
   }
   showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; this.toastOut = false; clearTimeout(this._toastT); clearTimeout(this._toastT2); this._toastT = setTimeout(() => { this.toastOut = true; this.requestUpdate(); this._toastT2 = setTimeout(() => { this.toast = null; }, 260); }, ms); }
   openPopup(pop) { this.popup = pop; }
@@ -244,7 +244,7 @@ class HacasaNova extends LitElement {
   /** wizard result -> user settings (null = skipped: only remember that it ran) */
   async finishWizard(d) {
     // read the store again first: if settings exist after all, the wizard adds to them instead of replacing them
-    try { const stored = await loadUserConfig(this.hass); if (stored) this.userConfig = stored; } catch (e) { console.warn("[hacasa-nova] wizard: settings could not be read", e); this.showToast(t("Opslaan mislukt")); return; }
+    try { const stored = await loadUserConfig(this.hass); if (stored) this.userConfig = stored; } catch (e) { console.warn("[leics-dashboard] wizard: settings could not be read", e); this.showToast(t("Opslaan mislukt")); return; }
     const clean = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""));
     const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.userConfig?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.userConfig?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true, kept30: true } : { setupDone: true, kept30: true };
     await this.saveUser(patch); this.popup = null; if (d) this.showToast(t("Het panel is ingesteld"), 3000, "ok");
@@ -285,7 +285,7 @@ class HacasaNova extends LitElement {
     // a template without an id (an old config.json import) gets the one subscribeTemplates gives it, stored, so its instance can find it
     const next = tpls.map((x, i) => { if (x.room === "none") return x; const id = x.id || "tpl" + i, page = x.room || "home", pc = { ...(pages[page] || {}) }, key = `tpl:${id}:legacy`;
       pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, id, room: "none" }; });
-    console.info("[hacasa-nova] template cards moved to the pages' add lists");
+    console.info("[leics-dashboard] template cards moved to the pages' add lists");
     this.saveUser({ templates: next, pages });
   }
   /** 3.1 shows fewer cards by itself. Settings from 3.0 keep what that version showed on its own, once: every card a page had beyond the new
@@ -307,7 +307,7 @@ class HacasaNova extends LitElement {
         keep(r.id, this.roomAllCards(r).map(c => c.key).filter(k => !auto.has(k) && k !== "air" && !/^(group|graph):|^tpl/.test(k)));
       }
     } finally { this._noAdded = false; }
-    console.info("[hacasa-nova] cards from 3.0 kept on their pages");
+    console.info("[leics-dashboard] cards from 3.0 kept on their pages");
     this.saveUser({ pages, kept30: true });
   }
   tickerOn(key, items) {
@@ -449,7 +449,7 @@ class HacasaNova extends LitElement {
       const r = await this.hass.callWS({ type: "history/history_during_period", start_time: start.toISOString(), entity_ids: [id], minimal_response: false, no_attributes: false, significant_changes_only: false });
       const rows = (r?.[id] || []).map(x => ({ act: x.a?.hvac_action, t: (x.lu || x.lc) * 1000 }));
       rows.forEach((x, i) => { if (x.act != null) known = true; if (!(x.act in min)) return; const a = Math.max(from, x.t), b = rows[i + 1]?.t ?? now; if (b > a) min[x.act] += (b - a) / 60000; });
-    } catch (e) { console.warn("[hacasa-nova] climate history failed", e); }
+    } catch (e) { console.warn("[leics-dashboard] climate history failed", e); }
     this.climateHist = { ...(this.climateHist || {}), [id]: { at: Date.now(), heat: Math.round(min.heating), cool: Math.round(min.cooling), known } };
     this._chBusy.delete(id);
   }
@@ -669,7 +669,7 @@ class HacasaNova extends LitElement {
   }
 
   /** a popup whose entity vanished mid-render (fast switching, a removed entity) closes instead of breaking the whole panel (#153) */
-  safePopup() { try { return renderPopup(this, this.popup); } catch (e) { console.warn("[hacasa-nova] popup closed after a render error", this.popup?.type, e); setTimeout(() => { this.popup = null; }, 0); return nothing; } }
+  safePopup() { try { return renderPopup(this, this.popup); } catch (e) { console.warn("[leics-dashboard] popup closed after a render error", this.popup?.type, e); setTimeout(() => { this.popup = null; }, 0); return nothing; } }
 
   /* ---------- edit mode: edit.js renders the strip and the bar, these hold the state and save ---------- */
   startEdit(key) { this.edit = true; this.editKey = key; this.editOrder = null; this.editDrag = null; this.popup = null; this.drawer = false; this.searchOpen = false; }

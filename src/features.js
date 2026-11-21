@@ -168,7 +168,7 @@ export const newer = (a, b) => { const x = parts(a), y = parts(b); for (let i = 
 export function selfUpdate(p) {
   const hass = p.hass;
   if (!hass?.user?.is_admin || p.config.noUpdateCheck) return null;
-  const ent = Object.values(hass.states).find(s => s.entity_id.startsWith("update.") && (s.entity_id === "update.hacasa_nova_update" || String(s.attributes.release_url || "").includes(REPO)));
+  const ent = Object.values(hass.states).find(s => s.entity_id.startsWith("update.") && (s.entity_id === "update.leics_dashboard_update" || String(s.attributes.release_url || "").includes(REPO)));
   if (ent) return ent.state === "on" && ent.attributes.skipped_version !== ent.attributes.latest_version
     ? { to: ent.attributes.latest_version, from: ent.attributes.installed_version, open: () => p.moreInfo(ent.entity_id) } : null;
   if (SUFFIX) return null;
@@ -180,7 +180,7 @@ let ghBusy = false;
 function checkGithub(p) {
   if (p.ghLatest !== undefined || ghBusy) return;
   ghBusy = true;
-  const KEY = "hacasa-nova:latest-release";
+  const KEY = "leics-dashboard:latest-release";
   let cached = null;
   try { cached = JSON.parse(localStorage.getItem(KEY) || "null"); } catch {}
   if (cached && Date.now() - cached.at < 12 * 3600e3) { queueMicrotask(() => { p.ghLatest = cached; ghBusy = false; }); return; }
