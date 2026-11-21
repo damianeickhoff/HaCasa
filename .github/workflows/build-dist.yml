@@ -18,5 +18,5 @@ jobs:
       - run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add dist/leics-dashboard.js
+          git add dist/hacasa-nova.js
           git diff --cached --quiet || (git commit -m "build: dist [skip ci]" && git push)
