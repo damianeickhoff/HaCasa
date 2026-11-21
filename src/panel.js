@@ -208,10 +208,16 @@ class HacasaNova extends LitElement {
   }
 
   /* ---------- actions ---------- */
-  /** service call with visible feedback: errors from HA (wrong alarm code, unavailable device, …) show as a toast */
-  async call(domain, service, data) {
-    try { return await this.hass.callService(domain, service, data); }
-    catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
+  /** service call with visible feedback: errors from HA (wrong alarm code, unavailable device, …) show as a toast.
+   *  The returned promise still rejects for callers that await it (the alarm keypad stays open on a wrong code), but it
+   *  is marked handled, so the many fire-and-forget calls from click handlers don't log an unhandled rejection on top of the toast */
+  call(domain, service, data) {
+    const run = (async () => {
+      try { return await this.hass.callService(domain, service, data); }
+      catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
+    })();
+    run.catch(() => {});
+    return run;
   }
   showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; this.toastOut = false; clearTimeout(this._toastT); clearTimeout(this._toastT2); this._toastT = setTimeout(() => { this.toastOut = true; this.requestUpdate(); this._toastT2 = setTimeout(() => { this.toast = null; }, 260); }, ms); }
   openPopup(pop) { this.popup = pop; }
