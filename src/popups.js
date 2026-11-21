@@ -17,7 +17,7 @@ import { defaultsForm, DEFAULT_TYPES } from "./defaults.js";
 import { LANGUAGES } from "./i18n.js";
 import { fetchHistory } from "./extras2.js";
 import { addPopup, hiddenPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
-import { templateOf, pressDir, lightState } from "./cards.js";
+import { templateOf, pressDir, lightState, addedCard } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { iconInput } from "./iconpicker.js";
 import { lightsPopup, weatherPopup, energyPopup, mediaPopup, agendaPopup } from "./popups2.js";
@@ -79,6 +79,28 @@ function wizardDefaults(p) {
   return { language: p.config.language, title: p.userConfig?.title, rooms: p.rooms.map(r => r.id), roomImage: p.userConfig?.roomImage, homeImage: p.userConfig?.homeImage,
     home: { weather: p.home?.weather?.entity_id, climate: p.home?.climate?.entity_id, alarm: p.home?.alarm?.entity_id, energy: { power: h.energy?.power, today: h.energy?.today } } };
 }
+/** the draft's state / subtitle / bottom templates for the card form's preview, each rendered once by Home Assistant;
+    a field without a template is null (the card's own text), one still rendering or in error is left out (the saved result shows) */
+function previewTemplates(p, id, draft) {
+  if (p._pvTplFor !== id) { p._pvTplFor = id; p._pvTpl = new Map(); }
+  const out = {}, conn = p.hass?.connection;
+  for (const [field, key] of [["state", "tplState"], ["label", "tplSub"], ["foot", "tplFoot"]]) {
+    const src = draft[key];
+    if (!src) { out[field] = null; continue; }
+    const hit = p._pvTpl.get(src);
+    if (hit) { if ("v" in hit) out[field] = hit.v; continue; }
+    if (!conn?.subscribeMessage) continue;
+    const entry = {}; p._pvTpl.set(src, entry);
+    let u = null, done = false;
+    const stop = () => { done = true; u?.then?.(f => f(), () => {}); };
+    try {
+      u = conn.subscribeMessage(msg => { if (done || (msg.error && msg.level === "WARNING")) return; stop(); if (!msg.error) { entry.v = msg.result; p.requestUpdate(); } }, { type: "render_template", template: src, report_errors: true });
+      u?.catch?.(() => {});   // refused for non-admin users: the preview keeps the saved text
+      if (done) u?.then?.(f => f(), () => {});
+    } catch { /* no preview of this template */ }
+  }
+  return out;
+}
 function cardForm(p, pop) {
   const id = entityOf(pop), cur = (p.config.cards || {})[id] || {}, draft = pop.draft || { ...cur };
   const upd = patch => p.openPopup({ ...pop, draft: { ...draft, ...patch } });
@@ -96,8 +118,9 @@ function cardForm(p, pop) {
   // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders; a group or graph card reads the definition draft gd too)
   const pageKey = p.room?.id || "home";
   let preview = null;
-  p._preview = { id, draft, gd };
-  try { preview = (p.pageCards(pageKey).find(c => c.key === id) || p.rooms.flatMap(r => p.roomCards(r, true)).find(c => c.key === id))?.tpl || null; } catch (e) { preview = null; } finally { p._preview = null; }
+  p._preview = { id, draft, gd, tpl: previewTemplates(p, id, draft) };
+  // the card on this page, else in any room, else wherever it lives (the home page, or an entity card built on the spot)
+  try { preview = (p.pageCards(pageKey).find(c => c.key === id) || p.rooms.flatMap(r => p.roomCards(r, true)).find(c => c.key === id) || addedCard(p, id, pageKey))?.tpl || null; } catch (e) { preview = null; } finally { p._preview = null; }
   const changed = Object.keys(draft).filter(k => draft[k] !== undefined && k !== "noAppliance").length;
   const sh = (lbl, cnt) => html`<div class="sh">${lbl}${cnt ? html`<span class="cnt">${cnt}</span>` : nothing}</div>`;
   const row = (lbl, ctrl, sub) => html`<div class="f"><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span>${ctrl}</div>`;

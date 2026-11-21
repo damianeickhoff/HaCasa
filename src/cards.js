@@ -131,7 +131,10 @@ export function customActions(p, id, target) {
   return html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>${acts.slice(0, 3).map(a => html`<button @click=${run(a)}>${a.icon ? anyIco(a.icon) : nothing}${a.label}</button>`)}</div>`;
 }
 /** text override for a field ("state" = corner, "label" = subtitle, "foot" = bottom line) when the card has a template for it */
-export const ovr = (p, id, field) => { const v = p.templates?.["card:" + id]?.[field]; return v == null || v === "" ? null : String(v); };
+export const ovr = (p, id, field) => {
+  const pv = p._preview?.id === id ? p._preview.tpl : null;   // the card form's preview: the draft's templates, rendered once (popups.js previewTemplates)
+  const v = pv && field in pv ? pv[field] : p.templates?.["card:" + id]?.[field]; return v == null || v === "" ? null : String(v);
+};
 export const hasActs = (p, id) => (cardCfg(p, id).actions || []).some(a => a && a.label && a.service);
 
 export const label = (p, e) => cardCfg(p, e.id).name || name(p.hass, e);
