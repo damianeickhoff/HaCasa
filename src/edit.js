@@ -166,7 +166,7 @@ export const CARD_TYPES = [
   { id: "graph", group: "panel", label: "Grafiek", sub: "verloop van een sensor", icon: "mdi:chart-line" },
   { id: "tpl", group: "own", label: "Template", sub: "uit je eigen bibliotheek", icon: "mdi:code-braces" },
 ];
-const GROUPS = [["dev", "Apparaten"], ["panel", "Kaarten van HaCasa"], ["own", "Eigen kaarten"]];   // shipped with the panel vs. made by the user
+const GROUPS = [["dev", "Apparaten"], ["panel", "Kaarten van LEICS"], ["own", "Eigen kaarten"]];   // shipped with the panel vs. made by the user
 
 export function addPopup(p, pop) {
   const key = pop.key, isHome = key === "home", room = isHome ? null : p.rooms.find(r => r.id === key), where = isHome ? t("Startpagina") : (room?.name || key);
@@ -278,7 +278,7 @@ export function addPopup(p, pop) {
       .sort((a, b) => a.name.localeCompare(b.name, locale()));
     const here = [isHome ? t("Al op de startpagina") : t("In deze ruimte"), all.filter(x => x.area === key || (x.here && !x.area))], rest = [[t("Zonder ruimte"), all.filter(x => !x.area && !x.here)], [t("In een andere ruimte"), all.filter(x => x.area && x.area !== key)]];
     const groups = (isHome ? [...rest, here] : [here, ...rest]).filter(g => g[1].length);   // a room lists its own entities first
-    const row = x => html`<li class=${classMap({ tap: !x.here, dim: x.here })} @click=${() => { if (!x.here) upd({ step: 3, pick: x.id, other: x.area && x.area !== key && p.rooms.some(r => r.id === x.area) ? x.area : null, same: x.area === key, place: "hacasa" }); }}>
+    const row = x => html`<li class=${classMap({ tap: !x.here, dim: x.here })} @click=${() => { if (!x.here) upd({ step: 3, pick: x.id, other: x.area && x.area !== key && p.rooms.some(r => r.id === x.area) ? x.area : null, same: x.area === key, place: "leics" }); }}>
       <ha-icon icon=${x.s.attributes.icon || type.icon}></ha-icon><div>${x.name}${x.area && x.area !== key ? html`<span class="tag">${x.areaName}</span>` : nothing}<small>${x.id}</small></div><span class="val">${stateText(x.s)}</span></li>`;
     return html`<div class="popup addp">${head(t(type.label), t("Kies een apparaat of entiteit"))}
       <div class="sinput"><ha-icon icon="mdi:magnify"></ha-icon><input type="search" .value=${pop.q || ""} placeholder=${t("Zoek op naam, id of ruimte")} autofocus @input=${e => upd({ q: e.target.value })}></div>
@@ -290,7 +290,7 @@ export function addPopup(p, pop) {
   const preview = s ? cardFor(p, e) : null;
   return html`<div class="popup addp">${head(s?.attributes.friendly_name || id, t("Waar hoort de kaart?"))}
     <ul class="place">
-      <li class=${pop.place === "hacasa" ? "on tap" : "tap"} @click=${() => upd({ place: "hacasa" })}><ha-icon icon=${pop.place === "hacasa" ? "mdi:radiobox-marked" : "mdi:radiobox-blank"}></ha-icon><div>${t("Alleen in HaCasa")}<small>${isHome ? t("De kaart komt op de startpagina; in Home Assistant verandert niets.") : pop.same ? t("De entiteit hoort al bij deze ruimte; de kaart komt erbij.") : otherName ? t("De kaart komt in {room}. In Home Assistant blijft de entiteit in {other}.", { room: where, other: otherName }) : t("De kaart komt in {room}; in Home Assistant verandert niets.", { room: where })}</small></div><span class="st">${t("aanbevolen")}</span></li>
+      <li class=${pop.place === "leics" ? "on tap" : "tap"} @click=${() => upd({ place: "leics" })}><ha-icon icon=${pop.place === "leics" ? "mdi:radiobox-marked" : "mdi:radiobox-blank"}></ha-icon><div>${t("Alleen in LEICS")}<small>${isHome ? t("De kaart komt op de startpagina; in Home Assistant verandert niets.") : pop.same ? t("De entiteit hoort al bij deze ruimte; de kaart komt erbij.") : otherName ? t("De kaart komt in {room}. In Home Assistant blijft de entiteit in {other}.", { room: where, other: otherName }) : t("De kaart komt in {room}; in Home Assistant verandert niets.", { room: where })}</small></div><span class="st">${t("aanbevolen")}</span></li>
       ${!isHome && canEdit(p) && !pop.same ? html`<li class=${pop.place === "ha" ? "on tap" : "tap"} @click=${() => upd({ place: "ha" })}><ha-icon icon=${pop.place === "ha" ? "mdi:radiobox-marked" : "mdi:radiobox-blank"}></ha-icon><div>${t("Ruimte in Home Assistant wijzigen")}<small>${t("Verplaatst de entiteit naar {room} — ook in andere dashboards, automatiseringen en spraakassistenten.", { room: where })}</small></div><span class="st adm">${t("beheerder")}</span></li>` : nothing}
     </ul>
     ${pop.other && pop.place !== "ha" ? html`<ul style="margin-top:4px"><li class="tap chk" @click=${() => upd({ hideOther: !pop.hideOther })}><ha-icon icon=${pop.hideOther ? "mdi:checkbox-marked-outline" : "mdi:checkbox-blank-outline"}></ha-icon><div>${t("Verbergen in {room}", { room: otherName })}<small>${t("anders staat hij in beide")}</small></div><span></span></li></ul>` : nothing}
