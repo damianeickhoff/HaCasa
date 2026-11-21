@@ -182,11 +182,19 @@ const hms = str => { const m = /^(\d+):(\d+):(\d+)/.exec(str || ""); return m ? 
 const mmss = sec => sec == null ? "" : sec >= 3600 ? `${Math.floor(sec / 3600)}:${String(Math.floor(sec % 3600 / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}` : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 const dur = min => `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}:00`;
 const timerStart = (p, id, min) => p.call("timer", "start", { entity_id: id, duration: dur(min) });
-/** a one-second re-render while something counts (timers, a playing track); each caller holds its own key */
+/** a one-second re-render while something counts (timers, a playing track); each caller holds its own key.
+ *  A key has to be asked for again on every render: one whose card or popup is gone (popup closed, room left) drops out after the next tick. */
 export function liveTick(p, key, on) {
-  const set = p._live || (p._live = new Set()); if (on) set.add(key); else set.delete(key);
-  if (set.size && !p._liveT) p._liveT = setInterval(() => { if (!p.isConnected) { clearInterval(p._liveT); p._liveT = null; return; } p.requestUpdate(); }, 1000);
-  if (!set.size && p._liveT) { clearInterval(p._liveT); p._liveT = null; }
+  const live = p._live || (p._live = new Map()); if (on) live.set(key, true); else live.delete(key);
+  const stop = () => { clearInterval(p._liveT); p._liveT = null; };
+  if (live.size && !p._liveT) p._liveT = setInterval(async () => {
+    if (!p.isConnected) return stop();
+    for (const k of live.keys()) live.set(k, false);
+    p.requestUpdate(); try { await p.updateComplete; } catch {}
+    for (const [k, seen] of live) if (!seen) live.delete(k);
+    if (!live.size) stop();
+  }, 1000);
+  if (!live.size && p._liveT) stop();
 }
 export function timersCard(p) {
   const list = timerList(p), active = list.filter(s => s.state === "active"), key = "timers", cfg = cardCfg(p, key);
