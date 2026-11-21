@@ -5,19 +5,27 @@
 // custom properties on the panel host (--sk-<name>); until they are ready the sky simply has no clouds.
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { num } from "./util.js";
+import { locale } from "./i18n.js";
 import { motionOn } from "./motion.js";
 
 const rnd = (a, b) => a + Math.random() * (b - a);
 const sstep = (e0, e1, x) => { const v = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return v * v * (3 - 2 * v); };
 
-/** apparent temperature when the weather entity does not give one (Steadman: temperature, humidity, wind) */
+/** apparent temperature when the weather entity does not give one (Steadman: temperature, humidity, wind).
+    The formula works in °C and m/s, so a °F entity is converted there and back */
+const MS = { "m/s": 1, "km/h": 1 / 3.6, mph: 0.44704, kn: 0.514444, "ft/s": 0.3048 };
 export function feelsLike(a) {
   if (a.apparent_temperature != null) return num(a.apparent_temperature);
   const T = num(a.temperature), rh = num(a.humidity), ws = num(a.wind_speed); if (T == null || rh == null || ws == null) return null;
-  const ms = (a.wind_speed_unit || "km/h") === "m/s" ? ws : (a.wind_speed_unit === "mph" ? ws * 0.447 : ws / 3.6);
-  const e = rh / 100 * 6.105 * Math.exp(17.27 * T / (237.7 + T));
-  return T + 0.33 * e - 0.7 * ms - 4;
+  const f = a.temperature_unit === "°F", c = f ? (T - 32) * 5 / 9 : T, ms = ws * (MS[a.wind_speed_unit || "km/h"] ?? 1 / 3.6);
+  const e = rh / 100 * 6.105 * Math.exp(17.27 * c / (237.7 + c));
+  const v = c + 0.33 * e - 0.7 * ms - 4;
+  return f ? v * 9 / 5 + 32 : v;
 }
+/** the unit of the forecast's precipitation amounts ("mm" or "in") */
+export const precipUnit = a => a?.precipitation_unit || "mm";
+/** a precipitation amount with its unit; inches keep two decimals */
+export const precipText = (v, unit) => `${v.toLocaleString(locale(), { maximumFractionDigits: unit === "in" ? 2 : 1 })} ${unit}`;
 
 /* =========================================================== animated icons =========================================================== */
 // the gradients live once in the panel root (wxDefs): an id inside a display:none block (the hidden weather bar on a phone)

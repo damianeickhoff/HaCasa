@@ -8,7 +8,7 @@ import { name, deviceName } from "./model.js";
 import { applianceState, applianceEnd, eventWhen, eventDay, eventTime, nextEvent } from "./extras2.js";
 import { spark } from "./extras3.js";
 import { tw } from "./motion.js";
-import { sky, feelsLike } from "./sky.js";
+import { sky, feelsLike, precipUnit, precipText } from "./sky.js";
 import { graphCard, stepGraph } from "./graph.js";
 import { peopleCard, securityCard, todoCard, todoEntity, evCard, evReady, timersCard, timerList, solarCard, solarReady, gardenCard, gardenReady } from "./cards2.js";
 import "./camsnap.js";
@@ -739,7 +739,7 @@ export function weatherCard(p, w) {
   const a = w.attributes, { today, tomorrow } = wxDays(p), feels = feelsLike(a), temp = Math.round(num(a.temperature) ?? 0);
   const hi = num(today?.temperature), lo = num(today?.templow), mm = num(today?.precipitation), pc = num(today?.precipitation_probability), snow = snowy(w.state) || snowy(today?.condition);
   const expect = wxExpect(p) || (a.wind_speed != null ? `${t("wind")} ${Math.round(a.wind_speed)} ${a.wind_speed_unit || t("km/u")}` : "");
-  const rainBit = mm != null ? html`<span class=${classMap({ mm: true, dry: !mm })}>${snow ? FLAKE : DROP}${mm.toLocaleString(locale(), { maximumFractionDigits: 1 })} mm</span>`
+  const rainBit = mm != null ? html`<span class=${classMap({ mm: true, dry: !mm })}>${snow ? FLAKE : DROP}${precipText(mm, precipUnit(a))}</span>`
     : pc != null ? html`<span class=${classMap({ mm: true, dry: pc < 20 })}>${snow ? FLAKE : DROP}${Math.round(pc)}%</span>` : nothing;
   return html`<div class="card wxsky" ${pressDir(p, { tap: () => p.openPopup({ type: "weather" }) })}>
     ${sky(p, w.state)}
