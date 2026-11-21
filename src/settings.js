@@ -28,6 +28,18 @@ export async function loadUserConfig(hass) {
 }
 export const saveUserConfig = (hass, value) => hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value });
 
+/** what `value` sets on top of `base`, at the depths mergeConfig merges: mergeConfig(base, diffConfig(value, base))
+ *  gives the same config as mergeConfig(base, value). Saving only this keeps the card's YAML config and later
+ *  default changes in effect for everything the user did not change (#198, item 4) */
+export function diffConfig(value, base = {}) {
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const sub = (v, b, nested) => { const o = {}; for (const [k, x] of Object.entries(v)) {
+    if (x === undefined) continue;
+    if (nested?.[k] && x && typeof x === "object" && !Array.isArray(x) && b?.[k] && typeof b[k] === "object") { const d = sub(x, b[k], nested[k] === true ? null : nested[k]); if (Object.keys(d).length) o[k] = d; }
+    else if (!same(x, b?.[k])) o[k] = x; }
+    return o; };
+  return sub(value || {}, base || {}, { home: { energy: true }, cards: true, pages: true });
+}
 /** deep-ish merge: home + home.energy, cards and pages are merged per key, everything else is replaced */
 export function mergeConfig(...layers) {
   const out = {};
