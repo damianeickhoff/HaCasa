@@ -89,8 +89,11 @@ function cardForm(p, pop) {
   const saveMade = async () => { if (gd) await p.saveUser({ [grp ? "groups" : "graphs"]: (p.userConfig?.[grp ? "groups" : "graphs"] || p.config[grp ? "groups" : "graphs"] || []).map(x => x.id === gd.id ? gd : x) }); };
   const gkind = grp ? groupKind(gd) : null, gm = grp ? groupMembers(p, gd) : [];                              // a light group gets the light card's bottom lane
   const appliance = pop.type === "appliance", canToggle = ["light", "switch", "input_boolean", "fan", "lock"].includes(dom) || (appliance && !!pop.a.switch) || !!grp;
-  const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player"].includes(dom) || appliance || !!grp;
-  const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock"].includes(dom) || appliance;
+  // what the card itself honours (cards.js): tap / hold, the template texts, and custom action buttons on the bottom line.
+  // Media, climate, cover and appliance cards have their own button row, so they get no custom actions
+  const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player", "sensor"].includes(dom) || appliance || !!grp;
+  const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock", "sensor"].includes(dom) || appliance;
+  const hasActs = ["light", "switch", "fan", "binary_sensor", "lock", "sensor"].includes(dom) || !!grp;
   const builtin = isBuiltin(id), inst = id.startsWith("tpl:"), once = id.startsWith("tpl:once:"), tc = once ? cur.once : inst ? templateOf(p, id) : null;   // a panel card / a template instance: settings only
   const askList = once ? ["state", "label", "visible"] : (tc?.ask || []);                                   // a one-time template edits all its texts here
   // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders; a group or graph card reads the definition draft gd too)
@@ -106,7 +109,7 @@ function cardForm(p, pop) {
   const opt = (key, lbl, sub) => row(lbl, html`<input type="checkbox" .checked=${!draft[key]} @change=${e => upd({ [key]: e.target.checked ? undefined : true })}>`, sub);
   const inp = (key, ph) => html`<input type="text" .value=${draft[key] || ""} placeholder=${ph} @change=${e => upd({ [key]: e.target.value || undefined })}>`;
   const PRESS = { toggle: t("schakelen"), popup: t("details openen"), more: t("Home Assistant-dialoog"), none: t("niets") };
-  const tapDef = grp ? "popup" : defs.tap || (canToggle ? "toggle" : "popup"), holdDef = defs.hold || "popup";   // a group's tap opens its list unless told to toggle all
+  const tapDef = grp ? "popup" : defs.tap || (canToggle && !(appliance && pop.a.op) ? "toggle" : "popup"), holdDef = defs.hold || "popup";   // a group's tap opens its list unless told to toggle all
   const caps = dom === "light" ? lightCaps(st) : gkind === "light" ? groupCaps(gm) : null;
   // bottom line: "" is the automatic choice where the card has one (climate, plug); lights fall back to steps when dimmable
   const bottomOpts = dom === "light" ? [{ v: "none", l: t("niets") }, ...(caps.dim ? [{ v: "steps", l: t("helderheid-stappen") }] : []), ...(caps.rgb || caps.ct ? [{ v: "colors", l: t("kleuren") }] : []), { v: "today", l: t("vandaag aan (uren)") }]
@@ -145,7 +148,7 @@ function cardForm(p, pop) {
         ${inst ? html`${row(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${draft.fields?.entity || ""} placeholder="sensor.x" @change=${e => upd({ fields: { ...(draft.fields || {}), entity: e.target.value || undefined } })}>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
           ${TPL_ASK.filter(([k]) => askList.includes(k)).map(([k, l]) => row(t(l), html`<input type="text" .value=${draft.fields?.[k] || ""} placeholder=${tc?.[k] || ""} @change=${e => upd({ fields: { ...(draft.fields || {}), [k]: e.target.value || undefined } })}>`, once ? t("Jinja, live gerenderd") : t("door de template gevraagd")))}` : nothing}
         ${dom === "binary_sensor" ? row(t("Soort"), seg("kind", [{ v: "door", l: t("Deur"), icon: "mdi:door" }, { v: "window", l: t("Raam"), icon: "mdi:window-closed-variant" }, { v: "motion", l: t("Beweging"), icon: "mdi:motion-sensor" }, { v: "binary", l: t("Algemeen"), icon: "mdi:checkbox-blank-circle-outline" }], pop.kind || "binary"), t("bepaalt icoon en teksten; zichtbaar na opslaan")) : nothing}
-        ${builtin || inst ? nothing : row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ["hideSub", t("Ondertitel")], ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
+        ${builtin || inst ? nothing : row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ...(dom === "climate" ? [] : [["hideSub", t("Ondertitel")]]), ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
         ${row(t("Tonen op"), seg("showOn", [{ v: "all", l: t("overal"), icon: "mdi:devices" }, { v: "phone", l: t("telefoon"), icon: "mdi:cellphone" }, { v: "desktop", l: t("tablet en computer"), icon: "mdi:monitor" }], "all"), t("telefoon = de telefoonweergave, tot 900 pixels breed"))}
         ${bottomOpts ? row(t("Onderaan"), seg("bottom", bottomOpts, bottomDef), dom === "climate" ? t("naast de doeltemperatuur; op telefoons alleen dit") : t("wat de kaart onderaan toont")) : nothing}
         ${(dom === "light" || dom === "binary_sensor") && bottom === "today" ? row(t("Weergave"), seg("todayStyle", [{ v: "", l: t("balkjes per uur") }, { v: "text", l: t("tekst") }], "")) : nothing}
@@ -168,8 +171,8 @@ function cardForm(p, pop) {
         ${canToggle ? row(t("Eerst bevestigen"), html`<input type="checkbox" .checked=${!!draft.confirm} @change=${e => upd({ confirm: e.target.checked || undefined })}>`, t("vraagt het na voordat de kaart schakelt")) : nothing}
         ${canToggle && draft.confirm ? row(t("Vraag"), inp("confirmText", t("Weet je het zeker?")), t("optioneel, je eigen tekst in de bevestiging")) : nothing}
         ${row(t("Vasthouden"), seg("hold", [{ v: "popup", l: t("details openen") }, { v: "more", l: t("Home Assistant-dialoog") }, { v: "none", l: t("niets") }], holdDef))}
-      </div>
-      <div class="grp">${sh(t("Actieknoppen"), t("{n} van 3", { n: acts.length }))}
+      </div>` : nothing}
+      ${hasActs ? html`<div class="grp">${sh(t("Actieknoppen"), t("{n} van 3", { n: acts.length }))}
         ${acts.map((a, i) => pop.act === i ? html`<div class="act open"><div class="ed">
             <label>${t("Label")}<input type="text" .value=${a.label || ""} placeholder=${t("label")} @change=${e => setA(i, { label: e.target.value || undefined })}></label>
             <label>${t("Icoon")}${iconInput(p, a.icon, v => setA(i, { icon: v }), "mdi:gesture-tap-button")}</label>

@@ -285,8 +285,8 @@ export function mediaCard(p, e) {
   const prog = on && dur ? Math.min(100, Math.max(0, ((pos ?? 0) + (a.media_position_updated_at ? (Date.now() - new Date(a.media_position_updated_at)) / 1000 : 0)) / dur * 100)) : v.paused && dur && pos != null ? pos / dur * 100 : null;
   const kind = a.media_content_type === "music" || a.media_artist ? "music" : "tv";
   const corner = un ? t("Onbereikbaar") : v.app && !off && v.title ? `${st} · ${v.app.name}` : st;
-  return html`<div class=${classMap({ card: true, media: true, actions: true, on, unavailable: un, art: !!art, appart: !!brand })} style=${art ? `background-image:url("${art}")` : brand?.color ? `--app:${brand.color}` : ""}
-      ${pressDir(p, { tap: () => p.openPopup({ type: "media", e }) })}>
+  return html`<div class=${classMap({ card: true, media: true, actions: true, on, unavailable: un, art: !!art, appart: !!brand, ...infoCls(cfg) })} style=${art ? `background-image:url("${art}")` : brand?.color ? `--app:${brand.color}` : ""}
+      ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "media", e })))}>
     ${un ? ua() : nothing}
     ${brand ? html`<ha-icon class="appi" icon=${brand.icon}></ha-icon>` : nothing}
     <div class="i">${icoFor(p, e.id, kind === "music" ? "mdi:music-note-outline" : "mdi:television-play", kind === "music" ? "music" : "tv")}</div>
@@ -351,8 +351,8 @@ export function climateCard(p, s, title = t("Verwarming")) {
   const action = s.attributes.hvac_action ? ({ heating: t("Verwarmt"), cooling: t("Koelt"), idle: t("Rust"), off: t("Uit"), drying: t("Droogt"), fan: t("Ventileert") }[s.attributes.hvac_action] || s.attributes.hvac_action) : on ? ({ heat: t("Verwarmen"), cool: t("Koelen"), auto: t("Auto"), heat_cool: t("Auto"), dry: t("Drogen"), fan_only: t("Ventileren") }[s.state] || s.state) : t("Uit");
   const lo = num(s.attributes.min_temp) ?? 7, hi = num(s.attributes.max_temp) ?? 35, v = target != null ? Math.max(0, Math.min(100, (target - lo) / (hi - lo) * 100)) : 0;
   const setTo = val => p.call("climate", "set_temperature", { entity_id: s.entity_id, temperature: +val.toFixed(1) });
-  return html`<div class=${classMap({ card: true, climate: true, on, unavailable: un, heating: s.attributes.hvac_action === "heating", cooling: s.attributes.hvac_action === "cooling" })}
-      ${pressDir(p, { tap: () => p.openPopup({ type: "climate", s }) })}>
+  return html`<div class=${classMap({ card: true, climate: true, on, unavailable: un, heating: s.attributes.hvac_action === "heating", cooling: s.attributes.hvac_action === "cooling", noname: !!cfg.hideName, nostate: !!cfg.hideState })}
+      ${pressDir(p, pressFor(p, s.entity_id, null, () => p.openPopup({ type: "climate", s })))}>
     ${un ? ua() : nothing}<i class="hglow"></i>
     <div class="i">${icoFor(p, s.entity_id, "mdi:radiator", "heating")}</div>
     <div class="c">${un ? t("Onbereikbaar") : action}</div>
@@ -397,6 +397,7 @@ export function fanCard(p, e) {
     <div class="n">${label(p, e)}</div>
     <div class="s">${ovr(p, e.id, "label") ?? (un ? t("Onbereikbaar") : Cap(sinceText(s?.last_changed)))}</div>
     ${ovr(p, e.id, "foot") != null ? html`<div class="lbl"><span>${ovr(p, e.id, "foot")}</span></div>` : nothing}
+    ${customActions(p, e.id)}
     ${pct != null ? html`<div class="vslider" style="--v:${on ? pct : 0}%" @pointerdown=${ev => vsliderDrag(ev, v => v ? p.call("fan", "set_percentage", { entity_id: e.id, percentage: v }) : p.call("fan", "turn_off", { entity_id: e.id }))}><i></i></div>` : nothing}
   </div>`;
 }
@@ -487,13 +488,13 @@ export function applianceCard(p, a) {
   const pw = a.switch && a.op && !unavailable(a.switch.state) ? guardSwitch(p, [a.id, a.switch.id], title, () => p.call("switch", "toggle", { entity_id: a.switch.id })) : null;
   if (pw) acts.push({ icon: "mdi:power", label: isOn(a.switch.state) ? t("Uit") : t("Aan"), on: isOn(a.switch.state), run: pw });
   if (!a.op && a.power) return plugCard(p, a, st, title, cfg, acts);
-  return html`<div class=${classMap({ card: true, appl: acts.length > 0, on: APPLIANCE_ACTIVE.includes(st.st), running: st.st === "running", unavailable: st.st === "unknown" })}
-      ${pressDir(p, { tap: () => p.openPopup({ type: "appliance", a }), hold: () => p.openPopup({ type: "appliance", a }) })}>
+  return html`<div class=${classMap({ card: true, appl: acts.length > 0, on: APPLIANCE_ACTIVE.includes(st.st), running: st.st === "running", unavailable: st.st === "unknown", ...infoCls(cfg) })}
+      ${pressDir(p, pressFor(p, a.id, cfg.tap === "toggle" ? pw : null, () => p.openPopup({ type: "appliance", a })))}>
     ${st.st === "unknown" ? ua() : nothing}
     <div class="i">${uico(cfg.icon, applianceIcon(title))}</div>
-    <div class="c">${st.label}</div>
-    <div class="n">${title}</div><div class="s">${line || st.label}</div>
-    ${foot.length ? html`<div class="lbl">${foot.map((x, i) => html`${i ? dot() : nothing}${x}`)}</div>` : nothing}
+    <div class="c">${ovr(p, a.id, "state") ?? st.label}</div>
+    <div class="n">${title}</div><div class="s">${ovr(p, a.id, "label") ?? (line || st.label)}</div>
+    ${ovr(p, a.id, "foot") != null ? html`<div class="lbl"><span>${ovr(p, a.id, "foot")}</span></div>` : foot.length ? html`<div class="lbl">${foot.map((x, i) => html`${i ? dot() : nothing}${x}`)}</div>` : nothing}
     ${acts.length ? html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>${acts.map(x => html`<button class=${classMap({ on: !!x.on })} @click=${x.run}><ha-icon icon=${x.icon}></ha-icon>${x.label}</button>`)}</div>` : nothing}
   </div>`;
 }
