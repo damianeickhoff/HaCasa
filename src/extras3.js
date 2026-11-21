@@ -14,6 +14,21 @@ export async function fetchNumeric(hass, ids, hours = 1) {
     return out;
   } catch (e) { console.warn("[hacasa-nova] history failed", e); return {}; }
 }
+/** at most ~2n points for a sparkline: the lowest and highest value of each of n time buckets, in time order, so peaks
+ *  stay visible. A 1 s power sensor otherwise gives ~10 800 points for 3 hours, each one an SVG coordinate on every render */
+export function thin(rows, n = 160) {
+  if (!rows || rows.length <= n * 2) return rows;
+  const t0 = rows[0].t, step = (rows[rows.length - 1].t - t0) / n || 1, out = [];
+  let b = -1, lo = null, hi = null;
+  const flush = () => { if (lo) { if (lo === hi) out.push(lo); else out.push(...(lo.t <= hi.t ? [lo, hi] : [hi, lo])); } };
+  for (const r of rows) {
+    const i = Math.min(n - 1, Math.floor((r.t - t0) / step));
+    if (i !== b) { flush(); b = i; lo = hi = r; continue; }
+    if (r.v < lo.v) lo = r; if (r.v > hi.v) hi = r;
+  }
+  flush();
+  return out;
+}
 /** tiny area sparkline; rows = [{t, v}] */
 export const spark = (rows, w = 160, h = 30) => {
   if (!rows || rows.length < 2) return svg`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h - 1}" x2="${w}" y2="${h - 1}" stroke="rgba(255,255,255,.3)" stroke-width="1"/></svg>`;

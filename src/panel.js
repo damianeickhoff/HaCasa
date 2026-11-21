@@ -20,7 +20,7 @@ import { iconPicker } from "./iconpicker.js";
 import { quickRow, watchTriggers, presetCard, selfUpdate } from "./features.js";
 import { searchBar, openFor } from "./search.js";
 import { graphCard } from "./graph.js";
-import { fetchNumeric, batteryEta, modeList, toggleMode } from "./extras3.js";
+import { fetchNumeric, thin, batteryEta, modeList, toggleMode } from "./extras3.js";
 import { airCard } from "./cards2.js";
 import { deviceName } from "./model.js";
 import { VERSION, BASE, TAG, icon, slug, isOn, unavailable, isDown, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
@@ -370,7 +370,7 @@ class HacasaNova extends LitElement {
   bgStyle(url, seed) { if (this.bgOk(url)) return `--bg:url("${url}")`; let h = 0; for (const ch of seed || "home") h = (h * 31 + ch.charCodeAt(0)) % 360; return `--hue:${h}`; }
   scrollStrip(x) { const s = this.renderRoot.querySelector(".strip"); if (s) s.scrollLeft = x; }
 
-  async loadNetHist(ids) { this._netKey = ids.join(); this._netAt = Date.now(); this.netHist = { ...(this.netHist || {}), ...(await fetchNumeric(this.hass, ids, 1)) }; }
+  async loadNetHist(ids) { this._netKey = ids.join(); this._netAt = Date.now(); const h = await fetchNumeric(this.hass, ids, 1); for (const id in h) h[id] = thin(h[id]); this.netHist = { ...(this.netHist || {}), ...h }; }
   async loadBatteryEta(ids) { this._battKey = ids.join(); this.battEta = await batteryEta(this.hass, ids); }
   /** motion events of the camera's room (and doorbell triggers) for the camera popup */
   async loadCamEvents(pop, ids) {
@@ -445,7 +445,7 @@ class HacasaNova extends LitElement {
     const solarId = this.config.home?.energy?.solarToday;
     const [use, sun, pw, sol] = await Promise.all([en.today ? hourlyToday(this.hass, en.today.entity_id) : null, en.returned ? hourlyToday(this.hass, en.returned.entity_id) : null, en.power ? fetchNumeric(this.hass, [en.power.entity_id], 24) : null, solarId ? hourlyToday(this.hass, solarId) : null]);
     const rows = pw?.[en.power?.entity_id] || [], peak = rows.length ? rows.reduce((a, b) => b.v > a.v ? b : a) : null;
-    if (en.power) this.netHist = { ...(this.netHist || {}), [en.power.entity_id]: rows.filter(r => r.t > Date.now() - 3 * 3600000) };
+    if (en.power) this.netHist = { ...(this.netHist || {}), [en.power.entity_id]: thin(rows.filter(r => r.t > Date.now() - 3 * 3600000)) };
     this.energyHist = { at: Date.now(), use: use || [], sun: sun || [], sol: sol || [], peak: peak ? { v: peak.v, t: new Date(peak.t) } : null };
   }
   /** plug with a meter: 3 h of power for the sparkline, today's kWh per hour from the recorder */
@@ -454,7 +454,7 @@ class HacasaNova extends LitElement {
     const [hist, rows] = await Promise.all([fetchNumeric(this.hass, [powerId], 3), energyId ? hourlyToday(this.hass, energyId) : null]);
     const sp = (hist[powerId] || []), peak = sp.length ? sp.reduce((a, b) => b.v > a.v ? b : a) : null;
     const today = rows ? rows.reduce((n, r) => n + (r.v || 0), 0) : null, maxH = rows ? Math.max(...rows.map(r => r.v || 0), 0.001) : 1;
-    this.plugHist = { ...(this.plugHist || {}), [id]: { at: Date.now(), spark: sp, peak: peak ? { v: Math.round(peak.v), t: peak.t } : null, rows, today, maxH } };
+    this.plugHist = { ...(this.plugHist || {}), [id]: { at: Date.now(), spark: thin(sp), peak: peak ? { v: Math.round(peak.v), t: peak.t } : null, rows, today, maxH } };
     this._plugBusy.delete(id);
   }
   /** off-timer on a plug (on-timer when it is off): runs while the panel is open */

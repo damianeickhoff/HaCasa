@@ -446,7 +446,22 @@ export function humidifierCard(p, e) {
 /** appliance: a plug with a power sensor or a device with an operation-state sensor (auto-detected). tap = details, hold = details */
 export const APPLIANCE_ACTIVE = ["running", "waiting", "alert", "done"];
 /** energy (kWh, total_increasing) sensor on the same device as the plug, for today's use and hourly bars */
-export const energyOf = (p, dev) => dev ? Object.values(p.hass.entities || {}).map(e => p.hass.states[e.entity_id]).find(s => s && (p.hass.entities[s.entity_id]?.device_id === dev) && s.attributes.unit_of_measurement === "kWh" && s.attributes.state_class === "total_increasing") || null : null;
+/** device_id → its kWh meter, built once per hass.states object instead of scanning every entity per card per render */
+const _kwhByDevice = new WeakMap();
+export const energyOf = (p, dev) => {
+  if (!dev || !p.hass?.states) return null;
+  let m = _kwhByDevice.get(p.hass.states);
+  if (!m) {
+    m = new Map();
+    for (const e of Object.values(p.hass.entities || {})) {
+      const s = p.hass.states[e.entity_id];
+      if (e.device_id && !m.has(e.device_id) && s && s.attributes.unit_of_measurement === "kWh" && s.attributes.state_class === "total_increasing") m.set(e.device_id, e.entity_id);
+    }
+    _kwhByDevice.set(p.hass.states, m);
+  }
+  const id = m.get(dev);
+  return id ? p.hass.states[id] || null : null;   // always the current state, even if states was updated in place
+};
 const eur = v => "€ " + (Math.round(v * 100) / 100).toLocaleString(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 /** plug with a power meter: watts as the hero; bottom = sparkline (default) / timer chips / cost / hourly bars */
 function plugCard(p, a, st, title, cfg, acts) {
