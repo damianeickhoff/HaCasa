@@ -1,0 +1,22 @@
+name: Build dist
+on:
+  push:
+    branches: [dev01, main]
+    paths: ["src/**", "icons/**", "build.mjs", "package.json"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npm run build
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add dist/hacasa-nova.js
+          git diff --cached --quiet || (git commit -m "build: dist [skip ci]" && git push)
