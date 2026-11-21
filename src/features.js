@@ -180,7 +180,7 @@ let ghBusy = false;
 function checkGithub(p) {
   if (p.ghLatest !== undefined || ghBusy) return;
   ghBusy = true;
-  const KEY = "hacasa-nova:latest-release";
+  const KEY = "leics-dashboard:latest-release";
   let cached = null;
   try { cached = JSON.parse(localStorage.getItem(KEY) || "null"); } catch {}
   if (cached && Date.now() - cached.at < 12 * 3600e3) { queueMicrotask(() => { p.ghLatest = cached; ghBusy = false; }); return; }
