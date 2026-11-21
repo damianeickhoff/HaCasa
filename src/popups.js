@@ -4,7 +4,7 @@ import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { icon, isOn, unavailable, num, relTime, shortDate, domain } from "./util.js";
 import { name, deviceName } from "./model.js";
-import { PAGES } from "./pages.js";
+import { PAGES, consumiPopup } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState } from "./extras2.js";
 import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, groupKind, groupCaps, cardType, anyIco, cardCfg } from "./cards.js";
@@ -497,6 +497,7 @@ export function renderPopup(p, pop) {
     case "ev": return evPopup(p, wrap, li, modes);
     case "timers": return timersPopup(p, wrap, li, modes);
     case "garden": return gardenPopup(p, wrap, li, modes);
+    case "consumi": return consumiPopup(p, pop, wrap);
     default: return nothing;
   }
 }
