@@ -225,8 +225,11 @@ class HacasaNova extends LitElement {
     const m = /^__(\w+)__$/.exec(path || "");
     if (m) this.nav(`${this.basePath()}/${m[1] === "settings" ? "instellingen" : m[1]}`); else navigate(path);
   }
-  /** make this panel the page HA opens first (per browser; HA stores it in localStorage) */
+  /** make this panel the page HA opens first for this user. HA stores it per user on the server (frontend user data
+   *  "core", like Profile → Dashboard does) and falls back to the admin's default for everyone (system data) (#151) */
   get isDefault() { return this.hass?.userData?.default_panel === this.basePath().slice(1); }
+  /** the start page for everyone, set by an admin, and this user has not picked one: only the admin can change that */
+  get isSystemDefault() { return !this.hass?.userData?.default_panel && this.hass?.systemData?.default_panel === this.basePath().slice(1); }
   async setDefault(on) {
     const value = { ...(this.hass.userData || {}), default_panel: on ? this.basePath().slice(1) : undefined };
     await this.hass.callWS({ type: "frontend/set_user_data", key: "core", value });
