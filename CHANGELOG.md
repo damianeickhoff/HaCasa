@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.0-beta.3 (beta)
 
 - **HaCasa speaks Simplified Chinese (#197)**, thanks to waphbs. **Polish** is complete again (#201), thanks to pyziak156.
 
