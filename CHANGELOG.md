@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.2.0-beta.4 (beta)
+
+- **Pick a source right from the media card (#200)**, thanks to MWCrum for the idea. Players with sources that can't be switched off, like Sonos, get a source button next to the transport buttons, and their popup shows the sources (also while music plays) without a power button that did nothing. The card settings (⋯) have *Source button*: automatic, on or off.
+- **Show a card only on your phone, or only on a tablet and computer (#204)**, thanks to MartijnThomas. Every card has *Show on* in its settings (⋯). Handy for the weather card on a phone, next to the weather block on a bigger screen.
+- **Choose what the room line shows (#202)**, thanks to MartijnThomas. In the page settings of a room you can now switch off *Motion* (it couldn't be switched off before), tap single sensors to leave them out, and pick *When*: always, only when someone is home, or only when nobody is home. *When* works on the home page too.
+
 ## 3.2.0-beta.3 (beta)
 
 - **HaCasa speaks Simplified Chinese (#197)**, thanks to waphbs. **Polish** is complete again (#201), thanks to pyziak156.

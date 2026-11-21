@@ -13,7 +13,7 @@ import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./s
 import { renderPage, PAGES, PAGE_ALIAS } from "./pages.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
-import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, anyIco, wxDays } from "./cards.js";
+import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, deviceHidden, anyIco, wxDays } from "./cards.js";
 import { wxIcon, wxDefs } from "./sky.js";
 import { renderPills, pillTemplates } from "./pills.js";
 import { iconPicker } from "./iconpicker.js";
@@ -275,6 +275,7 @@ class HacasaNova extends LitElement {
       template instances fall back to the `visible` field of their template */
   condHiddenCard(key) {
     const c = cardCfg(this, key);
+    if (deviceHidden(c)) return true;
     if (c.visEntity || c.tplVisible) return condHiddenBy(this, c, "card:" + key);
     if (key.startsWith("tpl:")) { const m = templateInstance(this, key); return m ? condHidden(this, key, m.visible, m.visibleInvert) : false; }
     return false;
@@ -317,9 +318,11 @@ class HacasaNova extends LitElement {
     this.saveUser({ pages, kept30: true });
   }
   tickerOn(key, items) {
-    const pc = this.pageCfg(key), tk = pc.ticker || {};
+    const pc = this.pageCfg(key), tk = pc.ticker || {}, skip = new Set(pc.tickerSkip || []), n = this.home?.home ?? 0;
+    // #202: per page only while someone is home / nobody is home, and single sensors left out
+    const quiet = (pc.tickerWhen === "home" && !n) || (pc.tickerWhen === "away" && n > 0);
     const custom = (pc.lines || []).map((l, i) => ({ k: "custom", uicon: l.icon || "mdi:text", text: this.templates?.[`line:${key}:${i}`]?.state })).filter(x => x.text && String(x.text).trim());
-    return [...custom, ...items.filter(it => tk[it.k] !== false)];
+    return [...custom, ...(quiet ? [] : items.filter(it => tk[it.k] !== false && !(it.id && skip.has(it.id))))];
   }
   /** appliance features on/off for a plug; the popup stays open on the matching card form */
   async setApplianceMode(key, on) {
@@ -773,12 +776,14 @@ class HacasaNova extends LitElement {
   renderRoom(r) {
     const e = r.ents;
     const items = [];
-    for (const d of [...e.doors, ...e.windows].filter(x => isOn(x.state))) items.push({ k: "doors", icon: "mdi:door-open", title: name(this.hass, d), text: t("Staat open") });
-    for (const m of e.media.filter(x => x.state?.state === "playing")) items.push({ k: "media", icon: "mdi:play", title: name(this.hass, m), text: t("Speelt {title}", { title: m.state.attributes.media_title || m.state.attributes.app_name || "" }) });
+    for (const d of [...e.doors, ...e.windows].filter(x => isOn(x.state))) items.push({ k: "doors", id: d.id, icon: "mdi:door-open", title: name(this.hass, d), text: t("Staat open") });
+    for (const m of e.media.filter(x => x.state?.state === "playing")) items.push({ k: "media", id: m.id, icon: "mdi:play", title: name(this.hass, m), text: t("Speelt {title}", { title: m.state.attributes.media_title || m.state.attributes.app_name || "" }) });
     items.push(...this.applianceItems(e.appliances));
-    for (const b of e.battery.filter(x => +x.state?.state <= (this.config.home?.lowBattery ?? 20))) items.push({ k: "battery", icon: "mdi:battery-20", title: name(this.hass, b), text: t("Batterij {n}%", { n: b.state.state }) });
+    for (const b of e.battery.filter(x => +x.state?.state <= (this.config.home?.lowBattery ?? 20))) items.push({ k: "battery", id: b.id, icon: "mdi:battery-20", title: name(this.hass, b), text: t("Batterij {n}%", { n: b.state.state }) });
     if (e.lights.length) items.push({ k: "lights", icon: "mdi:lightbulb-outline", title: t("Lampen"), text: r.lightsOn ? t("{n} van {m} aan", { n: r.lightsOn, m: e.lights.length }) : t("Alles uit") });
-    if (r.motion) items.push({ k: "motion", icon: "mdi:motion-sensor", title: t("Beweging"), text: r.motionOn ? t("Nu") : relTime(r.motion.last_changed) });
+    { const skip = new Set(this.pageCfg(r.id).tickerSkip || []), bs = this.config.home?.bannerSensors, mot = e.motion.filter(x => !skip.has(x.id) && x.state);   // sensors left out in the page settings don't count (#202)
+      const last = mot.map(x => x.state).sort((a, b) => new Date(b.last_changed) - new Date(a.last_changed))[0], on = mot.filter(x => !bs || bs.includes(x.id)).some(x => isOn(x.state));
+      if (last) items.push({ k: "motion", icon: "mdi:motion-sensor", title: t("Beweging"), text: on ? t("Nu") : relTime(last.last_changed) }); }
     const editing = this.editing(r.id), cards = editing ? editStrip(this, r.id) : this.applyPage(r.id, this.roomCards(r)).map(c => c.tpl);
     return html`
       ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), this.renderPills(null, r.id), r.id, nothing, r.hum)}

@@ -6,7 +6,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { t, tn, locale, timeOpts, hourLabel } from "./i18n.js";
 import { domain, num, isOn, unavailable, relTime, sinceText, icon } from "./util.js";
 import { name, deviceName } from "./model.js";
-import { label, mediaView, condText, condIcon, condSvg, ico, cardCfg, lightCaps, dot } from "./cards.js";
+import { label, mediaView, canPower, condText, condIcon, condSvg, ico, cardCfg, lightCaps, dot } from "./cards.js";
 import { liveTick } from "./cards2.js";
 import { energyFlow } from "./cards2.js";
 import { calendarBody, whenText } from "./calendar.js";
@@ -134,7 +134,7 @@ export function mediaPopup(p, pop, ui) {
   const a = v.info?.attributes || {}, dur = num(a.media_duration), pos0 = num(a.media_position), pos = pos0 != null && dur ? Math.min(dur, pos0 + (on && a.media_position_updated_at ? (Date.now() - new Date(a.media_position_updated_at)) / 1000 : 0)) : null;
   const mmss = x => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, "0")}`;
   liveTick(p, "media", on && dur > 0);
-  const music = a.media_content_type === "music" || !!a.media_artist;
+  const music = a.media_content_type === "music" || !!a.media_artist, srcs = s.attributes.source_list || [];
   const sub = [a.media_artist, a.media_album_name, v.app?.name || (a.app_name && !/^(launcher|home)$/i.test(a.app_name) ? a.app_name : null) || (!music ? s.attributes.source : null)].filter(Boolean).join(" · ");
   // every player in the house (one per card, like the room pages; a TV seen through several integrations counts once), the one we came from first
   const linkedAll = new Set(p.rooms.flatMap(r => r.ents.media.flatMap(e => e.linked || [])));
@@ -158,9 +158,10 @@ export function mediaPopup(p, pop, ui) {
     ${v.title && !v.off ? html`<div class="mhead">${v.art ? html`<div class="mart sq" style=${`background-image:url("${v.art}")`}></div>` : nothing}<div class="mi">
       <b>${v.title}</b>${sub ? html`<small>${sub}</small>` : nothing}
       ${dur && pos != null ? html`<div class="seek" @click=${ev => { if (!(s.attributes.supported_features & SEEK)) return; const r = ev.currentTarget.getBoundingClientRect(); call("media_seek", { seek_position: Math.round((ev.clientX - r.left) / r.width * dur) }); }}><i style=${`width:${pos / dur * 100}%`}></i></div><div class="bars-x"><span>${mmss(pos)}</span><span>${mmss(dur)}</span></div>` : nothing}</div></div>` : nothing}
-    <div class="modes icons">${ib("mdi:skip-previous", t("Vorige"), () => ctl("media_previous_track"))}${ib(on ? "mdi:pause" : "mdi:play", on ? t("Pauze") : t("Speel"), () => ctl("media_play_pause"), on ? "on" : "")}${ib("mdi:skip-next", t("Volgende"), () => ctl("media_next_track"))}${ib("mdi:power", v.off ? t("Aan") : t("Uit"), () => call(v.off ? "turn_on" : "turn_off"))}</div>
+    <div class="modes icons">${ib("mdi:skip-previous", t("Vorige"), () => ctl("media_previous_track"))}${ib(on ? "mdi:pause" : "mdi:play", on ? t("Pauze") : t("Speel"), () => ctl("media_play_pause"), on ? "on" : "")}${ib("mdi:skip-next", t("Volgende"), () => ctl("media_next_track"))}${v.off || canPower(s) ? ib("mdi:power", v.off ? t("Aan") : t("Uit"), () => call(v.off ? "turn_on" : "turn_off")) : nothing}</div>
     ${s.attributes.volume_level != null ? ui.range(t("Volume"), vol, x => call("volume_set", { volume_level: x / 100 })) : nothing}
-    ${s.attributes.source_list && !music && s.attributes.source_list.length <= 12 ? html`<div class="chips" style="margin-top:14px">${s.attributes.source_list.map(src => html`<button class=${src === s.attributes.source ? "on" : ""} @click=${() => call("select_source", { source: src })}>${src}</button>`)}</div>` : nothing}
+    ${srcs.length > 1 && (!music || pop.src || !canPower(s)) ? (srcs.length <= 12 ? html`<div class="chips" style="margin-top:14px">${srcs.map(src => html`<button class=${src === s.attributes.source ? "on" : ""} @click=${() => call("select_source", { source: src })}>${src}</button>`)}</div>`
+      : html`<div class="prow"><span>${t("Bron")}</span><b>${s.attributes.source || ""}</b></div><ul style="margin-top:8px">${srcs.map(src => ui.li(src === s.attributes.source ? "mdi:check" : "mdi:login-variant", src, "", { onclick: () => call("select_source", { source: src }) }))}</ul>`) : nothing}
     ${players.length > 1 ? html`<div class="prow"><span>${t("Spelers")}</span><b>${[playing.length ? tn(playing.length, "{n} speelt", "{n} spelen") : null, members.length > 1 ? t("groep van {n}", { n: members.length }) : null].filter(Boolean).join(" · ")}</b></div>
       <ul style="margin-top:8px">${players.map(prow)}</ul>
       ${ui.modes([...(others.length && canGroup(pop.e) ? [{ label: members.length > 1 ? t("Groep opheffen") : t("Overal"), on: members.length > 1, go: () => members.length > 1 ? p.call("media_player", "unjoin", { entity_id: members.filter(id => id !== pop.e.id) }) : p.call("media_player", "join", { entity_id: pop.e.id, group_members: others.map(e => e.id) }) }] : []), ...(playing.length ? [{ label: t("Stop alles"), go: () => p.call("media_player", "media_stop", { entity_id: playing.map(x => x.entity_id) }) }] : [])], "n2")}` : nothing}

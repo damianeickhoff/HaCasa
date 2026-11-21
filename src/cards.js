@@ -86,6 +86,8 @@ export function condHidden(p, key, tpl, invert) {
   if (r.visible === undefined) return true;
   const f = condFalse(r.visible); return invert ? !f : f;
 }
+/** a card set to show only on phones or only on bigger screens (#204); phone = the phone layout (max 900px wide) */
+export const deviceHidden = c => !!c?.showOn && (c.showOn === "phone") !== matchMedia("(max-width:900px)").matches;
 /** hidden by a condition {visEntity, visOp, visValue} (a comparison on an entity state) or {tplVisible} (Jinja, rendered as p.templates[tplKey]);
     tplVisibleInvert flips it. Used by cards and status pills */
 export function condHiddenBy(p, c, tplKey) {
@@ -269,6 +271,9 @@ export function mediaView(p, e) {
     playing: cands.some(s => s.state === "playing"), paused: info?.state === "paused", off: mainOff && !cands.some(active), ctl: info && info !== main && active(info) ? info.entity_id : e.id };
 }
 
+/** the source button on a media card (#200): "auto" shows it for players with sources that can't be switched off (Sonos), or always / never */
+export const canPower = s => (s?.attributes?.supported_features & (128 | 256)) > 0;
+export const sourceBtn = (s, cfg) => (s?.attributes?.source_list?.length || 0) > 1 && (cfg.sourceBtn === "on" || (cfg.sourceBtn !== "off" && !canPower(s)));
 export function mediaCard(p, e) {
   const v = mediaView(p, e), s = v.main, on = v.playing, un = unavailable(s) && !v.playing, off = v.off;
   const st = off ? t("Uit") : on ? t("Speelt af") : v.paused ? t("Gepauzeerd") : t("Aan");
@@ -293,6 +298,7 @@ export function mediaCard(p, e) {
       <button @click=${act("media_previous_track")} title=${t("Vorige")}><ha-icon icon="mdi:skip-previous"></ha-icon></button>
       <button class="main" @click=${act(off ? "turn_on" : "media_play_pause", off ? e.id : v.ctl)} title=${t("Afspelen/pauze")}><ha-icon icon=${off ? "mdi:power" : on ? "mdi:pause" : "mdi:play"}></ha-icon></button>
       <button @click=${act("media_next_track")} title=${t("Volgende")}><ha-icon icon="mdi:skip-next"></ha-icon></button>
+      ${!un && sourceBtn(s, cfg) ? html`<button @click=${ev => { ev.stopPropagation(); p.openPopup({ type: "media", e, src: true }); }} title=${t("Bron")}><ha-icon icon="mdi:login-variant"></ha-icon></button>` : nothing}
     </div>
   </div>`;
 }
