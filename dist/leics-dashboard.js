@@ -9454,7 +9454,7 @@ zodiac-virgo|horoscope`;var ws=null,id=()=>ws||(ws=vs.split(`
           ${g(n("Entiteit"),d`<input type="text" list="hcn-pill-entities" .value=${f.entity||""} placeholder="switch.x" @change=${z=>l(f.id,{entity:z.target.value||void 0})}>`,n("optioneel: voor de tekst, tikken en oplichten"))}
           ${g(n("Oplichten"),x(f,"active",[["",n("als de entiteit aan is")],["always",n("altijd")],["never",n("nooit")]]))}`}
       ${g(n("Tikken"),x(f,"tap",v?[["",n("details openen")],["nav",n("naar pagina")],["none",n("niets")]]:[["",f.entity?n("Home Assistant-dialoog"):n("niets")],...f.entity?[["toggle",n("schakelen")]]:[],["nav",n("naar pagina")],...f.entity?[["none",n("niets")]]:[]]))}
-      ${f.tap==="nav"?g(n("Pagina"),w(f,"path","/hacasa/keuken"),n("een pad in Home Assistant, bv. /hacasa/keuken of /config")):m}
+      ${f.tap==="nav"?g(n("Pagina"),w(f,"path","/leics/keuken"),n("een pad in Home Assistant, bv. /leics/keuken of /config")):m}
       <div class="sh" style="margin-top:12px">${n("Zichtbaar")}</div>
       ${ba(f,z=>l(f.id,z),$,(z,y)=>t.openPopup({...e,pillVis:z,draft:{...i,pills:o.map(E=>E.id===f.id?{...E,...y}:E)}}),g,n("leeg = altijd zichtbaar"),"hcn-pill-entities")}
       <div class="modes n2" style="margin-top:10px"><button class="on" @click=${()=>t.openPopup({...e,pill:void 0,pillVis:void 0,draft:i})}>${n("Klaar")}</button>
