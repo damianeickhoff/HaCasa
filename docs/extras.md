@@ -59,5 +59,8 @@ HaCasa Nova speaks:
 - Nederlands (Dutch)
 - Deutsch (German), translated by [mlo-Tek](https://github.com/mlo-Tek)
 - Español (Spanish), translated by [AdriBM](https://github.com/AdriBM)
+- Français (French), translated by [Darkdragon14](https://github.com/Darkdragon14)
+- Polski (Polish), translated by [natanmajcherek](https://github.com/natanmajcherek) and [pyziak156](https://github.com/pyziak156)
+- 简体中文 (Simplified Chinese), translated by [waphbs](https://github.com/waphbs)
 
 **Settings → General → Language**: automatic (follows your Home Assistant profile) or one of the languages above. Other Home Assistant languages fall back to English. Want to add yours? It's one file, see [Translations](development.md#translations).

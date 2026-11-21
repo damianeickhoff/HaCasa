@@ -1,7 +1,7 @@
 // Search bar under the navigation: rooms, pages and entities. Tap = open the matching popup (or HA's dialog).
 import { html, nothing } from "lit";
 import { anyIco } from "./cards.js";
-import { t } from "./i18n.js";
+import { t, locale } from "./i18n.js";
 import { domain, num, isOn, unavailable, icon } from "./util.js";
 import { PAGES } from "./pages.js";
 
@@ -15,7 +15,7 @@ export function openFor(p, s, m) {
   const id = s.entity_id, d = domain(id), e = m?.e || { id, state: s, reg: p.hass.entities?.[id] || {} }, r = m?.r;
   if (r) { const st = r.ents.strips.find(x => x.switches.some(w => w.id === id)); if (st) return p.openPopup({ type: "strip", st }); const a = r.ents.appliances.find(x => x.switch?.id === id || x.power?.id === id || x.op?.id === id || x.extra?.some(w => w.id === id)); if (a) return p.openPopup({ type: "appliance", a }); }
   switch (d) {
-    case "light": case "cover": case "fan": case "lock": case "vacuum": case "humidifier": case "media": return p.openPopup({ type: d, e });
+    case "light": case "cover": case "fan": case "lock": case "vacuum": case "humidifier": return p.openPopup({ type: d, e });
     case "media_player": return p.openPopup({ type: "media", e });
     case "switch": case "input_boolean": return p.openPopup({ type: "switch", e });
     case "climate": return p.openPopup({ type: "climate", s });
@@ -42,7 +42,7 @@ export function searchResults(p, q) {
     const m = inRoom.get(s.entity_id);
     hits.push({ label: n, sub: m ? m.r.name : d.replace(/_/g, " "), icon: (p.config.cards || {})[s.entity_id]?.icon || s.attributes.icon || DOM_ICON[d] || "mdi:circle-outline", state: stateText(s), rank: (starts(n) ? 0 : 2) + (m ? 0 : 1), go: () => { p.search = ""; openFor(p, s, m); } });
   }
-  return hits.sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label, "nl"));
+  return hits.sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label, locale()));
 }
 
 export function searchBar(p) {

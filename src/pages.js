@@ -54,7 +54,7 @@ const fmt = (v, d = 1) => v == null ? "–" : v.toLocaleString(locale(), { maxim
 /* ---------- automations: errors first, then a block per area with a toggle per row ---------- */
 function automations(p) {
   const st = p.hass.states, filter = p.pageFilter?.automatiseringen || "all", group = p.pageGroup?.automatiseringen || "room";
-  const all = Object.values(st).filter(s => domain(s.entity_id) === "automation").sort((a, b) => (a.attributes.friendly_name || "").localeCompare(b.attributes.friendly_name || "", "nl"));
+  const all = Object.values(st).filter(s => domain(s.entity_id) === "automation").sort((a, b) => (a.attributes.friendly_name || "").localeCompare(b.attributes.friendly_name || "", locale()));
   const errors = all.filter(unavailable), on = all.filter(s => s.state === "on"), off = all.filter(s => s.state === "off" && !unavailable(s));
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const ran = all.filter(s => s.attributes.last_triggered && new Date(s.attributes.last_triggered) >= today);
@@ -65,7 +65,7 @@ function automations(p) {
     pill: unavailable(s) ? t("Fout") : null, toggle: unavailable(s) ? null : () => p.call("automation", "toggle", { entity_id: s.entity_id }), on: s.state === "on", err: unavailable(s), tap: () => p.moreInfo(s.entity_id) });
   const list = filter === "errors" ? errors : filter === "today" ? ran : filter === "off" ? off : all;
   const groups = new Map(); for (const s of list) { const k = group === "room" ? (areaOf(s) || t("Zonder ruimte")) : (s.attributes.friendly_name || "?").charAt(0).toUpperCase(); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(s); }
-  const keys = [...groups.keys()].sort((a, b) => a === t("Zonder ruimte") ? 1 : b === t("Zonder ruimte") ? -1 : a.localeCompare(b, "nl"));
+  const keys = [...groups.keys()].sort((a, b) => a === t("Zonder ruimte") ? 1 : b === t("Zonder ruimte") ? -1 : a.localeCompare(b, locale()));
   const kpis = [
     errors.length ? kpi({ icon: "mdi:alert-circle-outline", svg: "smoke", em: t("Fout"), v: errors[0].attributes.friendly_name || errors[0].entity_id, n: errors.length > 1 ? t("+{n} meer", { n: errors.length - 1 }) : t("tik voor details"), on: true, tap: () => p.moreInfo(errors[0].entity_id) }) : null,
     last ? kpi({ icon: "mdi:timer-outline", svg: "timer", em: t("Laatst"), v: relTime(last.attributes.last_triggered), n: last.attributes.friendly_name || last.entity_id, tap: () => p.moreInfo(last.entity_id) }) : null,

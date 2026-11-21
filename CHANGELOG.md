@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+- **HaCasa speaks Simplified Chinese (#197)**, thanks to waphbs. **Polish** is complete again (#201), thanks to pyziak156.
+
+Bug fixes from the code audit in #198 by waphbs, most of them sent in as pull requests by justin3636 and olliemaller. Thanks all three!
+
+- **Waste pickups a day early west of UTC (#212).** In the Americas a pickup for today counted as yesterday, and tomorrow as today.
+- **Agenda: running events no longer say "Tomorrow" (#213, #205).** An event that started on an earlier day and is still going (a holiday that spans days, or something from 22:00 last night until 11:00) now shows as today, with "until 11:00" for a timed one. Days are counted by calendar date, so the day a clock changes no longer shifts events either.
+- **Calendar week view on the weeks the clock changes.** Days are counted by date there too, so early events no longer slip into the next column twice a year.
+- **Garden card counts down to the next watering (#214).** It always said "Next now".
+- **Lists sort in your own language (#215)**, not in Dutch: search results, automations, areas and a few more.
+- **The panel no longer redraws every second after closing a media popup or leaving a room with a timer (#216).** That cost battery on wall tablets.
+- **Dragging the card row with the mouse stops properly (#217)** when the window loses focus mid-drag. Before, the row kept following the mouse.
+- **Edit mode: a card whose entity is gone can be dragged again (#218).**
+- **Light cards no longer say "0 min on" after a failed history read (#219)**, for example while Home Assistant restarts. They try again after a minute.
+- **Popups of a device that is gone say "Unavailable" (#220)** instead of flashing open and closing.
+- **Reset in the card settings asks first**, so a misclick no longer wipes a card's name, icon and actions.
+- **Cameras scrolled out of view stop downloading snapshots** until they are back on screen.
+- **A room photo that failed to load once comes back** after 10 minutes, instead of staying gone until a new tab. Handy after a Home Assistant restart.
+- Smaller fixes: the highlight while dragging rooms in the settings, and two rare errors in edit mode.
+
 ## 3.2.0-beta.2 (beta)
 
 - **Phone menu at the top: the sidebar holds everything.** With the phone menu at the top there is no bottom bar, so *More* was missing from the sidebar. The sidebar now has the HaCasa logo on top, then your rooms or floors, your modes, every page from *More* (and your own links, Home Assistant, profile and settings), and the version at the bottom. With the menu at the bottom nothing changes.

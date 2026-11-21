@@ -43,12 +43,12 @@ class HacasaNova extends LitElement {
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
     config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, iconPick: { state: true }, tick: { state: true }, now: { state: true },
-    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true }, todo: { state: true },
+    draft: { state: true }, saved: { state: true }, roomDrag: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true }, todo: { state: true },
   };
 
   constructor() {
     super();
-    this.config = DEFAULT_CONFIG; this.popup = null; this.search = ""; this.drawer = false; this.tick = 0; this.now = clock(); this.notifications = []; this.idle = false;
+    this.config = structuredClone(DEFAULT_CONFIG); this.popup = null; this.search = ""; this.drawer = false; this.tick = 0; this.now = clock(); this.notifications = []; this.idle = false;
     this._drag = 0;
     if (!document.querySelector(`link[href="${FONT}"]`)) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = FONT; document.head.appendChild(l); }
   }
@@ -345,10 +345,10 @@ class HacasaNova extends LitElement {
     if (!url) return false;
     const c = this._bgCache || (this._bgCache = new Map()); if (c.has(url)) return c.get(url);
     // photos that 404'd are remembered for the session (without the cache-bust), so every reload does not retry 8 paths per room (#149)
-    const key = url.replace(/\?v=[^&]*$/, ""), missed = this._bgMiss || (this._bgMiss = new Set((() => { try { return JSON.parse(sessionStorage.getItem("hcn:bgmiss") || "[]"); } catch { return []; } })()));
-    if (missed.has(key)) { c.set(url, false); return false; }
+    const key = url.replace(/\?v=[^&]*$/, ""), missed = this._bgMiss || (this._bgMiss = new Map((() => { try { const v = JSON.parse(sessionStorage.getItem("hcn:bgmiss") || "{}"); return Array.isArray(v) ? [] : Object.entries(v); } catch { return []; } })()));
+    if (Date.now() - (missed.get(key) || 0) < 10 * 60000) { c.set(url, false); return false; }   // retried after 10 minutes: a miss while HA restarts doesn't stick for the whole tab session
     c.set(url, true); const im = new Image();
-    im.onerror = () => { c.set(url, false); missed.add(key); try { sessionStorage.setItem("hcn:bgmiss", JSON.stringify([...missed])); } catch {} this.requestUpdate(); };
+    im.onerror = () => { c.set(url, false); missed.set(key, Date.now()); try { sessionStorage.setItem("hcn:bgmiss", JSON.stringify(Object.fromEntries(missed))); } catch {} this.requestUpdate(); };
     im.src = url; return true;
   }
   /** photo for a room (or home): the first candidate path that loads, trying .jpg/.jpeg/.png/.webp for each */
@@ -466,8 +466,13 @@ class HacasaNova extends LitElement {
   /** 24-hour on/off history of a light for the "today" card bottom: minutes on per clock hour, total and switch count */
   async loadLightHist(id) {
     const cur = this.lightHist?.[id]; if (cur?.hits && Date.now() - cur.at < 10 * 60000) return; if (this._lhBusy?.has(id)) return;
+    if (Date.now() - (this._lhFail?.get(id) || 0) < 60000) return;   // a failed read is tried again after a minute, not on every render
     (this._lhBusy ||= new Set()).add(id);
-    const rows = (await fetchHistory(this.hass, id, 24)) || [];
+    const rows = await fetchHistory(this.hass, id, 24);
+    this._lhBusy.delete(id);
+    // the recorder didn't answer (HA restarting, connection lost): keep the "…" instead of a day of "0 min on · 0×"
+    if (!rows) { (this._lhFail ||= new Map()).set(id, Date.now()); return; }
+    this._lhFail?.delete(id);
     rows.sort((a, b) => a.t - b.t);
     const now = Date.now(), start = now - 24 * 3600000, bars = Array(24).fill(0), steps = Array(96).fill(0), hits = Array(24).fill(0); let onMin = 0, count = 0;   // hits: times it turned on per hour, oldest first
     for (let i = 0; i < rows.length; i++) {
@@ -477,7 +482,6 @@ class HacasaNova extends LitElement {
       for (let x = a; x < b; x += 60000) { bars[new Date(x).getHours()] += 1; steps[Math.min(95, Math.floor((x - start) / 900000))] += 1 / 15; onMin++; }
     }
     this.lightHist = { ...(this.lightHist || {}), [id]: { at: Date.now(), bars: bars.map(m => m / 60), steps: steps.map(v => Math.min(1, v)), onMin, count, hits } };
-    this._lhBusy.delete(id);
   }
   /** minutes a thermostat actively heated / cooled since midnight (hvac_action history) for the climate card bottom */
   async loadClimateHist(id) {
@@ -494,8 +498,8 @@ class HacasaNova extends LitElement {
   }
   _stripDown(e) { if (e.pointerType !== "mouse") return; const st = e.currentTarget; this._down = { x: e.clientX, s: st.scrollLeft, st }; this._drag = 0; st.classList.add("drag");
     const move = ev => { if (!this._down) return; const dx = ev.clientX - this._down.x; this._drag = Math.max(this._drag, Math.abs(dx)); this._down.st.scrollLeft = this._down.s - dx; };
-    const up = () => { const st = this._down?.st; this._down = null; removeEventListener("pointermove", move); removeEventListener("pointerup", up); setTimeout(() => this._drag = 0, 50); if (st) this._glide(st, st.scrollLeft, true); };
-    addEventListener("pointermove", move); addEventListener("pointerup", up); }
+    const up = () => { const st = this._down?.st; this._down = null; removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up); removeEventListener("blur", up); setTimeout(() => this._drag = 0, 50); if (st) this._glide(st, st.scrollLeft, true); };
+    addEventListener("pointermove", move); addEventListener("pointerup", up); addEventListener("pointercancel", up); addEventListener("blur", up); }
   /** wheel scrolls the row sideways with an eased glide instead of jumping per notch */
   _stripWheel(e) {
     if (innerWidth <= 900 || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;

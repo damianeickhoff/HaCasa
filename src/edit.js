@@ -33,7 +33,9 @@ function editDown(p, key, ev) {
   // the card itself turns into a dashed slot; a copy of it follows the pointer (slightly lifted and tilted)
   const start = () => {
     dragging = true; p.editDrag = key; try { shield.setPointerCapture(ev.pointerId); } catch {}
-    const card = shield.parentElement.querySelector(".card"), r = card.getBoundingClientRect();
+    const card = shield.parentElement.querySelector(".card");
+    if (!card) return;                                                   // a card that renders nothing (its entity is gone): the slot still moves, just without a lifted copy
+    const r = card.getBoundingClientRect();
     ox = x0 - r.left; oy = y0 - r.top;
     z = parseFloat(getComputedStyle(card).zoom) || 1;
     ghost = card.cloneNode(true); ghost.classList.add("dragghost"); ghost.style.zoom = z; ghost.style.width = r.width / z + "px"; ghost.style.height = r.height / z + "px";
@@ -45,7 +47,8 @@ function editDown(p, key, ev) {
     if (!dragging) { if (Math.abs(e.clientX - x0) > 6 || Math.abs(e.clientY - y0) > 6) { moved = true; clearTimeout(timer); if (!touch) start(); } if (!dragging) return; }
     e.preventDefault();
     if (ghost) ghost.style.transform = `translate(${(e.clientX - ox) / z}px,${(e.clientY - oy) / z}px)`;
-    const strip = shield.closest(".strip"), cards = [...strip.querySelectorAll(".ecard")], keys = cards.map(c => c.dataset.key);
+    const strip = shield.closest(".strip"); if (!strip) return;
+    const cards = [...strip.querySelectorAll(".ecard")], keys = cards.map(c => c.dataset.key);
     // drop slot: the card nearest to the pointer (a row on desktop, a grid on phones), after it when the pointer is past its centre
     let near = -1, best = Infinity, rects = cards.map(c => c.getBoundingClientRect());
     rects.forEach((r, i) => { const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)); if (d < best) { best = d; near = i; } });

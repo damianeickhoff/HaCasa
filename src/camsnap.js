@@ -15,9 +15,11 @@ export class CamSnap extends LitElement {
     img.old{animation:out .5s ease-out both}
     @keyframes out{to{opacity:0}}
   `;
-  constructor() { super(); this.interval = INTERVAL; this.live = false; this._cur = null; this._prev = null; this._liveSrc = null; this._gen = 0; this._onVis = () => { if (document.hidden) this._stop(); else this._start(true); }; }
-  connectedCallback() { super.connectedCallback(); document.addEventListener("visibilitychange", this._onVis); this._start(true); }
-  disconnectedCallback() { super.disconnectedCallback(); document.removeEventListener("visibilitychange", this._onVis); this._stop(); this._gen++; }
+  constructor() { super(); this.interval = INTERVAL; this.live = false; this._cur = null; this._prev = null; this._liveSrc = null; this._gen = 0; this._inView = true; this._onVis = () => { if (document.hidden) this._stop(); else if (this._inView) this._start(true); }; }
+  connectedCallback() { super.connectedCallback(); document.addEventListener("visibilitychange", this._onVis); this._start(true);
+    // no downloads while scrolled out of view (or on a page that is not shown)
+    if (window.IntersectionObserver) { this._io = new IntersectionObserver(es => { const v = es[es.length - 1].isIntersecting; if (v === this._inView) return; this._inView = v; if (!v) this._stop(); else if (!document.hidden) this._start(true); }); this._io.observe(this); } }
+  disconnectedCallback() { super.disconnectedCallback(); document.removeEventListener("visibilitychange", this._onVis); this._io?.disconnect(); this._io = null; this._inView = true; this._stop(); clearTimeout(this._pt); clearTimeout(this._rt); this._gen++; }
   updated(ch) {
     if (ch.has("live")) { if (this.live) { this._stop(); this._liveSrc = this.stream || null; } else { this._liveSrc = null; this._start(true); } }
     else if (this.live && ch.has("stream") && !this._liveSrc) this._liveSrc = this.stream || null;
@@ -26,11 +28,11 @@ export class CamSnap extends LitElement {
   // the stream connection stays on its original URL (tokens rotate); reconnect with the newest one on error
   _liveErr() { clearTimeout(this._rt); this._rt = setTimeout(() => { if (this.live && this.isConnected && this.stream) this._liveSrc = `${this.stream}${this.stream.includes("?") ? "&" : "?"}r=${Date.now()}`; }, 3000); }
 
-  _start(now) { this._stop(); if (this.live) return; if (now) this._load(); this._t = setInterval(() => this._load(), this.interval); }
+  _start(now) { this._stop(); if (this.live || !this._inView) return; if (now) this._load(); this._t = setInterval(() => this._load(), this.interval); }
   _stop() { clearInterval(this._t); this._t = null; }
 
   async _load() {
-    if (!this.src || document.hidden) return;
+    if (!this.src || document.hidden || !this._inView) return;
     const gen = ++this._gen;
     const url = `${this.src}${this.src.includes("?") ? "&" : "?"}t=${Date.now()}`;
     const img = new Image();

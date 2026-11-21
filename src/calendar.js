@@ -7,6 +7,7 @@ import { t, locale, timeOpts } from "./i18n.js";
 import { relTime } from "./util.js";
 
 const DAY = 86400000, HOUR_PX = 44;
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };   // by calendar date: a DST day is 23 or 25 h
 export const CAL_COLORS = ["#7db8ff", "#f2b63a", "#8fd16a", "#c58cff", "#f27a5c", "#5fd4c8", "#ff9ecf", "#d9c27a"];
 export const calColor = (home, cal) => CAL_COLORS[Math.max(0, (home?.calendars || []).indexOf(cal)) % CAL_COLORS.length];
 const calName = (p, cal) => p.hass.states[cal]?.attributes.friendly_name || cal.replace(/^calendar\./, "").replace(/_/g, " ");
@@ -40,12 +41,12 @@ export function calendarBody(p, pop) {
   const cals = home.calendars || [];
   // the days on screen
   const base = view === "week" ? monday(now) : sod(now);
-  const first = new Date(base.getTime() + off * (view === "week" ? 7 : view === "day" ? 1 : 7) * DAY);
+  const first = addDays(base, off * (view === "day" ? 1 : 7));
   const nDays = view === "day" ? 1 : 7;
-  const days = Array.from({ length: nDays }, (_, i) => new Date(first.getTime() + i * DAY));
-  const last = new Date(first.getTime() + nDays * DAY);
+  const days = Array.from({ length: nDays }, (_, i) => addDays(first, i));
+  const last = addDays(first, nDays);
   const inRange = all.filter(ev => ev.start < last && ev.end > first);
-  const onDay = (d, list) => list.filter(ev => ev.start < new Date(d.getTime() + DAY) && ev.end > d);
+  const onDay = (d, list) => list.filter(ev => ev.start < addDays(d, 1) && ev.end > d);
   const sel = pop.sel ? all.find(ev => evKey(ev) === pop.sel) : null;
   const pick = ev => set({ sel: pop.sel === evKey(ev) ? null : evKey(ev) });
   const color = ev => calColor(home, ev.cal);
@@ -68,7 +69,8 @@ export function calendarBody(p, pop) {
     const y = d => ((d - sod(d)) / 3600000 - h0) * HOUR_PX;
     const todayIdx = days.findIndex(d => d.toDateString() === now.toDateString());
     const nowY = y(now);
-    const spanOf = ev => { const a = Math.max(0, Math.floor((sod(ev.start) - first) / DAY)), b = Math.min(nDays, Math.ceil((ev.end - first) / DAY)); return [a + 2, Math.max(a + 3, b + 2)]; };
+    const dayIdx = d => Math.round((sod(d) - first) / DAY);   // rounded, so a DST hour doesn't move an event to the next column
+    const spanOf = ev => { const a = Math.max(0, dayIdx(ev.start)), b = Math.min(nDays, dayIdx(ev.end) + (ev.end > sod(ev.end) ? 1 : 0)); return [a + 2, Math.max(a + 3, b + 2)]; };
     grid = html`<div class=${classMap({ cwgrid: true, one: nDays === 1 })} style=${`--n:${nDays}`}>
       <div class="chd"><div></div>${days.map((d, i) => html`<div class=${i === todayIdx ? "today" : ""}>${d.toLocaleDateString(locale(), { weekday: phone && nDays > 1 ? "narrow" : "short" }).replace(".", "")}<b>${d.getDate()}</b></div>`)}</div>
       ${allDay.length ? (() => { const rows = []; const placed = allDay.map(ev => { const [a, b] = spanOf(ev); let r = rows.findIndex(end => end <= a); if (r < 0) { r = rows.length; rows.push(0); } rows[r] = b; return { ev, a, b, r }; });
@@ -76,7 +78,7 @@ export function calendarBody(p, pop) {
       <div class="cbody" style=${`height:${hours.length * HOUR_PX}px`}>
         <div class="ctimes">${hours.map(h => html`<div style=${`top:${(h - h0) * HOUR_PX}px`}>${String(h).padStart(2, "0")}</div>`)}</div>
         ${days.map((d, i) => html`<div class=${classMap({ cday: true, today: i === todayIdx })}>
-          ${layout(onDay(d, timed)).map(({ ev, col, cols }) => { const top = Math.max(0, y(ev.start < d ? d : ev.start)), bottom = Math.min(hours.length * HOUR_PX, y(ev.end > new Date(d.getTime() + DAY) ? new Date(d.getTime() + DAY - 1) : ev.end));
+          ${layout(onDay(d, timed)).map(({ ev, col, cols }) => { const top = Math.max(0, y(ev.start < d ? d : ev.start)), bottom = Math.min(hours.length * HOUR_PX, y(ev.end > addDays(d, 1) ? new Date(addDays(d, 1) - 1) : ev.end));
             return html`<div class="cslot" style=${`top:${top}px;height:${Math.max(22, bottom - top)}px;left:calc(${col / cols * 100}% + 2px);width:calc(${100 / cols}% - 4px)`}>${chip(ev)}</div>`; })}
           ${i === todayIdx && nowY >= 0 && nowY <= hours.length * HOUR_PX ? html`<div class="cnow" style=${`top:${nowY}px`}></div>` : nothing}
         </div>`)}
