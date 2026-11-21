@@ -8156,11 +8156,11 @@ zodiac-virgo|horoscope`;var ws=null,id=()=>ws||(ws=vs.split(`
         ${Q(n("Animaties"),yt(!a.noMotion,b=>r("noMotion",b?void 0:!0)),n("overgangen en kleine bewegingen; uit = alles direct, handig op een trage wandtablet"))}`)}
       ${_(n("Gedrag"),"",d`
         ${Q(n("Batterij-grens"),ga(a.home?.lowBattery??20,b=>o("lowBattery",b)),n("onder dit percentage in Aandacht"))}
-        ${Q(n("Controleren op updates"),yt(!a.noUpdateCheck,b=>r("noUpdateCheck",b?void 0:!0)),n("melding op de startpagina als er een nieuwe HaCasa Nova is (alleen voor beheerders)"))}
+        ${Q(n("Controleren op updates"),yt(!a.noUpdateCheck,b=>r("noUpdateCheck",b?void 0:!0)),n("melding op de startpagina als er een nieuwe LEICS Nova is (alleen voor beheerders)"))}
         ${Q(n("Lichtsc\xE8nes"),yt(!a.noPresets,b=>r("noPresets",b?void 0:!0)),n("kaart in elke kamer met lampen: sla lampstanden op en roep ze terug"))}
         <div class="f"><span>${n("Slaapstand na")}<small>${n("minuten zonder aanraking; 0 = uit")}</small></span><div class="row" style="grid-template-columns:1fr max-content;margin:0">${ga(a.idleMinutes??0,b=>r("idleMinutes",b))}<button @click=${()=>t.showIdle()}>${n("Nu tonen")}</button></div></div>
         <div class="f"><span>${n("Installatiehulp")}<small>${n("opnieuw doorlopen; wijzigt alleen wat je invult")}</small></span><button @click=${()=>t.openPopup({type:"wizard",step:0})}>${n("Opnieuw starten")}</button></div>
-        ${t.hashMode?m:d`<div class="f"><span>${n("Startpagina van HA")}<small>${n("Home Assistant opent dan met dit panel (per gebruiker)")}</small></span><button class=${t.isDefault?"on":""} @click=${()=>t.setDefault(!t.isDefault)}>${t.isDefault?n("HaCasa Nova is de startpagina"):n("Maak HaCasa Nova de startpagina")}</button></div>`}`)}`,paginas:_(n("Pagina's"),n("per pagina: titel, foto, kaarten (tonen, verbergen, volgorde) en de meldingenregel"),d`
+        ${t.hashMode?m:d`<div class="f"><span>${n("Startpagina van HA")}<small>${n("Home Assistant opent dan met dit panel (per gebruiker)")}</small></span><button class=${t.isDefault?"on":""} @click=${()=>t.setDefault(!t.isDefault)}>${t.isDefault?n("LEICS Nova is de startpagina"):n("Maak LEICS Nova de startpagina")}</button></div>`}`)}`,paginas:_(n("Pagina's"),n("per pagina: titel, foto, kaarten (tonen, verbergen, volgorde) en de meldingenregel"),d`
       <ul class="rooms">${["home",...t.rooms.map(b=>b.id)].map(b=>{let F=a.pages?.[b]||{},O=(F.hidden||[]).length,V=(F.order||[]).length,me=Object.values(F.ticker||{}).filter(ce=>ce===!1).length;return d`<li class="on"><span>${I(b)}<small>${[F.title&&n("titel: {t}",{t:F.title}),F.image&&n("eigen foto"),O&&n("{n} verborgen",{n:O}),V&&n("eigen volgorde"),me&&n("{n} meldingen uit",{n:me}),(F.lines||[]).length&&n("{n} eigen regels",{n:F.lines.length})].filter(Boolean).join(" \xB7 ")||n("standaard")}</small></span>
           <button @click=${()=>t.openPopup({type:"page",key:b})}>${n("Instellen")}</button>${Object.keys(F).length?d`<button title=${n("Herstel")} @click=${()=>{let ce={...a.pages};delete ce[b],r("pages",ce)}}>×</button>`:m}</li>`})}</ul>
       <div class="hint">${n("Sneller: houd de titel van een pagina ingedrukt.")}</div>`),kamers:_(n("Kamers"),n("{n} zichtbaar \xB7 volgorde = navigatie",{n:p.length})+" \xB7 "+n("Meer staat altijd achteraan"),d`
@@ -8213,11 +8213,11 @@ zodiac-virgo|horoscope`;var ws=null,id=()=>ws||(ws=vs.split(`
       ${Object.entries(a.cards||{}).map(([b,F])=>d`<li class="on"><span>${F.name||e.states[b]?.attributes.friendly_name||b}<small>${A(F)||n("geen wijzigingen")}</small></span><button title=${n("Herstel")} @click=${()=>{let O={...a.cards};delete O[b],r("cards",O)}}>×</button></li>`)}
       ${Object.keys(a.cards||{}).length?m:d`<li><span>${n("Nog geen kaarten gewijzigd")}</span></li>`}
     </ul>`)};return d`<section class="settings page">
-    <header class="phead"><div><h1>${n("HaCasa instellingen")}</h1><div class="psub">${n("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · HaCasa Nova ${Yt}${(b=>b?d` · <a class="upd" @click=${b.open}>${n("{v} beschikbaar",{v:String(b.to).replace(/^v/,"")})}</a>`:m)(ua(t))}</div></div>
+    <header class="phead"><div><h1>${n("LEICS instellingen")}</h1><div class="psub">${n("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · LEICS Nova ${Yt}${(b=>b?d` · <a class="upd" @click=${b.open}>${n("{v} beschikbaar",{v:String(b.to).replace(/^v/,"")})}</a>`:m)(ua(t))}</div></div>
       <div class="actions">
         ${t.saved?d`<span class="ok"><ha-icon icon="mdi:check-circle-outline"></ha-icon>${n("Opgeslagen")}</span>`:T?d`<span class="dirty"><ha-icon icon="mdi:circle-medium"></ha-icon>${n("Niet opgeslagen")}</span>`:m}
         <button class=${T?"primary pulse":"primary"} @click=${()=>t.saveSettings()}>${n("Opslaan")}</button>
-        <button @click=${()=>{confirm(n("Alle HaCasa-instellingen van deze gebruiker wissen en terug naar de standaard?"))&&t.resetSettings()}}>${n("Alles herstellen")}</button>
+        <button @click=${()=>{confirm(n("Alle LEICS-instellingen van deze gebruiker wissen en terug naar de standaard?"))&&t.resetSettings()}}>${n("Alles herstellen")}</button>
         <button @click=${()=>{(!T||confirm(n("Wijzigingen niet opgeslagen. Toch sluiten?")))&&t.go(null)}}>${n("Sluiten")}</button>
       </div></header>
     <div class="sbody">
