@@ -17,6 +17,7 @@ export const PAGES = {
   energie: { label: t("Energie"), sub: t("verbruik en opwek"), icon: "mdi:lightning-bolt-outline", ha: "/energy" },
   cameras: { label: t("Camera's"), sub: t("live beeld"), icon: "mdi:cctv", ha: null },
   systeem: { label: "Systeem", sub: "server, updates, netwerk", icon: "mdi:server-outline", ha: "/config/system" },
+  consumi: { label: "Consumi", sub: "potenza, costo, grandi consumatori", icon: "mdi:flash-outline", ha: "/energy" },
 };
 
 const sec = (title, cards, meta = "") => cards.length ? html`<section class="sec"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3><div class="cgrid">${cards}</div></section>` : nothing;
@@ -29,7 +30,7 @@ const card = (p, { n, s, lbl = "", icon, on = false, dim = false, tap = null, ho
 
 export function renderPage(p, key) {
   const def = PAGES[key];
-  const page = { automatiseringen: automations, sensoren: sensors, energie: energy, cameras: cameras, systeem: system }[key](p);
+  const page = { automatiseringen: automations, sensoren: sensors, energie: energy, cameras: cameras, systeem: system, consumi }[key](p);
   return html`<section class="page">
     <header class="phead">
       <div><div class="peb">${t("Meer")}<i class="dt"></i>${page.sub}</div><h1>${t(def.label)}</h1>${page.head || nothing}</div>
@@ -106,6 +107,84 @@ function energy(p) {
       <div class="sblks">
         ${sblock(t("Grootverbruikers nu"), watts.slice(0, 10).map(s => srow({ icon: s.attributes.icon || "mdi:power-plug-outline", svg: s.attributes.icon ? null : "plug", name: s.attributes.friendly_name || s.entity_id, val: fmt(num(s.state), 0), unit: "W", on: num(s.state) > 100, tap: () => p.moreInfo(s.entity_id) })), `${watts.length}`)}
         ${sblock(t("Vandaag per apparaat"), plugs.map(({ a, h }) => srow({ icon: cardCfg(p, a.id).icon || "mdi:power-plug-outline", svg: cardCfg(p, a.id).icon ? null : "plug", raw: !!cardCfg(p, a.id).icon, name: cardCfg(p, a.id).name || deviceName(p.hass, a.device), sub: h.peak ? t("piek {w} W", { w: h.peak.v }) : "", tr: h.rows ? html`<div class="tr">${h.rows.filter((_, i) => i % 3 === 0).map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(10, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : nothing, val: fmt(h.today), unit: "kWh", tap: () => p.openPopup({ type: "appliance", a }) })), t("kWh"))}
+      </div>` };
+}
+
+/* ---------- consumi: pagina energia dedicata (esempio): tessere, grandi consumatori e popup di gestione distacco carichi ---------- */
+// Helper del distacco carichi, cercati per nome (friendly name) o entity_id: se i tuoi si chiamano diversamente, cambia qui.
+const LOADS = {
+  house: "Potenza Casa",
+  numbers: [
+    ["Potenza Massima Ritardo", "mdi:chart-bell-curve"], ["Ritardo Tra Distacchi", "mdi:timer-sand"], ["Potenza Massima Immediato", "mdi:chart-bell-curve"],
+    ["Minuti dopo si riattivano i carichi", "mdi:timer-sand"], ["Secondi tra i distacchi", "mdi:timer-sand"], ["Minuti tra riattivazioni", "mdi:timer-sand"],
+  ],
+  power: i => `Potenza - Carico ${i}`, switches: i => `Switch - Carico ${i}`, slots: 10,
+};
+const OPEN = (p, part) => () => p.openPopup({ type: "consumi", part });
+
+/** gli helper del distacco carichi, cercati per nome: usati dalla pagina (tessere) e dal popup (righe) */
+function loadsData(p) {
+  const st = p.hass.states;
+  const find = (name, doms) => { const n = name.toLowerCase(); return Object.values(st).find(s => doms.includes(domain(s.entity_id)) && (s.entity_id === name || (s.attributes.friendly_name || "").toLowerCase() === n)); };
+  const pick = n => find(n, ["input_select", "select"]);
+  const slots = nameOf => Array.from({ length: LOADS.slots }, (_, k) => ({ n: k + 1, s: pick(nameOf(k + 1)) })).filter(x => x.s).map(x => ({ ...x, c: st[x.s.state] || null }));
+  return { st, house: pick(LOADS.house), nums: LOADS.numbers.map(([n, icon]) => ({ s: find(n, ["input_number"]), icon })).filter(x => x.s), power: slots(LOADS.power), sw: slots(LOADS.switches) };
+}
+/** riga con ‹ valore › per un input_number */
+const nrow = (p, s, icon) => {
+  const step = +s.attributes.step || 1, u = s.attributes.unit_of_measurement || "", go = svc => () => p.call("input_number", svc, { entity_id: s.entity_id });
+  return html`<div class="srow nrow">${ico(icon)}<div class="nm">${s.attributes.friendly_name}<small>${relTime(s.last_changed)}</small></div>
+    <div class="step"><button @click=${go("decrement")}>−</button><b>${fmt(num(s.state), step < 1 ? 1 : 0)}${u ? html`<small>${u}</small>` : nothing}</b><button @click=${go("increment")}>+</button></div></div>`;
+};
+/** riga con menu a tendina per un input_select / select (l'entità scelta per quello slot) */
+const selRow = (p, s, icon, sub) => {
+  const lab = o => p.hass.states[o]?.attributes?.friendly_name || o;
+  return html`<div class="srow lsel">${ico(icon)}<div class="nm">${s.attributes.friendly_name}<small>${sub}</small></div>
+    <select @change=${e => p.call(domain(s.entity_id), "select_option", { entity_id: s.entity_id, option: e.target.value })}>
+      ${(s.attributes.options || []).map(o => html`<option value=${o} ?selected=${o === s.state}>${lab(o)}</option>`)}
+    </select></div>`;
+};
+/** contenuto dei tre popup (part = setup | power | sw), chiamato da popups.js con il suo wrap() */
+export function consumiPopup(p, pop, wrap) {
+  const d = loadsData(p), W = c => c && num(c.state) != null ? fmt(num(c.state), 0) + " W" : "–";
+  const T = { setup: ["Impostazione carichi", "Soglie, ritardi e potenza della casa"], power: ["Sensori potenza carichi", "Il sensore di potenza di ogni carico"], sw: ["Interruttori carichi", "L'interruttore che viene staccato per ogni carico"] }[pop.part];
+  if (!T) return nothing;
+  const rows = pop.part === "setup" ? [d.house ? selRow(p, d.house, "mdi:flash", "sensore di potenza della casa") : null, ...d.nums.map(x => nrow(p, x.s, x.icon))].filter(Boolean)
+    : pop.part === "power" ? d.power.map(x => selRow(p, x.s, `mdi:numeric-${x.n}-circle`, x.c ? W(x.c) : "non scelto"))
+    : d.sw.map(x => selRow(p, x.s, `mdi:numeric-${x.n}-circle`, x.c ? (isOn(x.c.state) ? "acceso" : "spento") : "non scelto"));
+  return wrap("Consumi", T[0], T[1], html`<div class="sblk" style="margin-top:14px">${rows.length ? rows : html`<div class="srow"><div class="nm">Nessun helper trovato<small>controlla i nomi in LOADS (src/pages.js)</small></div></div>`}</div>`);
+}
+
+function consumi(p) {
+  const en = p.home.energy, ecfg = p.config.home?.energy || {}, price = num(ecfg.price), st = p.hass.states;
+  const val = s => s && num(s.state) != null ? num(s.state) : null;
+  // solo i consumatori: non il contatore di casa, il solare o la batteria
+  const skip = new Set([en.power?.entity_id, ecfg.solar, ecfg.batteryPower].filter(Boolean));
+  const watts = Object.values(st)
+    .filter(s => domain(s.entity_id) === "sensor" && s.attributes.unit_of_measurement === "W" && num(s.state) > 0 && !skip.has(s.entity_id) && !p.hass.entities?.[s.entity_id]?.hidden)
+    .sort((a, b) => num(b.state) - num(a.state));
+  const kpis = [
+    kpi({ icon: "mdi:flash-outline", em: "Ora", v: en.power ? fmt(val(en.power), 0) : "–", unit: "W", n: "potenza", on: !!en.power, tap: en.power ? () => p.moreInfo(en.power.entity_id) : null }),
+    kpi({ icon: "mdi:home-import-outline", em: "Oggi", v: fmt(val(en.today)), unit: "kWh", n: "consumo", tap: en.today ? () => p.moreInfo(en.today.entity_id) : null }),
+    price && val(en.today) != null ? kpi({ icon: "mdi:cash", em: "Costo", v: "€ " + fmt(val(en.today) * price, 2), n: "€ " + fmt(price, 2) + " / kWh" }) : null,
+  ].filter(Boolean);
+  // distacco carichi: tre tessere che aprono i popup
+  const d = loadsData(p), limit = d.nums.find(x => x.s.attributes.friendly_name.toLowerCase() === LOADS.numbers[2][0].toLowerCase());
+  const loads = [
+    kpi({ icon: "mdi:tune-variant", em: "Impostazioni", v: limit ? fmt(num(limit.s.state), 0) : "–", unit: "W", n: "soglia", tap: OPEN(p, "setup") }),
+    kpi({ icon: "mdi:flash-triangle-outline", em: "Potenza", v: String(d.power.filter(x => x.c).length), unit: `/ ${LOADS.slots}`, n: "sensori", tap: OPEN(p, "power") }),
+    kpi({ icon: "mdi:toggle-switch-outline", em: "Interruttori", v: String(d.sw.filter(x => x.c).length), unit: `/ ${LOADS.slots}`, n: `${d.sw.filter(x => isOn(x.c?.state)).length} accesi`, tap: OPEN(p, "sw") }),
+  ];
+  return {
+    sub: en.power ? `${fmt(val(en.power), 0)} W · ${fmt(val(en.today))} kWh` : "Scegli i sensori in Impostazioni → Energia",
+    body: html`
+      <div class="kpis">${kpis}</div>
+      <div class="peb" style="margin-top:26px">Distacco carichi</div>
+      <div class="kpis" style="margin-top:10px">${loads}</div>
+      <div class="sblks">
+        ${sblock("Grandi consumatori", watts.slice(0, 10).map(s => srow({
+          icon: s.attributes.icon || "mdi:power-plug-outline", name: s.attributes.friendly_name || s.entity_id,
+          val: fmt(num(s.state), 0), unit: "W", on: num(s.state) > 100, tap: () => p.moreInfo(s.entity_id) })), `${watts.length}`)}
       </div>` };
 }
 
@@ -243,6 +322,17 @@ export const pageStyles = `
   .srow .tog{width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,.18);position:relative;justify-self:end;cursor:pointer;flex:none;transition:background .2s}
   .srow .tog::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;opacity:.6;transition:left .2s,opacity .2s}
   .srow.on .tog{background:rgba(255,255,255,.9)} .srow.on .tog::after{left:19px;opacity:1;background:#1d1d1f}
+  /* consumi: riga con pulsanti − valore + */
+  .srow.nrow{grid-template-columns:26px 1fr max-content;cursor:default}
+  .step{display:flex;align-items:center;gap:4px}
+  .step button{width:42px;height:34px;border:0;border-radius:var(--r-sm);background:rgba(255,255,255,.12);color:#fff;font:inherit;font-size:18px;font-weight:700;line-height:1;cursor:pointer}
+  .step button:active{background:rgba(255,255,255,.3)}
+  .step b{min-width:92px;text-align:center;font-size:15px;font-weight:700;letter-spacing:-.3px}
+  .step b small{font-size:11px;font-weight:600;color:var(--fg-3);margin-left:3px}
+  .srow.lsel{grid-template-columns:26px 1fr minmax(0,48%)}
+  .srow.lsel select{width:100%;min-width:0;height:36px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:rgba(0,0,0,.25);color:#fff;font:inherit;font-size:13px;font-weight:600}
+  .srow.lsel select option{background:#2f2f2f;color:#fff}
+  @media (max-width:600px){.srow.lsel{grid-template-columns:26px 1fr}.srow.lsel select{grid-column:1/-1}}
   /* KPI tiles above the blocks */
   .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-top:22px}
   .kpi{position:relative;height:124px;border-radius:var(--r);background:rgba(255,255,255,.08);border:1px solid var(--line);box-shadow:0 1px 0 rgba(255,255,255,.08) inset;padding:16px 18px;display:grid;grid-template-rows:max-content 1fr max-content;overflow:hidden;cursor:pointer;backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2)}
