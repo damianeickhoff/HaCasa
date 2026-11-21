@@ -44,12 +44,31 @@ export const text = (v, on, ph = "") => html`<input type="text" .value=${v ?? ""
 const number = (v, on) => html`<input type="number" .value=${v ?? ""} @change=${e => on(e.target.value === "" ? null : +e.target.value)}>`;
 export const check = (v, on) => html`<input type="checkbox" .checked=${!!v} @change=${e => on(e.target.checked)}>`;
 const sortByName = list => list.sort((a, b) => (a.attributes.friendly_name || a.entity_id).localeCompare(b.attributes.friendly_name || b.entity_id, locale()));
+/** entities of one or more domains, sorted by name; built once per hass.states object (and language) instead of a
+ *  filter + sort over every entity for each select on every render (#198, P3). Callers get a copy-free shared array */
+const _byDomain = new WeakMap();
+export const ofDomains = (hass, doms) => {
+  let c = _byDomain.get(hass.states);
+  if (!c || c.loc !== locale()) {
+    const by = new Map();
+    for (const s of Object.values(hass.states)) { const d = domain(s.entity_id); if (!by.has(d)) by.set(d, []); by.get(d).push(s); }
+    c = { loc: locale(), by, lists: new Map() }; _byDomain.set(hass.states, c);
+  }
+  const key = Array.isArray(doms) ? doms.join() : doms;
+  let list = c.lists.get(key);
+  if (!list) { list = sortByName(String(key).split(",").flatMap(d => c.by.get(d) || [])); c.lists.set(key, list); }
+  return list;
+};
+/** the draft and the config are replaced on every change, never edited in place, so each is serialised once for the
+ *  "not saved" check instead of twice per render */
+const _stripped = new WeakMap();
+const stripped = o => { if (!o || typeof o !== "object") return JSON.stringify(o); let v = _stripped.get(o); if (v === undefined) { v = JSON.stringify(o, (k, x) => x === undefined ? undefined : x); _stripped.set(o, v); } return v; };
 export const select = (hass, dom, v, on, { empty = t("automatisch"), filter = null } = {}) => {
-  const opts = sortByName(Object.values(hass.states).filter(s => domain(s.entity_id) === dom && (!filter || filter(s))));
+  const all = ofDomains(hass, dom), opts = filter ? all.filter(filter) : all;
   return html`<select @change=${e => on(e.target.value || null)}><option value="">${empty}</option>${opts.map(s => html`<option value=${s.entity_id} ?selected=${s.entity_id === v}>${s.attributes.friendly_name || s.entity_id}</option>`)}</select>`;
 };
 export const selectDoms = (hass, doms, v, on, empty = t("kies")) => {
-  const opts = sortByName(Object.values(hass.states).filter(s => doms.includes(domain(s.entity_id))));
+  const opts = ofDomains(hass, doms);
   return html`<select @change=${e => on(e.target.value || null)}><option value="">${empty}</option>${opts.map(s => html`<option value=${s.entity_id} ?selected=${s.entity_id === v}>${s.attributes.friendly_name || s.entity_id}</option>`)}</select>`;
 };
 /** pill choice; `def` is what applies when nothing is chosen and picking it stores nothing (marked "std") */
@@ -102,12 +121,11 @@ export function renderSettings(p) {
   const modes = d.modes || [], setMode = (i, k, v) => set("modes", modes.map((x, j) => j === i ? { ...x, [k]: v } : x));
   const more = d.more || [], setMore = (i, k, v) => set("more", more.map((x, j) => j === i ? { ...x, [k]: v } : x));
   const quick = d.home?.quick || [], setQuick = (i, k, v) => setHome("quick", quick.map((x, j) => j === i ? { ...x, [k]: v } : x));
-  const scenes = sortByName(Object.values(hass.states).filter(s => domain(s.entity_id) === "scene")), chosen = d.home?.scenes || null;
-  const calendars = sortByName(Object.values(hass.states).filter(s => domain(s.entity_id) === "calendar"));
+  const scenes = ofDomains(hass, "scene"), chosen = d.home?.scenes || null;
+  const calendars = ofDomains(hass, "calendar");
   const motion = p.rooms.flatMap(r => r.ents.motion.map(e => ({ ...e.state, entity_id: e.id, room: r })));
 
-  const strip = o => JSON.stringify(o, (k, v) => v === undefined ? undefined : v);
-  const dirty = strip(d) !== strip(p.config);
+  const dirty = stripped(d) !== stripped(p.config);
   const sec = (title, meta, body) => html`<section class="pcard"><h2>${title}${meta ? html`<small>${meta}</small>` : nothing}</h2>${body}</section>`;
   const pageName = key => key === "home" ? t("Startpagina") : (p.rooms.find(r => r.id === key)?.name || key);
   const cardSummary = c => [c.name && t("naam: {n}", { n: c.name }), c.icon && t("icoon: {n}", { n: c.icon }), c.tap === "popup" && t("tikken opent details"), c.confirm && t("Eerst bevestigen").toLowerCase(), c.measureOnly && t("Alleen meten").toLowerCase(), c.hidden && t("verborgen"), c.showOn === "phone" && t("alleen op telefoon"), c.showOn === "desktop" && t("alleen op tablet en computer"), c.noColor && t("kleur uit"), c.noArt && t("albumhoes uit"), c.noMode && t("modusknoppen uit"), c.noPreset && t("thuis/weg uit"), c.live && t("live beeld"), c.noAppliance && t("apparaatfuncties uit"), c.threshold != null && t("drempel {n} W", { n: c.threshold })].filter(Boolean).join(" · ");
