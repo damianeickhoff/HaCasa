@@ -16,10 +16,11 @@ import { dragRows } from "./drag.js";
 import { defaultsForm, DEFAULT_TYPES } from "./defaults.js";
 import { LANGUAGES } from "./i18n.js";
 import { fetchHistory } from "./extras2.js";
-import { addPopup, hiddenPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
+import { addPopup, hiddenPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, hoursLabel } from "./edit.js";
 import { templateOf, pressDir, lightState } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { iconInput } from "./iconpicker.js";
+import { options, entityIds, numericIds, serviceNames } from "./lists.js";
 import { lightsPopup, weatherPopup, energyPopup, mediaPopup, agendaPopup } from "./popups2.js";
 import { securityPopup, todoPopup, airPopup, evPopup, timersPopup, gardenPopup, panelCardFields, personTravel } from "./cards2.js";
 
@@ -119,7 +120,6 @@ function cardForm(p, pop) {
   // action buttons: one row each, the row being edited (pop.act) opens
   const acts = draft.actions || [], setActs = list => upd({ actions: list.length ? list : undefined });
   const setA = (i, patch) => setActs(acts.map((a, k) => k === i ? { ...a, ...patch } : a));
-  const services = Object.entries(p.hass.services || {}).flatMap(([d, s]) => Object.keys(s).map(k => `${d}.${k}`)).sort();
   const jsonOk = s => { if (!s) return true; try { JSON.parse(s); return true; } catch { return false; } };
   const tplCount = ["tplState", "tplSub", "tplFoot", "tplVisible", "visEntity"].filter(k => draft[k]).length, visMode = pop.visMode || (draft.tplVisible ? "tpl" : "simple");
   const battery = batteryOf(p, pop.e || { id, reg: p.hass.entities?.[id] });
@@ -138,7 +138,7 @@ function cardForm(p, pop) {
           ${row(t("Soort"), html`<div class="seg">${[["light", t("Lampen")], ["plug", t("Stekkers & schakelaars")]].map(([v, l]) => html`<button class=${gkind === v ? "on" : ""} @click=${() => gupd({ kind: v, members: (gd.members || []).filter(x => x.startsWith("light.") === (v === "light")) })}>${l}</button>`)}</div>`, gkind === "light" ? t("helderheid-stappen of kleuren onderaan, zoals op een lampkaart") : t("schakelaars, stekkers en ventilatoren"))}
           ${row(t("Stijl"), html`<div class="seg">${[["tiles", t("tegels (tikken schakelt)")], ["list", t("lijst")], ["count", t("teller")]].map(([v, l]) => html`<button class=${(gd.style || "tiles") === v ? "on" : ""} @click=${() => gupd({ style: v })}>${l}</button>`)}</div>`)}
           ${row(t("Onderdelen"), html`<div class="chips">${groupCandidates(p, gkind).map(c => html`<button class=${(gd.members || []).includes(c.id) ? "on" : ""} @click=${() => gupd({ members: (gd.members || []).includes(c.id) ? gd.members.filter(x => x !== c.id) : [...(gd.members || []), c.id] })}>${c.name}</button>`)}</div>`, t("{n} gekozen", { n: (gd.members || []).length }))}` : nothing}
-        ${grf ? html`${row(t("Sensor"), html`<input type="text" list="hcn-numeric" .value=${gd.entity || ""} placeholder="sensor.x" @change=${e => gupd({ entity: e.target.value || undefined })}><datalist id="hcn-numeric">${graphCandidates(p).map(x => html`<option value=${x}></option>`)}</datalist>`)}
+        ${grf ? html`${row(t("Sensor"), html`<input type="text" list="hcn-numeric" .value=${gd.entity || ""} placeholder="sensor.x" @change=${e => gupd({ entity: e.target.value || undefined })}><datalist id="hcn-numeric">${options(numericIds(p.hass))}</datalist>`)}
           ${row(t("Naam"), html`<input type="text" .value=${gd.name || ""} placeholder=${p.hass.states[gd.entity]?.attributes.friendly_name || ""} @change=${e => gupd({ name: e.target.value || undefined })}>`, t("leeg = naam van de sensor"))}
           ${row(t("Periode"), html`<div class="seg">${GRAPH_HOURS.map(n => html`<button class=${(+gd.hours || 24) === n ? "on" : ""} @click=${() => gupd({ hours: n })}>${hoursLabel(n)}</button>`)}</div>`)}` : nothing}
         ${!builtin || ["ev", "garden", "todo"].includes(id) ? row(t("Naam"), html`<div class="two">${inp("name", inst ? (tc?.name || "") : st?.attributes.friendly_name || (id.startsWith("device:") ? deviceName(p.hass, id.slice(7)) : ""))}${iconInput(p, draft.icon, v => upd({ icon: v }), inst ? (tc?.icon || "mdi:code-braces") : (st?.attributes.icon || "mdi:lightbulb-outline"))}</div>`, inst ? t("leeg = zoals in de template") : t("leeg = naam en icoon uit Home Assistant")) : nothing}
@@ -179,7 +179,7 @@ function cardForm(p, pop) {
           </div></div>`
         : html`<div class="act"><span class="bx">${a.icon ? anyIco(a.icon) : nothing}</span><div>${a.label || t("label")}<small>${a.service || "…"}${a.data ? ` · ${a.data}` : ""}</small></div><span class="ab"><button title=${t("Bewerken")} @click=${() => p.openPopup({ ...pop, act: i })}><ha-icon icon="mdi:pencil-outline"></ha-icon></button><button title=${t("Verwijderen")} @click=${() => setActs(acts.filter((_, k) => k !== i))}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button></span></div>`)}
         ${acts.length < 3 ? html`<button class="addbtn" @click=${() => p.openPopup({ ...pop, draft: { ...draft, actions: [...acts, {}] }, act: acts.length })}>+ ${t("Actie toevoegen")}</button>` : nothing}
-        <datalist id="hcn-services">${services.map(s => html`<option value=${s}></option>`)}</datalist>
+        <datalist id="hcn-services">${options(serviceNames(p.hass))}</datalist>
       </div>` : nothing}
       <div class="grp">${sh(t("Geavanceerd"))}
         <div class=${pop.adv ? "coll open" : "coll"} @click=${() => p.openPopup({ ...pop, adv: !pop.adv })}><ha-icon icon="mdi:code-braces"></ha-icon><div>${t("Templates (Jinja)")}<small>${hasTpl ? t("staat · ondertitel · onderaan · zichtbaar") : t("zichtbaar")} — ${tplCount ? t("{n} ingesteld", { n: tplCount }) : t("niets ingesteld")}</small></div><ha-icon class="chev" icon="mdi:chevron-down"></ha-icon></div>
@@ -189,7 +189,7 @@ function cardForm(p, pop) {
           ${hasTpl ? row(t("Onderaan (template)"), inp("tplFoot", ""), t("vervangt de keuze hierboven")) : nothing}
           <div class="sh" style="margin-top:14px">${t("Zichtbaar")}</div>
           ${condFields(draft, upd, visMode, (v, ch) => p.openPopup({ ...pop, visMode: v, draft: { ...draft, ...ch } }), row, t("een verborgen kaart vind je terug in de bewerkmodus"))}` : nothing}
-        <datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>
+        <datalist id="hcn-entities">${options(entityIds(p.hass))}</datalist>
       </div>
     </div>
   </div>

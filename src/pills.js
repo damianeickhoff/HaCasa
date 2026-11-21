@@ -9,6 +9,7 @@ import { ico, uico, anyIco, condHiddenBy } from "./cards.js";
 import { dragRows } from "./drag.js";
 import { condFields } from "./settings.js";
 import { iconInput } from "./iconpicker.js";
+import { options, entityIds, numericIds, serviceNames } from "./lists.js";
 
 export const BUILTIN_PILLS = { lights: { name: "Lampen", icon: "mdi:lightbulb-outline" }, doors: { name: "Deuren & ramen", icon: "mdi:door" }, attention: { name: "Aandacht", icon: "mdi:alert-circle-outline" } };
 const isTpl = s => /\{[{%]/.test(s || "");
@@ -109,5 +110,5 @@ export function pillEditor(p, pop, key, d, upd) {
       </li>${open === x ? editor(x) : nothing}`)}
       ${!list.length ? html`<li><div>${t("Nog geen pillen op deze pagina")}</div></li>` : nothing}</ul>
     <button class="addbtn" @click=${add}>+ ${t("Pil toevoegen")}</button>
-    <datalist id="hcn-pill-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>`;
+    <datalist id="hcn-pill-entities">${options(entityIds(p.hass))}</datalist>`;
 }

@@ -9,6 +9,7 @@ import { domain, num, unavailable, icon } from "./util.js";
 import { cardFor, homeCards, findCard, anyIco } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { iconInput } from "./iconpicker.js";
+import { options, entityIds, numericIds, serviceNames } from "./lists.js";
 
 export const canEdit = p => !!p.hass?.user?.is_admin;
 /** entity domains that have a card */
@@ -20,7 +21,7 @@ export const isBuiltin = key => !key.includes(".") && !key.startsWith("device:")
 export const TPL_ASK = [["state", "Tekst"], ["label", "Label"], ["visible", "Zichtbaar (voorwaarde)"]];
 /** what a group can contain: lights, switches, fans and the switch of an appliance, across all rooms */
 export const groupCandidates = (p, kind = "plug") => p.rooms.flatMap(r => (kind === "light" ? r.ents.lights : [...r.ents.switches, ...r.ents.fans, ...r.ents.appliances.filter(a => a.switch).map(a => a.switch)]).map(e => ({ id: e.id, name: `${r.name} · ${e.state?.attributes?.friendly_name || e.id}` })));
-export const graphCandidates = p => Object.values(p.hass.states).filter(s => domain(s.entity_id) === "sensor" && num(s.state) != null).map(s => s.entity_id).sort();
+export const graphCandidates = p => numericIds(p.hass);
 export const hoursLabel = n => n % 24 ? t("{n} uur", { n }) : n === 24 ? t("24 uur") : t("{n} dagen", { n: n / 24 });
 
 /* ---------- the strip in edit mode ---------- */
@@ -230,7 +231,7 @@ export function addPopup(p, pop) {
     const gd = pop.gd || { hours: 24 }, g = patch => upd({ gd: { ...gd, ...patch } }), ok = !!gd.entity;
     return html`<div class="popup addp">${head(t("Nieuwe grafiek"), t("De lijn van een sensor over de laatste uren of dagen"))}
       <div class="form">
-        ${f(t("Sensor"), html`<input type="text" list="hcn-numeric" .value=${gd.entity || ""} placeholder="sensor.x" @change=${e => g({ entity: e.target.value || undefined })}><datalist id="hcn-numeric">${graphCandidates(p).map(x => html`<option value=${x}></option>`)}</datalist>`, t("elke numerieke sensor: temperatuur, vochtigheid, vermogen, …"))}
+        ${f(t("Sensor"), html`<input type="text" list="hcn-numeric" .value=${gd.entity || ""} placeholder="sensor.x" @change=${e => g({ entity: e.target.value || undefined })}><datalist id="hcn-numeric">${options(numericIds(p.hass))}</datalist>`, t("elke numerieke sensor: temperatuur, vochtigheid, vermogen, …"))}
         ${f(t("Naam"), html`<input type="text" .value=${gd.name || ""} placeholder=${gd.entity ? (p.hass.states[gd.entity]?.attributes.friendly_name || "") : ""} @change=${e => g({ name: e.target.value || undefined })}>`, t("leeg = naam van de sensor"))}
         ${f(t("Periode"), html`<div class="seg">${GRAPH_HOURS.map(n => html`<button class=${(+gd.hours || 24) === n ? "on" : ""} @click=${() => g({ hours: n })}>${hoursLabel(n)}</button>`)}</div>`)}
       </div>
@@ -255,12 +256,12 @@ export function addPopup(p, pop) {
     return html`<div class="popup addp">${head(t("Nieuwe templatekaart"), t("Tekst en label zijn Jinja-templates; Home Assistant rendert ze live"))}
       <div class="form">
         ${txt("name", t("bv. Filter vervangen"))}${f(t("Icoon"), iconInput(p, nt.icon, v => n({ icon: v }), "mdi:wrench"))}
-        ${f(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${nt.entity || ""} placeholder="sensor.x" @change=${e => n({ entity: e.target.value || undefined })}><datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
+        ${f(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${nt.entity || ""} placeholder="sensor.x" @change=${e => n({ entity: e.target.value || undefined })}><datalist id="hcn-entities">${options(entityIds(p.hass))}</datalist>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
         ${txt("state", "{{ states('$entity') }} dagen", t("template voor de staat"))}${txt("label", "{{ relative_time(states['$entity'].last_changed) }}", t("optioneel, kleine regel onderin"))}
         ${f(t("Zichtbaar (voorwaarde)"), html`<input type="text" .value=${nt.visible || ""} placeholder="{{ states('$entity') | int < 10 }}" @change=${e => n({ visible: e.target.value || undefined })}>`, t("Jinja; onwaar is false, 0, no, off, none of leeg, alles anders is waar"))}
         ${f(t("Tonen als"), html`<div class="seg two">${[[false, t("waar")], [true, t("onwaar")]].map(([v, l]) => html`<button class=${!!nt.visibleInvert === v ? "on" : ""} @click=${() => n({ visibleInvert: v || undefined })}>${l}</button>`)}</div>`, t("de kaart staat er als de voorwaarde dit oplevert"))}
         ${f(t("Tikken"), html`<div class="seg">${[["", t("details van de entiteit")], ["toggle", t("entiteit schakelen")], ["service", t("actie uitvoeren")], ["navigate", t("naar pad gaan")]].map(([v, l]) => html`<button class=${(nt.tap || "") === v ? "on" : ""} @click=${() => n({ tap: v || undefined })}>${l}</button>`)}</div>`)}
-        ${nt.tap === "service" ? html`${f(t("Actie"), html`<input type="text" list="hcn-services" .value=${nt.service || ""} placeholder="light.turn_on" @change=${e => n({ service: e.target.value || undefined })}><datalist id="hcn-services">${Object.entries(p.hass.services || {}).flatMap(([d, s]) => Object.keys(s).map(k => `${d}.${k}`)).sort().map(x => html`<option value=${x}></option>`)}</datalist>`)}${f(t("Data"), html`<input type="text" .value=${nt.data || ""} placeholder='{"entity_id": "$entity"}' @change=${e => n({ data: e.target.value || undefined })}>`, "JSON")}` : nothing}
+        ${nt.tap === "service" ? html`${f(t("Actie"), html`<input type="text" list="hcn-services" .value=${nt.service || ""} placeholder="light.turn_on" @change=${e => n({ service: e.target.value || undefined })}><datalist id="hcn-services">${options(serviceNames(p.hass))}</datalist>`)}${f(t("Data"), html`<input type="text" .value=${nt.data || ""} placeholder='{"entity_id": "$entity"}' @change=${e => n({ data: e.target.value || undefined })}>`, "JSON")}` : nothing}
         ${nt.tap === "navigate" ? f(t("Pad"), html`<input type="text" .value=${nt.path || ""} placeholder="/energy" @change=${e => n({ path: e.target.value || undefined })}>`) : nothing}
         ${f(t("Bewaren"), html`<div class="seg">${[[false, t("eenmalig, alleen hier")], [true, t("ook in mijn bibliotheek")]].map(([v, l]) => html`<button class=${!!nt.keep === v ? "on" : ""} @click=${() => n({ keep: v })}>${l}</button>`)}</div>`, t("een bewaarde template plaats je later opnieuw via Eigen kaarten"))}
       </div>
@@ -273,7 +274,7 @@ export function addPopup(p, pop) {
     const ok = !/\$entity(?!\w)/.test([tc.state, tc.label, tc.visible, tc.data, tc.path].join(" ")) || !!fields.entity;
     return html`<div class="popup addp">${head(tc.name || t("Template"), t("Vul de velden van deze kaart in"))}
       <div class="form">
-        ${f(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${fields.entity || ""} placeholder="sensor.x" @change=${e => setF("entity", e.target.value || undefined)}><datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
+        ${f(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${fields.entity || ""} placeholder="sensor.x" @change=${e => setF("entity", e.target.value || undefined)}><datalist id="hcn-entities">${options(entityIds(p.hass))}</datalist>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
         ${ask.map(([k, l]) => f(t(l), html`<input type="text" .value=${fields[k] || ""} placeholder=${tc[k] || ""} @change=${e => setF(k, e.target.value || undefined)}>`, t("door de template gevraagd")))}
       </div>
       ${foot(html`<button class="on" ?disabled=${!ok} @click=${() => ok && addKey(p, key, `tpl:${tc.id}:${Date.now().toString(36)}`, { cardCfg: { fields } })}>${t("Toevoegen en instellen")}</button>`, backBtn(2))}</div>`;
