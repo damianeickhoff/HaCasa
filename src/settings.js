@@ -90,6 +90,7 @@ export function renderSettings(p) {
   const setHome = (k, v) => set("home", { ...(d.home || {}), [k]: v });
   const setEnergy = (k, v) => setHome("energy", { ...(d.home?.energy || {}), [k]: v });
   const setBell = (k, v) => setHome("doorbell", { ...(d.home?.doorbell || {}), [k]: v });
+  const setNp = (k, v) => setHome("nowPlaying", { ...(d.home?.nowPlaying || {}), [k]: v });
 
   // rooms: ordered list of selected areas + the rest
   const areas = Object.values(hass.areas || {}).map(a => ({ id: a.area_id, name: a.name, slug: roomSlug(a.name, a.area_id) }));
@@ -157,6 +158,11 @@ export function renderSettings(p) {
       ${sec(t("Kop"), "", html`
         ${field(t("Temperatuur"), select(hass, "sensor", d.home?.temperature, v => setHome("temperature", v), { empty: t("gemiddelde van de kamers"), filter: s => s.attributes.device_class === "temperature" }))}
         ${field(t("Luchtvochtigheid"), select(hass, "sensor", d.home?.humidity, v => setHome("humidity", v), { empty: t("gemiddelde van de kamers"), filter: s => s.attributes.device_class === "humidity" }))}`)}
+      ${sec(t("Zwevende mediaspeler"), t("een nu-speelt-balk boven de navigatie (telefoon) of rechtsboven (computer)"), html`
+        ${field(t("Tonen"), check(!!d.home?.nowPlaying?.on, v => setNp("on", v || undefined)))}
+        ${field(t("Speler"), select(hass, "media_player", d.home?.nowPlaying?.player, v => setNp("player", v || undefined), { empty: t("de speler die nu speelt") }))}
+        ${field(t("Laatste nummer laten staan"), check(!!d.home?.nowPlaying?.keep, v => setNp("keep", v || undefined)), t("anders verdwijnt de balk als er niets speelt"))}
+        ${field(t("Niet op computer en tablet"), check(!!d.home?.nowPlaying?.noDesktop, v => setNp("noDesktop", v || undefined)))}`)}
       ${sec(t("Kaarten"), t("welke entiteiten de vaste kaarten gebruiken"), html`
         ${field(t("Thermostaat"), select(hass, "climate", d.home?.climate, v => setHome("climate", v)))}
         ${field(t("Alarm"), select(hass, "alarm_control_panel", d.home?.alarm, v => setHome("alarm", v)))}

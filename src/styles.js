@@ -9,6 +9,7 @@ import { searchStyles } from "./search.js";
 import { extra3Styles } from "./extras3.js";
 import { graphStyles } from "./graph.js";
 import { motionStyles } from "./motion.js";
+import { nowPlayingStyles } from "./nowplaying.js";
 import { calendarStyles } from "./calendar.js";
 import { cards2Styles } from "./cards2.js";
 import { popup2Styles } from "./popups2.js";
@@ -885,6 +886,7 @@ export const styles = css`
   ${unsafeCSS(featureStyles)}
   ${unsafeCSS(searchStyles)}
   ${unsafeCSS(extra3Styles)}
+  ${unsafeCSS(nowPlayingStyles)}
   ${unsafeCSS(graphStyles)}
   ${unsafeCSS(calendarStyles)}
   ${unsafeCSS(cards2Styles)}

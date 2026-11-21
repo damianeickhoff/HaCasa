@@ -11,6 +11,7 @@ import { editStrip, editBar, editTools, canEdit } from "./edit.js";
 import { renderPopup, moreItems } from "./popups.js";
 import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
 import { renderPage, PAGES, PAGE_ALIAS } from "./pages.js";
+import { nowPlaying } from "./nowplaying.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
 import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, deviceHidden, anyIco, wxDays } from "./cards.js";
@@ -551,6 +552,7 @@ class HacasaNova extends LitElement {
           ${this.searchOpen && !this.settings ? searchBar(this) : nothing}` : nothing}
       </nav>
       ${phone && (this.config.phoneNav !== "top" || this.edit) ? this.renderBottomNav(room, isPage) : nothing}
+      ${nowPlaying(this, phone)}
       ${keyed(this.settings ? "settings" : this.page || (room ? room.id : "home"), this.settings ? renderSettings(this) : this.page ? renderPage(this, this.page) : room ? this.renderRoom(room) : this.renderHome(h))}
       ${this.hass.connected === false ? html`<div class="offline"><ha-icon icon="mdi:lan-disconnect"></ha-icon>${t("Geen verbinding met Home Assistant")}</div>` : nothing}
       ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info", ok: this.toastCls === "ok", out: !!this.toastOut })}>${this.toastCls === "ok" ? html`<ha-icon icon="mdi:check-circle-outline"></ha-icon>` : nothing}${this.toast}</div>` : nothing}
