@@ -125,8 +125,8 @@ const latest = (list) => list.map(e => e.state).filter(Boolean).sort((a, b) => n
    A player added to the room by hand (`pinned`, pages[area].add) always keeps its own card: an Apple TV and the Music Assistant
    player on top of it can share a device name and are two players, not one TV. */
 const devKey = (hass, id) => { const d = hass.devices?.[hass.entities?.[id]?.device_id]; return (d?.name || "").toLowerCase().replace(/[^a-z0-9]/g, ""); };
-function linkMedia(hass, media, config, pinned) {
-  const all = Object.keys(hass.states).filter(id => id.startsWith("media_player.") && !hass.entities?.[id]?.hidden && !pinned.has(id)), out = [];
+function linkMedia(hass, media, config, pinned, players) {
+  const all = players.filter(id => !pinned.has(id)), out = [];
   for (const e of media) {
     const k = devKey(hass, e.id), same = k.length > 3 ? all.filter(id => id !== e.id && devKey(hass, id) === k && !(pinned.has(e.id) && media.some(m => m.id === id))) : [];
     const lead = out.find(x => x.linked.includes(e.id));
@@ -141,12 +141,13 @@ function linkMedia(hass, media, config, pinned) {
 export function buildRooms(hass, config) {
   const byArea = entitiesByArea(hass);
   const areas = Object.values(hass.areas || {});
+  const players = Object.keys(hass.states).filter(id => id.startsWith("media_player.") && !hass.entities?.[id]?.hidden);   // once, not per room
   let rooms = areas.map(a => {
     // entities added to this room in edit mode (pages[area].add) join the area's own, marked so the cards know
     const own = byArea.get(a.area_id) || [];
     const extra = (config.pages?.[a.area_id]?.add || []).filter(id => hass.states[id] && !own.some(e => e.id === id)).map(id => ({ id, reg: hass.entities?.[id] || {}, state: hass.states[id], added: true }));
     const ents = classify([...own, ...extra], config, hass);
-    ents.media = linkMedia(hass, ents.media, config, new Set(config.pages?.[a.area_id]?.add || []));
+    ents.media = linkMedia(hass, ents.media, config, new Set(config.pages?.[a.area_id]?.add || []), players);
     const s = roomSlug(a.name, a.area_id), pg = config.pages?.[a.area_id] || {};
     return {
       id: a.area_id, name: pg.title || a.name, slug: s, floor: a.floor_id || null,

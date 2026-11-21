@@ -178,8 +178,14 @@ class HacasaNova extends LitElement {
     if (changed.has("popup")) { const was = changed.get("popup"); if (was && !this.popup) ghost(this, ".overlay", "pop-out", 200); else if (was?.menu && this.popup && !this.popup.menu && this.popup.type === was.type) ghost(this, ".pmenu", "menu-out", 170, (c, el) => { const r = el.getBoundingClientRect(); c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;right:auto;bottom:auto;width:${r.width}px`; }); }
     if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this.subscribeTemplates(); }
     if (!this._unsubNotif && this.isConnected) { const sub = subscribeNotifications(this.hass, list => { this.notifications = list; }); this._unsubNotif = () => Promise.resolve(sub).then(f => typeof f === "function" && f()).catch(() => {}); }
-    this.rooms = buildRooms(this.hass, this.config);
-    this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
+    // the room/home model only depends on hass, the config, the notifications and today's date (waste countdowns), so it
+    // is not rebuilt for the 4 s ticker, the clock, popups, typing in a form or any other panel-only update (#198, P1)
+    const day = new Date().toDateString();
+    if (!this.rooms || changed.has("hass") || changed.has("config") || changed.has("notifications") || day !== this._modelDay) {
+      this._modelDay = day;
+      this.rooms = buildRooms(this.hass, this.config);
+      this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
+    }
     watchTriggers(this);
     if (this.userConfig?.setupDone && !this.userConfig.kept30 && !this._keepRan && this.hass.areas && Object.keys(this.hass.states).length) { this._keepRan = true; this.migrateKeep(); }
     if (!this._wizardShown && this.userConfig !== undefined && !this.userConfig?.setupDone && !this.cardConfig) { this._wizardShown = true; this.popup = { type: "wizard", step: 0 }; }
