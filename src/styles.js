@@ -496,7 +496,7 @@ export const styles = css`
   .popup .coll.open ha-icon.chev{transform:rotate(180deg)}
   .popup .foot{position:sticky;bottom:0;margin:4px -30px 0;padding:14px 30px 20px;border-top:1px solid var(--line);background:rgba(44,46,50,.6);backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border-radius:0 0 10px 10px}
   .popup .foot .modes{margin:0}
-  @media (max-width:900px){ .popup h2 .rm{display:none} .popup .fwrap{grid-template-columns:1fr;gap:18px} .popup .pv{position:static} .popup .pvc .card{width:100%} .popup .foot{margin:4px -24px 0;padding:12px 24px 18px} .popup .act .ed{grid-template-columns:1fr} }
+  @media (max-width:900px){ .popup h2 .rm{display:none} .popup .fwrap{grid-template-columns:1fr;gap:18px} .popup .pv{top:-26px;z-index:2;margin:0 -24px;padding:12px 24px;background:rgba(40,42,46,.94);backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border-bottom:1px solid var(--line)} .popup .pv .tip,.popup .pv .prow{display:none} .popup .pvc .card{width:min(100%, calc((100vw - 46px) / 2))} .popup .foot{margin:4px -24px 0;padding:12px 24px 18px} .popup .act .ed{grid-template-columns:1fr} }
   .popup .form .chk3{display:flex;gap:14px;font-weight:600}
   .popup .form .chk3 label{display:inline-flex;align-items:center;gap:6px}
   .popup .form .f.acts{grid-template-columns:140px 1fr}
@@ -768,11 +768,11 @@ export const styles = css`
     .title .temp{font-size:11px;letter-spacing:1.4px;gap:6px}
     .title h1{font-size:clamp(40px,11vw,64px);letter-spacing:-2px}
     .title .sub{font-size:15px}
-    .ticker{height:40px;font-size:11px;letter-spacing:1.3px;max-width:none;margin-top:14px}
+    .ticker{height:40px;font-size:11px;letter-spacing:1.3px;max-width:none;margin-top:14px;container-type:inline-size}
     .ticker div{align-items:center;line-height:1.4;white-space:normal}
     .ticker div span{min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .ticker .tk{height:auto}
-    .ticker .tt{flex:none;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ticker .tt{flex:none;max-width:45cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .wx{display:none;text-align:left;align-items:center;gap:14px;padding:0;margin-top:16px}
     .wx.wxm{display:flex}
     .card.hassub{padding-right:var(--cp)}
@@ -876,7 +876,7 @@ export const styles = css`
     .empty{position:static;padding:0 var(--pad) 40px}
     .page,.settings{position:static;flex:1;min-height:0;overflow:auto;padding-top:calc(88px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));padding-bottom:calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))}
   }
-  @media (min-width:600px) and (max-width:900px){ .strip{grid-template-columns:1fr 1fr 1fr} }
+  @media (min-width:600px) and (max-width:900px){ .strip{grid-template-columns:1fr 1fr 1fr} .popup .pvc .card{width:min(100%, calc((100vw - 52px) / 3))} }
   ${unsafeCSS(pageStyles)}
   ${unsafeCSS(extraStyles)}
   ${unsafeCSS(extra2Styles)}
