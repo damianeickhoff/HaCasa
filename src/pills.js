@@ -91,7 +91,7 @@ export function pillEditor(p, pop, key, d, upd) {
           ${row(t("Entiteit"), html`<input type="text" list="hcn-pill-entities" .value=${x.entity || ""} placeholder="switch.x" @change=${e => patch(x.id, { entity: e.target.value || undefined })}>`, t("optioneel: voor de tekst, tikken en oplichten"))}
           ${row(t("Oplichten"), seg(x, "active", [["", t("als de entiteit aan is")], ["always", t("altijd")], ["never", t("nooit")]]))}`}
       ${row(t("Tikken"), seg(x, "tap", b ? [["", t("details openen")], ["nav", t("naar pagina")], ["none", t("niets")]] : [["", x.entity ? t("Home Assistant-dialoog") : t("niets")], ...(x.entity ? [["toggle", t("schakelen")]] : []), ["nav", t("naar pagina")], ...(x.entity ? [["none", t("niets")]] : [])]))}
-      ${x.tap === "nav" ? row(t("Pagina"), inp(x, "path", "/hacasa/keuken"), t("een pad in Home Assistant, bv. /hacasa/keuken of /config")) : nothing}
+      ${x.tap === "nav" ? row(t("Pagina"), inp(x, "path", "/leics/keuken"), t("een pad in Home Assistant, bv. /leics/keuken of /config")) : nothing}
       <div class="sh" style="margin-top:12px">${t("Zichtbaar")}</div>
       ${condFields(x, ch => patch(x.id, ch), mode, (v, ch) => p.openPopup({ ...pop, pillVis: v, draft: { ...d, pills: list.map(y => y.id === x.id ? { ...y, ...ch } : y) } }), row, t("leeg = altijd zichtbaar"), "hcn-pill-entities")}
       <div class="modes n2" style="margin-top:10px"><button class="on" @click=${() => p.openPopup({ ...pop, pill: undefined, pillVis: undefined, draft: d })}>${t("Klaar")}</button>

@@ -97,7 +97,7 @@ function energy(p) {
     price && val(en.today) != null ? kpi({ icon: "mdi:counter", svg: "counter", em: t("Kosten"), v: "€ " + fmt(val(en.today) * price, 2), n: t("vandaag · € {p} / kWh", { p: fmt(price, 2) }) }) : null,
   ].filter(Boolean);
   const plugs = p.rooms.flatMap(r => r.ents.appliances.filter(a => a.power && !a.op)).map(a => { const h = p.plugHist?.[a.id]; if (!h) p.loadPlug(a.id, a.power.id, energyOf(p, a.device)?.entity_id); return { a, h }; }).filter(x => x.h?.today != null).sort((x, y) => y.h.today - x.h.today);
-  return { sub: en.power ? t("{v} nu · {k} vandaag", { v: `${fmt(val(en.power), 0)} W`, k: `${fmt(val(en.today))} kWh` }) : t("Kies de energiesensoren bij HaCasa instellingen"),
+  return { sub: en.power ? t("{v} nu · {k} vandaag", { v: `${fmt(val(en.power), 0)} W`, k: `${fmt(val(en.today))} kWh` }) : t("Kies de energiesensoren bij LEICS instellingen"),
     body: html`
       <div class="kpis">${kpis}</div>
       ${use.length ? html`<div class="chart"><h3>${t("Per uur")}<b>${t("verbruik en opwek")}</b></h3>
