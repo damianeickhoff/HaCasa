@@ -6,7 +6,7 @@ export const icon = name => ICONS[name] || ICONS.sparkles;
 export const ICON_NAMES = Object.keys(ICONS);
 // "" for the release build, "-dev" for `npm run build:dev`, so a dev copy can run next to the HACS install
 export const SUFFIX = typeof __SUFFIX__ === "string" ? __SUFFIX__ : "";
-export const TAG = "hacasa-nova" + SUFFIX;                    // custom element name of the panel
+export const TAG = "leics-dashboard" + SUFFIX;                    // custom element name of the panel
 export const VERSION = typeof __VERSION__ === "string" ? __VERSION__ : "dev";
 
 export const slug = s => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
