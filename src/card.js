@@ -16,7 +16,9 @@ class HacasaNovaCard extends HTMLElement {
     if (this._el) return;
     const root = this.attachShadow({ mode: "open" });
     const style = document.createElement("style");
-    style.textContent = `:host{display:block;position:relative;height:calc(100vh - var(--header-height, 56px));height:calc(100dvh - var(--header-height, 56px));overflow:hidden}
+    // The view above this card is padded by HA's header height plus the top safe area (hui-root #view);
+    // kiosk-mode hides the header and sets --kiosk-header-height: 0px on #view, so prefer that when it is there.
+    style.textContent = `:host{display:block;position:relative;--hc-top:calc(var(--kiosk-header-height, var(--header-height, 56px)) + var(--safe-area-inset-top, 0px));height:calc(100vh - var(--hc-top));height:calc(100dvh - var(--hc-top));overflow:hidden}
       ${TAG}{display:block;height:100%}`;
     const el = document.createElement(TAG);
     el.hashMode = true;
