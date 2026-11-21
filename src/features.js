@@ -168,7 +168,7 @@ export const newer = (a, b) => { const x = parts(a), y = parts(b); for (let i = 
 export function selfUpdate(p) {
   const hass = p.hass;
   if (!hass?.user?.is_admin || p.config.noUpdateCheck) return null;
-  const ent = Object.values(hass.states).find(s => s.entity_id.startsWith("update.") && (s.entity_id === "update.hacasa_nova_update" || String(s.attributes.release_url || "").includes(REPO)));
+  const ent = Object.values(hass.states).find(s => s.entity_id.startsWith("update.") && (s.entity_id === "update.leics_dashboard_update" || String(s.attributes.release_url || "").includes(REPO)));
   if (ent) return ent.state === "on" && ent.attributes.skipped_version !== ent.attributes.latest_version
     ? { to: ent.attributes.latest_version, from: ent.attributes.installed_version, open: () => p.moreInfo(ent.entity_id) } : null;
   if (SUFFIX) return null;
