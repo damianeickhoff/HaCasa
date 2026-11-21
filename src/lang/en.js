@@ -519,4 +519,6 @@ export default {
   "als niemand thuis is": "when nobody is home",
   "Sensoren in de regel": "Sensors in the line",
   "tik om er een weg te laten": "tap to leave one out",
+  "HaCasa Nova werkt het best als enige kaart in een weergave van het type Paneel. Wijzig het type van deze weergave in de dashboard-editor.": "HaCasa Nova works best as the only card in a view of type Panel. Change this view's type in the dashboard editor.",
+  "Alle instellingen staan in HaCasa Nova zelf: open het paneel en kies Instellingen. Gebruik voor de beste weergave een weergave van het type Paneel met alleen deze kaart.": "All settings are in HaCasa Nova itself: open the panel and choose Settings. For the best result, use a view of type Panel with only this card.",
 };
