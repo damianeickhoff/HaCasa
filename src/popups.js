@@ -206,9 +206,14 @@ function haCamPlayer(p) {
 /** what the More menu offers: edit this page, the overview pages, the user's own links, Home Assistant and settings (popup and phone drawer) */
 export const moreItems = p => [...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...Object.entries(PAGES).map(([k, v]) => ({ key: k, label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { key: "settings", label: t("HaCasa instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }];
 
+const ONE_ENTITY = ["switch", "fan", "lock", "vacuum", "humidifier", "cover", "climate", "sensor"];
 export function renderPopup(p, pop) {
   CUR = { p, pop };
   const hass = p.hass, home = p.home, roomName = pop.room?.name || p.room?.name || t("Thuis");   // pop.room: opened from a page outside the room (security page)
+  // these read the entity's state straight away: when it is gone from Home Assistant (device removed, integration reloading) the popup
+  // says so instead of throwing, which closed it with no explanation; the card form (⋯) still opens, to hide or reset the card
+  const gone = ONE_ENTITY.includes(pop.type) && !pop.form && (id => id && !hass.states[id])(pop.type === "climate" ? pop.s?.entity_id : pop.e?.id);
+  if (gone) return wrap(roomName, pop.e ? label(p, pop.e) : pop.s?.attributes?.friendly_name || pop.s?.entity_id, t("Onbereikbaar"), nothing);
   switch (pop.type) {
     case "light": {
       const s = hass.states[pop.e.id] || pop.e.state, on = isOn(s), un = unavailable(s);
