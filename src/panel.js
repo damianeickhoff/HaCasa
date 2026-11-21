@@ -35,7 +35,8 @@ const brandTitle = s => html`<span class="bt">${s}</span>`;
 
 const eventWhenShort = ev => ev.allDay ? t("hele dag") : ev.start.toLocaleTimeString(locale(), timeOpts());
 const BUILD = Math.floor(Date.now() / 3600000).toString(36);   // changes every hour: replaced photos show up after a reload
-const FONT = "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap";
+import FONT_FACES from "hcn:font";   // Hanken Grotesk, bundled (#145)
+const SYSTEM_FONT = "system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif";
 const DEFAULT_CONFIG = { rooms: "auto", roomImage: "/local/images/rooms/{slug}.jpg", homeImage: "/local/images/rooms/home.jpg", home: {}, more: [] };   // no room cap by default (#146); Settings → Kamers can set one
 
 class HacasaNova extends LitElement {
@@ -50,7 +51,9 @@ class HacasaNova extends LitElement {
     super();
     this.config = structuredClone(DEFAULT_CONFIG); this.popup = null; this.search = ""; this.drawer = false; this.tick = 0; this.now = clock(); this.notifications = []; this.idle = false;
     this._drag = 0;
-    if (!document.querySelector(`link[href="${FONT}"]`)) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = FONT; document.head.appendChild(l); }
+    // @font-face only works in the document, not in a shadow root. The browser only decodes the font when text uses it,
+    // so with the system font chosen it costs nothing beyond the bundle size
+    if (!document.getElementById("hcn-font")) { const st = document.createElement("style"); st.id = "hcn-font"; st.textContent = FONT_FACES; document.head.appendChild(st); }
   }
 
   connectedCallback() {
@@ -173,6 +176,7 @@ class HacasaNova extends LitElement {
     setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
     if (this.settings || this.page) this.classList.remove("rows2");   // set per view by stripRows()
     { const sc = this.cardScale(); if (!sc) { this.style.removeProperty("--u"); this.style.removeProperty("--cz"); } else if (!this.classList.contains("rows2")) { this.style.setProperty("--u", sc.u1 + "px"); this.style.setProperty("--cz", sc.u1); } }   // card size for pages and popups too
+    if (this.config.font === "system") this.style.setProperty("--font", SYSTEM_FONT); else this.style.removeProperty("--font");   // Settings → General → Font
     if (setTimeFormat(this.hass.locale, this.config.timeFormat)) this.now = clock();   // a changed time format shows at once, not at the next tick
     const still = !!this.config.noMotion || matchMedia("(prefers-reduced-motion: reduce)").matches; this.classList.toggle("still", still); setMotion(!still);
     if (changed.has("popup")) { const was = changed.get("popup"); if (was && !this.popup) ghost(this, ".overlay", "pop-out", 200); else if (was?.menu && this.popup && !this.popup.menu && this.popup.type === was.type) ghost(this, ".pmenu", "menu-out", 170, (c, el) => { const r = el.getBoundingClientRect(); c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;right:auto;bottom:auto;width:${r.width}px`; }); }

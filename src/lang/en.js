@@ -474,6 +474,8 @@ export default {
   "In deze ruimte": "In this room",
   "De entiteit hoort al bij deze ruimte; de kaart komt erbij.": "The entity already belongs to this room; the card is added.",
   "Tijdnotatie": "Time format",
+  "Lettertype": "Font", "Hanken Grotesk (meegeleverd)": "Hanken Grotesk (built in)", "systeemlettertype": "system font",
+  "Hanken Grotesk zit in HaCasa Nova zelf, er wordt niets van internet geladen": "Hanken Grotesk is built into HaCasa Nova, nothing is loaded from the internet",
   "automatisch (zoals Home Assistant)": "automatic (as Home Assistant)",
   "12-uurs (2:30 PM)": "12-hour (2:30 PM)",
   "24-uurs (14:30)": "24-hour (14:30)",
