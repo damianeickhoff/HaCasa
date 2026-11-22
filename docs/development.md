@@ -57,7 +57,7 @@ Room photos are looked up under `/images/rooms/` of the served folder; without t
 
 3. After every change: `npm run deploy:dev` and reload the browser. The loader picks up the new build by itself, no restart needed.
 
-Releases go the normal way (see [Releasing](#releasing)), and you update your own install through HACS like any other user.
+Releases go the normal way (see [Releasing](#releasing)), and you update your own install through the Marketplace like any other user.
 
 ## Layout
 
@@ -76,7 +76,7 @@ src/
   lang/         one file per language (en.js, de.js, …), found by build.mjs
   styles.js     all CSS
 icons/          SVG icons, drawn by dev/make-icons.mjs, inlined by build.mjs
-dist/           the built file Home Assistant loads (committed with each release, for HACS)
+dist/           the built file Home Assistant loads (committed with each release, for the Marketplace and HACS)
 docs/           this site (MkDocs Material)
 ```
 
@@ -99,4 +99,4 @@ Pull requests are welcome.
 
 1. Bump `version` in `package.json` and add the changes to `CHANGELOG.md`. New languages: add them to [Language](extras.md#language).
 2. `npm run build` and commit `dist/hacasa-nova.js` (pull requests don't touch it, so this is where it catches up).
-3. Tag `vX.Y.Z` and publish a GitHub release with `dist/hacasa-nova.js` attached; HACS picks it up. CI checks that a release tag's `dist/` matches the source.
+3. Tag `vX.Y.Z` and publish a GitHub release with `dist/hacasa-nova.js` attached; the Marketplace and HACS pick it up. CI checks that a release tag's `dist/` matches the source.
