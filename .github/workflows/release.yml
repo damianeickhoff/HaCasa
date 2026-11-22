@@ -1,0 +1,39 @@
+name: Release
+
+# Push a tag vX.Y.Z (or vX.Y.Z-beta.N) on a commit whose dist/ is built: this checks it and publishes the
+# GitHub release with hacasa-nova.js attached and the matching CHANGELOG.md section as the notes.
+# A version with a "-" (3.2.0-beta.4) is published as a pre-release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: tag matches package.json
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          [ "$v" = "$(node -p 'require("./package.json").version')" ] || { echo "Tag $GITHUB_REF_NAME does not match package.json version"; exit 1; }
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+      - run: npm run build
+      - name: dist is up to date
+        run: git diff --exit-code -- dist/hacasa-nova.js || (echo "Run npm run build and commit dist/hacasa-nova.js before tagging" && exit 1)
+      - name: release notes from CHANGELOG.md
+        run: |
+          awk -v v="$VERSION" '$0 ~ "^## "v"( |$)" {f=1; next} /^## / {f=0} f' CHANGELOG.md > notes.md
+          [ -s notes.md ] || { echo "CHANGELOG.md has no '## $VERSION' section"; exit 1; }
+      - name: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pre=""; case "$VERSION" in *-*) pre="--prerelease";; esac
+          gh release create "$GITHUB_REF_NAME" dist/hacasa-nova.js --title "HaCasa Nova $VERSION" --notes-file notes.md --verify-tag $pre

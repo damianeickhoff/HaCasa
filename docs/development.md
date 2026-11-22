@@ -99,4 +99,4 @@ Pull requests are welcome.
 
 1. Bump `version` in `package.json` and add the changes to `CHANGELOG.md`. New languages: add them to [Language](extras.md#language).
 2. `npm run build` and commit `dist/hacasa-nova.js` (pull requests don't touch it, so this is where it catches up).
-3. Tag `vX.Y.Z` and publish a GitHub release with `dist/hacasa-nova.js` attached; HACS picks it up. CI checks that a release tag's `dist/` matches the source.
+3. Push a tag `vX.Y.Z` (or `vX.Y.Z-beta.N`). The *Release* workflow checks that the tag matches `package.json` and that `dist/` matches the source, then publishes the GitHub release with `dist/hacasa-nova.js` attached and that version's `CHANGELOG.md` section as the notes; a version with a `-` becomes a pre-release. The Marketplace and HACS pick it up.
