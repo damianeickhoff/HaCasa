@@ -1,4 +1,4 @@
-// LEICS Nova: a Home Assistant custom panel (panel_custom) that builds a home view and one
+// LEICS Dashboard: a Home Assistant custom panel (panel_custom) that builds a home view and one
 // page per area, straight from the area/device/entity registries.
 import { t, locale, setLang, pickLang, inText } from "./i18n.js";
 import { LitElement, html, nothing } from "lit";
@@ -658,8 +658,8 @@ class HacasaNova extends LitElement {
     if (h.doorsOpen.length) items.push({ k: "doors", icon: "mdi:door-open", title: h.doorsOpen.map(e => name(this.hass, e)).join(", "), text: h.doorsOpen.length === 1 ? t("Staat open") : t("Staan open") });
     for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", uicon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));
-    const su = selfUpdate(this);   // a newer LEICS Nova: first in the row, tap = what's new (+ install via HACS)
-    if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("LEICS Nova {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
+    const su = selfUpdate(this);   // a newer LEICS Dashboard: first in the row, tap = what's new (+ install via HACS)
+    if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("LEICS Dashboard {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
     const editing = this.editing("home"), cards = editing ? [editStrip(this, "home")] : this.stripCards("home").map(c => c.tpl);
     return html`
       ${this.renderTitle(h.temp, t(this.pageCfg("home").title || this.config.home?.greeting || "") || greeting(), "", this.tickerOn("home", items), html`${this.renderPills(h)}${quickRow(this)}`, "home", this.renderWx(h.weather), h.hum)}

@@ -274,7 +274,7 @@ export default {
   "als de entiteit aan is": "when the entity is on",
   "nooit": "never",
   "naar pagina": "go to page",
-  "een pad in Home Assistant, bv. /LEICS/keuken of /config": "a path in Home Assistant, e.g. /LEICS/kitchen or /config",
+  "een pad in Home Assistant, bv. /leics/keuken of /config": "a path in Home Assistant, e.g. /leics/kitchen or /config",
   "leeg = altijd zichtbaar": "empty = always visible",
   "Statuspillen": "Status pills",
   "sleep om te ordenen · tik om te wijzigen": "drag to reorder · tap to change",
