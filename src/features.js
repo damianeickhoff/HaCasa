@@ -5,7 +5,7 @@ import { SUFFIX, VERSION, domain, isOn, unavailable } from "./util.js";
 import { pressDir, anyIco } from "./cards.js";
 
 /* ---------- quick actions (home view) ---------- */
-export const QUICK_TYPES = { scene: t("Scène"), script: t("Script"), entity: t("Schakelen"), lights_off: t("Alle lampen uit"), media_off: t("Media uit") };
+export const QUICK_TYPES = () => ({ scene: t("Scène"), script: t("Script"), entity: t("Schakelen"), lights_off: t("Alle lampen uit"), media_off: t("Media uit") });
 const QUICK_ICON = { scene: "mdi:palette-outline", script: "mdi:script-text-outline", entity: "mdi:toggle-switch-outline", lights_off: "mdi:lightbulb-off-outline", media_off: "mdi:stop-circle-outline" };
 export const QUICK_DOMAINS = ["light", "switch", "input_boolean", "fan", "media_player", "cover", "lock", "automation"];
 

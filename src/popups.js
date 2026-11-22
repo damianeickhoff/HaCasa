@@ -23,7 +23,6 @@ import { iconInput } from "./iconpicker.js";
 import { lightsPopup, weatherPopup, energyPopup, mediaPopup, agendaPopup } from "./popups2.js";
 import { securityPopup, todoPopup, airPopup, evPopup, timersPopup, gardenPopup, panelCardFields, personTravel } from "./cards2.js";
 
-const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
 const entityOf = pop => pop.type === "cardcfg" ? pop.key : pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
 /** the page card a popup belongs to: groups and light scenes by their key, the panel's own cards (agenda, waste, …) by type */
 const PANEL_POPUPS = ["agenda", "attention", "waste", "energy", "weather", "climate", "security", "people", "timers", "ev", "garden", "air"];
@@ -70,7 +69,7 @@ const wrap = (title, big, sub, body, cls = "") => {
 };
 /** a switch whose device also has a power sensor or an operation-state sensor can be shown as an appliance (bezig / klaar) */
 const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$/.test(e.entity_id))); };
-const TICKER_KINDS = { home: { update: t("HaCasa-updates"), energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), motion: t("Beweging"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } };
+const TICKER_KINDS = () => ({ home: { update: t("HaCasa-updates"), energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), motion: t("Beweging"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } });
 /** the sensors of a room that can show up in its ticker (#202): doors, windows, motion, batteries and players */
 const tickerSensors = r => { const e = r?.ents; if (!e) return []; const seen = new Set(); return [...e.doors, ...e.windows, ...e.motion, ...e.battery, ...e.media].filter(x => x?.id && !seen.has(x.id) && seen.add(x.id)); };
 /** sensible wizard defaults: what the panel already detected */
@@ -375,7 +374,7 @@ export function renderPopup(p, pop) {
       const all = p.orderCards(p.pageCards(key), d.order), hid = new Set(d.hidden);
       const move = (i, dir) => { const keys = all.map(c => c.key), j = i + dir; if (j < 0 || j >= keys.length) return; [keys[i], keys[j]] = [keys[j], keys[i]]; upd({ order: keys }); };
       const drag = (ev, k) => dragRows(ev, k, order => p.openPopup({ ...pop, draft: { ...d, order }, drag: k }), order => p.openPopup({ ...pop, draft: { ...d, order }, drag: undefined }));
-      const kinds = TICKER_KINDS[isHome ? "home" : "room"];
+      const kinds = TICKER_KINDS()[isHome ? "home" : "room"];
       const defImage = isHome ? (p.config.homeImage || "") : ((p.config.roomImage || "").replace("{slug}", r.slug));
       return html`<div class="popup wide"><h2>${t("Pagina instellen")} ${hbtns(p, pop)}</h2><div class="big">${isHome ? t("Startpagina") : r.name}</div><div class="sub">${t("Titel, foto, kaarten en de meldingenregel van deze pagina")}</div>
         <div class="form">
@@ -390,7 +389,7 @@ export function renderPopup(p, pop) {
           <span class="btns"><button title=${hid.has(c.key) ? t("Tonen") : t("Verbergen")} @click=${() => upd({ hidden: hid.has(c.key) ? d.hidden.filter(k => k !== c.key) : [...d.hidden, c.key] })}><ha-icon icon=${hid.has(c.key) ? "mdi:eye-outline" : "mdi:eye-off-outline"}></ha-icon></button><button title=${t("Omhoog")} ?disabled=${i === 0} @click=${() => move(i, -1)}>↑</button><button title=${t("Omlaag")} ?disabled=${i === all.length - 1} @click=${() => move(i, 1)}>↓</button></span></li>`)}
           ${!all.length ? html`<li><div>${t("Geen kaarten op deze pagina")}</div></li>` : nothing}</ul>
         <div class="prow" style="margin-top:18px"><span>${t("Meldingenregel")}</span><b>${t("tik om uit/aan te zetten")}</b></div>
-        <div class="chips">${Object.entries(kinds).map(([k, l]) => html`<button class=${d.ticker[k] === false ? "" : "on"} @click=${() => upd({ ticker: { ...d.ticker, [k]: d.ticker[k] === false ? undefined : false } })}>${t(l)}</button>`)}</div>
+        <div class="chips">${Object.entries(kinds).map(([k, l]) => html`<button class=${d.ticker[k] === false ? "" : "on"} @click=${() => upd({ ticker: { ...d.ticker, [k]: d.ticker[k] === false ? undefined : false } })}>${l}</button>`)}</div>
         <div class="form">${field(t("Wanneer"), html`<div class="seg">${[["", t("altijd")], ["home", t("als er iemand thuis is")], ["away", t("als niemand thuis is")]].map(([v, l]) => html`<button class=${(d.tickerWhen || "") === v ? "on" : ""} @click=${() => upd({ tickerWhen: v || undefined })}>${l}</button>`)}</div>`)}</div>
         ${!isHome && tickerSensors(r).length ? html`<div class="prow" style="margin-top:12px"><span>${t("Sensoren in de regel")}</span><b>${t("tik om er een weg te laten")}</b></div>
           <div class="chips">${tickerSensors(r).map(x => html`<button class=${d.tickerSkip.includes(x.id) ? "" : "on"} title=${x.id} @click=${() => upd({ tickerSkip: d.tickerSkip.includes(x.id) ? d.tickerSkip.filter(y => y !== x.id) : [...d.tickerSkip, x.id] })}>${name(hass, x)}</button>`)}</div>` : nothing}

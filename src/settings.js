@@ -68,7 +68,7 @@ export const condFields = (draft, upd, mode, setMode, row, hint, listId = "hcn-e
 const chips = (states, cur, allIds, setList, extra = () => nothing) => html`<div class="chips">${states.map(s => { const all = !cur; const on = all || cur.includes(s.entity_id);
   return html`<button class=${on ? "on" : ""} title=${s.entity_id} @click=${() => { const c = cur || allIds; setList(on ? c.filter(x => x !== s.entity_id) : [...c, s.entity_id]); }}>${s.attributes.friendly_name || s.entity_id}${extra(s)}</button>`; })}</div>`;
 
-export const TABS = [
+export const TABS = () => [
   { id: "algemeen", label: t("Algemeen"), sub: t("titel, foto's, slaapstand"), icon: "mdi:tune" },
   { id: "paginas", label: t("Pagina's"), sub: t("kaarten, volgorde, titels"), icon: "mdi:view-dashboard-edit-outline" },
   { id: "standaard", label: t("Kaartstandaarden"), sub: t("tikken, vasthouden, onderaan per soort kaart"), icon: "mdi:card-bulleted-settings-outline" },
@@ -85,7 +85,7 @@ export const TABS = [
 ];
 
 export function renderSettings(p) {
-  const hass = p.hass, d = p.draft, tab = TABS.some(x => x.id === p.stab) ? p.stab : "algemeen";
+  const hass = p.hass, d = p.draft, tab = TABS().some(x => x.id === p.stab) ? p.stab : "algemeen";
   const set = (k, v) => { p.draft = { ...d, [k]: v }; };
   const setHome = (k, v) => set("home", { ...(d.home || {}), [k]: v });
   const setEnergy = (k, v) => setHome("energy", { ...(d.home?.energy || {}), [k]: v });
@@ -168,7 +168,7 @@ export function renderSettings(p) {
     standaard: sec(t("Kaartstandaarden"), t("tik op een kaart om de standaard voor die soort in te stellen; per kaart aan te passen via ⋯ in de popup"), defaultsGrid(p, d)),
     acties: sec(t("Snelle acties"), t("knoppen onder de begroeting op de startpagina"), html`
       ${quick.map((q, i) => html`<div class="row quick">${text(q.label, v => setQuick(i, "label", v), "label")}${iconInput(p, q.icon, v => setQuick(i, "icon", v), "mdi:flash-outline")}
-        <select @change=${e => setQuick(i, "type", e.target.value)}>${Object.entries(QUICK_TYPES).map(([k, l]) => html`<option value=${k} ?selected=${(q.type || "scene") === k}>${t(l)}</option>`)}</select>
+        <select @change=${e => setQuick(i, "type", e.target.value)}>${Object.entries(QUICK_TYPES()).map(([k, l]) => html`<option value=${k} ?selected=${(q.type || "scene") === k}>${l}</option>`)}</select>
         ${q.type === "lights_off" || q.type === "media_off" ? html`<span></span>` : selectDoms(hass, q.type === "script" ? ["script"] : q.type === "entity" ? QUICK_DOMAINS : ["scene"], q.entity, v => setQuick(i, "entity", v))}
         <label title=${t("Eerst bevestigen")}>${check(q.confirm, v => setQuick(i, "confirm", v || undefined))}${t("bevestig")}</label><button @click=${() => setHome("quick", quick.filter((_, j) => j !== i))}>×</button></div>`)}
       ${!quick.length ? html`<div class="hint">${t("Nog geen acties. Bijvoorbeeld: Welterusten (script), Alles uit (alle lampen uit, met bevestiging) of Film (scène).")}</div>` : nothing}
@@ -224,7 +224,7 @@ export function renderSettings(p) {
         <button @click=${() => { if (!dirty || confirm(t("Wijzigingen niet opgeslagen. Toch sluiten?"))) p.go(null); }}>${t("Sluiten")}</button>
       </div></header>
     <div class="sbody">
-      <nav class="tabs">${TABS.map(tb => html`<button class=${tb.id === tab ? "on" : ""} @click=${() => { p.stab = tb.id; }}><ha-icon icon=${tb.icon}></ha-icon><span>${t(tb.label)}<small>${t(tb.sub)}</small></span></button>`)}</nav>
+      <nav class="tabs">${TABS().map(tb => html`<button class=${tb.id === tab ? "on" : ""} @click=${() => { p.stab = tb.id; }}><ha-icon icon=${tb.icon}></ha-icon><span>${tb.label}<small>${tb.sub}</small></span></button>`)}</nav>
       <div class="scontent">${content[tab]}</div>
     </div>
   </section>`;
