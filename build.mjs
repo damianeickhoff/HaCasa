@@ -62,6 +62,20 @@ const mdi = {
   },
 };
 
+// "hcn:components" = the default exports of src/components/*.js: components for the data pages (see src/blocks.js), sorted
+const components = {
+  name: "components",
+  setup(build) {
+    build.onResolve({ filter: /^hcn:components$/ }, () => ({ path: "components", namespace: "hcn-components" }));
+    build.onLoad({ filter: /.*/, namespace: "hcn-components" }, () => {
+      mkdirSync("src/components", { recursive: true });
+      const files = readdirSync("src/components").filter(f => f.endsWith(".js")).sort();
+      const code = files.map((f, i) => `import c${i} from "./${f}";`).join("\n") + `\nexport default [${files.map((_, i) => `c${i}`).join(", ")}].flat().filter(Boolean);`;
+      return { contents: code, loader: "js", resolveDir: resolve("src/components"), watchDirs: ["src/components"] };
+    });
+  },
+};
+
 const stamp = {
   name: "version-stamp",
   setup(build) {
@@ -86,7 +100,7 @@ const ctx = await esbuild.context({
   outfile: `${outdir}/${name}.js`,
   legalComments: "eof",
   banner: { js: `/*! HaCasa Nova ${version} · MIT · https://github.com/damianeickhoff/HaCasa */` },
-  plugins: [icons, langs, mdi, stamp],
+  plugins: [icons, langs, mdi, components, stamp],
 });
 
 if (watch) await ctx.watch();

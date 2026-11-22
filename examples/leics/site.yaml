@@ -1,0 +1,39 @@
+# Cartella dati di LEICS Dashboard.
+# In Home Assistant copia questa cartella in /config/www/leics/  (servita come /local/leics/).
+# Il JS decide COME si vede un componente, questi file decidono COSA mostra ogni pagina.
+# Niente build: modifichi un file e ricarichi il browser (o aspetti `reload` secondi).
+
+# Rilegge i file ogni N secondi mentre lavori (comodo con File Editor / Studio Code Server). 0 o assente = solo all'apertura.
+reload: 5
+
+# Impostazioni del pannello: stesse chiavi dell'export JSON (Impostazioni → Esporta). Hanno la precedenza su quelle
+# salvate dall'interfaccia, quindi lascia qui solo quello che vuoi tenere sotto controllo nei file.
+settings:
+  bottomTabs: [consumi, sensoren]       # le due scorciatoie nella barra in basso (telefono)
+  # title: Casa.
+  # rooms: [soggiorno, cucina, camera]  # stanze e ordine nella navigazione (id, slug o nome dell'area)
+  # home:
+  #   energy: { power: sensor.potenza_casa, today: sensor.energia_oggi, price: 0.28 }
+
+# Voci del menu "Altro", in quest'ordine: chiavi di pagina (le tue in pages/ e quelle integrate:
+# automatiseringen, sensoren, energie, cameras, systeem) oppure link. Una pagina non elencata resta raggiungibile dal suo URL.
+menu:
+  - consumi
+  - panoramica
+  - energie
+  - sensoren
+  - automatiseringen
+  - systeem
+  - { label: Grafici, sub: storico di Home Assistant, icon: mdi:chart-line, path: /history }
+
+# Le pagine da caricare: "consumi" = pages/consumi.yaml. Una pagina con la chiave di una integrata la sostituisce.
+pages: [consumi, panoramica]
+
+# Le schede della home ("home") e delle stanze (id, slug o nome dell'area). Senza voce: schede automatiche come prima.
+rooms:
+  home: rooms/home.yaml
+  soggiorno: rooms/soggiorno.yaml
+
+# Componenti JS tuoi, caricati a runtime (nessuna build). Vedi components/barre.js.
+components:
+  - components/barre.js

@@ -16,6 +16,7 @@
     "i18n:check": "node dev/i18n-check.mjs"
   },
   "dependencies": {
+    "js-yaml": "^4.3.2",
     "lit": "^3.2.1"
   },
   "devDependencies": {

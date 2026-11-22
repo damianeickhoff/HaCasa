@@ -3,11 +3,13 @@ import { TAG, SUFFIX } from "./util.js";
 // Install the bundle as a dashboard resource, add a dashboard with one card:  type: custom:hacasa-nova-card
 // Routing inside the card uses the URL hash (#/<room>), so the dashboard URL itself never changes.
 // Optional: a `config:` object in the card config is used like config.json (users can still override it in the panel settings).
+// Optional: `data: /local/leics/` = the data folder with site.yaml (see src/data.js); `data: false` turns it off.
 class HacasaNovaCard extends HTMLElement {
   setConfig(config) {
     this._config = config || {};
     this._ensure();
     this._el.cardConfig = this._config.config && Object.keys(this._config.config).length ? this._config.config : null;
+    if (this._config.data !== undefined && this._el.dataPath !== this._config.data) { this._el.dataPath = this._config.data; this._el.loadDataFolder?.(); }
     this._el.applyConfig?.();
   }
   set hass(h) { this._hass = h; if (this._el) this._el.hass = h; }

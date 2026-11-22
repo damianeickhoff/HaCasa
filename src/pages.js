@@ -1,5 +1,8 @@
 // Full-page views opened from the t("Meer") menu. They use the same cards as the room pages,
 // laid out in a grid with small uppercase section titles. `ha` = the real HA page (button top-right).
+// PAGES is the registry the router, the More menu, the bottom bar and search read: the built-in pages below plus the
+// pages of the data folder (pages/<key>.yaml, see data.js / blocks.js), in the order of `menu:` in site.yaml.
+// Each built-in page returns its body as named parts, so a data page can embed some of them ({ type: page, page: energie, parts: [kpis] }).
 import { t, tn, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
@@ -10,27 +13,56 @@ import { spark } from "./extras3.js";
 import { name, deviceName } from "./model.js";
 import { pendingUpdates, installUpdate } from "./features.js";
 import { pickNet, netCard, etaText } from "./extras3.js";
+import { dataPage } from "./blocks.js";
 
-export const PAGES = {
+export const BUILTIN_PAGES = {
   automatiseringen: { label: t("Automatiseringen"), sub: t("aan, uit en fouten"), icon: "mdi:robot-outline", ha: "/config/automation/dashboard" },
   sensoren: { label: t("Sensoren"), sub: t("batterijen, updates, per ruimte"), icon: "mdi:radar", ha: "/config/entities" },
   energie: { label: t("Energie"), sub: t("verbruik en opwek"), icon: "mdi:lightning-bolt-outline", ha: "/energy" },
   cameras: { label: t("Camera's"), sub: t("live beeld"), icon: "mdi:cctv", ha: null },
   systeem: { label: "Systeem", sub: "server, updates, netwerk", icon: "mdi:server-outline", ha: "/config/system" },
-  consumi: { label: "Consumi", sub: "potenza, costo, grandi consumatori", icon: "mdi:flash-outline", ha: "/energy" },
 };
+export const PAGES = { ...BUILTIN_PAGES };
+/** rebuild PAGES from the built-ins and the data pages; a data page with the key of a built-in replaces it */
+export function setDataPages(defs = {}, menu = null) {
+  const all = { ...BUILTIN_PAGES };
+  for (const [k, d] of Object.entries(defs)) {
+    const x = d && typeof d === "object" ? d : {};
+    all[k] = { label: x.title || BUILTIN_PAGES[k]?.label || k, sub: x.description ?? BUILTIN_PAGES[k]?.sub ?? "", icon: x.icon || BUILTIN_PAGES[k]?.icon || "mdi:file-document-outline", ha: x.ha ?? null, hidden: x.menu === false, data: x };
+  }
+  const order = (Array.isArray(menu) ? menu : []).filter(k => typeof k === "string" && all[k]);
+  for (const k of Object.keys(PAGES)) delete PAGES[k];
+  for (const k of [...order, ...Object.keys(all).filter(k => !order.includes(k))]) PAGES[k] = all[k];
+}
+/** entries of the More menu: `menu:` from site.yaml (page keys and { label, icon, path } links) or every page that is not hidden */
+export function menuPages(p) {
+  const m = p.data?.site?.menu, page = k => ({ label: t(PAGES[k].label), sub: t(PAGES[k].sub || ""), icon: PAGES[k].icon, path: "__" + k + "__" });
+  if (Array.isArray(m)) return m.map(x => typeof x === "string" ? (PAGES[x] ? page(x) : null) : x && typeof x === "object" && x.path ? x : null).filter(Boolean);
+  return [...Object.keys(PAGES).filter(k => !PAGES[k].hidden).map(page), ...(p.config.more || [])];
+}
 
-const sec = (title, cards, meta = "") => cards.length ? html`<section class="sec"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3><div class="cgrid">${cards}</div></section>` : nothing;
+export const sec = (title, cards, meta = "") => cards.length ? html`<section class="sec"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3><div class="cgrid">${cards}</div></section>` : nothing;
 /** a plain card: name, state, optional label and icon */
-const card = (p, { n, s, lbl = "", icon, on = false, dim = false, tap = null, hold = null, cls = "" }) => html`
+export const card = (p, { n, s, lbl = "", icon, on = false, dim = false, tap = null, hold = null, cls = "" }) => html`
   <div class=${classMap({ card: true, [cls]: !!cls, on, unavailable: dim })} ${pressDir(p, { tap, hold })}>
     <div class="n">${n}</div><div class="s">${s}</div>${lbl ? html`<div class="lbl">${lbl}</div>` : nothing}
     ${icon ? html`<div class="i">${ico(icon)}</div>` : nothing}
   </div>`;
 
+const BUILTIN_FN = { automatiseringen: automations, sensoren: sensors, energie: energy, cameras, systeem: system };
+/** a built-in page as { sub, head, tools, parts } (undefined for an unknown key) */
+export const builtinPage = (p, key) => BUILTIN_FN[key]?.(p);
+/** parts in order (or only those named in `only`); consecutive "block" parts share one column layout */
+export function renderParts(parts, only = null) {
+  const sel = Array.isArray(only) ? only.map(n => parts.find(x => x.name === n)).filter(Boolean) : parts;
+  const out = [];
+  for (const x of sel) { const last = out[out.length - 1]; if (x.kind === "block" && last?.kind === "block") last.items.push(x.tpl); else out.push({ kind: x.kind, items: [x.tpl] }); }
+  return out.map(g => g.kind === "block" ? html`<div class="sblks">${g.items}</div>` : g.items);
+}
+
 export function renderPage(p, key) {
   const def = PAGES[key];
-  const page = { automatiseringen: automations, sensoren: sensors, energie: energy, cameras: cameras, systeem: system, consumi }[key](p);
+  const page = def.data ? dataPage(p, key, def) : (pg => ({ ...pg, body: renderParts(pg.parts) }))(BUILTIN_FN[key](p));
   return html`<section class="page">
     <header class="phead">
       <div><div class="peb">${t("Meer")}<i class="dt"></i>${page.sub}</div><h1>${t(def.label)}</h1>${page.head || nothing}</div>
@@ -41,16 +73,16 @@ export function renderPage(p, key) {
 }
 
 /* ---------- shared pieces for the overview pages: KPI tiles, blocks with rows, filter pills ---------- */
-const kpi = ({ icon, svg, em = "", v, unit = "", n = "", on = false, bar = null, spark: sp = null, tap = null }) => html`<div class=${classMap({ kpi: true, on })} @click=${tap}>
+export const kpi = ({ icon, svg, em = "", v, unit = "", n = "", on = false, bar = null, spark: sp = null, tap = null }) => html`<div class=${classMap({ kpi: true, on })} @click=${tap}>
   <div class="top">${ico(icon, svg)}${em ? html`<em>${em}</em>` : nothing}</div><div class="v">${v}${unit ? html`<small>${unit}</small>` : nothing}</div><div class="n">${n}</div>
   ${bar != null ? html`<div class="bar"><i style="--v:${Math.max(0, Math.min(100, bar))}%"></i></div>` : nothing}${sp && sp.length > 1 ? html`<div class="spk">${spark(sp, 70, 26)}</div>` : nothing}</div>`;
-const srow = ({ icon, svg, raw = false, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, toggle = null, on = false, dim = false, err = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim, err })} @click=${tap}>
+export const srow = ({ icon, svg, raw = false, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, toggle = null, on = false, dim = false, err = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim, err })} @click=${tap}>
   ${raw ? anyIco(icon) : ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
   ${toggle ? html`<span class="tog" @click=${ev => { ev.stopPropagation(); toggle(); }}></span>` : pill != null ? html`<span class="st">${pill}</span>` : html`<div class=${classMap({ val: true, dim })}>${val}${unit ? html`<small>${unit}</small>` : nothing}</div>`}</div>`;
-const sblock = (title, rows, meta = "") => rows.length ? html`<div class="sblk"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3>${rows}</div>` : nothing;
-const pillbar = (list, cur, set) => html`<div class="ppills">${list.map(([k, l, icon, svg, n]) => html`<button class=${classMap({ on: cur === k })} @click=${() => set(k)}>${ico(icon, svg)}${n != null ? `${n} ${l}` : l}</button>`)}</div>`;
-const hbars = (rows, max, cls = "") => html`<div class="hbars">${rows.map(r => html`<i class=${classMap({ now: r.t.getHours() === new Date().getHours(), [cls]: !!cls })} style="height:${Math.max(3, (r.v || 0) / (max || 1) * 100)}%" title="${r.t.getHours()}:00 · ${(r.v || 0).toFixed(2)}"></i>`)}</div>`;
-const fmt = (v, d = 1) => v == null ? "–" : v.toLocaleString(locale(), { maximumFractionDigits: d });
+export const sblock = (title, rows, meta = "") => rows.length ? html`<div class="sblk"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3>${rows}</div>` : nothing;
+export const pillbar = (list, cur, set) => html`<div class="ppills">${list.map(([k, l, icon, svg, n]) => html`<button class=${classMap({ on: cur === k })} @click=${() => set(k)}>${ico(icon, svg)}${n != null ? `${n} ${l}` : l}</button>`)}</div>`;
+export const hbars = (rows, max, cls = "") => html`<div class="hbars">${rows.map(r => html`<i class=${classMap({ now: r.t.getHours() === new Date().getHours(), [cls]: !!cls })} style="height:${Math.max(3, (r.v || 0) / (max || 1) * 100)}%" title="${r.t.getHours()}:00 · ${(r.v || 0).toFixed(2)}"></i>`)}</div>`;
+export const fmt = (v, d = 1) => v == null ? "–" : v.toLocaleString(locale(), { maximumFractionDigits: d });
 
 /* ---------- automations: errors first, then a block per area with a toggle per row ---------- */
 function automations(p) {
@@ -76,7 +108,7 @@ function automations(p) {
   return { sub: `${t("{n} automatiseringen · {on} aan", { n: all.length, on: on.length })}${errors.length ? ` · ${t("{n} met fouten", { n: errors.length })}` : ""}`,
     head: pillbar([["all", t("Alles"), "mdi:robot-outline", "robot", null], ["errors", t("met fout"), "mdi:alert-circle-outline", "smoke", errors.length], ["today", t("vandaag gestart"), "mdi:timer-outline", "timer", ran.length], ["off", t("uit"), "mdi:power", "power_off", off.length]], filter, k => { p.pageFilter = { ...(p.pageFilter || {}), automatiseringen: k }; }),
     tools: html`<div class="seg pseg"><button class=${group === "room" ? "on" : ""} @click=${() => { p.pageGroup = { ...(p.pageGroup || {}), automatiseringen: "room" }; }}>${t("Per ruimte")}</button><button class=${group === "az" ? "on" : ""} @click=${() => { p.pageGroup = { ...(p.pageGroup || {}), automatiseringen: "az" }; }}>A–Z</button></div>`,
-    body: html`<div class="kpis">${kpis}</div><div class="sblks">${keys.map(k => sblock(k, groups.get(k).map(row), t("{n} automatiseringen", { n: groups.get(k).length })))}</div>` };
+    parts: [{ name: "kpis", tpl: html`<div class="kpis">${kpis}</div>` }, { name: "list", kind: "block", tpl: keys.map(k => sblock(k, groups.get(k).map(row), t("{n} automatiseringen", { n: groups.get(k).length }))) }] };
 }
 
 /* ---------- energy: tiles, an hourly chart of use and solar, consumers now and per device today ---------- */
@@ -98,94 +130,15 @@ function energy(p) {
   ].filter(Boolean);
   const plugs = p.rooms.flatMap(r => r.ents.appliances.filter(a => a.power && !a.op)).map(a => { const h = p.plugHist?.[a.id]; if (!h) p.loadPlug(a.id, a.power.id, energyOf(p, a.device)?.entity_id); return { a, h }; }).filter(x => x.h?.today != null).sort((x, y) => y.h.today - x.h.today);
   return { sub: en.power ? t("{v} nu · {k} vandaag", { v: `${fmt(val(en.power), 0)} W`, k: `${fmt(val(en.today))} kWh` }) : t("Kies de energiesensoren bij LEICS instellingen"),
-    body: html`
-      <div class="kpis">${kpis}</div>
-      ${use.length ? html`<div class="chart"><h3>${t("Per uur")}<b>${t("verbruik en opwek")}</b></h3>
+    parts: [
+      { name: "kpis", tpl: html`<div class="kpis">${kpis}</div>` },
+      { name: "chart", tpl: use.length ? html`<div class="chart"><h3>${t("Per uur")}<b>${t("verbruik en opwek")}</b></h3>
         <div class="hbwrap">${hbars(use, max)}${sun.length ? hbars(sun, max, "sun") : nothing}</div>
         <div class="bx"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>
-        <div class="legend"><span><i style="background:rgba(255,255,255,.3)"></i>${t("verbruik")}</span>${sun.length ? html`<span><i style="background:rgba(255,220,130,.75)"></i>${t("zon")}</span>` : nothing}<span><i style="background:#fff"></i>${t("nu")}</span></div></div>` : nothing}
-      <div class="sblks">
-        ${sblock(t("Grootverbruikers nu"), watts.slice(0, 10).map(s => srow({ icon: s.attributes.icon || "mdi:power-plug-outline", svg: s.attributes.icon ? null : "plug", name: s.attributes.friendly_name || s.entity_id, val: fmt(num(s.state), 0), unit: "W", on: num(s.state) > 100, tap: () => p.moreInfo(s.entity_id) })), `${watts.length}`)}
-        ${sblock(t("Vandaag per apparaat"), plugs.map(({ a, h }) => srow({ icon: cardCfg(p, a.id).icon || "mdi:power-plug-outline", svg: cardCfg(p, a.id).icon ? null : "plug", raw: !!cardCfg(p, a.id).icon, name: cardCfg(p, a.id).name || deviceName(p.hass, a.device), sub: h.peak ? t("piek {w} W", { w: h.peak.v }) : "", tr: h.rows ? html`<div class="tr">${h.rows.filter((_, i) => i % 3 === 0).map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(10, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : nothing, val: fmt(h.today), unit: "kWh", tap: () => p.openPopup({ type: "appliance", a }) })), t("kWh"))}
-      </div>` };
-}
-
-/* ---------- consumi: pagina energia dedicata (esempio): tessere, grandi consumatori e popup di gestione distacco carichi ---------- */
-// Helper del distacco carichi, cercati per nome (friendly name) o entity_id: se i tuoi si chiamano diversamente, cambia qui.
-const LOADS = {
-  house: "Potenza Casa",
-  numbers: [
-    ["Potenza Massima Ritardo", "mdi:chart-bell-curve"], ["Ritardo Tra Distacchi", "mdi:timer-sand"], ["Potenza Massima Immediato", "mdi:chart-bell-curve"],
-    ["Minuti dopo si riattivano i carichi", "mdi:timer-sand"], ["Secondi tra i distacchi", "mdi:timer-sand"], ["Minuti tra riattivazioni", "mdi:timer-sand"],
-  ],
-  power: i => `Potenza - Carico ${i}`, switches: i => `Switch - Carico ${i}`, slots: 10,
-};
-const OPEN = (p, part) => () => p.openPopup({ type: "consumi", part });
-
-/** gli helper del distacco carichi, cercati per nome: usati dalla pagina (tessere) e dal popup (righe) */
-function loadsData(p) {
-  const st = p.hass.states;
-  const find = (name, doms) => { const n = name.toLowerCase(); return Object.values(st).find(s => doms.includes(domain(s.entity_id)) && (s.entity_id === name || (s.attributes.friendly_name || "").toLowerCase() === n)); };
-  const pick = n => find(n, ["input_select", "select"]);
-  const slots = nameOf => Array.from({ length: LOADS.slots }, (_, k) => ({ n: k + 1, s: pick(nameOf(k + 1)) })).filter(x => x.s).map(x => ({ ...x, c: st[x.s.state] || null }));
-  return { st, house: pick(LOADS.house), nums: LOADS.numbers.map(([n, icon]) => ({ s: find(n, ["input_number"]), icon })).filter(x => x.s), power: slots(LOADS.power), sw: slots(LOADS.switches) };
-}
-/** riga con ‹ valore › per un input_number */
-const nrow = (p, s, icon) => {
-  const step = +s.attributes.step || 1, u = s.attributes.unit_of_measurement || "", go = svc => () => p.call("input_number", svc, { entity_id: s.entity_id });
-  return html`<div class="srow nrow">${ico(icon)}<div class="nm">${s.attributes.friendly_name}<small>${relTime(s.last_changed)}</small></div>
-    <div class="step"><button @click=${go("decrement")}>−</button><b>${fmt(num(s.state), step < 1 ? 1 : 0)}${u ? html`<small>${u}</small>` : nothing}</b><button @click=${go("increment")}>+</button></div></div>`;
-};
-/** riga con menu a tendina per un input_select / select (l'entità scelta per quello slot) */
-const selRow = (p, s, icon, sub) => {
-  const lab = o => p.hass.states[o]?.attributes?.friendly_name || o;
-  return html`<div class="srow lsel">${ico(icon)}<div class="nm">${s.attributes.friendly_name}<small>${sub}</small></div>
-    <select @change=${e => p.call(domain(s.entity_id), "select_option", { entity_id: s.entity_id, option: e.target.value })}>
-      ${(s.attributes.options || []).map(o => html`<option value=${o} ?selected=${o === s.state}>${lab(o)}</option>`)}
-    </select></div>`;
-};
-/** contenuto dei tre popup (part = setup | power | sw), chiamato da popups.js con il suo wrap() */
-export function consumiPopup(p, pop, wrap) {
-  const d = loadsData(p), W = c => c && num(c.state) != null ? fmt(num(c.state), 0) + " W" : "–";
-  const T = { setup: ["Impostazione carichi", "Soglie, ritardi e potenza della casa"], power: ["Sensori potenza carichi", "Il sensore di potenza di ogni carico"], sw: ["Interruttori carichi", "L'interruttore che viene staccato per ogni carico"] }[pop.part];
-  if (!T) return nothing;
-  const rows = pop.part === "setup" ? [d.house ? selRow(p, d.house, "mdi:flash", "sensore di potenza della casa") : null, ...d.nums.map(x => nrow(p, x.s, x.icon))].filter(Boolean)
-    : pop.part === "power" ? d.power.map(x => selRow(p, x.s, `mdi:numeric-${x.n}-circle`, x.c ? W(x.c) : "non scelto"))
-    : d.sw.map(x => selRow(p, x.s, `mdi:numeric-${x.n}-circle`, x.c ? (isOn(x.c.state) ? "acceso" : "spento") : "non scelto"));
-  return wrap("Consumi", T[0], T[1], html`<div class="sblk" style="margin-top:14px">${rows.length ? rows : html`<div class="srow"><div class="nm">Nessun helper trovato<small>controlla i nomi in LOADS (src/pages.js)</small></div></div>`}</div>`);
-}
-
-function consumi(p) {
-  const en = p.home.energy, ecfg = p.config.home?.energy || {}, price = num(ecfg.price), st = p.hass.states;
-  const val = s => s && num(s.state) != null ? num(s.state) : null;
-  // solo i consumatori: non il contatore di casa, il solare o la batteria
-  const skip = new Set([en.power?.entity_id, ecfg.solar, ecfg.batteryPower].filter(Boolean));
-  const watts = Object.values(st)
-    .filter(s => domain(s.entity_id) === "sensor" && s.attributes.unit_of_measurement === "W" && num(s.state) > 0 && !skip.has(s.entity_id) && !p.hass.entities?.[s.entity_id]?.hidden)
-    .sort((a, b) => num(b.state) - num(a.state));
-  const kpis = [
-    kpi({ icon: "mdi:flash-outline", em: "Ora", v: en.power ? fmt(val(en.power), 0) : "–", unit: "W", n: "potenza", on: !!en.power, tap: en.power ? () => p.moreInfo(en.power.entity_id) : null }),
-    kpi({ icon: "mdi:home-import-outline", em: "Oggi", v: fmt(val(en.today)), unit: "kWh", n: "consumo", tap: en.today ? () => p.moreInfo(en.today.entity_id) : null }),
-    price && val(en.today) != null ? kpi({ icon: "mdi:cash", em: "Costo", v: "€ " + fmt(val(en.today) * price, 2), n: "€ " + fmt(price, 2) + " / kWh" }) : null,
-  ].filter(Boolean);
-  // distacco carichi: tre tessere che aprono i popup
-  const d = loadsData(p), limit = d.nums.find(x => x.s.attributes.friendly_name.toLowerCase() === LOADS.numbers[2][0].toLowerCase());
-  const loads = [
-    kpi({ icon: "mdi:tune-variant", em: "Impostazioni", v: limit ? fmt(num(limit.s.state), 0) : "–", unit: "W", n: "soglia", tap: OPEN(p, "setup") }),
-    kpi({ icon: "mdi:flash-triangle-outline", em: "Potenza", v: String(d.power.filter(x => x.c).length), unit: `/ ${LOADS.slots}`, n: "sensori", tap: OPEN(p, "power") }),
-    kpi({ icon: "mdi:toggle-switch-outline", em: "Interruttori", v: String(d.sw.filter(x => x.c).length), unit: `/ ${LOADS.slots}`, n: `${d.sw.filter(x => isOn(x.c?.state)).length} accesi`, tap: OPEN(p, "sw") }),
-  ];
-  return {
-    sub: en.power ? `${fmt(val(en.power), 0)} W · ${fmt(val(en.today))} kWh` : "Scegli i sensori in Impostazioni → Energia",
-    body: html`
-      <div class="kpis">${kpis}</div>
-      <div class="peb" style="margin-top:26px">Distacco carichi</div>
-      <div class="kpis" style="margin-top:10px">${loads}</div>
-      <div class="sblks">
-        ${sblock("Grandi consumatori", watts.slice(0, 10).map(s => srow({
-          icon: s.attributes.icon || "mdi:power-plug-outline", name: s.attributes.friendly_name || s.entity_id,
-          val: fmt(num(s.state), 0), unit: "W", on: num(s.state) > 100, tap: () => p.moreInfo(s.entity_id) })), `${watts.length}`)}
-      </div>` };
+        <div class="legend"><span><i style="background:rgba(255,255,255,.3)"></i>${t("verbruik")}</span>${sun.length ? html`<span><i style="background:rgba(255,220,130,.75)"></i>${t("zon")}</span>` : nothing}<span><i style="background:#fff"></i>${t("nu")}</span></div></div>` : nothing },
+      { name: "consumers", kind: "block", tpl: sblock(t("Grootverbruikers nu"), watts.slice(0, 10).map(s => srow({ icon: s.attributes.icon || "mdi:power-plug-outline", svg: s.attributes.icon ? null : "plug", name: s.attributes.friendly_name || s.entity_id, val: fmt(num(s.state), 0), unit: "W", on: num(s.state) > 100, tap: () => p.moreInfo(s.entity_id) })), `${watts.length}`) },
+      { name: "devices", kind: "block", tpl: sblock(t("Vandaag per apparaat"), plugs.map(({ a, h }) => srow({ icon: cardCfg(p, a.id).icon || "mdi:power-plug-outline", svg: cardCfg(p, a.id).icon ? null : "plug", raw: !!cardCfg(p, a.id).icon, name: cardCfg(p, a.id).name || deviceName(p.hass, a.device), sub: h.peak ? t("piek {w} W", { w: h.peak.v }) : "", tr: h.rows ? html`<div class="tr">${h.rows.filter((_, i) => i % 3 === 0).map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(10, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : nothing, val: fmt(h.today), unit: "kWh", tap: () => p.openPopup({ type: "appliance", a }) })), t("kWh")) },
+    ] };
 }
 
 /* ---------- system: processor, memory, disk, network tiles; Home Assistant, host and offline blocks ---------- */
@@ -221,15 +174,14 @@ function system(p) {
     ...updates.map(u => srow({ icon: u.kind === t("Firmware") ? "mdi:chip" : "mdi:update", svg: "update", name: u.title, sub: `${u.busy ? t("Bezig…") : `${u.from || "?"} → ${u.to || "?"}`}${u.canInstall ? " · " + t("tik = installeren") : ""}`, pill: t("Update"), on: true, tap: () => installUpdate(p, u) })),
   ].filter(Boolean);
   return { sub: tn(new Set([...cpu, ...mem, ...disk, ...net].map(s => s.entity_id)).size, "{n} sensor", "{n} sensoren") + " · " + tn(updates.length, "{n} update", "{n} updates"),
-    body: html`
-      <div class="kpis">${kpis}</div>
-      ${!kpis.length ? html`<div class="hint" style="margin-top:20px;opacity:.75;font-size:13px">${t("Geen systeemsensoren gevonden. Voeg de integratie System Monitor toe voor processor, geheugen, schijf en netwerk.")}</div>` : nothing}
-      ${!p.hass.user?.is_admin ? html`<div class="hint" style="margin-top:12px;opacity:.75;font-size:13px">${t("Host- en kerngegevens komen van de Supervisor en zijn alleen voor beheerders zichtbaar.")}</div>` : nothing}
-      <div class="sblks">
-        ${sblock("Home Assistant", ha, hc.version || "")}
-        ${sblock(t("Host"), hostRows, `${updates.length} ${t("updates")}`)}
-        ${sblock(t("Onbereikbaar"), offline.map(({ e, r }) => srow({ icon: "mdi:lan-disconnect", svg: "network_off", name: name(p.hass, e), sub: `${r.name} · ${t("sinds {t}", { t: relTime(e.state?.last_changed) })}`, pill: t("Offline"), dim: true, tap: more(e.id) })), `${offline.length}`)}
-      </div>` };
+    parts: [
+      { name: "kpis", tpl: html`<div class="kpis">${kpis}</div>` },
+      { name: "hints", tpl: html`${!kpis.length ? html`<div class="hint" style="margin-top:20px;opacity:.75;font-size:13px">${t("Geen systeemsensoren gevonden. Voeg de integratie System Monitor toe voor processor, geheugen, schijf en netwerk.")}</div>` : nothing}
+      ${!p.hass.user?.is_admin ? html`<div class="hint" style="margin-top:12px;opacity:.75;font-size:13px">${t("Host- en kerngegevens komen van de Supervisor en zijn alleen voor beheerders zichtbaar.")}</div>` : nothing}` },
+      { name: "ha", kind: "block", tpl: sblock("Home Assistant", ha, hc.version || "") },
+      { name: "host", kind: "block", tpl: sblock(t("Host"), hostRows, `${updates.length} ${t("updates")}`) },
+      { name: "offline", kind: "block", tpl: sblock(t("Onbereikbaar"), offline.map(({ e, r }) => srow({ icon: "mdi:lan-disconnect", svg: "network_off", name: name(p.hass, e), sub: `${r.name} · ${t("sinds {t}", { t: relTime(e.state?.last_changed) })}`, pill: t("Offline"), dim: true, tap: more(e.id) })), `${offline.length}`) },
+    ] };
 }
 
 /* ---------- sensors: attention first, then one block per room (or per kind) with a row per sensor ---------- */
@@ -262,11 +214,10 @@ function sensors(p) {
   return { sub: [tn(total, "{n} sensor", "{n} sensoren") + " " + tn(p.rooms.length, "in {n} ruimte", "in {n} ruimtes"), tn(lowB.length, "{n} batterij laag", "{n} batterijen laag"), t("{n} onbereikbaar", { n: offline.length }), updates.length ? tn(updates.length, "{n} update", "{n} updates") : ""].filter(Boolean).join(" · "),
     head: html`<div class="ppills">${pills.map(([k, l, icon, svg, n]) => html`<button class=${classMap({ on: filter === k })} @click=${() => { p.sensFilter = k; }}>${ico(icon, svg)}${n != null ? `${n} ${l}` : l}</button>`)}</div>`,
     tools: html`<div class="seg pseg"><button class=${group === "room" ? "on" : ""} @click=${() => { p.sensGroup = "room"; }}>${t("Per ruimte")}</button><button class=${group === "kind" ? "on" : ""} @click=${() => { p.sensGroup = "kind"; }}>${t("Per soort")}</button></div>`,
-    body: html`
-      <div class="sblks">
-        ${block(t("Aandacht"), attention, `${attention.length}`)}
-        ${filter === "all" ? (group === "room" ? p.rooms.map(r => block(r.name, roomRows(r), tn(roomRows(r).length, "{n} sensor", "{n} sensoren"))) : kinds.map(([title, f]) => block(title, p.rooms.flatMap(f)))) : nothing}
-      </div>` };
+    parts: [
+      { name: "attention", kind: "block", tpl: block(t("Aandacht"), attention, `${attention.length}`) },
+      { name: "list", kind: "block", tpl: filter === "all" ? (group === "room" ? p.rooms.map(r => block(r.name, roomRows(r), tn(roomRows(r).length, "{n} sensor", "{n} sensoren"))) : kinds.map(([title, f]) => block(title, p.rooms.flatMap(f)))) : nothing },
+    ] };
 }
 
 /* ---------- cameras: live snapshots as cards, tap for the stream ---------- */
@@ -283,7 +234,7 @@ function cameras(p) {
       ${!pic ? html`<div class="i">${ico("mdi:cctv")}</div>` : nothing}
     </div>`;
   };
-  return { sub: cams.length ? t("{n} camera's · tik voor live beeld", { n: cams.length }) : t("Geen camera's gevonden"), body: sec(t("Camera's"), cams.map(c)) };
+  return { sub: cams.length ? t("{n} camera's · tik voor live beeld", { n: cams.length }) : t("Geen camera's gevonden"), parts: [{ name: "cameras", tpl: sec(t("Camera's"), cams.map(c)) }] };
 }
 
 export const pageStyles = `

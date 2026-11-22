@@ -56,6 +56,7 @@ nav:
   - Configuration:
       - Settings: settings.md
       - Card settings: card-settings.md
+      - Pagine da file YAML: data-driven.md
       - Theme for Home Assistant: theme.md
   - Help:
       - Troubleshooting: troubleshooting.md

@@ -1,0 +1,23 @@
+# Le schede della pagina iniziale.
+# mode: only (predefinito) = esattamente queste, in quest'ordine · append = le automatiche e poi queste · prepend = queste e poi le automatiche
+mode: only
+
+# Anche le chiavi di pages[...] delle impostazioni valgono qui: title (saluto), image, lines, ticker …
+# title: Bentornato
+
+cards:
+  # schede del pannello per chiave
+  - attention
+  - weather
+  - people
+  - security
+  - agenda
+  - energy          # c'è solo con un sensore di potenza in Impostazioni → Energia
+  # un'entità qualsiasi: prende la scheda giusta per il suo tipo (luce, clima, media, sensore …)
+  # - climate.soggiorno
+  # con accanto le impostazioni della scheda (le stesse di ⋯ → Imposta scheda)
+  # - { entity: light.lampada_soggiorno, name: Lampada, icon: mdi:floor-lamp }
+  # una scheda di un'altra stanza: room:<area>:<chiave>
+  # - room:cucina:presets
+  # un componente come scheda
+  - { type: card, entity: $energy.power, name: Potenza ora, icon: mdi:flash-outline, tap: { page: consumi } }

@@ -33,7 +33,7 @@ export function searchResults(p, q) {
   const hit = s => (s || "").toLowerCase().includes(q), starts = s => (s || "").toLowerCase().startsWith(q);
   const hits = [];
   for (const r of p.rooms) if (hit(r.name)) hits.push({ label: r.name, sub: t("Kamer"), icon: "mdi:floor-plan", rank: starts(r.name) ? 0 : 1, go: () => { p.search = ""; p.go(r); } });
-  for (const [k, v] of Object.entries(PAGES)) if (hit(t(v.label))) hits.push({ label: t(v.label), sub: t("Pagina"), icon: v.icon, rank: starts(t(v.label)) ? 0 : 1, go: () => { p.search = ""; p.goPath("__" + k + "__"); } });
+  for (const [k, v] of Object.entries(PAGES)) if (!v.hidden && hit(t(v.label))) hits.push({ label: t(v.label), sub: t("Pagina"), icon: v.icon, rank: starts(t(v.label)) ? 0 : 1, go: () => { p.search = ""; p.goPath("__" + k + "__"); } });
   const inRoom = new Map(); for (const r of p.rooms) for (const e of r.ents.all) inRoom.set(e.id, { e, r });
   for (const s of Object.values(p.hass.states)) {
     const d = domain(s.entity_id); if (QUIET.has(d)) continue;

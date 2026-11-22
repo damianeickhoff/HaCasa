@@ -34,6 +34,10 @@ Home Assistant version and uptime, host info from the Supervisor (when available
 !!! note
     Host info comes from the Supervisor and needs an administrator account on Home Assistant OS or Supervised.
 
+## Your own pages
+
+Pages, the More menu and the cards of the home view and the rooms can also be defined in YAML files in `/config/www/leics/`, with your own components next to the built-in ones. See [Pagine da file YAML](data-driven.md).
+
 ## Your own links
 
 **Settings → More menu** adds your own entries (label, icon, path) next to the built-in pages, for example to another dashboard.

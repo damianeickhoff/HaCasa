@@ -4,7 +4,8 @@ import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { icon, isOn, unavailable, num, relTime, shortDate, domain } from "./util.js";
 import { name, deviceName } from "./model.js";
-import { PAGES, consumiPopup } from "./pages.js";
+import { menuPages } from "./pages.js";
+import { componentPopup } from "./blocks.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState } from "./extras2.js";
 import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, groupKind, groupCaps, cardType, anyIco, cardCfg } from "./cards.js";
@@ -490,14 +491,13 @@ export function renderPopup(p, pop) {
     case "more":
       return wrap(t("Meer"), t("Overzichten"), t("Pagina's die niet bij een kamer horen"), html`
         ${modeList(p).length ? html`<div class="prow" style="margin-top:14px"><span>${t("Modi")}</span><b>${modeList(p).filter(m => m.on).map(m => m.label).join(", ") || ""}</b></div><ul style="margin-top:8px">${modeList(p).map(m => li(m.icon || "mdi:account-switch-outline", m.label, m.on ? t("Actief") : t("Uit"), { on: m.on, sub: m.s.attributes.friendly_name, onclick: () => toggleMode(p, m) }))}</ul>` : nothing}
-        <div class="pages">${[...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...Object.entries(PAGES).map(([k, v]) => ({ label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("LEICS instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}>${anyIco(m.icon)}<div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
+        <div class="pages">${[...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...menuPages(p), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("LEICS instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}>${anyIco(m.icon)}<div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
     case "security": return securityPopup(p, pop, wrap, li, modes);
     case "todo": return todoPopup(p, pop, wrap, li, modes);
     case "air": return airPopup(p, pop, wrap, li);
     case "ev": return evPopup(p, wrap, li, modes);
     case "timers": return timersPopup(p, wrap, li, modes);
     case "garden": return gardenPopup(p, wrap, li, modes);
-    case "consumi": return consumiPopup(p, pop, wrap);
-    default: return nothing;
+    default: return String(pop.type).startsWith("cmp:") ? componentPopup(p, pop, wrap) : nothing;
   }
 }

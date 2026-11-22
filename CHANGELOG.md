@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Pages from YAML files.** A data folder (default `/local/leics/`, set it with `data:` in the panel or card config) separates content from presentation: `site.yaml` (settings, More menu order, which files to load), `pages/<key>.yaml` (a page made of blocks), `rooms/<key>.yaml` (the cards of the home view or a room, `mode: only | append | prepend`) and `components/*.js` (components loaded at runtime). Files are read in the browser, no build; `reload:` picks up changes while you edit. Errors show in place with file and line. See docs/data-driven.md and examples/leics.
+- Built-in components: `kpis`, `kpi`, `list` (rows with toggle, − + and drop-down controls), `cards`, `card`, `heading`, `text`, `section`, `pills`, `hourly`, `page` (parts of a built-in page). Values with `[[ entity ]]`, `$energy.*` / `$home.*` references or Jinja; `query:` for dynamic lists; `visible:`, `highlight:`, `tap:` / `hold:` actions.
+- Components in `src/components/*.js` are bundled automatically. The *Consumi* page moved out of `src/pages.js`: it is now `examples/leics/pages/consumi.yaml` plus the `distacco-carichi` component, with the helper names as YAML props instead of the `LOADS` constant. Fixed on the way: the switches tile counted switches that are on as off.
+- The built-in pages (`automatiseringen`, `sensoren`, `energie`, `cameras`, `systeem`) return named parts, so a YAML page can embed some of them, or replace a built-in page under its key.
+
 ## 3.1.0
 
 Everything from the six betas below, plus these changes since beta.6:

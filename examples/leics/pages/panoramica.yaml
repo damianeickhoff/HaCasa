@@ -1,0 +1,63 @@
+# Pagina di esempio con tutti i componenti integrati. Togli quello che non ti serve, o cancella la pagina da site.yaml.
+title: Panoramica
+description: esempio con tutti i componenti
+icon: mdi:view-dashboard-outline
+sub: "Sole: [[ sun.sun ]]"
+
+blocks:
+  - type: text
+    text: |
+      Ogni voce di "blocks" è un componente: type dice quale, il resto sono le sue proprietà.
+
+      Un componente sconosciuto o un errore mostrano un riquadro rosso con il motivo, la pagina resta in piedi.
+
+  # Pezzi delle pagine integrate: energie [kpis, chart, consumers, devices], systeem [kpis, hints, ha, host, offline],
+  # sensoren [attention, list, filters], automatiseringen [kpis, list, filters, tools], cameras [cameras]
+  - type: page
+    page: energie
+    parts: [kpis]
+
+  - type: hourly
+    title: Oggi per ora
+    meta: kWh
+    entities:
+      - { entity: $energy.today, label: consumo }
+      - { entity: $energy.solarToday, label: solare }
+
+  - type: heading
+    text: Interruttori rapidi
+    sub: tocca per accendere o spegnere
+  - type: pills
+    items:
+      - { entity: input_boolean.ospiti, name: Ospiti, icon: mdi:account-multiple }
+      - { name: Tutte le luci spente, icon: mdi:lightbulb-off-outline, tap: { service: light.turn_off, target: { entity_id: all } } }
+
+  - type: section
+    title: Luci accese
+    blocks:
+      - type: cards
+        query: { domain: light, state: "on" }
+
+  # Due "list" di fila stanno affiancate in colonne
+  - type: list
+    title: Batterie
+    meta: count
+    query: { device_class: battery, unit: "%", sort: value, limit: 8 }
+    row: { icon: mdi:battery-outline }
+    empty: nessuna batteria trovata
+  - type: list
+    title: Automazioni
+    query: { domain: automation, limit: 6 }      # con un interruttore per riga (control: auto)
+
+  - type: barre                                   # componente runtime: components/barre.js
+    title: Umidità
+    query: { device_class: humidity, sort: -value }
+
+  # Schede singole di fila = una griglia. visible: la scheda c'è solo se la condizione vale.
+  - { type: card, entity: sun.sun, name: Sole, icon: mdi:weather-sunny }
+  - { type: card, name: Persone a casa, value: "[[ zone.home ]]", icon: mdi:home-account, tap: { navigate: /config/person } }
+  - { type: card, entity: $home.alarm, name: Allarme, visible: { entity: $home.alarm, state_not: disarmed } }
+
+  - type: page
+    page: sensoren
+    parts: [attention]

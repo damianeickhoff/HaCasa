@@ -48,6 +48,20 @@ The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus
 | **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, [several languages](https://damianeickhoff.github.io/HaCasa/extras/#language). |
 | **Phone and tablet** | Built for wall tablets and phones alike: the strip becomes a two-column grid on phones. |
 
+## Pages from YAML files
+
+Content and presentation are separate, as in Hugo: YAML files in `/config/www/leics/` say **what** each page shows, JS components say **how**. No build step: the panel reads the files at runtime.
+
+```
+/config/www/leics/
+  site.yaml            settings, More menu, which pages / layouts / components to load
+  pages/consumi.yaml   a page: title, icon and a list of blocks (kpis, list, cards, hourly, page, your own …)
+  rooms/home.yaml      the cards of the home view or a room, in order
+  components/barre.js  your own component, loaded without rebuilding
+```
+
+Start from [`examples/leics`](examples/leics) and read [docs/data-driven.md](docs/data-driven.md). Without a `site.yaml` the panel works as before.
+
 ## Screenshots
 
 <table>

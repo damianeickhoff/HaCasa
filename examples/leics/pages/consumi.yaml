@@ -1,0 +1,44 @@
+# Pagina "Consumi": prima era codice in src/pages.js (funzione consumi + costante LOADS), ora è solo contenuto.
+# URL: /<pannello>/consumi
+
+title: Consumi
+description: potenza, costo, grandi consumatori    # testo sotto il titolo nel menu "Altro"
+icon: mdi:flash-outline
+ha: /energy                                        # pulsante "Apri in Home Assistant" (ometti per toglierlo)
+
+# Riga sopra il titolo. [[ entità ]] = valore attuale (| n = decimali). $energy.* = i sensori di Impostazioni → Energia.
+sub: "[[ $energy.power | 0 ]] W · [[ $energy.today ]] kWh"
+
+blocks:
+  - type: kpis
+    items:
+      - { entity: $energy.power, label: Ora, name: potenza, icon: mdi:flash-outline, decimals: 0, highlight: true, history: 3 }
+      - { entity: $energy.today, label: Oggi, name: consumo, icon: mdi:home-import-outline }
+      # kWh × prezzo di Impostazioni → Energia; con un prezzo fisso scrivi scale: 0.28
+      - { entity: $energy.today, label: Costo, name: oggi, icon: mdi:cash, scale: $energy.price, prefix: "€ ", unit: "", decimals: 2, tap: none }
+
+  - type: heading
+    text: Distacco carichi
+
+  # Il tuo componente (src/components/distacco-carichi.js). I nomi qui sotto sono quelli che prima stavano in LOADS:
+  # se i tuoi helper si chiamano diversamente cambia solo questo file.
+  - type: distacco-carichi
+    house: Potenza Casa
+    limit: Potenza Massima Immediato
+    numbers:
+      - { name: Potenza Massima Ritardo, icon: mdi:chart-bell-curve }
+      - { name: Ritardo Tra Distacchi, icon: mdi:timer-sand }
+      - { name: Potenza Massima Immediato, icon: mdi:chart-bell-curve }
+      - { name: Minuti dopo si riattivano i carichi, icon: mdi:timer-sand }
+      - { name: Secondi tra i distacchi, icon: mdi:timer-sand }
+      - { name: Minuti tra riattivazioni, icon: mdi:timer-sand }
+    power: "Potenza - Carico {n}"
+    switches: "Switch - Carico {n}"
+    slots: 10
+
+  # Lista dinamica: tutti i sensori in W sopra 0, dal più alto, esclusi contatore di casa, solare e batteria
+  - type: list
+    title: Grandi consumatori
+    meta: count
+    query: { domain: sensor, unit: W, min: 0.1, sort: -value, limit: 10, exclude: [$energy.power, $energy.solar, $energy.batteryPower] }
+    row: { icon: mdi:power-plug-outline, decimals: 0, highlight: { above: 100 } }

@@ -10,7 +10,9 @@ import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, s
 import { editStrip, editBar, editTools, canEdit } from "./edit.js";
 import { renderPopup } from "./popups.js";
 import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
-import { renderPage, PAGES } from "./pages.js";
+import { renderPage, PAGES, setDataPages } from "./pages.js";
+import { loadData, templateStrings, DEFAULT_DATA } from "./data.js";
+import { layoutFor, layoutCards, dataTemplates } from "./blocks.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
 import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, anyIco, wxDays } from "./cards.js";
@@ -43,7 +45,7 @@ class HacasaNova extends LitElement {
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
     config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, iconPick: { state: true }, tick: { state: true }, now: { state: true },
-    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true }, todo: { state: true },
+    draft: { state: true }, saved: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true }, todo: { state: true }, data: { state: true },
   };
 
   constructor() {
@@ -77,7 +79,7 @@ class HacasaNova extends LitElement {
     this.addEventListener("pointerdown", e => { if (this.navFloor != null && !this.drawer && !e.composedPath().some(el => el.classList?.contains("fl"))) this.navFloor = null; });
     this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab"))) this.drawer = false; });
   }
-  disconnectedCallback() { super.disconnectedCallback(); clearTimeout(this._userRetry); if (this.userConfig === undefined) this._userLoaded = false; clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
+  disconnectedCallback() { super.disconnectedCallback(); clearTimeout(this._dataT); this._dataLoaded = false; clearTimeout(this._userRetry); if (this.userConfig === undefined) this._userLoaded = false; clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
   wake() { this.idle = false; this._lastActivity = Date.now(); }
   /** go to the previous/next room in nav order (home is before the first room) */
   swipe(dir) { const order = [null, ...this.rooms]; const i = order.findIndex(r => (r?.id || null) === (this.room?.id || null)); const n = order[i + dir]; if (n !== undefined) this.go(n); }
@@ -112,7 +114,50 @@ class HacasaNova extends LitElement {
     }
     this.userConfig = u; this.applyConfig();
   }
-  applyConfig() { this.config = mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.userConfig); this.subscribeTemplates(); if (this.userConfig && !this._tplMigrated) { this._tplMigrated = true; this.migrateTemplates(); } }
+  applyConfig() { this.config = mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.userConfig, this.dataSettings()); this.subscribeTemplates(); if (this.userConfig && !this._tplMigrated) { this._tplMigrated = true; this.migrateTemplates(); } }
+  /* ---------- data folder (site.yaml, pages/, rooms/, components/): see data.js and blocks.js ---------- */
+  /** (re)read the data folder; with `reload: <seconds>` in site.yaml it keeps looking for changes */
+  async loadDataFolder() {
+    clearTimeout(this._dataT);
+    const path = this.dataPath ?? this.panel?.config?.data ?? DEFAULT_DATA;
+    let d;
+    if (path === false || path === "" || path === null) d = null;
+    else try { d = await loadData(String(path), this.data?.sig); } catch (e) { console.warn("[leics-dashboard] data folder not read", e); d = undefined; }
+    if (d === null && this.data) { this.data = null; setDataPages(); this.applyConfig(); }
+    else if (d && !d.same) {
+      const first = !this.data;
+      this.data = d; setDataPages(d.pages, d.site?.menu); this._dataTpl = templateStrings(d); this.applyConfig();
+      const err = d.errors[0];
+      if (err) this.showToast(`${err.file}${err.line ? ":" + err.line : ""} · ${err.msg}`, 8000);
+      else if (!first) this.showToast("Dati aggiornati", 1800, "ok");
+    }
+    const sec = +(this.data?.site?.reload || 0);
+    if (sec > 0 && this.isConnected) this._dataT = setTimeout(() => this.loadDataFolder(), Math.max(2, sec) * 1000);
+  }
+  /** the settings layer of the data folder: site.yaml `settings:` plus what the room layouts say about their page
+      (title, image, ticker … and their entities, which join the room like cards added by hand). It goes on top of the user settings. */
+  dataSettings() {
+    const d = this.data; if (!d) return null;
+    const s = { ...(d.settings || {}) }, u = this.userConfig || {};
+    if (s.cards) s.cards = Object.fromEntries(Object.entries(s.cards).map(([k, v]) => [k, { ...(u.cards?.[k] || {}), ...v }]));
+    const areaOf = key => { if (key === "home" || !this.hass?.areas) return key; const A = Object.values(this.hass.areas), sl = slug(key); return (A.find(a => a.area_id === key) || A.find(a => slug(a.name) === sl) || A.find(a => slug(a.area_id) === sl))?.area_id || key; };
+    const pages = { ...(s.pages || {}) };
+    for (const [key, lay] of Object.entries(d.rooms || {})) {
+      if (!lay || typeof lay !== "object" || lay.__error) continue;
+      const id = areaOf(key), { cards, mode, hide, __file, ...rest } = lay;
+      const keys = (Array.isArray(cards) ? cards : []).map(c => typeof c === "string" ? c : c?.type ? null : c?.entity || c?.key).filter(k => typeof k === "string" && (k.includes(".") || k.startsWith("tpl:")) && !k.startsWith("$") && !k.startsWith("room:"));
+      const cur = { ...(u.pages?.[id] || {}), ...(pages[id] || {}) };
+      pages[id] = { ...cur, ...rest, add: [...new Set([...(cur.add || []), ...keys])] };
+    }
+    if (Object.keys(pages).length) s.pages = pages;
+    return s;
+  }
+  /** cards of the home view or a room: the YAML layout when there is one, else the automatic cards with the edit-mode order */
+  stripCards(key, room) {
+    const auto = () => this.applyPage(key, key === "home" ? homeCards(this, this.home) : this.roomCards(room));
+    const lay = layoutFor(this, key);
+    return lay ? layoutCards(this, key, lay, key === "home" ? homeCards(this, this.home, true) : this.roomAllCards(room), auto) : auto();
+  }
   /** settings as a downloadable JSON file (the old config.json role) */
   exportSettings() {
     const blob = new Blob([JSON.stringify(this.userConfig || {}, null, 2)], { type: "application/json" });
@@ -130,7 +175,7 @@ class HacasaNova extends LitElement {
     this.config.templates = cards;
     const lines = Object.entries(this.config.pages || {}).flatMap(([k, pc]) => (pc.lines || []).map((l, i) => ({ id: `line:${k}:${i}`, state: l.text })));
     const overrides = Object.entries(this.config.cards || {}).filter(([, c]) => c.tplState || c.tplSub || c.tplFoot || c.tplVisible).map(([id, c]) => ({ id: "card:" + id, state: c.tplState, label: c.tplSub, foot: c.tplFoot, visible: c.tplVisible }));
-    const list = [...cards.filter(x => x.room !== "none"), ...lines, ...overrides, ...templateInstances(this), ...pillTemplates(this.config)];   // room "none" = library only, rendered per instance
+    const list = [...cards.filter(x => x.room !== "none"), ...lines, ...overrides, ...templateInstances(this), ...pillTemplates(this.config), ...dataTemplates(this, this._dataTpl || [])];   // room "none" = library only, rendered per instance
     const key = JSON.stringify(list.map(x => [x.id, x.state, x.label, x.foot, x.visible]));
     if (key === this._tplKey || !this.hass?.connection?.subscribeMessage) return;
     this._tplKey = key; (this._tplUnsubs || []).forEach(u => { try { u.then ? u.then(f => f(), () => {}) : u(); } catch {} }); this._tplUnsubs = [];
@@ -172,6 +217,7 @@ class HacasaNova extends LitElement {
     setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
     const still = !!this.config.noMotion || matchMedia("(prefers-reduced-motion: reduce)").matches; this.classList.toggle("still", still); setMotion(!still);
     if (changed.has("popup")) { const was = changed.get("popup"); if (was && !this.popup) ghost(this, ".overlay", "pop-out", 200); else if (was?.menu && this.popup && !this.popup.menu && this.popup.type === was.type) ghost(this, ".pmenu", "menu-out", 170, (c, el) => { const r = el.getBoundingClientRect(); c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;right:auto;bottom:auto;width:${r.width}px`; }); }
+    if (!this._dataLoaded) { this._dataLoaded = true; this.loadDataFolder(); }
     if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this._unsubNotif = subscribeNotifications(this.hass, list => { this.notifications = list; }); this.subscribeTemplates(); }
     this.rooms = buildRooms(this.hass, this.config);
     this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
@@ -326,7 +372,7 @@ class HacasaNova extends LitElement {
     this.popup = a ? { type: "appliance", a, form: true } : key.startsWith("switch.") ? { type: "switch", e: { id: key, state: this.hass.states[key] }, form: true } : null;
   }
   /** every card a page can show (before hiding/ordering), for the page popup */
-  pageCards(key) { return key === "home" ? homeCards(this, this.home) : this.roomCards(this.rooms.find(r => r.id === key)); }
+  pageCards(key) { if (layoutFor(this, key)) return this.stripCards(key, this.rooms.find(r => r.id === key)); return key === "home" ? homeCards(this, this.home) : this.roomCards(this.rooms.find(r => r.id === key)); }
   async savePage(key, cfg) {
     const pages = { ...(this.userConfig?.pages || {}) };
     if (cfg && Object.keys(cfg).some(k => cfg[k] !== undefined && !(Array.isArray(cfg[k]) && !cfg[k].length) && !(typeof cfg[k] === "object" && !Array.isArray(cfg[k]) && cfg[k] && !Object.keys(cfg[k]).length))) pages[key] = cfg; else delete pages[key];
@@ -614,7 +660,7 @@ class HacasaNova extends LitElement {
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));
     const su = selfUpdate(this);   // a newer LEICS Nova: first in the row, tap = what's new (+ install via HACS)
     if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("LEICS Nova {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
-    const editing = this.editing("home"), cards = editing ? [editStrip(this, "home")] : this.applyPage("home", homeCards(this, h)).map(c => c.tpl);
+    const editing = this.editing("home"), cards = editing ? [editStrip(this, "home")] : this.stripCards("home").map(c => c.tpl);
     return html`
       ${this.renderTitle(h.temp, t(this.pageCfg("home").title || this.config.home?.greeting || "") || greeting(), "", this.tickerOn("home", items), html`${this.renderPills(h)}${quickRow(this)}`, "home", this.renderWx(h.weather), h.hum)}
       ${editing ? editTools(this, "home") : nothing}
@@ -672,7 +718,10 @@ class HacasaNova extends LitElement {
   safePopup() { try { return renderPopup(this, this.popup); } catch (e) { console.warn("[leics-dashboard] popup closed after a render error", this.popup?.type, e); setTimeout(() => { this.popup = null; }, 0); return nothing; } }
 
   /* ---------- edit mode: edit.js renders the strip and the bar, these hold the state and save ---------- */
-  startEdit(key) { this.edit = true; this.editKey = key; this.editOrder = null; this.editDrag = null; this.popup = null; this.drawer = false; this.searchOpen = false; }
+  startEdit(key) {
+    const lay = layoutFor(this, key);
+    if (lay && (lay.mode || "only") === "only") { this.popup = null; this.showToast(`Le schede di questa pagina vengono da ${lay.__file || "rooms/" + key + ".yaml"} nella cartella dati: modifica lì.`, 6000, "info"); return; }
+    this.edit = true; this.editKey = key; this.editOrder = null; this.editDrag = null; this.popup = null; this.drawer = false; this.searchOpen = false; }
   stopEdit() { this.edit = false; this.editOrder = null; this.editDrag = null; }
   editing(key) { return !!this.edit && this.editKey === key && !this.settings; }
   async setHidden(key, cardKey, hide) { const pc = this.pageCfg(key), cur = pc.hidden || []; await this.savePage(key, { ...pc, hidden: hide ? [...new Set([...cur, cardKey])] : cur.filter(k => k !== cardKey) }); }
@@ -700,7 +749,7 @@ class HacasaNova extends LitElement {
     for (const b of e.battery.filter(x => +x.state?.state <= (this.config.home?.lowBattery ?? 20))) items.push({ k: "battery", icon: "mdi:battery-20", title: name(this.hass, b), text: t("Batterij {n}%", { n: b.state.state }) });
     if (e.lights.length) items.push({ k: "lights", icon: "mdi:lightbulb-outline", title: t("Lampen"), text: r.lightsOn ? t("{n} van {m} aan", { n: r.lightsOn, m: e.lights.length }) : t("Alles uit") });
     if (r.motion) items.push({ k: "motion", icon: "mdi:motion-sensor", title: t("Beweging"), text: r.motionOn ? t("Nu") : relTime(r.motion.last_changed) });
-    const editing = this.editing(r.id), cards = editing ? [editStrip(this, r.id)] : this.applyPage(r.id, this.roomCards(r)).map(c => c.tpl);
+    const editing = this.editing(r.id), cards = editing ? [editStrip(this, r.id)] : this.stripCards(r.id, r).map(c => c.tpl);
     return html`
       ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), this.renderPills(null, r.id), r.id, nothing, r.hum)}
       ${editing ? editTools(this, r.id) : nothing}

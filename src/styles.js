@@ -2,6 +2,7 @@ import { css, unsafeCSS } from "lit";
 import { settingsStyles } from "./settings.js";
 import { iconPickerStyles } from "./iconpicker.js";
 import { pageStyles } from "./pages.js";
+import { blockStyles } from "./blocks.js";
 import { extraStyles } from "./extras.js";
 import { extra2Styles } from "./extras2.js";
 import { featureStyles } from "./features.js";
@@ -829,6 +830,7 @@ export const styles = css`
   }
   @media (min-width:600px) and (max-width:900px){ .strip{grid-template-columns:1fr 1fr 1fr} }
   ${unsafeCSS(pageStyles)}
+  ${unsafeCSS(blockStyles)}
   ${unsafeCSS(extraStyles)}
   ${unsafeCSS(extra2Styles)}
   ${unsafeCSS(settingsStyles)}

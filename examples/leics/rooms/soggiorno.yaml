@@ -1,0 +1,17 @@
+# Le schede di una stanza. Il nome della voce in site.yaml (qui "soggiorno") è l'id, lo slug o il nome dell'area.
+# append: le schede che la stanza ha da sola (luci, prese, movimento, e quelle aggiunte in modifica), poi queste.
+mode: append
+
+# title: Salotto                          # rinomina la stanza nel pannello
+# image: /local/images/rooms/salotto.jpg
+
+# schede automatiche da togliere (entità o chiavi)
+hide: []
+# hide: [switch.presa_albero]
+
+cards:
+  - scenes                                # le scene della stanza
+  - presets                               # scene luci del pannello
+  - air                                   # qualità dell'aria, se ci sono sensori
+  # - media_player.tv
+  # - { type: card, entity: sensor.temperatura_soggiorno, name: Temperatura, tap: more-info }
