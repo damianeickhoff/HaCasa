@@ -571,4 +571,17 @@ export default {
   "Fase": "Phase",
   "Verwacht verbruik": "Expected use",
   "Gestopt": "Stopped",
+  // living room photos
+  "+ effect": "+ effect",
+  "Bewegingsring": "Motion ring",
+  "Effecten": "Effects",
+  "Foto met licht aan": "Photo with lights on",
+  "Geluidsgolven": "Sound waves",
+  "Gloed (apparaat)": "Glow (appliance)",
+  "Plek": "Spot",
+  "Plek kiezen": "Choose spot",
+  "Scherm": "Screen",
+  "dezelfde foto met de lampen aan; vervaagt erin zolang er in deze kamer licht brandt": "the same photo with the lights on; fades in while a light burns in this room",
+  "tik op de plek voor effect {n}": "tap the spot for effect {n}",
+  "{n} op de foto": "{n} on the photo",
 };

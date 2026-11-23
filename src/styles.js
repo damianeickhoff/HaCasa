@@ -14,6 +14,7 @@ import { calendarStyles } from "./calendar.js";
 import { cards2Styles } from "./cards2.js";
 import { popup2Styles } from "./popups2.js";
 import { skyStyles } from "./sky.js";
+import { liveStyles } from "./livephoto.js";
 
 // Started from our own Homio-style mockup; scoped to the panel host.
 export const styles = css`
@@ -912,4 +913,5 @@ export const styles = css`
   @media (max-width:900px){ .card.unavailable{padding:0 16px} }
   ${unsafeCSS(skyStyles)}
   ${unsafeCSS(motionStyles)}
+  ${unsafeCSS(liveStyles)}
 `;
