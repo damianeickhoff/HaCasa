@@ -4,6 +4,7 @@ import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { icon, isOn, unavailable, num, relTime, shortDate, domain, atHome } from "./util.js";
 import { name, deviceName } from "./model.js";
+import { liveEditor } from "./livephoto.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState } from "./extras2.js";
@@ -385,6 +386,7 @@ export function renderPopup(p, pop) {
           ${field(t("Temperatuur"), select(hass, "sensor", d.temperature, v => upd({ temperature: v || undefined }), { empty: isHome ? t("gemiddelde van de kamers") : t("automatisch (sensoren in de kamer)"), filter: s => s.attributes.device_class === "temperature" }))}
           ${field(t("Luchtvochtigheid"), select(hass, "sensor", d.humidity, v => upd({ humidity: v || undefined }), { empty: isHome ? t("gemiddelde van de kamers") : t("automatisch (sensoren in de kamer)"), filter: s => s.attributes.device_class === "humidity" }))}`}
         </div>
+        ${liveEditor(p, pop, d, upd, p.bgUrl(isHome ? null : r))}
         <div class="prow" style="margin-top:18px"><span>${t("Kaarten")}</span><b>${t("{a} van {b} zichtbaar", { a: all.length - hid.size, b: all.length })}</b></div>
         <ul class="plist" data-drag>${all.map((c, i) => html`<li data-k=${c.key} class=${[hid.has(c.key) ? "off" : "", pop.drag === c.key ? "drag" : ""].join(" ")}><span class="grip" title=${t("Sleep om te verplaatsen")} @pointerdown=${ev => drag(ev, c.key)}><ha-icon icon="mdi:drag"></ha-icon></span><div>${c.label}<small>${c.key.includes(".") || c.key.startsWith("device:") ? c.key : ""}</small></div>
           <span class="btns"><button title=${hid.has(c.key) ? t("Tonen") : t("Verbergen")} @click=${() => upd({ hidden: hid.has(c.key) ? d.hidden.filter(k => k !== c.key) : [...d.hidden, c.key] })}><ha-icon icon=${hid.has(c.key) ? "mdi:eye-outline" : "mdi:eye-off-outline"}></ha-icon></button><button title=${t("Omhoog")} ?disabled=${i === 0} @click=${() => move(i, -1)}>↑</button><button title=${t("Omlaag")} ?disabled=${i === all.length - 1} @click=${() => move(i, 1)}>↓</button></span></li>`)}
@@ -400,7 +402,7 @@ export function renderPopup(p, pop) {
         ${pillEditor(p, pop, key, d, upd)}
         <div class="modes n3" style="margin-top:18px">
           <button class="on" @click=${async () => { if (isHome) { const hm = { ...(p.userConfig?.home || {}), temperature: d.temperature, humidity: d.humidity }; if (hm.temperature !== p.userConfig?.home?.temperature || hm.humidity !== p.userConfig?.home?.humidity) await p.saveUser({ home: hm }); }
-            p.savePage(key, { title: d.title, image: d.image, temperature: isHome ? undefined : d.temperature, humidity: isHome ? undefined : d.humidity, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined, tickerSkip: d.tickerSkip.length ? d.tickerSkip : undefined, tickerWhen: d.tickerWhen, add: d.add, keep: d.keep, pills: d.pills }); }}>${t("Opslaan")}</button>
+            p.savePage(key, { title: d.title, image: d.image, imageLit: d.imageLit, fx: (d.fx || []).filter(f => f.entity && f.at).length ? d.fx.filter(f => f.entity && f.at) : undefined, temperature: isHome ? undefined : d.temperature, humidity: isHome ? undefined : d.humidity, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined, tickerSkip: d.tickerSkip.length ? d.tickerSkip : undefined, tickerWhen: d.tickerWhen, add: d.add, keep: d.keep, pills: d.pills }); }}>${t("Opslaan")}</button>
           <button @click=${() => p.savePage(key, null)}>${t("Herstel")}</button>
           <button data-close>${t("Annuleren")}</button></div></div>`;
     }
