@@ -1,7 +1,7 @@
 # Troubleshooting
 
 ??? question "The sidebar entry shows an empty page"
-    - Check `module_url` in `configuration.yaml`: open the URL in your browser (`http://homeassistant.local:8123/hacsfiles/HaCasa/hacasa-nova.js`). You should see JavaScript, not a 404.
+    - Check `module_url` in `configuration.yaml`: open the URL in your browser (`http://homeassistant.local:8123/local/community/HaCasa/hacasa-nova.js`). You should see JavaScript, not a 404.
     - `name` must be exactly `hacasa-nova`.
     - Restart Home Assistant after changing `panel_custom`, then reload the browser.
 
@@ -9,7 +9,7 @@
     `sidebar_icon: hacasa:logo` needs the file loaded at startup: add it under `frontend: extra_module_url` (see [Installation](installation.md#2a-sidebar-panel)) and restart. Or use an `mdi:` icon instead.
 
 ??? question "Custom element doesn't exist: hacasa-nova-card"
-    The dashboard resource is missing. HACS adds it automatically in storage-mode dashboards; otherwise add `/hacsfiles/HaCasa/hacasa-nova.js` as a *JavaScript module* under **Settings → Dashboards → ⋮ → Resources**, then reload.
+    The dashboard resource is missing. The Marketplace (or HACS) adds it automatically in storage-mode dashboards; otherwise add `/local/community/HaCasa/hacasa-nova.js` as a *JavaScript module* under **Settings → Dashboards → ⋮ → Resources**, then reload.
 
 ??? question "A device is missing from a room"
     Rooms are areas. Check that the entity, or its device, is assigned to that area in Home Assistant. Entities with the *diagnostic* or *config* category are left out on purpose. A card hidden via its card settings is listed under **Settings → Card settings**.

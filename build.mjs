@@ -62,6 +62,27 @@ const mdi = {
   },
 };
 
+// "hcn:font" = @font-face rules for Hanken Grotesk (variable weight, upright, Latin + Latin Extended) with the woff2
+// files inlined as data: URLs, from @fontsource-variable/hanken-grotesk (SIL Open Font License 1.1). No request to
+// Google Fonts, and it works offline (#145).
+const font = {
+  name: "font",
+  setup(build) {
+    build.onResolve({ filter: /^hcn:font$/ }, () => ({ path: "font", namespace: "hcn-font" }));
+    build.onLoad({ filter: /.*/, namespace: "hcn-font" }, () => {
+      const dir = "node_modules/@fontsource-variable/hanken-grotesk";
+      const css = readFileSync(`${dir}/wght.css`, "utf8");
+      const faces = ["latin-ext", "latin"].map(sub => {
+        const range = new RegExp(`hanken-grotesk-${sub}-wght-normal\\.woff2[^}]*unicode-range:\\s*([^;]+);`).exec(css)?.[1];
+        if (!range) throw new Error(`hcn:font: no unicode-range for ${sub}`);
+        const data = readFileSync(`${dir}/files/hanken-grotesk-${sub}-wght-normal.woff2`).toString("base64");
+        return `@font-face{font-family:"Hanken Grotesk";font-style:normal;font-display:swap;font-weight:100 900;src:url(data:font/woff2;base64,${data}) format("woff2");unicode-range:${range}}`;
+      }).join("");
+      return { contents: `/*! Hanken Grotesk · Copyright 2021 The Hanken Grotesk Project Authors · SIL Open Font License 1.1 · https://openfontlicense.org */\nexport default ${JSON.stringify(faces)};`, loader: "js" };
+    });
+  },
+};
+
 const stamp = {
   name: "version-stamp",
   setup(build) {
@@ -86,7 +107,7 @@ const ctx = await esbuild.context({
   outfile: `${outdir}/${name}.js`,
   legalComments: "eof",
   banner: { js: `/*! HaCasa Nova ${version} · MIT · https://github.com/damianeickhoff/HaCasa */` },
-  plugins: [icons, langs, mdi, stamp],
+  plugins: [icons, langs, mdi, font, stamp],
 });
 
 if (watch) await ctx.watch();

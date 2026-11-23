@@ -18,11 +18,12 @@ export const DEFAULT_TYPES = [
   { type: "cover", label: "Rolluiken", icon: "mdi:window-shutter", ents: e => e.covers, bottoms: [] },
   { type: "fan", label: "Ventilatoren", icon: "mdi:fan", ents: e => e.fans, bottoms: [] },
   { type: "lock", label: "Sloten", icon: "mdi:lock-outline", ents: e => e.locks, bottoms: [] },
+  { type: "sensor", label: "Sensoren", icon: "mdi:gauge", ents: e => e.values, bottoms: [] },   // value cards: sensors added to a room by hand
 ];
 const BL = { steps: "helderheid-stappen", colors: "kleuren", today: "vandaag (uren)", graph: "grafiek (aan/uit-lijn)", timer: "timer", cost: "kosten", bars: "verbruik per uur", heating: "vandaag verwarmd", outside: "buitentemperatuur", none: "niets" };
 const PRESS = { "": null, toggle: "schakelen", popup: "details openen", more: "Home Assistant-dialoog", none: "niets" };
 const canToggle = type => ["light", "switch", "fan", "lock", "appliance"].includes(type);
-const BATTERY = ["light", "switch", "binary_sensor", "lock", "cover", "fan"];
+const BATTERY = ["light", "switch", "binary_sensor", "lock", "cover", "fan", "sensor"];
 
 /** one of the user's cards of this kind to preview with: available and on (a dimmable light) where possible */
 function sampleOf(p, def) {

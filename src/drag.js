@@ -29,7 +29,9 @@ export function dragRows(ev, key, apply, done) {
     if (next.join("\n") !== order.join("\n")) { order = next; apply(order); }
   };
   // keep scrolling while the pointer rests near the top or bottom edge
+  // the list can leave the page mid-drag (Esc closes the settings, a page switch): stop then, without reporting an order
   const edge = () => {
+    if (!list.isConnected) { stop(false); return; }
     const b = sc === document.scrollingElement ? { top: 0, bottom: innerHeight } : sc.getBoundingClientRect();
     const d = y < b.top + 60 ? -10 : y > b.bottom - 60 ? 10 : 0;
     if (d) { sc.scrollTop += d; place(); }
@@ -37,10 +39,11 @@ export function dragRows(ev, key, apply, done) {
   };
   raf = requestAnimationFrame(edge);
   const move = e => { e.preventDefault(); y = e.clientY; place(); };
-  const up = () => {
+  const stop = commit => {
     cancelAnimationFrame(raf);
     removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up);
-    done(order);
+    if (commit) done(order);
   };
+  const up = () => stop(list.isConnected);
   addEventListener("pointermove", move, { passive: false }); addEventListener("pointerup", up); addEventListener("pointercancel", up);
 }

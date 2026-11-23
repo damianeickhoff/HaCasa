@@ -4,7 +4,7 @@
 
 **The HaCasa reboot.** A room-first Home Assistant panel, built on the [Homio](https://github.com/iamtherufus/Homio) design by [iamtherufus](https://github.com/iamtherufus).
 
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
+[![Marketplace](https://img.shields.io/badge/Marketplace-custom%20repository-41BDF5?style=flat-square)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=damianeickhoff&repository=HaCasa&category=plugin)
 [![Release](https://img.shields.io/github/v/release/damianeickhoff/HaCasa?style=flat-square&label=release)](https://github.com/damianeickhoff/HaCasa/releases)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/github/license/damianeickhoff/HaCasa?style=flat-square)](https://github.com/damianeickhoff/HaCasa/blob/main/LICENSE)
@@ -75,20 +75,33 @@ The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus
 
 You need Home Assistant **2024.4 or newer**. HaCasa Nova can run as its own sidebar panel (recommended) or as a card inside a dashboard.
 
-### 1. Download with HACS
+### 1. Download from the Marketplace
 
-1. Open **HACS** in Home Assistant.
+On Home Assistant **2026.11 or newer**, click the button and confirm adding the repository:
+
+[![Open your Home Assistant instance and add HaCasa Nova to the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=damianeickhoff&repository=HaCasa&category=plugin)
+
+Then choose **Download** and reload your browser when Home Assistant asks.
+
+Adding a repository that isn't in the Marketplace catalogue needs the Marketplace to be connected to GitHub; it asks you to connect when it isn't yet. Without the button: **Settings → Marketplace → ⋮ → Custom repositories → Add from link**, paste `https://github.com/damianeickhoff/HaCasa` and pick type **Dashboard**, then open **HaCasa Nova** and choose **Download**.
+
+<details>
+<summary>Older Home Assistant (HACS)</summary>
+
+1. Open **HACS**.
 2. Open the menu (⋮, top right) and choose **Custom repositories**.
 3. Add `https://github.com/damianeickhoff/HaCasa` with type **Dashboard**.
 4. Search for **HaCasa Nova**, open it and choose **Download**.
 5. Reload your browser when HACS asks.
 
+</details>
+
 <details>
-<summary>Manual download (without HACS)</summary>
+<summary>Manual download</summary>
 
 1. Download `hacasa-nova.js` from the [latest release](https://github.com/damianeickhoff/HaCasa/releases/latest).
 2. Copy it to `/config/www/hacasa-nova/hacasa-nova.js`.
-3. Use `/local/hacasa-nova/hacasa-nova.js` wherever the steps below say `/hacsfiles/HaCasa/hacasa-nova.js`.
+3. Use `/local/hacasa-nova/hacasa-nova.js` wherever the steps below say `/local/community/HaCasa/hacasa-nova.js`.
 
 </details>
 
@@ -99,14 +112,14 @@ Add this to `configuration.yaml` and restart Home Assistant:
 ```yaml
 frontend:
   extra_module_url:
-    - /hacsfiles/HaCasa/hacasa-nova.js   # loads the HaCasa logo icon for the sidebar
+    - /local/community/HaCasa/hacasa-nova.js   # loads the HaCasa logo icon for the sidebar
 
 panel_custom:
   - name: hacasa-nova
     url_path: hacasa
     sidebar_title: HaCasa
     sidebar_icon: hacasa:logo
-    module_url: /hacsfiles/HaCasa/hacasa-nova.js
+    module_url: /local/community/HaCasa/hacasa-nova.js
 ```
 
 **HaCasa** now appears in the sidebar with the HaCasa logo. Open it and the setup wizard starts.
@@ -117,7 +130,7 @@ The icon works everywhere Home Assistant takes an icon, so `hacasa:logo` can als
 
 ### 2b. Or use it as a dashboard card (no YAML)
 
-HACS registers the file as a dashboard resource for you. Then:
+The Marketplace (or HACS) registers the file as a dashboard resource for you. Then:
 
 1. **Settings → Dashboards → Add dashboard → New dashboard from scratch**, then open it.
 2. Edit the dashboard, change the view type to **Panel (single card)**.
@@ -167,7 +180,7 @@ npm install
 npm run watch            # rebuilds dev/build/hacasa-nova.js on every change
 npx http-server .. -p 8097 -c-1
 # open http://localhost:8097/<this folder>/dev/index.html
-npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one
+npm run deploy:dev       # a dev panel in your own Home Assistant, next to the installed one
 ```
 
 `dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/card.html?fresh` shows the card wrapper with the first-run wizard. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. See the [development guide](https://damianeickhoff.github.io/HaCasa/development/) for more.

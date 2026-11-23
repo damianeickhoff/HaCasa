@@ -10,6 +10,7 @@ import { defaultsGrid } from "./defaults.js";
 import { dragRows } from "./drag.js";
 import { iconInput } from "./iconpicker.js";
 import { solarSettings } from "./cards2.js";
+import { timerScriptId, installTimerScript } from "./plugtimer.js";
 
 export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
 
@@ -28,6 +29,18 @@ export async function loadUserConfig(hass) {
 }
 export const saveUserConfig = (hass, value) => hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value });
 
+/** what `value` sets on top of `base`, at the depths mergeConfig merges: mergeConfig(base, diffConfig(value, base))
+ *  gives the same config as mergeConfig(base, value). Saving only this keeps the card's YAML config and later
+ *  default changes in effect for everything the user did not change (#198, item 4) */
+export function diffConfig(value, base = {}) {
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const sub = (v, b, nested) => { const o = {}; for (const [k, x] of Object.entries(v)) {
+    if (x === undefined) continue;
+    if (nested?.[k] && x && typeof x === "object" && !Array.isArray(x) && b?.[k] && typeof b[k] === "object") { const d = sub(x, b[k], nested[k] === true ? null : nested[k]); if (Object.keys(d).length) o[k] = d; }
+    else if (!same(x, b?.[k])) o[k] = x; }
+    return o; };
+  return sub(value || {}, base || {}, { home: { energy: true }, cards: true, pages: true });
+}
 /** deep-ish merge: home + home.energy, cards and pages are merged per key, everything else is replaced */
 export function mergeConfig(...layers) {
   const out = {};
@@ -44,12 +57,31 @@ export const text = (v, on, ph = "") => html`<input type="text" .value=${v ?? ""
 const number = (v, on) => html`<input type="number" .value=${v ?? ""} @change=${e => on(e.target.value === "" ? null : +e.target.value)}>`;
 export const check = (v, on) => html`<input type="checkbox" .checked=${!!v} @change=${e => on(e.target.checked)}>`;
 const sortByName = list => list.sort((a, b) => (a.attributes.friendly_name || a.entity_id).localeCompare(b.attributes.friendly_name || b.entity_id, locale()));
+/** entities of one or more domains, sorted by name; built once per hass.states object (and language) instead of a
+ *  filter + sort over every entity for each select on every render (#198, P3). Callers get a copy-free shared array */
+const _byDomain = new WeakMap();
+export const ofDomains = (hass, doms) => {
+  let c = _byDomain.get(hass.states);
+  if (!c || c.loc !== locale()) {
+    const by = new Map();
+    for (const s of Object.values(hass.states)) { const d = domain(s.entity_id); if (!by.has(d)) by.set(d, []); by.get(d).push(s); }
+    c = { loc: locale(), by, lists: new Map() }; _byDomain.set(hass.states, c);
+  }
+  const key = Array.isArray(doms) ? doms.join() : doms;
+  let list = c.lists.get(key);
+  if (!list) { list = sortByName(String(key).split(",").flatMap(d => c.by.get(d) || [])); c.lists.set(key, list); }
+  return list;
+};
+/** the draft and the config are replaced on every change, never edited in place, so each is serialised once for the
+ *  "not saved" check instead of twice per render */
+const _stripped = new WeakMap();
+const stripped = o => { if (!o || typeof o !== "object") return JSON.stringify(o); let v = _stripped.get(o); if (v === undefined) { v = JSON.stringify(o, (k, x) => x === undefined ? undefined : x); _stripped.set(o, v); } return v; };
 export const select = (hass, dom, v, on, { empty = t("automatisch"), filter = null } = {}) => {
-  const opts = sortByName(Object.values(hass.states).filter(s => domain(s.entity_id) === dom && (!filter || filter(s))));
+  const all = ofDomains(hass, dom), opts = filter ? all.filter(filter) : all;
   return html`<select @change=${e => on(e.target.value || null)}><option value="">${empty}</option>${opts.map(s => html`<option value=${s.entity_id} ?selected=${s.entity_id === v}>${s.attributes.friendly_name || s.entity_id}</option>`)}</select>`;
 };
 export const selectDoms = (hass, doms, v, on, empty = t("kies")) => {
-  const opts = sortByName(Object.values(hass.states).filter(s => doms.includes(domain(s.entity_id))));
+  const opts = ofDomains(hass, doms);
   return html`<select @change=${e => on(e.target.value || null)}><option value="">${empty}</option>${opts.map(s => html`<option value=${s.entity_id} ?selected=${s.entity_id === v}>${s.attributes.friendly_name || s.entity_id}</option>`)}</select>`;
 };
 /** pill choice; `def` is what applies when nothing is chosen and picking it stores nothing (marked "std") */
@@ -68,7 +100,7 @@ export const condFields = (draft, upd, mode, setMode, row, hint, listId = "hcn-e
 const chips = (states, cur, allIds, setList, extra = () => nothing) => html`<div class="chips">${states.map(s => { const all = !cur; const on = all || cur.includes(s.entity_id);
   return html`<button class=${on ? "on" : ""} title=${s.entity_id} @click=${() => { const c = cur || allIds; setList(on ? c.filter(x => x !== s.entity_id) : [...c, s.entity_id]); }}>${s.attributes.friendly_name || s.entity_id}${extra(s)}</button>`; })}</div>`;
 
-export const TABS = [
+export const TABS = () => [
   { id: "algemeen", label: t("Algemeen"), sub: t("titel, foto's, slaapstand"), icon: "mdi:tune" },
   { id: "paginas", label: t("Pagina's"), sub: t("kaarten, volgorde, titels"), icon: "mdi:view-dashboard-edit-outline" },
   { id: "standaard", label: t("Kaartstandaarden"), sub: t("tikken, vasthouden, onderaan per soort kaart"), icon: "mdi:card-bulleted-settings-outline" },
@@ -85,11 +117,12 @@ export const TABS = [
 ];
 
 export function renderSettings(p) {
-  const hass = p.hass, d = p.draft, tab = TABS.some(x => x.id === p.stab) ? p.stab : "algemeen";
+  const hass = p.hass, d = p.draft, tab = TABS().some(x => x.id === p.stab) ? p.stab : "algemeen";
   const set = (k, v) => { p.draft = { ...d, [k]: v }; };
   const setHome = (k, v) => set("home", { ...(d.home || {}), [k]: v });
   const setEnergy = (k, v) => setHome("energy", { ...(d.home?.energy || {}), [k]: v });
   const setBell = (k, v) => setHome("doorbell", { ...(d.home?.doorbell || {}), [k]: v });
+  const setNp = (k, v) => setHome("nowPlaying", { ...(d.home?.nowPlaying || {}), [k]: v });
 
   // rooms: ordered list of selected areas + the rest
   const areas = Object.values(hass.areas || {}).map(a => ({ id: a.area_id, name: a.name, slug: roomSlug(a.name, a.area_id) }));
@@ -102,12 +135,11 @@ export function renderSettings(p) {
   const modes = d.modes || [], setMode = (i, k, v) => set("modes", modes.map((x, j) => j === i ? { ...x, [k]: v } : x));
   const more = d.more || [], setMore = (i, k, v) => set("more", more.map((x, j) => j === i ? { ...x, [k]: v } : x));
   const quick = d.home?.quick || [], setQuick = (i, k, v) => setHome("quick", quick.map((x, j) => j === i ? { ...x, [k]: v } : x));
-  const scenes = sortByName(Object.values(hass.states).filter(s => domain(s.entity_id) === "scene")), chosen = d.home?.scenes || null;
-  const calendars = sortByName(Object.values(hass.states).filter(s => domain(s.entity_id) === "calendar"));
+  const scenes = ofDomains(hass, "scene"), chosen = d.home?.scenes || null;
+  const calendars = ofDomains(hass, "calendar");
   const motion = p.rooms.flatMap(r => r.ents.motion.map(e => ({ ...e.state, entity_id: e.id, room: r })));
 
-  const strip = o => JSON.stringify(o, (k, v) => v === undefined ? undefined : v);
-  const dirty = strip(d) !== strip(p.config);
+  const dirty = stripped(d) !== stripped(p.config);
   const sec = (title, meta, body) => html`<section class="pcard"><h2>${title}${meta ? html`<small>${meta}</small>` : nothing}</h2>${body}</section>`;
   const pageName = key => key === "home" ? t("Startpagina") : (p.rooms.find(r => r.id === key)?.name || key);
   const cardSummary = c => [c.name && t("naam: {n}", { n: c.name }), c.icon && t("icoon: {n}", { n: c.icon }), c.tap === "popup" && t("tikken opent details"), c.confirm && t("Eerst bevestigen").toLowerCase(), c.measureOnly && t("Alleen meten").toLowerCase(), c.hidden && t("verborgen"), c.showOn === "phone" && t("alleen op telefoon"), c.showOn === "desktop" && t("alleen op tablet en computer"), c.noColor && t("kleur uit"), c.noArt && t("albumhoes uit"), c.noMode && t("modusknoppen uit"), c.noPreset && t("thuis/weg uit"), c.live && t("live beeld"), c.noAppliance && t("apparaatfuncties uit"), c.threshold != null && t("drempel {n} W", { n: c.threshold })].filter(Boolean).join(" · ");
@@ -119,6 +151,7 @@ export function renderSettings(p) {
         <div class="f"><span>${t("Importeren")}<small>${t("een export of een oude config.json; wordt samengevoegd met wat er al staat")}</small></span><input type="file" accept="application/json,.json" @change=${e => { if (e.target.files[0]) p.importSettings(e.target.files[0]); e.target.value = ""; }}></div>`)}
       ${sec(t("Weergave"), "", html`
         ${field(t("Taal"), html`<select @change=${e => set("language", e.target.value || undefined)}><option value="" ?selected=${!d.language}>${t("automatisch (taal van Home Assistant)")}</option>${Object.entries(LANGUAGES).map(([k, l]) => html`<option value=${k} ?selected=${d.language === k}>${l}</option>`)}</select>`, t("direct zichtbaar na opslaan"))}
+        ${field(t("Lettertype"), html`<select @change=${e => set("font", e.target.value || undefined)}><option value="" ?selected=${!d.font}>${t("Hanken Grotesk (meegeleverd)")}</option><option value="system" ?selected=${d.font === "system"}>${t("systeemlettertype")}</option></select>`, t("Hanken Grotesk zit in HaCasa Nova zelf, er wordt niets van internet geladen"))}
         ${field(t("Tijdnotatie"), html`<select @change=${e => set("timeFormat", e.target.value || undefined)}><option value="" ?selected=${!d.timeFormat}>${t("automatisch (zoals Home Assistant)")}</option><option value="12" ?selected=${d.timeFormat === "12"}>${t("12-uurs (2:30 PM)")}</option><option value="24" ?selected=${d.timeFormat === "24"}>${t("24-uurs (14:30)")}</option></select>`, t("automatisch volgt de tijdnotatie in je Home Assistant-profiel"))}
         ${field(t("Titel"), text(d.title, v => set("title", v), t("Thuis") + "."), t("linksboven in de navigatie"))}
         ${field(t("Navigatie"), html`<select @change=${e => set("navMode", e.target.value || undefined)}><option value="" ?selected=${d.navMode !== "floors"}>${t("per kamer")}</option><option value="floors" ?selected=${d.navMode === "floors"}>${t("per verdieping, kamers in een uitklapmenu")}</option></select>`, Object.keys(p.hass.floors || {}).length ? t("verdiepingen komen uit Home Assistant (Instellingen › Ruimtes)") : t("nog geen verdiepingen in Home Assistant: maak ze aan bij Instellingen › Ruimtes"))}
@@ -134,9 +167,13 @@ export function renderSettings(p) {
         ${field(t("Batterij-grens"), number(d.home?.lowBattery ?? 20, v => setHome("lowBattery", v)), t("onder dit percentage in Aandacht"))}
         ${field(t("Controleren op updates"), check(!d.noUpdateCheck, v => set("noUpdateCheck", v ? undefined : true)), t("melding op de startpagina als er een nieuwe HaCasa Nova is (alleen voor beheerders)"))}
         ${field(t("Lichtscènes"), check(!d.noPresets, v => set("noPresets", v ? undefined : true)), t("kaart in elke kamer met lampen: sla lampstanden op en roep ze terug"))}
+        ${p.hass.user?.is_admin ? field(t("Plug-timers"), p.hass.states[timerScriptId]
+          ? html`<span class="ok">${t("lopen in Home Assistant")}</span>`
+          : html`<button @click=${async () => { try { await installTimerScript(p); p.showToast(t("Script toegevoegd: plug-timers lopen nu in Home Assistant"), 4000, "ok"); } catch (e) { p.showToast(e?.body?.message || e?.message || t("Opslaan mislukt")); } }}>${t("Laat ze in Home Assistant lopen")}</button>`,
+          t("zonder dit loopt een timer in de browser en stopt hij als je het paneel sluit. Plugs met een eigen countdown gebruiken die altijd")) : nothing}
         <div class="f"><span>${t("Slaapstand na")}<small>${t("minuten zonder aanraking; 0 = uit")}</small></span><div class="row" style="grid-template-columns:1fr max-content;margin:0">${number(d.idleMinutes ?? 0, v => set("idleMinutes", v))}<button @click=${() => p.showIdle()}>${t("Nu tonen")}</button></div></div>
         <div class="f"><span>${t("Installatiehulp")}<small>${t("opnieuw doorlopen; wijzigt alleen wat je invult")}</small></span><button @click=${() => p.openPopup({ type: "wizard", step: 0 })}>${t("Opnieuw starten")}</button></div>
-        ${p.hashMode ? nothing : html`<div class="f"><span>${t("Startpagina van HA")}<small>${t("Home Assistant opent dan met dit panel (per gebruiker)")}</small></span><button class=${p.isDefault ? "on" : ""} @click=${() => p.setDefault(!p.isDefault)}>${p.isDefault ? t("HaCasa Nova is de startpagina") : t("Maak HaCasa Nova de startpagina")}</button></div>`}`)}`,
+        ${p.hashMode ? nothing : html`<div class="f"><span>${t("Startpagina van HA")}<small>${t("Home Assistant opent dan met dit panel (per gebruiker)")}</small></span>${p.isSystemDefault ? html`<button class="on" disabled>${t("Startpagina voor iedereen (ingesteld door een beheerder)")}</button>` : html`<button class=${p.isDefault ? "on" : ""} @click=${() => p.setDefault(!p.isDefault)}>${p.isDefault ? t("HaCasa Nova is de startpagina") : t("Maak HaCasa Nova de startpagina")}</button>`}</div>`}`)}`,
 
     paginas: sec(t("Pagina's"), t("per pagina: titel, foto, kaarten (tonen, verbergen, volgorde) en de meldingenregel"), html`
       <ul class="rooms">${["home", ...p.rooms.map(r => r.id)].map(key => { const pc = d.pages?.[key] || {}; const n = (pc.hidden || []).length, o = (pc.order || []).length, tk = Object.values(pc.ticker || {}).filter(v => v === false).length;
@@ -157,6 +194,11 @@ export function renderSettings(p) {
       ${sec(t("Kop"), "", html`
         ${field(t("Temperatuur"), select(hass, "sensor", d.home?.temperature, v => setHome("temperature", v), { empty: t("gemiddelde van de kamers"), filter: s => s.attributes.device_class === "temperature" }))}
         ${field(t("Luchtvochtigheid"), select(hass, "sensor", d.home?.humidity, v => setHome("humidity", v), { empty: t("gemiddelde van de kamers"), filter: s => s.attributes.device_class === "humidity" }))}`)}
+      ${sec(t("Zwevende mediaspeler"), t("op telefoons een nu-speelt-balk boven de navigatie; tik erop voor de bediening"), html`
+        ${field(t("Tonen"), check(!!d.home?.nowPlaying?.on, v => setNp("on", v || undefined)))}
+        ${field(t("Speler"), select(hass, "media_player", d.home?.nowPlaying?.player, v => setNp("player", v || undefined), { empty: t("de speler die nu speelt") }))}
+        ${field(t("Laatste nummer laten staan"), check(!!d.home?.nowPlaying?.keep, v => setNp("keep", v || undefined)), t("anders verdwijnt de balk als er niets speelt"))}
+`)}
       ${sec(t("Kaarten"), t("welke entiteiten de vaste kaarten gebruiken"), html`
         ${field(t("Thermostaat"), select(hass, "climate", d.home?.climate, v => setHome("climate", v)))}
         ${field(t("Alarm"), select(hass, "alarm_control_panel", d.home?.alarm, v => setHome("alarm", v)))}
@@ -168,7 +210,7 @@ export function renderSettings(p) {
     standaard: sec(t("Kaartstandaarden"), t("tik op een kaart om de standaard voor die soort in te stellen; per kaart aan te passen via ⋯ in de popup"), defaultsGrid(p, d)),
     acties: sec(t("Snelle acties"), t("knoppen onder de begroeting op de startpagina"), html`
       ${quick.map((q, i) => html`<div class="row quick">${text(q.label, v => setQuick(i, "label", v), "label")}${iconInput(p, q.icon, v => setQuick(i, "icon", v), "mdi:flash-outline")}
-        <select @change=${e => setQuick(i, "type", e.target.value)}>${Object.entries(QUICK_TYPES).map(([k, l]) => html`<option value=${k} ?selected=${(q.type || "scene") === k}>${t(l)}</option>`)}</select>
+        <select @change=${e => setQuick(i, "type", e.target.value)}>${Object.entries(QUICK_TYPES()).map(([k, l]) => html`<option value=${k} ?selected=${(q.type || "scene") === k}>${l}</option>`)}</select>
         ${q.type === "lights_off" || q.type === "media_off" ? html`<span></span>` : selectDoms(hass, q.type === "script" ? ["script"] : q.type === "entity" ? QUICK_DOMAINS : ["scene"], q.entity, v => setQuick(i, "entity", v))}
         <label title=${t("Eerst bevestigen")}>${check(q.confirm, v => setQuick(i, "confirm", v || undefined))}${t("bevestig")}</label><button @click=${() => setHome("quick", quick.filter((_, j) => j !== i))}>×</button></div>`)}
       ${!quick.length ? html`<div class="hint">${t("Nog geen acties. Bijvoorbeeld: Welterusten (script), Alles uit (alle lampen uit, met bevestiging) of Film (scène).")}</div>` : nothing}
@@ -224,7 +266,7 @@ export function renderSettings(p) {
         <button @click=${() => { if (!dirty || confirm(t("Wijzigingen niet opgeslagen. Toch sluiten?"))) p.go(null); }}>${t("Sluiten")}</button>
       </div></header>
     <div class="sbody">
-      <nav class="tabs">${TABS.map(tb => html`<button class=${tb.id === tab ? "on" : ""} @click=${() => { p.stab = tb.id; }}><ha-icon icon=${tb.icon}></ha-icon><span>${t(tb.label)}<small>${t(tb.sub)}</small></span></button>`)}</nav>
+      <nav class="tabs">${TABS().map(tb => html`<button class=${tb.id === tab ? "on" : ""} @click=${() => { p.stab = tb.id; }}><ha-icon icon=${tb.icon}></ha-icon><span>${tb.label}<small>${tb.sub}</small></span></button>`)}</nav>
       <div class="scontent">${content[tab]}</div>
     </div>
   </section>`;

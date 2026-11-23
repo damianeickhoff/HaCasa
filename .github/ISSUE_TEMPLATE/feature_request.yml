@@ -1,0 +1,29 @@
+name: Feature request
+description: An idea for HaCasa Nova
+labels: [enhancement]
+body:
+  - type: checkboxes
+    attributes:
+      label: Before you start
+      options:
+        - label: I searched the [open issues](https://github.com/damianeickhoff/HaCasa/issues) and [Ideas](https://github.com/damianeickhoff/HaCasa/discussions/categories/ideas) and this isn't one of them
+          required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like
+      description: A sketch or a screenshot of something similar helps.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What does it make easier at home?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: HaCasa Nova version
+      placeholder: 3.2.0-beta.4

@@ -2,6 +2,7 @@
 import { t, locale, timeOpts } from "./i18n.js";
 import { html, nothing } from "lit";
 import { num, relTime, isOn, unavailable } from "./util.js";
+import { washDataState } from "./integrations/washdata.js";
 
 /* ---------- agenda (calendar.get_events with response) ---------- */
 export async function fetchEvents(hass, calendars, days = 2, from = null) {
@@ -69,6 +70,7 @@ function opState(hass, a) {
   const pct = a.progress ? num(hass.states[a.progress.id]?.state) : null;
   const fin = a.finish && !unavailable(hass.states[a.finish.id]) ? new Date(hass.states[a.finish.id].state) : null, end = fin && !isNaN(fin) && fin > Date.now() ? fin : null;
   const base = { power, progress: pct, end };
+  if (a.wd) return washDataState(hass, a, os, op, base);
   if (sw?.state === "off" || op === "inactive" || op === "off") return { ...base, st: "off", label: t("Uit") };
   switch (op) {
     case "run": return { ...base, st: "running", label: pct != null ? t("Bezig · {n}%", { n: Math.round(pct) }) : t("Bezig…") };

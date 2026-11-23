@@ -1,0 +1,81 @@
+name: Bug report
+description: Something in HaCasa Nova does not work as expected
+labels: [bug]
+body:
+  - type: checkboxes
+    attributes:
+      label: Before you start
+      options:
+        - label: I searched the [open issues](https://github.com/damianeickhoff/HaCasa/issues) and this isn't one of them
+          required: true
+        - label: I reloaded the browser (or cleared the app cache) after updating
+          required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: A screenshot helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce
+      placeholder: |
+        1. Open the kitchen
+        2. Tap the ceiling light
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: HaCasa Nova version
+      description: More → HaCasa settings, top of the page
+      placeholder: 3.2.0-beta.4
+    validations:
+      required: true
+  - type: input
+    id: ha
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.11.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installed with
+      options:
+        - Marketplace
+        - HACS
+        - Manual download
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Used as
+      options:
+        - Sidebar panel (panel_custom)
+        - Dashboard card
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Browser / device
+      placeholder: Chrome on Windows, Companion app on an iPad, Fully Kiosk on a wall tablet …
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console
+      description: F12 → Console, copy the red lines. On a phone or wall tablet, open the panel on a computer if you can.
+      render: text

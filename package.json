@@ -1,6 +1,6 @@
 {
   "name": "hacasa-nova",
-  "version": "3.2.0-beta.4",
+  "version": "3.2.0-beta.5",
   "private": true,
   "type": "module",
   "description": "HaCasa Nova: the HaCasa reboot, a room-first Home Assistant panel built on the Homio design.",
@@ -19,6 +19,7 @@
     "lit": "^3.2.1"
   },
   "devDependencies": {
+    "@fontsource-variable/hanken-grotesk": "^5.3.0",
     "@mdi/svg": "^7.4.47",
     "esbuild": "^0.28.1"
   }

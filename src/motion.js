@@ -56,11 +56,18 @@ export function afterRender(p) {
     if (c._on === false && on && !c.classList.contains("dragghost")) { c.classList.add("pop"); clearTimeout(c._popT); c._popT = setTimeout(() => c.classList.remove("pop"), 600); }
     c._on = on;
   }
-  for (const seg of p.renderRoot.querySelectorAll(".seg.pseg")) {
+  // read every selected button's box first, then write: interleaving offset reads with style writes forced a new layout
+  // per segmented control on every render (#198, P1); unchanged boxes are not written at all
+  const segs = [...p.renderRoot.querySelectorAll(".seg.pseg")].map(seg => {
     let hl = seg.querySelector(":scope > i.hl");
     if (!hl) { hl = document.createElement("i"); hl.className = "hl"; seg.prepend(hl); }
-    const on = seg.querySelector(":scope > button.on");
-    if (on) { hl.style.left = on.offsetLeft + "px"; hl.style.top = on.offsetTop + "px"; hl.style.width = on.offsetWidth + "px"; hl.style.height = on.offsetHeight + "px"; hl.style.opacity = "1"; } else hl.style.opacity = "0";
+    return { hl, on: seg.querySelector(":scope > button.on") };
+  });
+  for (const x of segs) x.box = x.on ? `${x.on.offsetLeft}|${x.on.offsetTop}|${x.on.offsetWidth}|${x.on.offsetHeight}` : null;
+  for (const { hl, box } of segs) {
+    if (hl._box === box) continue;
+    hl._box = box;
+    if (box) { const [l, tp, w, h] = box.split("|"); hl.style.left = l + "px"; hl.style.top = tp + "px"; hl.style.width = w + "px"; hl.style.height = h + "px"; hl.style.opacity = "1"; } else hl.style.opacity = "0";
   }
 }
 

@@ -1,5 +1,34 @@
 # Changelog
 
+## 3.2.0-beta.5 (beta)
+
+Most of this came from justin3636 and olliemaller, who went through the open issues and the rest of the audit in #198. Thanks both!
+
+- **Home Assistant 2026.11 Marketplace (#251).** The install steps now use the Marketplace that replaced HACS, with a My Home Assistant button. The HACS steps stay for older versions.
+- **Dashboard card with kiosk-mode fills the screen (#222, #223)**, no black bar at the bottom any more.
+- **Dashboard card on a phone scrolls again (#240).**
+- **Weather in °F, inches and inHg (#239).** "Feels like" said 126° at 74°F, rain was labelled mm and pressure lost its decimals.
+- **Card settings only offer what the card does (#242).** Tap and hold now work on media, thermostat and appliance cards, sensor cards get tap, hold, action buttons and templates, and fans show their action buttons.
+- **Card settings preview (#244, #241):** templates show before you save, cards from another page get a preview, and on a phone the preview stays in view while you scroll.
+- **Card defaults have a Sensors tile (#243).**
+- **The ticker title on a phone** is only shortened when the line is really full.
+- **Saving settings stores only what you changed (#198).** The YAML config of a dashboard card applies again after you saved once, and new defaults in later versions reach you.
+- **A calmer, cooler panel (#198):** it no longer redraws everything every 4 seconds for the ticker, rebuilds its room list only when something changes, thins out long power histories, and builds entity lists once instead of on every keystroke.
+- **Start page button** knows when an admin made HaCasa the start page for everyone (#151).
+- A failed action no longer logs an extra error in the console, and a failed shopping-list item comes back in the input.
+- **Floating media player on phones (#168, #238).** A "now playing" bar above the bottom bar with the cover, title, play/pause, next and a volume button (it swaps the title for a volume slider). Tap it for a sheet with a seek bar, shuffle, previous, next, mute and the volume; swipe it down to hide it until the next track. With *Keep the last track* it stays with the last title and cover after the music stops, also after a reload, and play starts it again. Settings → Home page → *Floating media player* (off until you switch it on). Thanks justin3636!
+- **Edit a status pill right where it is.** Hold a pill (admins), or tap it while you edit the page, and its settings open, without going through the page settings. The **+** after the last pill adds a new one.
+- **Template texts show in the card settings preview while you type**, not only after you leave the field.
+- **Search results are frosted glass again**: the page behind them is blurred instead of showing straight through.
+- **The thermostat slider's knob sits inside the bar**, with a little room above it, instead of sticking out of it.
+- **Plug timers keep running when you close the panel (#150, #237).** A plug with its own countdown (many Tuya and Zigbee plugs) uses that. Otherwise an admin can add one script under Settings → General → *Plug timers*, and the timer runs in Home Assistant. Thanks justin3636!
+- **HaCasa brings its own font (#145, #235).** Hanken Grotesk is built in, so nothing is loaded from Google any more, and it works offline. Settings → General → *Font* can switch to the system font.
+- **The dashboard card fits sections and masonry views (#148, #233).** In a sections view it fills its grid cell (resizable), in a masonry view it gets a fixed height and a hint to switch to a panel view, and the dashboard editor explains where the settings are.
+- **A status pill can stand for a group (#207)**, thanks to coasting24. Set its tap to *List*, pick domains, states, an area, a label or exact entities, and the pill shows the count ("2 open") and hides itself when nothing matches. A tap lists the matches, with an optional button for all of them, like *Close all*.
+- **US streaming apps on the media card (#211)**, thanks to justin3636: Hulu, YouTube TV, Paramount+, Peacock, Tubi, Pluto TV, ESPN and Sling TV show their name and colour instead of a package name like "Livingroomplus".
+- **A room called "Energie" or "Cameras" opens again (#147).** The built-in pages moved to their own address (`/hacasa/-/energy`, `/-/settings` …), so a room can have any name. Old links keep working.
+- **WashData appliances (#192)**, thanks to coasting24. A washer, dryer or dishwasher that [WashData](https://github.com/3dg1luk43/ha_washdata) learns from a smart plug now gets an appliance card: the learned program, progress (also as a thin bar along the bottom), when it's done and *Maintenance due*. Its popup has the phase, the expected use of this run, the due maintenance and WashData's own Pause, Resume, Unloaded and End cycle buttons.
+
 ## 3.2.0-beta.4 (beta)
 
 - **Pick a source right from the media card (#200)**, thanks to MWCrum for the idea. Players with sources that can't be switched off, like Sonos, get a source button next to the transport buttons, and their popup shows the sources (also while music plays) without a power button that did nothing. The card settings (⋯) have *Source button*: automatic, on or off.

@@ -9,7 +9,19 @@ Both use the same settings, so you can switch later.
 
 ## 1. Download
 
-=== "HACS (recommended)"
+=== "Marketplace (recommended)"
+
+    Home Assistant 2026.11 and newer have the Marketplace built in. Click the button and confirm adding the repository:
+
+    [![Open your Home Assistant instance and add HaCasa Nova to the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=damianeickhoff&repository=HaCasa&category=plugin)
+
+    Then choose **Download** and reload the browser when Home Assistant asks.
+
+    Adding a repository that isn't in the Marketplace catalogue needs the Marketplace to be connected to GitHub; it asks you to connect when it isn't yet. Without the button: **Settings → Marketplace → ⋮ → Custom repositories → Add from link**, paste `https://github.com/damianeickhoff/HaCasa` and pick type **Dashboard**, then open **HaCasa Nova** and choose **Download**.
+
+    The Marketplace installs the file at `/config/www/community/HaCasa/hacasa-nova.js`, which Home Assistant serves as `/local/community/HaCasa/hacasa-nova.js`, and adds it as a dashboard resource.
+
+=== "HACS (older Home Assistant)"
 
     1. Open **HACS** in Home Assistant.
     2. Open the menu (⋮, top right) and choose **Custom repositories**.
@@ -17,13 +29,13 @@ Both use the same settings, so you can switch later.
     4. Search for **HaCasa Nova**, open it and choose **Download**.
     5. Reload the browser when HACS asks.
 
-    HACS installs the file at `/config/www/community/HaCasa/hacasa-nova.js`, which Home Assistant serves as `/hacsfiles/HaCasa/hacasa-nova.js`. HACS also adds it as a dashboard resource.
+    HACS installs the file in the same place, `/local/community/HaCasa/hacasa-nova.js`, and adds it as a dashboard resource.
 
 === "Manual"
 
     1. Download `hacasa-nova.js` from the [latest release](https://github.com/damianeickhoff/HaCasa/releases/latest).
     2. Copy it to `/config/www/hacasa-nova/hacasa-nova.js`.
-    3. Its URL is `/local/hacasa-nova/hacasa-nova.js`. Use that instead of the `/hacsfiles/…` URL below.
+    3. Its URL is `/local/hacasa-nova/hacasa-nova.js`. Use that instead of `/local/community/HaCasa/hacasa-nova.js` below.
     4. For the card variant, add it as a resource yourself: **Settings → Dashboards → ⋮ → Resources → Add resource**, type *JavaScript module*.
 
 ## 2a. Sidebar panel
@@ -33,14 +45,14 @@ Add this to `configuration.yaml` and restart Home Assistant:
 ```yaml
 frontend:
   extra_module_url:
-    - /hacsfiles/HaCasa/hacasa-nova.js   # loads the HaCasa logo icon for the sidebar
+    - /local/community/HaCasa/hacasa-nova.js   # loads the HaCasa logo icon for the sidebar
 
 panel_custom:
   - name: hacasa-nova
     url_path: hacasa
     sidebar_title: HaCasa
     sidebar_icon: hacasa:logo
-    module_url: /hacsfiles/HaCasa/hacasa-nova.js
+    module_url: /local/community/HaCasa/hacasa-nova.js
 ```
 
 | key | value |
@@ -50,6 +62,9 @@ panel_custom:
 | `sidebar_title` | whatever you like |
 | `sidebar_icon` | `hacasa:logo` for the HaCasa logo, or any `mdi:` icon |
 | `require_admin` | optional, `true` hides it from non-admin users |
+
+!!! note "Upgrading from HACS"
+    Older guides used `/hacsfiles/HaCasa/hacasa-nova.js`. That path keeps working after the Marketplace takes over from HACS, but Home Assistant raises a repair asking you to switch YAML resources to `/local/community/…`, so change it when you next edit `configuration.yaml`.
 
 !!! note "The logo icon and `extra_module_url`"
     `hacasa:logo` is an icon that HaCasa Nova registers itself. `extra_module_url` loads the file when Home Assistant starts, so the icon is there before you open the panel. Already have a `frontend:` section (for themes, for example)? Add `extra_module_url` to it rather than adding a second `frontend:`. Without it the panel works fine; use an `mdi:` icon for `sidebar_icon` then.
@@ -94,4 +109,4 @@ When a new version is out, administrators see a line in the notification row on 
 Your settings are stored in Home Assistant, not in the file, so updates never touch them.
 
 !!! note
-    The notice comes from the update entity HACS creates (`update.hacasa_nova_update`). Installed without HACS? Then the panel asks GitHub for the latest release, at most twice a day. Turn the notice off under **More → HaCasa settings → General → Check for updates**.
+    The notice comes from the update entity the Marketplace (or HACS) creates for HaCasa Nova. Installed by hand? Then the panel asks GitHub for the latest release, at most twice a day. Turn the notice off under **More → HaCasa settings → General → Check for updates**.

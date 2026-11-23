@@ -15,7 +15,7 @@ npm install
 npm run watch            # rebuilds dev/build/hacasa-nova.js on every change (or npm run dev, once)
 npx http-server .. -p 8097 -c-1
 # open http://localhost:8097/<this folder>/dev/index.html
-npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one
+npm run deploy:dev       # a dev panel in your own Home Assistant, next to the installed one
 ```
 
 `dev/index.html` runs the panel against a mock home; add `?lang=nl` for Dutch. More in the [development guide](https://damianeickhoff.github.io/HaCasa/development/).
