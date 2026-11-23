@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.0-beta.5 (beta)
 
 Most of this came from justin3636 and olliemaller, who went through the open issues and the rest of the audit in #198. Thanks both!
 

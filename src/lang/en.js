@@ -303,7 +303,7 @@ export default {
   "Niets gepland in deze periode": "Nothing planned in this period",
   "Afspraak": "Event",
   "Zwevende mediaspeler": "Floating media player", "op telefoons een nu-speelt-balk boven de navigatie; tik erop voor de bediening": "on phones a now-playing bar above the navigation; tap it for the controls",
-  "Tonen": "Show", "Speler": "Player", "de speler die nu speelt": "the player that is playing",
+  "Speler": "Player", "de speler die nu speelt": "the player that is playing",
   "Laatste nummer laten staan": "Keep the last track", "anders verdwijnt de balk als er niets speelt": "otherwise the bar goes away when nothing plays",
   "Mediaspeler openen": "Open media player", "Willekeurig": "Shuffle", "Dempen": "Mute", "Geluid aan": "Unmute",
   "over {t}": "in {t}",
