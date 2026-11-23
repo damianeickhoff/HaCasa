@@ -10,7 +10,7 @@ Open **More → HaCasa settings**. Changes are a draft until you press **Save**;
 | **Pages** | per page: title, photo, which cards and in which order (drag or arrows), notification lines, your own lines and the status pills (hide, edit, reorder, add your own, show on a condition) |
 | **Card defaults** | a preview per card type (lights, switches, plugs, sensors …); tap it to set tap, hold, the bottom line and what the card shows, with a live preview |
 | **Rooms** | which areas are rooms and their order in the navigation |
-| **Home page** | temperature and humidity sensors for the header, weather, climate, alarm and the scenes of the scenes card |
+| **Home page** | temperature and humidity sensors for the header, weather, climate, alarm and the scenes of the scenes card; the **floating media player**: on phones a "now playing" bar above the bottom bar that opens into a sheet with seek, shuffle, transport, mute and volume, for one player or whichever is playing (off until you switch it on) |
 | **Quick actions** | the buttons under the greeting: scene, script, toggle, all lights off, media off, with optional confirmation |
 | **Motion & doorbell** | which motion sensors drive the motion bar; doorbell triggers and the camera that pops up |
 | **Calendar & waste** | calendars for the agenda card and notification line; waste sensors and their labels |

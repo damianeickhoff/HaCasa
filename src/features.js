@@ -5,7 +5,7 @@ import { SUFFIX, VERSION, domain, isOn, unavailable } from "./util.js";
 import { pressDir, anyIco } from "./cards.js";
 
 /* ---------- quick actions (home view) ---------- */
-export const QUICK_TYPES = { scene: t("Scène"), script: t("Script"), entity: t("Schakelen"), lights_off: t("Alle lampen uit"), media_off: t("Media uit") };
+export const QUICK_TYPES = () => ({ scene: t("Scène"), script: t("Script"), entity: t("Schakelen"), lights_off: t("Alle lampen uit"), media_off: t("Media uit") });
 const QUICK_ICON = { scene: "mdi:palette-outline", script: "mdi:script-text-outline", entity: "mdi:toggle-switch-outline", lights_off: "mdi:lightbulb-off-outline", media_off: "mdi:stop-circle-outline" };
 export const QUICK_DOMAINS = ["light", "switch", "input_boolean", "fan", "media_player", "cover", "lock", "automation"];
 
@@ -139,6 +139,10 @@ export const featureStyles = `
   .popup .plist li.ped{display:block;margin-top:-4px;padding:6px 12px 14px;background:rgba(255,255,255,.09);border-color:var(--line-on);border-top:0;border-top-left-radius:0;border-top-right-radius:0;font-size:13px}
   .popup .plist li.ped .f{grid-template-columns:130px 1fr}
   .popup .plist li.ped .sh{margin-bottom:2px}
+  .popup .plist li.ped .pick{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .popup .plist li.ped .pick .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .popup .plist li.ped .pick .chips button,.popup .plist li.ped .f>.chips button{height:30px;padding:0 11px;font-size:12px;text-transform:none;letter-spacing:.2px}
+  .popup .plist li.ped .f>.chips{display:flex;flex-wrap:wrap;gap:6px}
   .popup .pillpv{margin-top:8px;padding:12px 14px;border-radius:var(--r-sm);background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)}
   .popup .pillpv .pills{margin:0}
   .popup .pillpv .pills button{cursor:default}

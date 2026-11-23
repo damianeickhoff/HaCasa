@@ -9,6 +9,7 @@ import { searchStyles } from "./search.js";
 import { extra3Styles } from "./extras3.js";
 import { graphStyles } from "./graph.js";
 import { motionStyles } from "./motion.js";
+import { nowPlayingStyles } from "./nowplaying.js";
 import { calendarStyles } from "./calendar.js";
 import { cards2Styles } from "./cards2.js";
 import { popup2Styles } from "./popups2.js";
@@ -78,6 +79,10 @@ export const styles = css`
   .links a.search img.ico{width:16px;height:16px}
   .links.srch{padding:0;overflow:visible;width:min(560px,calc(100% - 560px));display:block}
   .links.srch .searchbar{position:static;transform:none;width:100%;animation:none}
+  /* the results hang under the pill as its children: a blurred element inside a blurred one only blurs its parent, so the
+     pill draws its blur on a layer behind it instead, and the results blur the page themselves */
+  .links.srch{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .links.srch::before{content:"";position:absolute;inset:0;border-radius:inherit;backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3);z-index:-1;pointer-events:none}
   /* floor navigation: one pill per floor, rooms in a dropdown (hover on desktop, tap on touch) */
   /* the pill glass sits on ::before so the dropdown (a child) is not inside a backdrop-filter and can blur on its own; z-index lifts it over the search bar */
   .links.floors{overflow:visible;position:absolute;z-index:7;background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border:0;box-shadow:none}
@@ -137,6 +142,11 @@ export const styles = css`
   .pills button span{white-space:nowrap}
   .pills button:active{background:rgba(255,255,255,.3)}
   .pills button img.ico,.pills button ha-icon{width:17px;height:17px;--mdc-icon-size:17px}
+  .pills.editable button{border-style:dashed}
+  .pills button.padd{width:36px;padding:0;justify-content:center;border:1px dashed rgba(255,255,255,.32);background:rgba(255,255,255,.04);color:rgba(255,255,255,.75)}
+  .pills button.padd:hover{background:rgba(255,255,255,.12);color:#fff}
+  .pills button.padd ha-icon{width:18px;height:18px;--mdc-icon-size:18px}
+  .pills button ha-icon.pedit{width:14px;height:14px;--mdc-icon-size:14px;opacity:.7;margin-left:-2px}
   .title .pills + .quick{margin-top:10px}
   .ticker div{position:absolute;left:0;top:0;height:24px;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(100%);transition:opacity .45s var(--ease),transform .45s var(--ease);white-space:nowrap}
   .ticker div.show{opacity:1;transform:none}
@@ -262,10 +272,11 @@ export const styles = css`
   .card.climate .ctl.row>button ha-icon{--mdc-icon-size:calc(16 * var(--u))}
   /* the rail: + at the top, − at the bottom, drag the filled part to set the temperature */
   .card.climate .c{right:calc(var(--rw) + var(--cp) + 12px)}
-  .card.climate .rail{position:absolute;top:var(--cp);bottom:var(--cp);right:var(--cp);width:var(--rw);border-radius:999px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);touch-action:none;user-select:none;overflow:hidden}
-  .card.climate .rail i{position:absolute;left:3px;right:3px;bottom:3px;height:calc(var(--v) * 1%);border-radius:999px;background:rgba(255,255,255,.22);pointer-events:none;transition:height .15s}
+  .card.climate .rail{position:absolute;top:var(--cp);bottom:var(--cp);right:var(--cp);width:var(--rw);border-radius:999px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);touch-action:none;user-select:none;overflow:hidden;--kh:calc(var(--rw) - 12px)}
+  /* the white knob sits inside the top of the grey fill, not on its edge: the fill reaches from the bottom to just past the knob */
+  .card.climate .rail i{position:absolute;left:3px;right:3px;bottom:3px;height:calc(var(--kh) + 6px + (100% - var(--kh) - 12px) * var(--v) / 100);border-radius:999px;background:rgba(255,255,255,.22);pointer-events:none;transition:height .15s}
   .card.climate .rail b::after{content:attr(data-v)}
-  .card.climate .rail b{position:absolute;left:3px;right:3px;height:calc(var(--rw) - 6px);bottom:calc(var(--v) * 1% - (var(--rw) - 6px) / 2);border-radius:50%;background:#fff;color:#1d1d1f;display:grid;place-items:center;font-size:calc(11 * var(--u));font-weight:800;letter-spacing:-.3px;pointer-events:none;transition:bottom .15s}
+  .card.climate .rail b{position:absolute;left:5px;right:5px;height:var(--kh);bottom:calc(5px + (100% - var(--kh) - 12px) * var(--v) / 100);border-radius:50%;background:#fff;color:#1d1d1f;display:grid;place-items:center;font-size:calc(11 * var(--u));font-weight:800;letter-spacing:-.3px;pointer-events:none;transition:bottom .15s}
   .card.climate .rail em{position:absolute;left:0;right:0;height:26px;display:grid;place-items:center;font-style:normal;font-size:15px;font-weight:700;color:var(--fg-2);cursor:pointer}
   .card.climate .rail em.up{top:2px} .card.climate .rail em.dn{bottom:2px}
   .card.climate:not(.on) .rail i{background:rgba(255,255,255,.12)}
@@ -293,6 +304,10 @@ export const styles = css`
   .card.media .ctl button{flex:1;height:42px;background:rgba(255,255,255,.12);border:1px solid var(--line)}
   .card.media .ctl button.main{flex:1.6;background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
   /* media card without artwork: the running app in its brand colour */
+  /* appliance: maintenance due (WashData) in the bottom line, the program's progress as a thin bar along the bottom edge */
+  .card .lbl b.mt{font-weight:inherit;color:#ffb8a6}
+  .card .apbar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.14)}
+  .card .apbar i{display:block;height:100%;background:rgba(255,255,255,.85);transition:width .6s var(--ease)}
   .card.appart{background:linear-gradient(135deg,color-mix(in srgb,var(--app,#8a8f96) 70%,#1c1c1c) 0%,color-mix(in srgb,var(--app,#8a8f96) 30%,#1c1c1c) 100%)}
   .card.appart .appi{position:absolute;left:calc(var(--card-w) * .17);top:50%;transform:translate(-50%,-50%);--mdc-icon-size:44px;opacity:.95}
   /* light colour tint */
@@ -496,7 +511,7 @@ export const styles = css`
   .popup .coll.open ha-icon.chev{transform:rotate(180deg)}
   .popup .foot{position:sticky;bottom:0;margin:4px -30px 0;padding:14px 30px 20px;border-top:1px solid var(--line);background:rgba(44,46,50,.6);backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border-radius:0 0 10px 10px}
   .popup .foot .modes{margin:0}
-  @media (max-width:900px){ .popup h2 .rm{display:none} .popup .fwrap{grid-template-columns:1fr;gap:18px} .popup .pv{position:static} .popup .pvc .card{width:100%} .popup .foot{margin:4px -24px 0;padding:12px 24px 18px} .popup .act .ed{grid-template-columns:1fr} }
+  @media (max-width:900px){ .popup h2 .rm{display:none} .popup .fwrap{grid-template-columns:1fr;gap:18px} .popup .pv{top:-26px;z-index:2;margin:0 -24px;padding:12px 24px;background:rgba(40,42,46,.94);backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border-bottom:1px solid var(--line)} .popup .pv .tip,.popup .pv .prow{display:none} .popup .pvc .card{width:min(100%, calc((100vw - 46px) / 2))} .popup .foot{margin:4px -24px 0;padding:12px 24px 18px} .popup .act .ed{grid-template-columns:1fr} }
   .popup .form .chk3{display:flex;gap:14px;font-weight:600}
   .popup .form .chk3 label{display:inline-flex;align-items:center;gap:6px}
   .popup .form .f.acts{grid-template-columns:140px 1fr}
@@ -702,7 +717,7 @@ export const styles = css`
 
   /* ===== tablet portrait & phone ===== */
   @media (max-width:900px){
-    :host(.in-card){position:relative;height:100%}
+    :host(.in-card){position:relative;height:100%;display:flex !important}   /* the card wrapper sets hacasa-nova{display:block}, which beats :host; without flex the strip never gets a bounded height and cannot scroll */
     :host{--pad:20px;--u:1px;--card-h:132px;position:fixed;inset:0;height:auto;max-height:none;overflow:hidden;overscroll-behavior:none;touch-action:none;display:flex;flex-direction:column}
     .strip,.page,.settings,.popup,.nav.open .links{touch-action:pan-y}
     .links .rl{display:contents}   /* phone menu: the rooms are a plain list again */
@@ -768,11 +783,11 @@ export const styles = css`
     .title .temp{font-size:11px;letter-spacing:1.4px;gap:6px}
     .title h1{font-size:clamp(40px,11vw,64px);letter-spacing:-2px}
     .title .sub{font-size:15px}
-    .ticker{height:40px;font-size:11px;letter-spacing:1.3px;max-width:none;margin-top:14px}
+    .ticker{height:40px;font-size:11px;letter-spacing:1.3px;max-width:none;margin-top:14px;container-type:inline-size}
     .ticker div{align-items:center;line-height:1.4;white-space:normal}
     .ticker div span{min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .ticker .tk{height:auto}
-    .ticker .tt{flex:none;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ticker .tt{flex:none;max-width:45cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .wx{display:none;text-align:left;align-items:center;gap:14px;padding:0;margin-top:16px}
     .wx.wxm{display:flex}
     .card.hassub{padding-right:var(--cp)}
@@ -876,7 +891,7 @@ export const styles = css`
     .empty{position:static;padding:0 var(--pad) 40px}
     .page,.settings{position:static;flex:1;min-height:0;overflow:auto;padding-top:calc(88px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));padding-bottom:calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))}
   }
-  @media (min-width:600px) and (max-width:900px){ .strip{grid-template-columns:1fr 1fr 1fr} }
+  @media (min-width:600px) and (max-width:900px){ .strip{grid-template-columns:1fr 1fr 1fr} .popup .pvc .card{width:min(100%, calc((100vw - 52px) / 3))} }
   ${unsafeCSS(pageStyles)}
   ${unsafeCSS(extraStyles)}
   ${unsafeCSS(extra2Styles)}
@@ -885,6 +900,7 @@ export const styles = css`
   ${unsafeCSS(featureStyles)}
   ${unsafeCSS(searchStyles)}
   ${unsafeCSS(extra3Styles)}
+  ${unsafeCSS(nowPlayingStyles)}
   ${unsafeCSS(graphStyles)}
   ${unsafeCSS(calendarStyles)}
   ${unsafeCSS(cards2Styles)}

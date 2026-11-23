@@ -5,13 +5,15 @@ import { directive, Directive, PartType } from "lit/directive.js";
 import { classMap } from "lit/directives/class-map.js";
 import { icon, isOn, unavailable, num, relTime, shortDate, sinceText, domain } from "./util.js";
 import { name, deviceName } from "./model.js";
+import { washDataQuiet } from "./integrations/washdata.js";
 import { applianceState, applianceEnd, eventWhen, eventDay, eventTime, nextEvent } from "./extras2.js";
 import { spark } from "./extras3.js";
 import { tw } from "./motion.js";
-import { sky, feelsLike } from "./sky.js";
+import { sky, feelsLike, precipUnit, precipText } from "./sky.js";
 import { graphCard, stepGraph } from "./graph.js";
 import { peopleCard, securityCard, todoCard, todoEntity, evCard, evReady, timersCard, timerList, solarCard, solarReady, gardenCard, gardenReady } from "./cards2.js";
 import "./camsnap.js";
+import { timerLeft } from "./plugtimer.js";
 
 const HOLD_MS = 500;
 
@@ -131,7 +133,10 @@ export function customActions(p, id, target) {
   return html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>${acts.slice(0, 3).map(a => html`<button @click=${run(a)}>${a.icon ? anyIco(a.icon) : nothing}${a.label}</button>`)}</div>`;
 }
 /** text override for a field ("state" = corner, "label" = subtitle, "foot" = bottom line) when the card has a template for it */
-export const ovr = (p, id, field) => { const v = p.templates?.["card:" + id]?.[field]; return v == null || v === "" ? null : String(v); };
+export const ovr = (p, id, field) => {
+  const pv = p._preview?.id === id ? p._preview.tpl : null;   // the card form's preview: the draft's templates, rendered once (popups.js previewTemplates)
+  const v = pv && field in pv ? pv[field] : p.templates?.["card:" + id]?.[field]; return v == null || v === "" ? null : String(v);
+};
 export const hasActs = (p, id) => (cardCfg(p, id).actions || []).some(a => a && a.label && a.service);
 
 export const label = (p, e) => cardCfg(p, e.id).name || name(p.hass, e);
@@ -245,11 +250,15 @@ export function switchCard(p, e) {
 /* streaming apps: name, brand colour and icon for the card when the player gives no artwork.
    Android TV reports package ids (com.netflix.ninja), Cast/Apple TV report names (Netflix). */
 const APPS = [
-  [/netflix/i, "Netflix", "#e50914", "mdi:netflix"], [/youtube/i, "YouTube", "#ff0000", "mdi:youtube"], [/plex/i, "Plex", "#e5a00d", "mdi:plex"],
+  [/netflix/i, "Netflix", "#e50914", "mdi:netflix"], [/tvunplugged|^youtube ?tv$/i, "YouTube TV", "#ff0000", "mdi:youtube-tv"],   // before YouTube: com.google.android.youtube.tvunplugged
+  [/youtube/i, "YouTube", "#ff0000", "mdi:youtube"], [/plex/i, "Plex", "#e5a00d", "mdi:plex"],
   [/spotify/i, "Spotify", "#1db954", "mdi:spotify"], [/disney/i, "Disney+", "#113ccf", "mdi:movie-star-outline"], [/amazonvideo|prime ?video|com\.amazon\.avod/i, "Prime Video", "#00a8e1", "mdi:filmstrip"],
   [/videoland/i, "Videoland", "#e3001b", "mdi:filmstrip"], [/npo/i, "NPO Start", "#ff6d00", "mdi:television-classic"], [/hbo|com\.wbd\.stream|^max$/i, "Max", "#002be7", "mdi:filmstrip"],
   [/skyshowtime/i, "SkyShowtime", "#5d2ec6", "mdi:filmstrip"], [/kodi/i, "Kodi", "#17b2e7", "mdi:kodi"], [/twitch/i, "Twitch", "#9146ff", "mdi:twitch"],
   [/com\.apple\.tv|^tv$|apple ?tv/i, "Apple TV", "#555555", "mdi:apple"], [/ziggo/i, "Ziggo GO", "#f48c00", "mdi:television-classic"], [/kpn/i, "KPN TV", "#00c300", "mdi:television-classic"],
+  [/hulu/i, "Hulu", "#1ce783", "mdi:hulu"], [/paramount|com\.cbs\.ott/i, "Paramount+", "#0064ff", "mdi:image-filter-hdr"], [/peacock/i, "Peacock", "#000000", "mdi:alpha-p-circle"],
+  [/tubi/i, "Tubi", "#7408ff", "mdi:alpha-t-circle"], [/pluto/i, "Pluto TV", "#fff200", "mdi:alpha-p-box"], [/espn/i, "ESPN", "#cc0000", "mdi:alpha-e-circle"],
+  [/^sling( ?tv)?$|com\.sling/i, "Sling TV", "#0072ce", "mdi:alpha-s-circle"],
 ];
 const LAUNCHER = /launcher|leanback|com\.google\.android\.tvlauncher|^home$|^startscherm$/i;
 export function appInfo(raw) {
@@ -285,8 +294,8 @@ export function mediaCard(p, e) {
   const prog = on && dur ? Math.min(100, Math.max(0, ((pos ?? 0) + (a.media_position_updated_at ? (Date.now() - new Date(a.media_position_updated_at)) / 1000 : 0)) / dur * 100)) : v.paused && dur && pos != null ? pos / dur * 100 : null;
   const kind = a.media_content_type === "music" || a.media_artist ? "music" : "tv";
   const corner = un ? t("Onbereikbaar") : v.app && !off && v.title ? `${st} · ${v.app.name}` : st;
-  return html`<div class=${classMap({ card: true, media: true, actions: true, on, unavailable: un, art: !!art, appart: !!brand })} style=${art ? `background-image:url("${art}")` : brand?.color ? `--app:${brand.color}` : ""}
-      ${pressDir(p, { tap: () => p.openPopup({ type: "media", e }) })}>
+  return html`<div class=${classMap({ card: true, media: true, actions: true, on, unavailable: un, art: !!art, appart: !!brand, ...infoCls(cfg) })} style=${art ? `background-image:url("${art}")` : brand?.color ? `--app:${brand.color}` : ""}
+      ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "media", e })))}>
     ${un ? ua() : nothing}
     ${brand ? html`<ha-icon class="appi" icon=${brand.icon}></ha-icon>` : nothing}
     <div class="i">${icoFor(p, e.id, kind === "music" ? "mdi:music-note-outline" : "mdi:television-play", kind === "music" ? "music" : "tv")}</div>
@@ -351,8 +360,8 @@ export function climateCard(p, s, title = t("Verwarming")) {
   const action = s.attributes.hvac_action ? ({ heating: t("Verwarmt"), cooling: t("Koelt"), idle: t("Rust"), off: t("Uit"), drying: t("Droogt"), fan: t("Ventileert") }[s.attributes.hvac_action] || s.attributes.hvac_action) : on ? ({ heat: t("Verwarmen"), cool: t("Koelen"), auto: t("Auto"), heat_cool: t("Auto"), dry: t("Drogen"), fan_only: t("Ventileren") }[s.state] || s.state) : t("Uit");
   const lo = num(s.attributes.min_temp) ?? 7, hi = num(s.attributes.max_temp) ?? 35, v = target != null ? Math.max(0, Math.min(100, (target - lo) / (hi - lo) * 100)) : 0;
   const setTo = val => p.call("climate", "set_temperature", { entity_id: s.entity_id, temperature: +val.toFixed(1) });
-  return html`<div class=${classMap({ card: true, climate: true, on, unavailable: un, heating: s.attributes.hvac_action === "heating", cooling: s.attributes.hvac_action === "cooling" })}
-      ${pressDir(p, { tap: () => p.openPopup({ type: "climate", s }) })}>
+  return html`<div class=${classMap({ card: true, climate: true, on, unavailable: un, heating: s.attributes.hvac_action === "heating", cooling: s.attributes.hvac_action === "cooling", noname: !!cfg.hideName, nostate: !!cfg.hideState })}
+      ${pressDir(p, pressFor(p, s.entity_id, null, () => p.openPopup({ type: "climate", s })))}>
     ${un ? ua() : nothing}<i class="hglow"></i>
     <div class="i">${icoFor(p, s.entity_id, "mdi:radiator", "heating")}</div>
     <div class="c">${un ? t("Onbereikbaar") : action}</div>
@@ -397,6 +406,7 @@ export function fanCard(p, e) {
     <div class="n">${label(p, e)}</div>
     <div class="s">${ovr(p, e.id, "label") ?? (un ? t("Onbereikbaar") : Cap(sinceText(s?.last_changed)))}</div>
     ${ovr(p, e.id, "foot") != null ? html`<div class="lbl"><span>${ovr(p, e.id, "foot")}</span></div>` : nothing}
+    ${customActions(p, e.id)}
     ${pct != null ? html`<div class="vslider" style="--v:${on ? pct : 0}%" @pointerdown=${ev => vsliderDrag(ev, v => v ? p.call("fan", "set_percentage", { entity_id: e.id, percentage: v }) : p.call("fan", "turn_off", { entity_id: e.id }))}><i></i></div>` : nothing}
   </div>`;
 }
@@ -446,7 +456,22 @@ export function humidifierCard(p, e) {
 /** appliance: a plug with a power sensor or a device with an operation-state sensor (auto-detected). tap = details, hold = details */
 export const APPLIANCE_ACTIVE = ["running", "waiting", "alert", "done"];
 /** energy (kWh, total_increasing) sensor on the same device as the plug, for today's use and hourly bars */
-export const energyOf = (p, dev) => dev ? Object.values(p.hass.entities || {}).map(e => p.hass.states[e.entity_id]).find(s => s && (p.hass.entities[s.entity_id]?.device_id === dev) && s.attributes.unit_of_measurement === "kWh" && s.attributes.state_class === "total_increasing") || null : null;
+/** device_id → its kWh meter, built once per hass.states object instead of scanning every entity per card per render */
+const _kwhByDevice = new WeakMap();
+export const energyOf = (p, dev) => {
+  if (!dev || !p.hass?.states) return null;
+  let m = _kwhByDevice.get(p.hass.states);
+  if (!m) {
+    m = new Map();
+    for (const e of Object.values(p.hass.entities || {})) {
+      const s = p.hass.states[e.entity_id];
+      if (e.device_id && !m.has(e.device_id) && s && s.attributes.unit_of_measurement === "kWh" && s.attributes.state_class === "total_increasing") m.set(e.device_id, e.entity_id);
+    }
+    _kwhByDevice.set(p.hass.states, m);
+  }
+  const id = m.get(dev);
+  return id ? p.hass.states[id] || null : null;   // always the current state, even if states was updated in place
+};
 const eur = v => "€ " + (Math.round(v * 100) / 100).toLocaleString(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 /** plug with a power meter: watts as the hero; bottom = sparkline (default) / timer chips / cost / hourly bars */
 function plugCard(p, a, st, title, cfg, acts) {
@@ -454,7 +479,7 @@ function plugCard(p, a, st, title, cfg, acts) {
   const en = energyOf(p, a.device), h = p.plugHist?.[a.id]; if (!h || Date.now() - h.at > 5 * 60000) p.loadPlug(a.id, a.power.id, en?.entity_id);
   const mode = cfg.bottom || "spark", price = num(p.config.home?.energy?.price);
   const since = sw?.state?.last_changed ? sinceText(sw.state.last_changed) : "";
-  const tmr = p.plugTimers?.[a.id], left = tmr ? Math.max(0, Math.round((tmr.at - Date.now()) / 60000)) : null, plain = !!a.plain;
+  const tmr = timerLeft(p, a), left = tmr ? tmr.left : null, plain = !!a.plain;
   let bottom = nothing;
   const locked = measureOnly(p, a.id, sw?.id);
   if (mode === "timer" && !locked) bottom = html`<div class="lbl chips" @click=${ev => ev.stopPropagation()}>${[15, 30, 60].map(m => html`<button class=${classMap({ on: tmr?.min === m })} @click=${() => p.setPlugTimer(a, m)}>${m}</button>`)}</div>`;
@@ -481,19 +506,25 @@ export function applianceCard(p, a) {
   const opS = a.op ? p.hass.states[a.op.id] : null, prog = a.program ? p.hass.states[a.program.id] : null;
   const line = a.op ? applianceEnd(st) || (opS ? sinceText(opS.last_changed) : "") : a.switch ? html`${isOn(a.switch.state) ? t("Stekker aan") : t("Stekker uit")}${dot()}${sinceText(a.switch.state?.last_changed)}` : "";
   const progName = prog && !unavailable(prog) ? String(p.hass.formatEntityState?.(prog) ?? prog.state).split(".").pop().split("_program_").pop().replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2") : "";   // Home Connect enums: Dishcare.Dishwasher.Program.Auto2 or dishcare_dishwasher_program_auto_2 -> Auto 2
-  const foot = [progName, st.progress != null ? `${Math.round(st.progress)}%` : "", st.power != null ? `${Math.round(st.power)} W` : "", a.door && p.hass.states[a.door.id]?.state === "open" ? t("Deur open") : ""].filter(Boolean);
+  const maint = a.maint && p.hass.states[a.maint.id]?.state === "on";   // WashData: descaling, filter … due
+  const bar = st.progress != null && ["running", "waiting"].includes(st.st) ? Math.max(0, Math.min(100, st.progress)) : null;   // the corner already says "50%" then
+  // WashData while off or idle: its program sensor says "off" (shown translated as "Aus"), progress 0 % and 0 W, all noise;
+  // the bottom line is short, so with maintenance due the watts give way
+  const { quiet, noProg } = a.wd ? washDataQuiet(a, st, prog) : {};
+  const foot = [noProg || /^(off|none|unknown)$/i.test(progName) ? "" : progName, maint ? html`<b class="mt">${t("Onderhoud nodig")}</b>` : "", st.progress != null && bar == null && !quiet ? `${Math.round(st.progress)}%` : "", st.power != null && !(a.wd && (quiet || maint)) ? `${Math.round(st.power)} W` : "", a.door && p.hass.states[a.door.id]?.state === "open" ? t("Deur open") : ""].filter(Boolean);
   const acts = [];
-  if (a.stop && !a.plain && ["running", "waiting"].includes(st.st)) acts.push({ icon: "mdi:stop", label: t("Stop"), run: () => p.call("button", "press", { entity_id: a.stop.id }) });
+  if (a.stop && !a.plain && !a.wd && ["running", "waiting"].includes(st.st)) acts.push({ icon: "mdi:stop", label: t("Stop"), run: () => p.call("button", "press", { entity_id: a.stop.id }) });
   const pw = a.switch && a.op && !unavailable(a.switch.state) ? guardSwitch(p, [a.id, a.switch.id], title, () => p.call("switch", "toggle", { entity_id: a.switch.id })) : null;
   if (pw) acts.push({ icon: "mdi:power", label: isOn(a.switch.state) ? t("Uit") : t("Aan"), on: isOn(a.switch.state), run: pw });
   if (!a.op && a.power) return plugCard(p, a, st, title, cfg, acts);
-  return html`<div class=${classMap({ card: true, appl: acts.length > 0, on: APPLIANCE_ACTIVE.includes(st.st), running: st.st === "running", unavailable: st.st === "unknown" })}
-      ${pressDir(p, { tap: () => p.openPopup({ type: "appliance", a }), hold: () => p.openPopup({ type: "appliance", a }) })}>
+  return html`<div class=${classMap({ card: true, appl: acts.length > 0, on: APPLIANCE_ACTIVE.includes(st.st), running: st.st === "running", unavailable: st.st === "unknown", ...infoCls(cfg) })}
+      ${pressDir(p, pressFor(p, a.id, cfg.tap === "toggle" ? pw : null, () => p.openPopup({ type: "appliance", a })))}>
     ${st.st === "unknown" ? ua() : nothing}
-    <div class="i">${uico(cfg.icon, applianceIcon(title))}</div>
-    <div class="c">${st.label}</div>
-    <div class="n">${title}</div><div class="s">${line || st.label}</div>
-    ${foot.length ? html`<div class="lbl">${foot.map((x, i) => html`${i ? dot() : nothing}${x}`)}</div>` : nothing}
+    <div class="i">${uico(cfg.icon, a.wd && opS?.attributes?.icon || applianceIcon(title))}</div>
+    <div class="c">${ovr(p, a.id, "state") ?? st.label}</div>
+    <div class="n">${title}</div><div class="s">${ovr(p, a.id, "label") ?? (line || st.label)}</div>
+    ${ovr(p, a.id, "foot") != null ? html`<div class="lbl"><span>${ovr(p, a.id, "foot")}</span></div>` : foot.length ? html`<div class="lbl">${foot.map((x, i) => html`${i ? dot() : nothing}${x}`)}</div>` : nothing}
+    ${bar != null ? html`<div class="apbar"><i style="width:${bar.toFixed(1)}%"></i></div>` : nothing}
     ${acts.length ? html`<div class="ctl row" @click=${ev => ev.stopPropagation()}>${acts.map(x => html`<button class=${classMap({ on: !!x.on })} @click=${x.run}><ha-icon icon=${x.icon}></ha-icon>${x.label}</button>`)}</div>` : nothing}
   </div>`;
 }
@@ -739,7 +770,7 @@ export function weatherCard(p, w) {
   const a = w.attributes, { today, tomorrow } = wxDays(p), feels = feelsLike(a), temp = Math.round(num(a.temperature) ?? 0);
   const hi = num(today?.temperature), lo = num(today?.templow), mm = num(today?.precipitation), pc = num(today?.precipitation_probability), snow = snowy(w.state) || snowy(today?.condition);
   const expect = wxExpect(p) || (a.wind_speed != null ? `${t("wind")} ${Math.round(a.wind_speed)} ${a.wind_speed_unit || t("km/u")}` : "");
-  const rainBit = mm != null ? html`<span class=${classMap({ mm: true, dry: !mm })}>${snow ? FLAKE : DROP}${mm.toLocaleString(locale(), { maximumFractionDigits: 1 })} mm</span>`
+  const rainBit = mm != null ? html`<span class=${classMap({ mm: true, dry: !mm })}>${snow ? FLAKE : DROP}${precipText(mm, precipUnit(a))}</span>`
     : pc != null ? html`<span class=${classMap({ mm: true, dry: pc < 20 })}>${snow ? FLAKE : DROP}${Math.round(pc)}%</span>` : nothing;
   return html`<div class="card wxsky" ${pressDir(p, { tap: () => p.openPopup({ type: "weather" }) })}>
     ${sky(p, w.state)}

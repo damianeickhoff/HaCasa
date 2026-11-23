@@ -98,7 +98,7 @@ export function todoCard(p, id) {
 }
 export function todoPopup(p, pop, wrap, li, modes) {
   const id = pop.id, s = p.hass.states[id], items = todoItems(p, id) || [], open = items.filter(x => x.status !== "completed"), done = items.filter(x => x.status === "completed");
-  const add = async ev => { const inp = ev.currentTarget.closest(".tadd").querySelector("input"), v = inp.value.trim(); if (!v) return; inp.value = ""; await p.call("todo", "add_item", { entity_id: id, item: v }); };
+  const add = async ev => { const inp = ev.currentTarget.closest(".tadd").querySelector("input"), v = inp.value.trim(); if (!v) return; inp.value = ""; try { await p.call("todo", "add_item", { entity_id: id, item: v }); } catch { if (!inp.value) inp.value = v; } };   // failed: the toast says why, and the text comes back to try again
   return wrap(t("Lijst"), cardCfg(p, id).name || s?.attributes.friendly_name || t("Boodschappen"), open.length ? tn(open.length, "{n} open", "{n} open") + (done.length ? ` · ${tn(done.length, "{n} afgerond", "{n} afgerond")}` : "") : t("Niets op de lijst"), html`
     <div class="tadd"><input type="text" placeholder=${t("Toevoegen…")} @keydown=${ev => { if (ev.key === "Enter") add(ev); }}><button @click=${add}><ha-icon icon="mdi:plus"></ha-icon></button></div>
     <ul>${open.map(x => li("mdi:checkbox-blank-outline", x.summary, "", { onclick: () => todoSet(p, id, x, true), sub: x.due ? t("voor {d}", { d: new Date(x.due).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" }) }) : "" }))}

@@ -1,6 +1,7 @@
 // HaCasa Nova: a Home Assistant custom panel (panel_custom) that builds a home view and one
 // page per area, straight from the area/device/entity registries.
 import { t, locale, setLang, setTimeFormat, pickLang, inText, timeOpts, hourLabel } from "./i18n.js";
+import { setPlugTimer } from "./plugtimer.js";
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
@@ -9,8 +10,9 @@ import { buildRooms, buildHome, name } from "./model.js";
 import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateInstance } from "./cards.js";
 import { editStrip, editBar, editTools, canEdit } from "./edit.js";
 import { renderPopup, moreItems } from "./popups.js";
-import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
-import { renderPage, PAGES, PAGE_ALIAS } from "./pages.js";
+import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig, diffConfig } from "./settings.js";
+import { renderPage, PAGES, PAGE_ALIAS, PAGE_URL, pageKey } from "./pages.js";
+import { nowPlaying } from "./nowplaying.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
 import { isHidden, pressDir, label, cardCfg, APPLIANCE_ACTIVE, applianceIcon, condHiddenBy, deviceHidden, anyIco, wxDays } from "./cards.js";
@@ -20,7 +22,7 @@ import { iconPicker } from "./iconpicker.js";
 import { quickRow, watchTriggers, presetCard, selfUpdate } from "./features.js";
 import { searchBar, openFor } from "./search.js";
 import { graphCard } from "./graph.js";
-import { fetchNumeric, batteryEta, modeList, toggleMode } from "./extras3.js";
+import { fetchNumeric, thin, batteryEta, modeList, toggleMode } from "./extras3.js";
 import { airCard } from "./cards2.js";
 import { deviceName } from "./model.js";
 import { VERSION, BASE, TAG, icon, slug, isOn, unavailable, isDown, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
@@ -35,14 +37,15 @@ const brandTitle = s => html`<span class="bt">${s}</span>`;
 
 const eventWhenShort = ev => ev.allDay ? t("hele dag") : ev.start.toLocaleTimeString(locale(), timeOpts());
 const BUILD = Math.floor(Date.now() / 3600000).toString(36);   // changes every hour: replaced photos show up after a reload
-const FONT = "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap";
+import FONT_FACES from "hcn:font";   // Hanken Grotesk, bundled (#145)
+const SYSTEM_FONT = "system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif";
 const DEFAULT_CONFIG = { rooms: "auto", roomImage: "/local/images/rooms/{slug}.jpg", homeImage: "/local/images/rooms/home.jpg", home: {}, more: [] };   // no room cap by default (#146); Settings → Kamers can set one
 
 class HacasaNova extends LitElement {
   static styles = styles;
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
-    config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, iconPick: { state: true }, tick: { state: true }, now: { state: true },
+    config: { state: true }, popup: { state: true }, drawer: { state: true }, edit: { state: true }, editKey: { state: true }, editOrder: { state: true }, editDrag: { state: true }, iconPick: { state: true }, now: { state: true },
     draft: { state: true }, saved: { state: true }, roomDrag: { state: true }, ghLatest: { state: true }, stab: { state: true }, attFilter: { state: true }, search: { state: true }, sysInfo: { state: true }, netHist: { state: true }, battEta: { state: true }, notifications: { state: true }, idle: { state: true }, toast: { state: true }, events: { state: true }, templates: { state: true }, navFloor: { state: true }, searchOpen: { state: true }, wx: { state: true }, stripScrolled: { state: true }, lightHist: { state: true }, climateHist: { state: true }, plugHist: { state: true }, plugTimers: { state: true }, sensFilter: { state: true }, sensGroup: { state: true }, pageFilter: { state: true }, pageGroup: { state: true }, energyHist: { state: true }, graphHist: { state: true }, todo: { state: true },
   };
 
@@ -50,14 +53,16 @@ class HacasaNova extends LitElement {
     super();
     this.config = structuredClone(DEFAULT_CONFIG); this.popup = null; this.search = ""; this.drawer = false; this.tick = 0; this.now = clock(); this.notifications = []; this.idle = false;
     this._drag = 0;
-    if (!document.querySelector(`link[href="${FONT}"]`)) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = FONT; document.head.appendChild(l); }
+    // @font-face only works in the document, not in a shadow root. The browser only decodes the font when text uses it,
+    // so with the system font chosen it costs nothing beyond the bundle size
+    if (!document.getElementById("hcn-font")) { const st = document.createElement("style"); st.id = "hcn-font"; st.textContent = FONT_FACES; document.head.appendChild(st); }
   }
 
   connectedCallback() {
     super.connectedCallback();
     this.loadConfig();
     this._clock = setInterval(() => { this.now = clock(); }, 15000);
-    this._ticker = setInterval(() => { this.tick++; }, 4000);
+    this._ticker = setInterval(() => this.nextTickerLine(), 4000);
     this._onKey = e => { if (e.key === "Escape") { if (this.iconPick) { this.iconPick = null; return; } if (this.popup?.menu) { this.popup = { ...this.popup, menu: false }; return; } if (!this.popup && this.edit) { this.stopEdit(); return; } this.popup = null; this.search = ""; this.searchOpen = false; } };
     addEventListener("keydown", this._onKey);
     // inside a Lovelace card the dashboard owns the URL path, so rooms are routed through the hash
@@ -162,8 +167,10 @@ class HacasaNova extends LitElement {
       } catch (e) { set(x.id, null, { err: e?.message || "error" }); }
     }
   }
-  get settingsPath() { return `${this.basePath()}/instellingen`; }
-  async saveSettings() { if (this.notLoaded()) return; try { await saveUserConfig(this.hass, this.draft); } catch (e) { console.warn("[hacasa-nova] save failed", e); this.showToast(t("Opslaan mislukt")); return; } this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); this.showToast(t("Instellingen opgeslagen"), 2500, "ok"); }
+  get settingsPath() { return this.pagePath("instellingen"); }
+  /** a built-in page's address: /<panel>/-/<english name> (#147) */
+  pagePath(key) { return `${this.basePath()}/-/${PAGE_URL[key] || key}`; }
+  async saveSettings() { if (this.notLoaded()) return; const u = diffConfig(this.draft, mergeConfig(DEFAULT_CONFIG, this.cardConfig)); try { await saveUserConfig(this.hass, u); } catch (e) { console.warn("[hacasa-nova] save failed", e); this.showToast(t("Opslaan mislukt")); return; } this.userConfig = u; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); this.showToast(t("Instellingen opgeslagen"), 2500, "ok"); }
   /** back to the defaults (a config.json next to the panel is imported again on the next load) */
   async resetSettings() { await saveUserConfig(this.hass, null); this.userConfig = null; this.applyConfig(); this.draft = mergeConfig(DEFAULT_CONFIG, this.cardConfig); }
 
@@ -173,26 +180,36 @@ class HacasaNova extends LitElement {
     setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
     if (this.settings || this.page) this.classList.remove("rows2");   // set per view by stripRows()
     { const sc = this.cardScale(); if (!sc) { this.style.removeProperty("--u"); this.style.removeProperty("--cz"); } else if (!this.classList.contains("rows2")) { this.style.setProperty("--u", sc.u1 + "px"); this.style.setProperty("--cz", sc.u1); } }   // card size for pages and popups too
+    if (this.config.font === "system") this.style.setProperty("--font", SYSTEM_FONT); else this.style.removeProperty("--font");   // Settings → General → Font
     if (setTimeFormat(this.hass.locale, this.config.timeFormat)) this.now = clock();   // a changed time format shows at once, not at the next tick
     const still = !!this.config.noMotion || matchMedia("(prefers-reduced-motion: reduce)").matches; this.classList.toggle("still", still); setMotion(!still);
     if (changed.has("popup")) { const was = changed.get("popup"); if (was && !this.popup) ghost(this, ".overlay", "pop-out", 200); else if (was?.menu && this.popup && !this.popup.menu && this.popup.type === was.type) ghost(this, ".pmenu", "menu-out", 170, (c, el) => { const r = el.getBoundingClientRect(); c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;right:auto;bottom:auto;width:${r.width}px`; }); }
     if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this.subscribeTemplates(); }
     if (!this._unsubNotif && this.isConnected) { const sub = subscribeNotifications(this.hass, list => { this.notifications = list; }); this._unsubNotif = () => Promise.resolve(sub).then(f => typeof f === "function" && f()).catch(() => {}); }
-    this.rooms = buildRooms(this.hass, this.config);
-    this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
+    // the room/home model only depends on hass, the config, the notifications and today's date (waste countdowns), so it
+    // is not rebuilt for the 4 s ticker, the clock, popups, typing in a form or any other panel-only update (#198, P1)
+    const day = new Date().toDateString();
+    if (!this.rooms || changed.has("hass") || changed.has("config") || changed.has("notifications") || day !== this._modelDay) {
+      this._modelDay = day;
+      this.rooms = buildRooms(this.hass, this.config);
+      this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
+    }
     watchTriggers(this);
     if (this.userConfig?.setupDone && !this.userConfig.kept30 && !this._keepRan && this.hass.areas && Object.keys(this.hass.states).length) { this._keepRan = true; this.migrateKeep(); }
     if (!this._wizardShown && this.userConfig !== undefined && !this.userConfig?.setupDone && !this.cardConfig) { this._wizardShown = true; this.popup = { type: "wizard", step: 0 }; }
     if (!this._hinted && this.userConfig !== undefined && this.userConfig?.setupDone && !this.userConfig?.hintSeen) { this._hinted = true; this.showToast(t("Tik op een kaart om te schakelen, houd vast voor details. Via ⋯ in de popup stel je dit per kaart in."), 9000, "info"); this.saveUser({ hintSeen: true }); }
     if (this.home.calendars.length && (!this._eventsAt || Date.now() - this._eventsAt > 10 * 60000)) this.loadEvents();
     if (this.home.weather && (!this._wxAt || Date.now() - this._wxAt > 30 * 60000 || this._wxId !== this.home.weather.entity_id)) this.loadWx();
-    const seg0 = (s => { try { return s && decodeURIComponent(s); } catch { return s; } })((this.route?.path || "/").split("/").filter(Boolean)[0]), seg = PAGE_ALIAS[seg0] || seg0;
-    this.settings = seg === "instellingen";
-    this.page = PAGES[seg] ? seg : null;
+    const segs = (this.route?.path || "/").split("/").filter(Boolean).map(s => { try { return decodeURIComponent(s); } catch { return s; } });
+    // /-/<page> is always a page; a bare /<name> is a room when one has that address, otherwise an old page address (#147)
+    const roomAt = s => s && this.rooms.find(r => r.slug === s || r.id === s);
+    const pg = segs[0] === "-" ? pageKey(segs[1]) : roomAt(segs[0]) ? null : pageKey(segs[0]);
+    this.settings = pg === "instellingen";
+    this.page = PAGES[pg] ? pg : null;
     // a draft made before the user settings arrived (settings opened by reload) is rebuilt once they do, so Save never writes defaults over them
     if (this.settings && (!this.draft || (this._draftEarly && this.userConfig !== undefined))) { this.draft = JSON.parse(JSON.stringify(this.config)); this._draftEarly = this.userConfig === undefined; }
     if (!this.settings) this.draft = null;
-    this.room = seg && !this.settings && !this.page ? this.rooms.find(r => r.slug === seg || r.id === seg) : null;
+    this.room = !pg && segs[0] !== "-" ? roomAt(segs[0]) || null : null;
     const bg = this.settings || this.page ? "" : this.bgUrl(this.room);   // Meer pages: plain background, no photo
     if (bg !== this._bg) { if (this._bg && this._bgCache?.get(this._bg) !== false) { this._prevBg = this._bg; clearTimeout(this._bgT); this._bgT = setTimeout(() => { this._prevBg = null; this.requestUpdate(); }, 500); } this._bg = bg; }
     if (this.popup?.type === "weather" && !this.popup.forecast && !this.popup.loading) this.loadForecast();
@@ -208,10 +225,16 @@ class HacasaNova extends LitElement {
   }
 
   /* ---------- actions ---------- */
-  /** service call with visible feedback: errors from HA (wrong alarm code, unavailable device, …) show as a toast */
-  async call(domain, service, data) {
-    try { return await this.hass.callService(domain, service, data); }
-    catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
+  /** service call with visible feedback: errors from HA (wrong alarm code, unavailable device, …) show as a toast.
+   *  The returned promise still rejects for callers that await it (the alarm keypad stays open on a wrong code), but it
+   *  is marked handled, so the many fire-and-forget calls from click handlers don't log an unhandled rejection on top of the toast */
+  call(domain, service, data) {
+    const run = (async () => {
+      try { return await this.hass.callService(domain, service, data); }
+      catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
+    })();
+    run.catch(() => {});
+    return run;
   }
   showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; this.toastOut = false; clearTimeout(this._toastT); clearTimeout(this._toastT2); this._toastT = setTimeout(() => { this.toastOut = true; this.requestUpdate(); this._toastT2 = setTimeout(() => { this.toast = null; }, 260); }, ms); }
   openPopup(pop) { this.popup = pop; }
@@ -223,10 +246,13 @@ class HacasaNova extends LitElement {
   goPath(path) {
     this.popup = null; this.drawer = false;
     const m = /^__(\w+)__$/.exec(path || "");
-    if (m) this.nav(`${this.basePath()}/${m[1] === "settings" ? "instellingen" : m[1]}`); else navigate(path);
+    if (m) this.nav(this.pagePath(m[1] === "settings" ? "instellingen" : m[1])); else navigate(path);
   }
-  /** make this panel the page HA opens first (per browser; HA stores it in localStorage) */
+  /** make this panel the page HA opens first for this user. HA stores it per user on the server (frontend user data
+   *  "core", like Profile → Dashboard does) and falls back to the admin's default for everyone (system data) (#151) */
   get isDefault() { return this.hass?.userData?.default_panel === this.basePath().slice(1); }
+  /** the start page for everyone, set by an admin, and this user has not picked one: only the admin can change that */
+  get isSystemDefault() { return !this.hass?.userData?.default_panel && this.hass?.systemData?.default_panel === this.basePath().slice(1); }
   async setDefault(on) {
     const value = { ...(this.hass.userData || {}), default_panel: on ? this.basePath().slice(1) : undefined };
     await this.hass.callWS({ type: "frontend/set_user_data", key: "core", value });
@@ -370,7 +396,7 @@ class HacasaNova extends LitElement {
   bgStyle(url, seed) { if (this.bgOk(url)) return `--bg:url("${url}")`; let h = 0; for (const ch of seed || "home") h = (h * 31 + ch.charCodeAt(0)) % 360; return `--hue:${h}`; }
   scrollStrip(x) { const s = this.renderRoot.querySelector(".strip"); if (s) s.scrollLeft = x; }
 
-  async loadNetHist(ids) { this._netKey = ids.join(); this._netAt = Date.now(); this.netHist = { ...(this.netHist || {}), ...(await fetchNumeric(this.hass, ids, 1)) }; }
+  async loadNetHist(ids) { this._netKey = ids.join(); this._netAt = Date.now(); const h = await fetchNumeric(this.hass, ids, 1); for (const id in h) h[id] = thin(h[id]); this.netHist = { ...(this.netHist || {}), ...h }; }
   async loadBatteryEta(ids) { this._battKey = ids.join(); this.battEta = await batteryEta(this.hass, ids); }
   /** motion events of the camera's room (and doorbell triggers) for the camera popup */
   async loadCamEvents(pop, ids) {
@@ -445,7 +471,7 @@ class HacasaNova extends LitElement {
     const solarId = this.config.home?.energy?.solarToday;
     const [use, sun, pw, sol] = await Promise.all([en.today ? hourlyToday(this.hass, en.today.entity_id) : null, en.returned ? hourlyToday(this.hass, en.returned.entity_id) : null, en.power ? fetchNumeric(this.hass, [en.power.entity_id], 24) : null, solarId ? hourlyToday(this.hass, solarId) : null]);
     const rows = pw?.[en.power?.entity_id] || [], peak = rows.length ? rows.reduce((a, b) => b.v > a.v ? b : a) : null;
-    if (en.power) this.netHist = { ...(this.netHist || {}), [en.power.entity_id]: rows.filter(r => r.t > Date.now() - 3 * 3600000) };
+    if (en.power) this.netHist = { ...(this.netHist || {}), [en.power.entity_id]: thin(rows.filter(r => r.t > Date.now() - 3 * 3600000)) };
     this.energyHist = { at: Date.now(), use: use || [], sun: sun || [], sol: sol || [], peak: peak ? { v: peak.v, t: new Date(peak.t) } : null };
   }
   /** plug with a meter: 3 h of power for the sparkline, today's kWh per hour from the recorder */
@@ -454,18 +480,13 @@ class HacasaNova extends LitElement {
     const [hist, rows] = await Promise.all([fetchNumeric(this.hass, [powerId], 3), energyId ? hourlyToday(this.hass, energyId) : null]);
     const sp = (hist[powerId] || []), peak = sp.length ? sp.reduce((a, b) => b.v > a.v ? b : a) : null;
     const today = rows ? rows.reduce((n, r) => n + (r.v || 0), 0) : null, maxH = rows ? Math.max(...rows.map(r => r.v || 0), 0.001) : 1;
-    this.plugHist = { ...(this.plugHist || {}), [id]: { at: Date.now(), spark: sp, peak: peak ? { v: Math.round(peak.v), t: peak.t } : null, rows, today, maxH } };
+    this.plugHist = { ...(this.plugHist || {}), [id]: { at: Date.now(), spark: thin(sp), peak: peak ? { v: Math.round(peak.v), t: peak.t } : null, rows, today, maxH } };
     this._plugBusy.delete(id);
   }
   /** off-timer on a plug (on-timer when it is off): runs while the panel is open */
-  setPlugTimer(a, min) {
-    const cur = this.plugTimers?.[a.id]; if (cur) clearTimeout(cur.h);
-    if (cur?.min === min) { const n = { ...this.plugTimers }; delete n[a.id]; this.plugTimers = n; return; }
-    const sw = a.switch; if (!sw) return;
-    const off = isOn(sw.state); if (!off) this.call("switch", "turn_on", { entity_id: sw.id });
-    const h = setTimeout(() => { this.call("switch", "turn_off", { entity_id: sw.id }); const n = { ...this.plugTimers }; delete n[a.id]; this.plugTimers = n; }, min * 60000);
-    this.plugTimers = { ...(this.plugTimers || {}), [a.id]: { min, at: Date.now() + min * 60000, off: true, h } };
-  }
+  /** plug timer: on the plug, in Home Assistant or in this browser; see plugtimer.js (#150) */
+  setPlugTimer(a, min) { return setPlugTimer(this, a, min).catch(() => {}); }
+
   /** 24-hour on/off history of a light for the "today" card bottom: minutes on per clock hour, total and switch count */
   async loadLightHist(id) {
     const cur = this.lightHist?.[id]; if (cur?.hits && Date.now() - cur.at < 10 * 60000) return; if (this._lhBusy?.has(id)) return;
@@ -551,6 +572,7 @@ class HacasaNova extends LitElement {
           ${this.searchOpen && !this.settings ? searchBar(this) : nothing}` : nothing}
       </nav>
       ${phone && (this.config.phoneNav !== "top" || this.edit) ? this.renderBottomNav(room, isPage) : nothing}
+      ${nowPlaying(this, phone)}
       ${keyed(this.settings ? "settings" : this.page || (room ? room.id : "home"), this.settings ? renderSettings(this) : this.page ? renderPage(this, this.page) : room ? this.renderRoom(room) : this.renderHome(h))}
       ${this.hass.connected === false ? html`<div class="offline"><ha-icon icon="mdi:lan-disconnect"></ha-icon>${t("Geen verbinding met Home Assistant")}</div>` : nothing}
       ${this.toast ? html`<div class=${classMap({ toast: true, info: this.toastCls === "info", ok: this.toastCls === "ok", out: !!this.toastOut })}>${this.toastCls === "ok" ? html`<ha-icon icon="mdi:check-circle-outline"></ha-icon>` : nothing}${this.toast}</div>` : nothing}
@@ -646,6 +668,15 @@ class HacasaNova extends LitElement {
         </div>`; })}${more}</div>`;
   }
 
+  /** the title ticker shows its next line by moving the "show" class, without re-rendering the whole panel every 4 s
+   *  (#198, P2). tick is a plain field: the next render picks the same line, so Lit leaves the classes as they are */
+  nextTickerLine() {
+    this.tick++;
+    for (const tk of this.renderRoot?.querySelectorAll(".ticker") || []) {
+      const rows = [...tk.children]; if (rows.length < 2) continue;
+      const i = this.tick % rows.length; rows.forEach((d, k) => d.classList.toggle("show", k === i));
+    }
+  }
   renderTitle(temp, title, sub, items, extra = nothing, pageKey = "home", aside = nothing, hum = null) {
     const i = items.length ? this.tick % items.length : 0;
     const date = new Date().toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
@@ -715,7 +746,7 @@ class HacasaNova extends LitElement {
     const e = r.ents, pc = this.pageCfg(r.id), added = new Set([...(pc.add || []), ...(pc.keep || [])]), ok = x => !isDown(x);
     const def = new Set([...e.lights.filter(ok), ...e.switches.filter(ok), ...e.motion.filter(ok)].map(x => x.id));
     for (const st of e.strips) if (st.switches.some(ok)) def.add(st.id);
-    for (const a of e.appliances) if (a.power && !a.op && !isDown(a.power)) def.add(a.id);
+    for (const a of e.appliances) if (a.power && (!a.op || a.wd) && !isDown(a.power)) def.add(a.id);   // a WashData device shows like the plug it watches
     return list.filter(x => def.has(x.key) || added.has(x.key) || (x.alias || []).some(k => added.has(k)) || x.key.startsWith("group:") || x.key.startsWith("graph:") || x.key.startsWith("tpl") || (x.key.includes(".") && e.all.some(y => y.id === x.key && y.added)));
   }
   roomAllCards(r) {

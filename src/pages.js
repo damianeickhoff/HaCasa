@@ -172,7 +172,9 @@ function sensors(p) {
   };
   const roomRows = (r, withRoom = false) => [...r.ents.temp.map(e => R.temp(e, r, withRoom)), ...r.ents.hum.map(e => R.hum(e, r, withRoom)), ...r.ents.doors.map(e => R.door(e, r, withRoom, "door")), ...r.ents.windows.map(e => R.door(e, r, withRoom, "window")), ...r.ents.motion.map(e => R.motion(e, r, withRoom)), ...[...r.ents.other, ...r.ents.details].map(e => R.other(e, r, withRoom)), ...r.ents.battery.filter(e => num(e.state?.state) != null).map(e => R.batt(e, r, num(e.state.state), withRoom))];
   const block = (title, rows, meta = "") => rows.length ? html`<div class="sblk"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3>${rows}</div>` : nothing;
-  const total = p.rooms.reduce((n, r) => n + roomRows(r).length, 0), lowB = batteries.filter(b => b.v <= low);
+  // each room's rows are built once per render, not once to count and twice more for the block (#198, P4)
+  const rowsOf = new Map(p.rooms.map(r => [r.id, roomRows(r)]));
+  const total = p.rooms.reduce((n, r) => n + rowsOf.get(r.id).length, 0), lowB = batteries.filter(b => b.v <= low);
   const attention = [
     ...(filter === "all" || filter === "update" ? updates.map(u => srow({ icon: u.kind === t("Firmware") ? "mdi:chip" : "mdi:update", svg: "update", name: u.title, sub: `${u.busy ? t("Bezig…") : `${u.from || "?"} → ${u.to || "?"}`}${u.canInstall ? " · " + t("tik = installeren") : ""}`, pill: t("Update"), on: true, tap: () => installUpdate(p, u) })) : []),
     ...(filter === "all" || filter === "battery" ? (filter === "battery" ? batteries : lowB).map(({ e, r, v }) => R.batt(e, r, v, true)) : []),
@@ -186,7 +188,7 @@ function sensors(p) {
     body: html`
       <div class="sblks">
         ${block(t("Aandacht"), attention, `${attention.length}`)}
-        ${filter === "all" ? (group === "room" ? p.rooms.map(r => block(r.name, roomRows(r), tn(roomRows(r).length, "{n} sensor", "{n} sensoren"))) : kinds.map(([title, f]) => block(title, p.rooms.flatMap(f)))) : nothing}
+        ${filter === "all" ? (group === "room" ? p.rooms.map(r => block(r.name, rowsOf.get(r.id), tn(rowsOf.get(r.id).length, "{n} sensor", "{n} sensoren"))) : kinds.map(([title, f]) => block(title, p.rooms.flatMap(f)))) : nothing}
       </div>` };
 }
 
@@ -277,6 +279,13 @@ function security(p) {
 }
 /** old name of the security page: links, bookmarks and phone shortcuts to it still work */
 export const PAGE_ALIAS = { cameras: "beveiliging" };
+/** built-in pages live under /<panel>/-/<name> (#147): a room's address is a slug, which never is "-", so a room called
+    "Cameras" or "Energie" can't collide with a page any more. The names in the address are English; the Dutch keys
+    (which the settings use) and the old addresses without "-" keep working, as long as no room has that name */
+export const PAGE_URL = { automatiseringen: "automations", sensoren: "sensors", energie: "energy", beveiliging: "security", systeem: "system", instellingen: "settings" };
+const FROM_URL = Object.fromEntries(Object.entries(PAGE_URL).map(([k, v]) => [v, k]));
+/** the page key for a name in an address: English, Dutch or an old alias; null when it is no page */
+export const pageKey = name => { const k = FROM_URL[name] || PAGE_ALIAS[name] || name; return PAGES[k] || k === "instellingen" ? k : null; };
 
 export const pageStyles = `
   .page{position:absolute;inset:calc(142px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 0 0 0;overflow:auto;padding:16px var(--pad) 60px;scrollbar-width:thin;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16px);mask-image:linear-gradient(to bottom,transparent 0,#000 16px)}

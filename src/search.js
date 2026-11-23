@@ -66,7 +66,7 @@ export const searchStyles = `
   .sinput input::placeholder{color:rgba(255,255,255,.55)}
   .sinput button{width:28px;height:28px;border:0;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;cursor:pointer;flex:none}
   .sinput button img{width:13px}
-  .sres{list-style:none;margin-top:8px;border-radius:var(--r);background:var(--card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);max-height:min(60vh,520px);overflow-y:auto;scrollbar-width:none}
+  .sres{list-style:none;margin-top:8px;border-radius:var(--r);background:var(--card);backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border:1px solid var(--line);max-height:min(60vh,520px);overflow-y:auto;scrollbar-width:none}
   .sres li{display:grid;grid-template-columns:28px 1fr max-content;gap:14px;align-items:center;padding:12px 16px;cursor:pointer;font-size:15px;font-weight:600;border-top:1px solid rgba(255,255,255,.08)}
   .sres li:first-child{border-top:0}
   .sres li:hover{background:rgba(255,255,255,.1)}

@@ -10,7 +10,7 @@ import { label, mediaView, canPower, condText, condIcon, condSvg, ico, cardCfg, 
 import { liveTick } from "./cards2.js";
 import { energyFlow } from "./cards2.js";
 import { calendarBody, whenText } from "./calendar.js";
-import { sky, wxIcon, feelsLike } from "./sky.js";
+import { sky, wxIcon, feelsLike, precipUnit, precipText } from "./sky.js";
 
 const hm = d => new Date(d).toLocaleTimeString(locale(), timeOpts());
 /** colour weather glyphs for the popup (the cards keep the thin-line icons) */
@@ -45,17 +45,17 @@ function rainSoon(p, hourly) {
   const S = Object.values(p.hass.states), totals = new Map();
   for (const s of S) { const m = /precipitation_forecast_(average|total)_(\d+)m$/i.exec(s.entity_id), v = num(s.state); if (!m || v == null) continue; const n = +m[2]; if (!totals.has(n)) totals.set(n, m[1] === "total" ? v : v * n / 60); }
   const ns = [...totals.keys()].sort((a, b) => a - b);
-  let raw = null, minutes = 0, minute = false;
+  let raw = null, minutes = 0, minute = false, unit = "mm";
   if (ns.length >= 3) { const seg = []; let pn = 0, pt = 0; for (const n of ns) { seg.push({ from: pn, to: n, mmh: Math.max(0, (totals.get(n) - pt) / (n - pn) * 60) }); pn = n; pt = totals.get(n); } minutes = Math.min(pn, 120); minute = true;
     raw = Array.from({ length: 24 }, (_, i) => { const m = (i + .5) * minutes / 24; return seg.find(x => m >= x.from && m < x.to)?.mmh ?? 0; }); }
   else { const next = (hourly || []).filter(f => new Date(f.datetime) > Date.now() - 36e5).slice(0, 6);
     if (!next.length || !next.some(f => f.precipitation != null)) return null;
-    minutes = next.length * 60; const v = next.map(f => f.precipitation || 0);
+    minutes = next.length * 60; unit = precipUnit(p.home?.weather?.attributes); const v = next.map(f => f.precipitation || 0);
     raw = Array.from({ length: 24 }, (_, i) => { const x = (i + .5) / 24 * v.length - .5, a = Math.max(0, Math.floor(x)), b = Math.min(v.length - 1, a + 1), f = Math.min(1, Math.max(0, x - a)); return v[a] * (1 - f) + v[b] * f; }); }
   const pts = raw.map((v, i) => (raw[i - 1] ?? v) * .25 + v * .5 + (raw[i + 1] ?? v) * .25);
-  return { pts, minutes, minute };
+  return { pts, minutes, minute, unit };
 }
-const rainLine = r => { if (!r) return ""; const step = r.minutes / r.pts.length, wet = r.pts.map((v, i) => v >= 0.1 ? i : -1).filter(i => i >= 0); if (!wet.length) return r.minute ? t("Droog de komende 2 uur") : t("Droog de komende uren");
+const rainLine = r => { if (!r) return ""; const step = r.minutes / r.pts.length, wet = r.pts.map((v, i) => v >= (r.unit === "in" ? 0.004 : 0.1) ? i : -1).filter(i => i >= 0); if (!wet.length) return r.minute ? t("Droog de komende 2 uur") : t("Droog de komende uren");
   let end = wet[0]; while (wet.includes(end + 1)) end++;
   const from = wet[0] * step, len = Math.round((end + 1 - wet[0]) * step);
   return from < (r.minute ? 10 : 30) ? t("Regen nu, nog ongeveer {m} min", { m: len }) : t("Regen vanaf {t}, ongeveer {m} min", { t: hm(Date.now() + from * 60000), m: len }); };
@@ -64,7 +64,7 @@ export function weatherPopup(p, pop, ui) {
   const hourly = fc.filter(f => f.datetime && (new Date(f.datetime) - Date.now()) < 36e5 * 30 && new Date(f.datetime) > Date.now() - 36e5).slice(0, 8);
   const rain = rainSoon(p, fc), rmax = rain ? Math.max(1, ...rain.pts) : 1;
   const wxi = c => wxIcon(c, 26);
-  const prob = f => f.precipitation_probability != null ? `${Math.round(f.precipitation_probability)}%` : f.precipitation ? `${f.precipitation} mm` : "";
+  const prob = f => f.precipitation_probability != null ? `${Math.round(f.precipitation_probability)}%` : f.precipitation ? precipText(num(f.precipitation), precipUnit(a)) : "";
   const todayKey = new Date().toDateString();
   const lo = Math.min(...dfc.map(f => num(f.templow) ?? num(f.temperature) ?? 0)), hi = Math.max(...dfc.map(f => num(f.temperature) ?? 0)), span = Math.max(1, hi - lo);
   const bearing = b => typeof b === "number" ? [t("N"), t("NO"), t("O"), t("ZO"), t("Z"), t("ZW"), t("W"), t("NW")][Math.round(b / 45) % 8] : b;
@@ -73,7 +73,7 @@ export function weatherPopup(p, pop, ui) {
     feels != null ? { v: Math.round(feels) + "°", u: "", n: t("Voelt als") } : null,
     a.wind_speed != null ? { v: Math.round(a.wind_speed), u: `${a.wind_speed_unit || t("km/u")}${a.wind_bearing != null ? " " + bearing(a.wind_bearing) : ""}`, n: t("Wind") } : null,
     a.humidity != null ? { v: Math.round(a.humidity), u: "%", n: t("Vocht") } : null,
-    a.pressure != null ? { v: Math.round(a.pressure), u: a.pressure_unit || "hPa", n: t("Luchtdruk") } : null,
+    a.pressure != null ? { v: a.pressure_unit === "inHg" ? num(a.pressure).toLocaleString(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : Math.round(a.pressure), u: a.pressure_unit || "hPa", n: t("Luchtdruk") } : null,
     a.uv_index != null ? { v: a.uv_index, u: "", n: t("UV-index") } : null,
     sun ? { v: hm(sun.attributes.next_rising), u: "", n: t("Zonsopkomst") } : null,
     sun ? { v: hm(sun.attributes.next_setting), u: "", n: t("Zonsondergang") } : null,
@@ -81,8 +81,8 @@ export function weatherPopup(p, pop, ui) {
   ].filter(Boolean).slice(0, 6);
   const head = html`<div class="wxhd"><div><b>${Math.round(num(a.temperature) ?? 0)}°${dot()}${condText(w.state)}</b><span>${[feels != null ? t("Voelt als {v}", { v: Math.round(feels) + "°" }) : null, rainLine(rain) || null].filter(Boolean).map((x, i) => html`${i ? dot() : nothing}${x}`)}${pop.loading && !feels ? t("Laden…") : nothing}</span></div></div>`;
   return ui.wrap(t("Weer"), html`<div class="skybg">${sky(p, w.state, "popup")}</div>${head}`, "", html`
-    ${rain ? html`<div class="prow" style="margin-top:4px"><span>${rain.minute ? t("Komende 2 uur") : t("Komende uren")}</span><b>mm/h</b></div>
-      <div class="rain">${rain.pts.map((v, i) => { const at = hm(Date.now() + (i + .5) * rain.minutes / rain.pts.length * 60000); return html`<i class=${pop.rainSel === i ? "sel" : ""} style=${`height:${Math.max(4, v / rmax * 100)}%`} data-tip=${`${at} · ${fmt(v)} mm/h`} @click=${() => p.openPopup({ ...pop, rainSel: pop.rainSel === i ? undefined : i })}></i>`; })}</div>
+    ${rain ? html`<div class="prow" style="margin-top:4px"><span>${rain.minute ? t("Komende 2 uur") : t("Komende uren")}</span><b>${rain.unit}/h</b></div>
+      <div class="rain">${rain.pts.map((v, i) => { const at = hm(Date.now() + (i + .5) * rain.minutes / rain.pts.length * 60000); return html`<i class=${pop.rainSel === i ? "sel" : ""} style=${`height:${Math.max(4, v / rmax * 100)}%`} data-tip=${`${at} · ${fmt(v, rain.unit === "in" ? 2 : 1)} ${rain.unit}/h`} @click=${() => p.openPopup({ ...pop, rainSel: pop.rainSel === i ? undefined : i })}></i>`; })}</div>
       <div class="bars-x">${[0, .25, .5, .75, 1].map(f => html`<span>${f ? hm(Date.now() + f * rain.minutes * 60000) : t("nu")}</span>`)}</div>` : nothing}
     ${hourly.length ? html`<div class="prow"><span>${t("Per uur")}</span><b>${hourly.some(f => f.precipitation_probability != null) ? t("kans op neerslag") : ""}</b></div>
       <div class="fc hours h8">${hourly.map((f, i) => html`<div class=${i === 0 ? "now" : ""}>${new Date(f.datetime).toLocaleTimeString(locale(), timeOpts({ hour: "2-digit" }))}${wxi(f.condition)}<b>${Math.round(f.temperature)}°</b>${prob(f) ? html`<em>${prob(f)}</em>` : nothing}</div>`)}</div>` : nothing}

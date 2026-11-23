@@ -11,19 +11,20 @@ import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, a
 import { roomPresets, snapshot, applyPreset, presetMatches, installUpdate, pendingUpdates } from "./features.js";
 import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check, condFields } from "./settings.js";
-import { pillEditor } from "./pills.js";
+import { pillEditor, pillList, pillMatches } from "./pills.js";
 import { dragRows } from "./drag.js";
 import { defaultsForm, DEFAULT_TYPES } from "./defaults.js";
 import { LANGUAGES } from "./i18n.js";
 import { fetchHistory } from "./extras2.js";
-import { addPopup, hiddenPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
-import { templateOf, pressDir, lightState } from "./cards.js";
+import { washDataButtons, washDataRows } from "./integrations/washdata.js";
+import { addPopup, hiddenPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, hoursLabel } from "./edit.js";
+import { templateOf, pressDir, lightState, addedCard } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { iconInput } from "./iconpicker.js";
+import { options, entityIds, numericIds, serviceNames } from "./lists.js";
 import { lightsPopup, weatherPopup, energyPopup, mediaPopup, agendaPopup } from "./popups2.js";
 import { securityPopup, todoPopup, airPopup, evPopup, timersPopup, gardenPopup, panelCardFields, personTravel } from "./cards2.js";
 
-const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
 const entityOf = pop => pop.type === "cardcfg" ? pop.key : pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
 /** the page card a popup belongs to: groups and light scenes by their key, the panel's own cards (agenda, waste, …) by type */
 const PANEL_POPUPS = ["agenda", "attention", "waste", "energy", "weather", "climate", "security", "people", "timers", "ev", "garden", "air"];
@@ -70,7 +71,7 @@ const wrap = (title, big, sub, body, cls = "") => {
 };
 /** a switch whose device also has a power sensor or an operation-state sensor can be shown as an appliance (bezig / klaar) */
 const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$/.test(e.entity_id))); };
-const TICKER_KINDS = { home: { update: t("HaCasa-updates"), energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), motion: t("Beweging"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } };
+const TICKER_KINDS = () => ({ home: { update: t("HaCasa-updates"), energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), motion: t("Beweging"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } });
 /** the sensors of a room that can show up in its ticker (#202): doors, windows, motion, batteries and players */
 const tickerSensors = r => { const e = r?.ents; if (!e) return []; const seen = new Set(); return [...e.doors, ...e.windows, ...e.motion, ...e.battery, ...e.media].filter(x => x?.id && !seen.has(x.id) && seen.add(x.id)); };
 /** sensible wizard defaults: what the panel already detected */
@@ -78,6 +79,28 @@ function wizardDefaults(p) {
   const h = p.config.home || {};
   return { language: p.config.language, title: p.userConfig?.title, rooms: p.rooms.map(r => r.id), roomImage: p.userConfig?.roomImage, homeImage: p.userConfig?.homeImage,
     home: { weather: p.home?.weather?.entity_id, climate: p.home?.climate?.entity_id, alarm: p.home?.alarm?.entity_id, energy: { power: h.energy?.power, today: h.energy?.today } } };
+}
+/** the draft's state / subtitle / bottom templates for the card form's preview, each rendered once by Home Assistant;
+    a field without a template is null (the card's own text), one still rendering or in error is left out (the saved result shows) */
+function previewTemplates(p, id, draft) {
+  if (p._pvTplFor !== id) { p._pvTplFor = id; p._pvTpl = new Map(); }
+  const out = {}, conn = p.hass?.connection;
+  for (const [field, key] of [["state", "tplState"], ["label", "tplSub"], ["foot", "tplFoot"]]) {
+    const src = draft[key];
+    if (!src) { out[field] = null; continue; }
+    const hit = p._pvTpl.get(src);
+    if (hit) { if ("v" in hit) out[field] = hit.v; continue; }
+    if (!conn?.subscribeMessage) continue;
+    const entry = {}; p._pvTpl.set(src, entry);
+    let u = null, done = false;
+    const stop = () => { done = true; u?.then?.(f => f(), () => {}); };
+    try {
+      u = conn.subscribeMessage(msg => { if (done || (msg.error && msg.level === "WARNING")) return; stop(); if (!msg.error) { entry.v = msg.result; p.requestUpdate(); } }, { type: "render_template", template: src, report_errors: true });
+      u?.catch?.(() => {});   // refused for non-admin users: the preview keeps the saved text
+      if (done) u?.then?.(f => f(), () => {});
+    } catch { /* no preview of this template */ }
+  }
+  return out;
 }
 function cardForm(p, pop) {
   const id = entityOf(pop), cur = (p.config.cards || {})[id] || {}, draft = pop.draft || { ...cur };
@@ -89,24 +112,31 @@ function cardForm(p, pop) {
   const saveMade = async () => { if (gd) await p.saveUser({ [grp ? "groups" : "graphs"]: (p.userConfig?.[grp ? "groups" : "graphs"] || p.config[grp ? "groups" : "graphs"] || []).map(x => x.id === gd.id ? gd : x) }); };
   const gkind = grp ? groupKind(gd) : null, gm = grp ? groupMembers(p, gd) : [];                              // a light group gets the light card's bottom lane
   const appliance = pop.type === "appliance", canToggle = ["light", "switch", "input_boolean", "fan", "lock"].includes(dom) || (appliance && !!pop.a.switch) || !!grp;
-  const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player"].includes(dom) || appliance || !!grp;
-  const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock"].includes(dom) || appliance;
+  // what the card itself honours (cards.js): tap / hold, the template texts, and custom action buttons on the bottom line.
+  // Media, climate, cover and appliance cards have their own button row, so they get no custom actions
+  const hasPress = ["light", "switch", "fan", "binary_sensor", "lock", "cover", "climate", "media_player", "sensor"].includes(dom) || appliance || !!grp;
+  const hasTpl = ["light", "switch", "fan", "binary_sensor", "lock", "sensor"].includes(dom) || appliance;
+  const hasActs = ["light", "switch", "fan", "binary_sensor", "lock", "sensor"].includes(dom) || !!grp;
   const builtin = isBuiltin(id), inst = id.startsWith("tpl:"), once = id.startsWith("tpl:once:"), tc = once ? cur.once : inst ? templateOf(p, id) : null;   // a panel card / a template instance: settings only
   const askList = once ? ["state", "label", "visible"] : (tc?.ask || []);                                   // a one-time template edits all its texts here
   // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders; a group or graph card reads the definition draft gd too)
   const pageKey = p.room?.id || "home";
   let preview = null;
-  p._preview = { id, draft, gd };
-  try { preview = (p.pageCards(pageKey).find(c => c.key === id) || p.rooms.flatMap(r => p.roomCards(r, true)).find(c => c.key === id))?.tpl || null; } catch (e) { preview = null; } finally { p._preview = null; }
+  p._preview = { id, draft, gd, tpl: previewTemplates(p, id, draft) };
+  // the card on this page, else in any room, else wherever it lives (the home page, or an entity card built on the spot)
+  try { preview = (p.pageCards(pageKey).find(c => c.key === id) || p.rooms.flatMap(r => p.roomCards(r, true)).find(c => c.key === id) || addedCard(p, id, pageKey))?.tpl || null; } catch (e) { preview = null; } finally { p._preview = null; }
   const changed = Object.keys(draft).filter(k => draft[k] !== undefined && k !== "noAppliance").length;
   const sh = (lbl, cnt) => html`<div class="sh">${lbl}${cnt ? html`<span class="cnt">${cnt}</span>` : nothing}</div>`;
   const row = (lbl, ctrl, sub) => html`<div class="f"><span>${lbl}${sub ? html`<small>${sub}</small>` : nothing}</span>${ctrl}</div>`;
   /** pill choice; `def` is what applies when nothing is chosen (built in, or Card defaults) and picking it stores nothing */
   const seg = (key, opts, def) => html`<div class="seg">${opts.map(o => html`<button class=${(draft[key] ?? def) === o.v ? "on" : ""} @click=${() => upd({ [key]: o.v === def ? undefined : o.v })}>${o.icon ? html`<ha-icon icon=${o.icon}></ha-icon>` : nothing}${o.l}${o.v === def ? html`<sup>${t("std")}</sup>` : nothing}</button>`)}</div>`;
   const opt = (key, lbl, sub) => row(lbl, html`<input type="checkbox" .checked=${!draft[key]} @change=${e => upd({ [key]: e.target.checked ? undefined : true })}>`, sub);
-  const inp = (key, ph) => html`<input type="text" .value=${draft[key] || ""} placeholder=${ph} @change=${e => upd({ [key]: e.target.value || undefined })}>`;
+  // template fields update the preview while you type (after a short pause, reading the field's text at that moment so
+  // nothing typed in between is lost); other fields when you leave them
+  const live = (key, el) => { clearTimeout(p._tplTyping); p._tplTyping = setTimeout(() => { if (el.isConnected && (el.value || undefined) !== draft[key]) upd({ [key]: el.value || undefined }); }, 450); };
+  const inp = (key, ph) => html`<input type="text" .value=${draft[key] || ""} placeholder=${ph} @input=${key.startsWith("tpl") ? e => live(key, e.target) : null} @change=${e => { clearTimeout(p._tplTyping); upd({ [key]: e.target.value || undefined }); }}>`;
   const PRESS = { toggle: t("schakelen"), popup: t("details openen"), more: t("Home Assistant-dialoog"), none: t("niets") };
-  const tapDef = grp ? "popup" : defs.tap || (canToggle ? "toggle" : "popup"), holdDef = defs.hold || "popup";   // a group's tap opens its list unless told to toggle all
+  const tapDef = grp ? "popup" : defs.tap || (canToggle && !(appliance && pop.a.op) ? "toggle" : "popup"), holdDef = defs.hold || "popup";   // a group's tap opens its list unless told to toggle all
   const caps = dom === "light" ? lightCaps(st) : gkind === "light" ? groupCaps(gm) : null;
   // bottom line: "" is the automatic choice where the card has one (climate, plug); lights fall back to steps when dimmable
   const bottomOpts = dom === "light" ? [{ v: "none", l: t("niets") }, ...(caps.dim ? [{ v: "steps", l: t("helderheid-stappen") }] : []), ...(caps.rgb || caps.ct ? [{ v: "colors", l: t("kleuren") }] : []), { v: "today", l: t("vandaag aan (uren)") }]
@@ -119,7 +149,6 @@ function cardForm(p, pop) {
   // action buttons: one row each, the row being edited (pop.act) opens
   const acts = draft.actions || [], setActs = list => upd({ actions: list.length ? list : undefined });
   const setA = (i, patch) => setActs(acts.map((a, k) => k === i ? { ...a, ...patch } : a));
-  const services = Object.entries(p.hass.services || {}).flatMap(([d, s]) => Object.keys(s).map(k => `${d}.${k}`)).sort();
   const jsonOk = s => { if (!s) return true; try { JSON.parse(s); return true; } catch { return false; } };
   const tplCount = ["tplState", "tplSub", "tplFoot", "tplVisible", "visEntity"].filter(k => draft[k]).length, visMode = pop.visMode || (draft.tplVisible ? "tpl" : "simple");
   const battery = batteryOf(p, pop.e || { id, reg: p.hass.entities?.[id] });
@@ -138,14 +167,14 @@ function cardForm(p, pop) {
           ${row(t("Soort"), html`<div class="seg">${[["light", t("Lampen")], ["plug", t("Stekkers & schakelaars")]].map(([v, l]) => html`<button class=${gkind === v ? "on" : ""} @click=${() => gupd({ kind: v, members: (gd.members || []).filter(x => x.startsWith("light.") === (v === "light")) })}>${l}</button>`)}</div>`, gkind === "light" ? t("helderheid-stappen of kleuren onderaan, zoals op een lampkaart") : t("schakelaars, stekkers en ventilatoren"))}
           ${row(t("Stijl"), html`<div class="seg">${[["tiles", t("tegels (tikken schakelt)")], ["list", t("lijst")], ["count", t("teller")]].map(([v, l]) => html`<button class=${(gd.style || "tiles") === v ? "on" : ""} @click=${() => gupd({ style: v })}>${l}</button>`)}</div>`)}
           ${row(t("Onderdelen"), html`<div class="chips">${groupCandidates(p, gkind).map(c => html`<button class=${(gd.members || []).includes(c.id) ? "on" : ""} @click=${() => gupd({ members: (gd.members || []).includes(c.id) ? gd.members.filter(x => x !== c.id) : [...(gd.members || []), c.id] })}>${c.name}</button>`)}</div>`, t("{n} gekozen", { n: (gd.members || []).length }))}` : nothing}
-        ${grf ? html`${row(t("Sensor"), html`<input type="text" list="hcn-numeric" .value=${gd.entity || ""} placeholder="sensor.x" @change=${e => gupd({ entity: e.target.value || undefined })}><datalist id="hcn-numeric">${graphCandidates(p).map(x => html`<option value=${x}></option>`)}</datalist>`)}
+        ${grf ? html`${row(t("Sensor"), html`<input type="text" list="hcn-numeric" .value=${gd.entity || ""} placeholder="sensor.x" @change=${e => gupd({ entity: e.target.value || undefined })}><datalist id="hcn-numeric">${options(numericIds(p.hass))}</datalist>`)}
           ${row(t("Naam"), html`<input type="text" .value=${gd.name || ""} placeholder=${p.hass.states[gd.entity]?.attributes.friendly_name || ""} @change=${e => gupd({ name: e.target.value || undefined })}>`, t("leeg = naam van de sensor"))}
           ${row(t("Periode"), html`<div class="seg">${GRAPH_HOURS.map(n => html`<button class=${(+gd.hours || 24) === n ? "on" : ""} @click=${() => gupd({ hours: n })}>${hoursLabel(n)}</button>`)}</div>`)}` : nothing}
         ${!builtin || ["ev", "garden", "todo"].includes(id) ? row(t("Naam"), html`<div class="two">${inp("name", inst ? (tc?.name || "") : st?.attributes.friendly_name || (id.startsWith("device:") ? deviceName(p.hass, id.slice(7)) : ""))}${iconInput(p, draft.icon, v => upd({ icon: v }), inst ? (tc?.icon || "mdi:code-braces") : (st?.attributes.icon || "mdi:lightbulb-outline"))}</div>`, inst ? t("leeg = zoals in de template") : t("leeg = naam en icoon uit Home Assistant")) : nothing}
         ${inst ? html`${row(t("Entiteit"), html`<input type="text" list="hcn-entities" .value=${draft.fields?.entity || ""} placeholder="sensor.x" @change=${e => upd({ fields: { ...(draft.fields || {}), entity: e.target.value || undefined } })}>`, t("voor $entity in de templates, details (vasthouden) en schakelen"))}
           ${TPL_ASK.filter(([k]) => askList.includes(k)).map(([k, l]) => row(t(l), html`<input type="text" .value=${draft.fields?.[k] || ""} placeholder=${tc?.[k] || ""} @change=${e => upd({ fields: { ...(draft.fields || {}), [k]: e.target.value || undefined } })}>`, once ? t("Jinja, live gerenderd") : t("door de template gevraagd")))}` : nothing}
         ${dom === "binary_sensor" ? row(t("Soort"), seg("kind", [{ v: "door", l: t("Deur"), icon: "mdi:door" }, { v: "window", l: t("Raam"), icon: "mdi:window-closed-variant" }, { v: "motion", l: t("Beweging"), icon: "mdi:motion-sensor" }, { v: "binary", l: t("Algemeen"), icon: "mdi:checkbox-blank-circle-outline" }], pop.kind || "binary"), t("bepaalt icoon en teksten; zichtbaar na opslaan")) : nothing}
-        ${builtin || inst ? nothing : row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ["hideSub", t("Ondertitel")], ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
+        ${builtin || inst ? nothing : row(t("Tonen"), html`<div class="chips">${[["hideName", t("Naam")], ...(dom === "climate" ? [] : [["hideSub", t("Ondertitel")]]), ["hideState", t("Staat in de hoek")]].map(([k, l]) => html`<button class=${!draft[k] ? "on" : ""} @click=${() => upd({ [k]: draft[k] ? undefined : true })}>${l}</button>`)}${battery ? html`<button class=${draft.showBattery ? "on" : ""} @click=${() => upd({ showBattery: draft.showBattery ? undefined : true })}>${t("Batterij")}</button>` : nothing}</div>`)}
         ${row(t("Tonen op"), seg("showOn", [{ v: "all", l: t("overal"), icon: "mdi:devices" }, { v: "phone", l: t("telefoon"), icon: "mdi:cellphone" }, { v: "desktop", l: t("tablet en computer"), icon: "mdi:monitor" }], "all"), t("telefoon = de telefoonweergave, tot 900 pixels breed"))}
         ${bottomOpts ? row(t("Onderaan"), seg("bottom", bottomOpts, bottomDef), dom === "climate" ? t("naast de doeltemperatuur; op telefoons alleen dit") : t("wat de kaart onderaan toont")) : nothing}
         ${(dom === "light" || dom === "binary_sensor") && bottom === "today" ? row(t("Weergave"), seg("todayStyle", [{ v: "", l: t("balkjes per uur") }, { v: "text", l: t("tekst") }], "")) : nothing}
@@ -168,8 +197,8 @@ function cardForm(p, pop) {
         ${canToggle ? row(t("Eerst bevestigen"), html`<input type="checkbox" .checked=${!!draft.confirm} @change=${e => upd({ confirm: e.target.checked || undefined })}>`, t("vraagt het na voordat de kaart schakelt")) : nothing}
         ${canToggle && draft.confirm ? row(t("Vraag"), inp("confirmText", t("Weet je het zeker?")), t("optioneel, je eigen tekst in de bevestiging")) : nothing}
         ${row(t("Vasthouden"), seg("hold", [{ v: "popup", l: t("details openen") }, { v: "more", l: t("Home Assistant-dialoog") }, { v: "none", l: t("niets") }], holdDef))}
-      </div>
-      <div class="grp">${sh(t("Actieknoppen"), t("{n} van 3", { n: acts.length }))}
+      </div>` : nothing}
+      ${hasActs ? html`<div class="grp">${sh(t("Actieknoppen"), t("{n} van 3", { n: acts.length }))}
         ${acts.map((a, i) => pop.act === i ? html`<div class="act open"><div class="ed">
             <label>${t("Label")}<input type="text" .value=${a.label || ""} placeholder=${t("label")} @change=${e => setA(i, { label: e.target.value || undefined })}></label>
             <label>${t("Icoon")}${iconInput(p, a.icon, v => setA(i, { icon: v }), "mdi:gesture-tap-button")}</label>
@@ -179,7 +208,7 @@ function cardForm(p, pop) {
           </div></div>`
         : html`<div class="act"><span class="bx">${a.icon ? anyIco(a.icon) : nothing}</span><div>${a.label || t("label")}<small>${a.service || "…"}${a.data ? ` · ${a.data}` : ""}</small></div><span class="ab"><button title=${t("Bewerken")} @click=${() => p.openPopup({ ...pop, act: i })}><ha-icon icon="mdi:pencil-outline"></ha-icon></button><button title=${t("Verwijderen")} @click=${() => setActs(acts.filter((_, k) => k !== i))}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button></span></div>`)}
         ${acts.length < 3 ? html`<button class="addbtn" @click=${() => p.openPopup({ ...pop, draft: { ...draft, actions: [...acts, {}] }, act: acts.length })}>+ ${t("Actie toevoegen")}</button>` : nothing}
-        <datalist id="hcn-services">${services.map(s => html`<option value=${s}></option>`)}</datalist>
+        <datalist id="hcn-services">${options(serviceNames(p.hass))}</datalist>
       </div>` : nothing}
       <div class="grp">${sh(t("Geavanceerd"))}
         <div class=${pop.adv ? "coll open" : "coll"} @click=${() => p.openPopup({ ...pop, adv: !pop.adv })}><ha-icon icon="mdi:code-braces"></ha-icon><div>${t("Templates (Jinja)")}<small>${hasTpl ? t("staat · ondertitel · onderaan · zichtbaar") : t("zichtbaar")} — ${tplCount ? t("{n} ingesteld", { n: tplCount }) : t("niets ingesteld")}</small></div><ha-icon class="chev" icon="mdi:chevron-down"></ha-icon></div>
@@ -189,7 +218,7 @@ function cardForm(p, pop) {
           ${hasTpl ? row(t("Onderaan (template)"), inp("tplFoot", ""), t("vervangt de keuze hierboven")) : nothing}
           <div class="sh" style="margin-top:14px">${t("Zichtbaar")}</div>
           ${condFields(draft, upd, visMode, (v, ch) => p.openPopup({ ...pop, visMode: v, draft: { ...draft, ...ch } }), row, t("een verborgen kaart vind je terug in de bewerkmodus"))}` : nothing}
-        <datalist id="hcn-entities">${Object.keys(p.hass.states).map(x => html`<option value=${x}></option>`)}</datalist>
+        <datalist id="hcn-entities">${options(entityIds(p.hass))}</datalist>
       </div>
     </div>
   </div>
@@ -323,11 +352,11 @@ export function renderPopup(p, pop) {
           return v === s.state && /_program_/.test(v) ? v.split("_program_").pop().replace(/_/g, " ").replace(/^\w/, c => c.toUpperCase()) : v; };   // untranslated "dishcare_dishwasher_program_auto_2" → "Auto 2"
         const prog = fmt(a.program), door = a.door ? hass.states[a.door.id]?.state : null, canStop = a.stop && ["running", "waiting"].includes(st.st) && hass.states[a.stop.id] && hass.states[a.stop.id].state !== "unavailable";   // a button's normal state is "unknown"
         const swGo = sw ? guardSwitch(p, [a.id, a.switch.id], title, () => p.call("switch", "toggle", { entity_id: a.switch.id })) : null;
-        const btns = [...(swGo ? [{ label: sw.state === "on" ? t("Uitzetten") : t("Aanzetten"), on: sw.state === "on", go: swGo }] : []), ...(canStop ? [{ label: t("Programma stoppen"), go: () => p.call("button", "press", { entity_id: a.stop.id }) }] : [])];
+        const btns = a.wd ? washDataButtons(p, a, st, title) : [...(swGo ? [{ label: sw.state === "on" ? t("Uitzetten") : t("Aanzetten"), on: sw.state === "on", go: swGo }] : []), ...(canStop ? [{ label: t("Programma stoppen"), go: () => p.call("button", "press", { entity_id: a.stop.id }) }] : [])];
         return wrap(roomName, title, st.label, html`
           ${btns.length ? modes(btns, "n2") : nothing}
           ${st.progress != null && ["running", "waiting"].includes(st.st) ? html`<div class="pbar" style="margin-top:14px;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden"><i style="display:block;height:100%;width:${Math.max(0, Math.min(100, st.progress))}%;background:#fff"></i></div>` : nothing}
-          <ul>${prog ? li("mdi:playlist-play", t("Programma"), prog, { onclick: () => p.moreInfo(a.program.id) }) : nothing}${st.progress != null && st.st !== "off" ? li("mdi:progress-clock", t("Voortgang"), `${Math.round(st.progress)}%`, { onclick: () => p.moreInfo(a.progress.id) }) : nothing}${st.end ? li("mdi:clock-end", t("Klaar om"), st.end.toLocaleTimeString(locale(), timeOpts()), { sub: left(st.end), onclick: () => p.moreInfo(a.finish.id) }) : nothing}${st.doneAt ? li("mdi:check", t("Klaar sinds"), relTime(st.doneAt.toISOString())) : nothing}${door ? li("mdi:door", t("Deur"), door === "open" ? t("Open") : door === "locked" ? t("Vergrendeld") : t("Dicht"), { on: door === "open", onclick: () => p.moreInfo(a.door.id) }) : nothing}${(a.extra || []).map(x => { const s = hass.states[x.id]; return li("mdi:toggle-switch-outline", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.call("switch", "toggle", { entity_id: x.id }) }); })}${(a.flags || []).map(x => { const s = hass.states[x.id]; return li("mdi:information-variant", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, unavailable(s) ? "–" : isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.moreInfo(x.id) }); })}${li("mdi:information-outline", t("Status"), fmt(a.op) || "–", { sub: relTime(hass.states[a.op.id]?.last_changed), onclick: () => p.moreInfo(a.op.id) })}</ul>`);
+          <ul>${prog ? li("mdi:playlist-play", t("Programma"), prog, { onclick: () => p.moreInfo(a.program.id) }) : nothing}${st.progress != null && st.st !== "off" ? li("mdi:progress-clock", t("Voortgang"), `${Math.round(st.progress)}%`, { onclick: () => p.moreInfo(a.progress.id) }) : nothing}${st.end ? li("mdi:clock-end", t("Klaar om"), st.end.toLocaleTimeString(locale(), timeOpts()), { sub: left(st.end), onclick: () => p.moreInfo((a.finish || a.remain).id) }) : nothing}${st.doneAt ? li("mdi:check", t("Klaar sinds"), relTime(st.doneAt.toISOString())) : nothing}${door ? li("mdi:door", t("Deur"), door === "open" ? t("Open") : door === "locked" ? t("Vergrendeld") : t("Dicht"), { on: door === "open", onclick: () => p.moreInfo(a.door.id) }) : nothing}${(a.extra || []).map(x => { const s = hass.states[x.id]; return li("mdi:toggle-switch-outline", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.call("switch", "toggle", { entity_id: x.id }) }); })}${(a.flags || []).map(x => { const s = hass.states[x.id]; return li("mdi:information-variant", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, unavailable(s) ? "–" : isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.moreInfo(x.id) }); })}${a.wd ? washDataRows(p, a, st, li) : nothing}${li("mdi:information-outline", t("Status"), fmt(a.op) || "–", { sub: relTime(hass.states[a.op.id]?.last_changed), onclick: () => p.moreInfo(a.op.id) })}</ul>`);
       }
       const ps = hass.states[a.power.id];
       return wrap(roomName, cfg.name || (hass.devices?.[a.device]?.name_by_user || hass.devices?.[a.device]?.name || t("Apparaat")), st.label, html`
@@ -357,6 +386,18 @@ export function renderPopup(p, pop) {
         <ul>${list.map(e => li(isDoor(e) ? "mdi:door" : "mdi:window-closed-variant", name(hass, e), isOn(e.state) ? t("Open") : t("Dicht"), { on: isOn(e.state), sub: `${e.room.name} · ${relTime(e.state?.last_changed)}`, svg: isDoor(e) ? "door" : "window", onclick: () => p.go(e.room) }))}</ul>`);
     }
     case "lights": return lightsPopup(p, UI());
+    case "pilllist": {   // a status pill with tap "Lijst": its entities, each opening its own popup, and an optional button for all
+      const x = pillList(p, pop.key).find(y => y.id === pop.pill) || {}, m = pillMatches(p, x);
+      const POP = { light: "light", switch: "switch", input_boolean: "switch", cover: "cover", climate: "climate", fan: "fan", humidifier: "humidifier", lock: "lock", vacuum: "vacuum", media_player: "media", sensor: "sensor" };
+      const areaOf = id => { const r = hass.entities?.[id] || {}; return hass.areas?.[r.area_id || hass.devices?.[r.device_id]?.area_id]?.name || ""; };
+      const open = s => { const d = s.entity_id.split(".")[0]; if (POP[d]) p.openPopup({ type: POP[d], e: { id: s.entity_id, state: s }, back: pop }); else p.moreInfo(s.entity_id); };
+      const [sd, sv] = String(x.listService || "").split(".");
+      const title = x.listTitle || (x.text && !/\{[{%]/.test(x.text) ? x.text : t("Lijst"));
+      return wrap(title, m.length ? t("{n} entiteiten", { n: m.length }) : t("Niets gevonden"), [x.listDomain, x.listState, x.listArea && hass.areas?.[x.listArea]?.name].filter(Boolean).join(" · "), html`
+        ${sd && sv && m.length ? modes([{ label: x.listButton || t("Voor alle"), go: () => p.call(sd, sv, { entity_id: m.map(s => s.entity_id) }) }], "n2") : nothing}
+        <ul>${m.map(s => li(s.attributes.icon || "mdi:" + ({ light: "lightbulb-outline", switch: "toggle-switch-outline", cover: "window-shutter", media_player: "speaker", binary_sensor: "radiobox-marked", lock: "lock-outline", climate: "thermostat", fan: "fan" }[s.entity_id.split(".")[0]] || "circle-outline"),
+          s.attributes.friendly_name || s.entity_id, String(hass.formatEntityState?.(s) ?? s.state), { on: isOn(s), sub: areaOf(s.entity_id), onclick: () => open(s) }))}</ul>`);
+    }
     case "waste":
       return wrap(t("Afval"), home.waste[0] ? `${home.waste[0].label} ${wasteWhen(home.waste[0])}` : t("Geen data"), t("Ophaaldagen"), html`
         <ul>${home.waste.map((w, i) => li("mdi:trash-can-outline", html`<i class="dot" style="background:${wasteColor(w.label)}"></i>${w.label}`, wasteWhen(w), { on: i === 0, sub: w.days > 7 && w.date ? new Date(w.date).toLocaleDateString(locale(), { weekday: "long" }) : "" }))}</ul>`);
@@ -368,6 +409,17 @@ export function renderPopup(p, pop) {
       const def = DEFAULT_TYPES.find(x => x.type === pop.ctype); if (!def) return nothing;
       return html`<div class="popup wide cardf"><h2><span>${t("Kaartstandaard")}<span class="rm"> · ${t(def.label)}</span></span> ${hbtns(p, pop)}</h2><div class="big">${t(def.label)}</div><div class="sub">${t("Zo zien deze kaarten eruit; bewaren met Opslaan bovenaan de instellingen")}</div>${defaultsForm(p, pop)}</div>`;
     }
+    case "pilledit": {   // the status pills of one page, edited from the page itself (hold a pill, or tap it in edit mode), with that pill open
+      const key = pop.key, own = p.userConfig?.pages?.[key] || {}, cur = p.pageCfg(key);
+      const d = pop.draft || { pills: cur.pills ? cur.pills.map(x => ({ ...x })) : undefined };
+      const upd = patch => p.openPopup({ ...pop, draft: { ...d, ...patch } });
+      const where = key === "home" ? t("Startpagina") : p.rooms.find(r => r.id === key)?.name || key;
+      return html`<div class="popup wide"><h2>${t("Statuspillen")} ${hbtns(p, pop)}</h2><div class="big">${where}</div>
+        ${pillEditor(p, pop, key, d, upd)}
+        <div class="modes n2" style="margin-top:18px">
+          <button class="on" @click=${() => p.savePage(key, { ...own, pills: d.pills })}>${t("Opslaan")}</button>
+          <button data-close>${t("Annuleren")}</button></div></div>`;
+    }
     case "page": {
       const key = pop.key, isHome = key === "home", r = isHome ? null : p.rooms.find(x => x.id === key); if (!isHome && !r) return nothing;
       const cur = isHome ? { ...p.pageCfg(key), temperature: p.userConfig?.home?.temperature, humidity: p.userConfig?.home?.humidity } : p.pageCfg(key), d = pop.draft || { ...cur, hidden: [...(cur.hidden || [])], order: [...(cur.order || [])], ticker: { ...(cur.ticker || {}) }, tickerSkip: [...(cur.tickerSkip || [])], lines: (cur.lines || []).map(l => ({ ...l })), pills: cur.pills ? cur.pills.map(x => ({ ...x })) : undefined };
@@ -375,7 +427,7 @@ export function renderPopup(p, pop) {
       const all = p.orderCards(p.pageCards(key), d.order), hid = new Set(d.hidden);
       const move = (i, dir) => { const keys = all.map(c => c.key), j = i + dir; if (j < 0 || j >= keys.length) return; [keys[i], keys[j]] = [keys[j], keys[i]]; upd({ order: keys }); };
       const drag = (ev, k) => dragRows(ev, k, order => p.openPopup({ ...pop, draft: { ...d, order }, drag: k }), order => p.openPopup({ ...pop, draft: { ...d, order }, drag: undefined }));
-      const kinds = TICKER_KINDS[isHome ? "home" : "room"];
+      const kinds = TICKER_KINDS()[isHome ? "home" : "room"];
       const defImage = isHome ? (p.config.homeImage || "") : ((p.config.roomImage || "").replace("{slug}", r.slug));
       return html`<div class="popup wide"><h2>${t("Pagina instellen")} ${hbtns(p, pop)}</h2><div class="big">${isHome ? t("Startpagina") : r.name}</div><div class="sub">${t("Titel, foto, kaarten en de meldingenregel van deze pagina")}</div>
         <div class="form">
@@ -390,7 +442,7 @@ export function renderPopup(p, pop) {
           <span class="btns"><button title=${hid.has(c.key) ? t("Tonen") : t("Verbergen")} @click=${() => upd({ hidden: hid.has(c.key) ? d.hidden.filter(k => k !== c.key) : [...d.hidden, c.key] })}><ha-icon icon=${hid.has(c.key) ? "mdi:eye-outline" : "mdi:eye-off-outline"}></ha-icon></button><button title=${t("Omhoog")} ?disabled=${i === 0} @click=${() => move(i, -1)}>↑</button><button title=${t("Omlaag")} ?disabled=${i === all.length - 1} @click=${() => move(i, 1)}>↓</button></span></li>`)}
           ${!all.length ? html`<li><div>${t("Geen kaarten op deze pagina")}</div></li>` : nothing}</ul>
         <div class="prow" style="margin-top:18px"><span>${t("Meldingenregel")}</span><b>${t("tik om uit/aan te zetten")}</b></div>
-        <div class="chips">${Object.entries(kinds).map(([k, l]) => html`<button class=${d.ticker[k] === false ? "" : "on"} @click=${() => upd({ ticker: { ...d.ticker, [k]: d.ticker[k] === false ? undefined : false } })}>${t(l)}</button>`)}</div>
+        <div class="chips">${Object.entries(kinds).map(([k, l]) => html`<button class=${d.ticker[k] === false ? "" : "on"} @click=${() => upd({ ticker: { ...d.ticker, [k]: d.ticker[k] === false ? undefined : false } })}>${l}</button>`)}</div>
         <div class="form">${field(t("Wanneer"), html`<div class="seg">${[["", t("altijd")], ["home", t("als er iemand thuis is")], ["away", t("als niemand thuis is")]].map(([v, l]) => html`<button class=${(d.tickerWhen || "") === v ? "on" : ""} @click=${() => upd({ tickerWhen: v || undefined })}>${l}</button>`)}</div>`)}</div>
         ${!isHome && tickerSensors(r).length ? html`<div class="prow" style="margin-top:12px"><span>${t("Sensoren in de regel")}</span><b>${t("tik om er een weg te laten")}</b></div>
           <div class="chips">${tickerSensors(r).map(x => html`<button class=${d.tickerSkip.includes(x.id) ? "" : "on"} title=${x.id} @click=${() => upd({ tickerSkip: d.tickerSkip.includes(x.id) ? d.tickerSkip.filter(y => y !== x.id) : [...d.tickerSkip, x.id] })}>${name(hass, x)}</button>`)}</div>` : nothing}

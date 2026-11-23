@@ -2,6 +2,7 @@
 // Rooms = areas. An entity belongs to an area directly or through its device.
 import { slug, roomSlug, domain, num, isOn, unavailable, isDown, daysUntil, atHome } from "./util.js";
 import { t, locale } from "./i18n.js";
+import { isWashDataState, washDataParts } from "./integrations/washdata.js";
 /** an area picture as HA stores it is its 512 px preview (/api/image/serve/<id>/512x512): stretched over a whole screen it is
  *  blurred and blocky, so the background takes the uploaded original from the same place (#194, coasting24) */
 const fullPic = u => u ? u.replace(/^(\/api\/image\/serve\/[^/]+\/)\d+x\d+$/, "$1original") : u;
@@ -38,7 +39,7 @@ function wasteDate(s) {
   }
   return null;
 }
-const isOpState = e => e.reg.translation_key === "operation_state" || /_operation_state$/.test(e.id);
+const isOpState = e => e.reg.translation_key === "operation_state" || /_operation_state$/.test(e.id) || isWashDataState(e);   // WashData's state sensor stands in for one (integrations/washdata.js)
 
 function classify(list, config = {}, hass = {}) {
   const r = { lights: [], switches: [], strips: [], media: [], covers: [], climate: [], fans: [], locks: [], vacuums: [], humidifiers: [], scenes: [], cameras: [], appliances: [], power: [], opstate: [], doors: [], windows: [], motion: [], temp: [], hum: [], battery: [], air: [], other: [], values: [], all: list };
@@ -95,7 +96,8 @@ function classify(list, config = {}, hass = {}) {
     const own = list.filter(e => e.reg.device_id === dev), pick = (tk, re) => own.find(e => e.reg.translation_key === tk || re.test(e.id)) || null;
     const sws = r.switches.filter(s => s.reg.device_id === dev), sw = sws.find(s => s.reg.translation_key === "power" || /_power$/.test(s.id)) || null;
     if (config.cards?.[(sw || op).id]?.noAppliance) continue;
-    const more = { op, progress: pick("program_progress", /_program(me)?_progress$/), finish: pick("program_finish_time", /_program(me)?_finish_time$/), door: pick("door", /^sensor\..*_door$/),
+    const more = isWashDataState(op) ? washDataParts(op, own)
+      : { op, progress: pick("program_progress", /_program(me)?_progress$/), finish: pick("program_finish_time", /_program(me)?_finish_time$/), door: pick("door", /^sensor\..*_door$/),
       program: pick("active_program", /^select\..*_active_program(me)?$/), stop: pick("stop_program", /^button\..*_stop_program(me)?$/), extra: sws.filter(s => s !== sw),
       flags: r.other.filter(e => e.reg.device_id === dev) };              // e.g. "remote start": shown in the popup
     const prev = r.appliances.find(a => a.device === dev);
@@ -125,8 +127,8 @@ const latest = (list) => list.map(e => e.state).filter(Boolean).sort((a, b) => n
    A player added to the room by hand (`pinned`, pages[area].add) always keeps its own card: an Apple TV and the Music Assistant
    player on top of it can share a device name and are two players, not one TV. */
 const devKey = (hass, id) => { const d = hass.devices?.[hass.entities?.[id]?.device_id]; return (d?.name || "").toLowerCase().replace(/[^a-z0-9]/g, ""); };
-function linkMedia(hass, media, config, pinned) {
-  const all = Object.keys(hass.states).filter(id => id.startsWith("media_player.") && !hass.entities?.[id]?.hidden && !pinned.has(id)), out = [];
+function linkMedia(hass, media, config, pinned, players) {
+  const all = players.filter(id => !pinned.has(id)), out = [];
   for (const e of media) {
     const k = devKey(hass, e.id), same = k.length > 3 ? all.filter(id => id !== e.id && devKey(hass, id) === k && !(pinned.has(e.id) && media.some(m => m.id === id))) : [];
     const lead = out.find(x => x.linked.includes(e.id));
@@ -141,12 +143,13 @@ function linkMedia(hass, media, config, pinned) {
 export function buildRooms(hass, config) {
   const byArea = entitiesByArea(hass);
   const areas = Object.values(hass.areas || {});
+  const players = Object.keys(hass.states).filter(id => id.startsWith("media_player.") && !hass.entities?.[id]?.hidden);   // once, not per room
   let rooms = areas.map(a => {
     // entities added to this room in edit mode (pages[area].add) join the area's own, marked so the cards know
     const own = byArea.get(a.area_id) || [];
     const extra = (config.pages?.[a.area_id]?.add || []).filter(id => hass.states[id] && !own.some(e => e.id === id)).map(id => ({ id, reg: hass.entities?.[id] || {}, state: hass.states[id], added: true }));
     const ents = classify([...own, ...extra], config, hass);
-    ents.media = linkMedia(hass, ents.media, config, new Set(config.pages?.[a.area_id]?.add || []));
+    ents.media = linkMedia(hass, ents.media, config, new Set(config.pages?.[a.area_id]?.add || []), players);
     const s = roomSlug(a.name, a.area_id), pg = config.pages?.[a.area_id] || {};
     return {
       id: a.area_id, name: pg.title || a.name, slug: s, floor: a.floor_id || null,
