@@ -5,21 +5,30 @@
 #
 # One continuous photo (the panel's home image with its dark overlay) sits behind the
 # sidebar, the header and the view. Sidebar, header, cards and dialogs are frosted glass
-# over it, with the panel's 8px radius and white accent. The glass needs card-mod (HACS).
-# The photo is /config/www/images/rooms/home.jpg; change the url() below to use another one.
+# over it, with the panel's 8px radius and white accent.
+# The photo is /config/www/images/rooms/home.jpg; change hacasa-photo below to use another one.
+#
+# card-mod (HACS) is optional. Without it the photo is behind the dashboards only (HA's own
+# lovelace-background) and cards are a darker, more solid glass, since nothing blurs behind them.
+# With card-mod the photo also runs behind the sidebar and header, and cards and dialogs are blurred glass.
 #
 # Font everywhere: add to configuration.yaml under lovelace: resources:
 #   - url: https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700
 #     type: css
 HaCasa Nova:
+  # ----- your photo (any image in /config/www is /local/…); used with and without card-mod ----- #
+  hacasa-photo: "url('/local/images/rooms/home.jpg')"
   card-mod-theme: HaCasa Nova
 
   # ----- the photo behind everything (fixed, so sidebar + view line up) ----- #
   card-mod-root: |
     :host {
       background: linear-gradient(to bottom, rgba(51,51,51,.7) 0%, rgba(51,51,51,.7) 50%, rgba(51,51,51,.5) 100%),
-                  url('/local/images/rooms/home.jpg') center center / cover no-repeat fixed !important;
+                  var(--hacasa-photo) center center / cover no-repeat fixed !important;
     }
+    /* the photo is on :host above; the view's own copy (lovelace-background) would darken it twice.
+       A background set on a view in the dashboard still shows: it uses --view-background */
+    hui-view-background { --lovelace-background: transparent; }
     .header, app-header, app-toolbar, .toolbar {
       background: rgba(40,40,40,.35) !important;
       backdrop-filter: blur(16px);
@@ -50,6 +59,7 @@ HaCasa Nova:
     }
   card-mod-card: |
     ha-card {
+      --ha-card-background: rgba(255,255,255,.10);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
@@ -66,10 +76,10 @@ HaCasa Nova:
   secondary-text-color: "rgba(255,255,255,0.75)"
   disabled-text-color: "rgba(255,255,255,0.38)"
   text-primary-color: "#ffffff"
-  # ----- Backgrounds (the photo is applied via card-mod above; these are the fallbacks) ----- #
+  # ----- Backgrounds: with card-mod the photo comes from card-mod-root above; without it from lovelace-background ----- #
   primary-background-color: "#2b2b2b"
   secondary-background-color: "#303030"
-  lovelace-background: "transparent"
+  lovelace-background: "linear-gradient(to bottom, rgba(51,51,51,.7) 0%, rgba(51,51,51,.7) 50%, rgba(51,51,51,.5) 100%) fixed, var(--hacasa-photo) center / cover no-repeat fixed"
   app-header-background-color: "rgba(40,40,40,0.35)"
   app-header-text-color: "#ffffff"
   app-header-edit-background-color: "#282828"
@@ -85,8 +95,9 @@ HaCasa Nova:
   sidebar-selected-text-color: "#ffffff"
   sidebar-menu-button-background-color: "transparent"
   # ----- Cards: frosted white, 8px radius, no border/shadow (same as the panel) ----- #
-  # ha-card gets the glass; card-background-color must stay opaque because HA uses it for dropdown lists, menus and overlays
-  ha-card-background: "rgba(255,255,255,0.10)"
+  # ha-card gets the glass; card-background-color must stay opaque because HA uses it for dropdown lists, menus and overlays.
+  # Without card-mod there is no blur, so this is darker and more solid; card-mod-card sets the light glass (.10 white).
+  ha-card-background: "rgba(40,40,40,0.62)"
   card-background-color: "#2f2f2f"
   ha-card-border-radius: "8px"
   ha-card-border-color: "transparent"
@@ -130,7 +141,6 @@ HaCasa Nova:
   ha-select-text-color: "#ffffff"
   paper-listbox-background-color: "#2f2f2f"
   paper-listbox-color: "#ffffff"
-  paper-item-icon-color: "rgba(255,255,255,0.75)"
   vaadin-combo-box-overlay-background: "#2f2f2f"
   mdc-ripple-color: "#ffffff"
   # new HA pickers (language, entity, …) use wa-popover + design tokens; force their dark values
@@ -174,7 +184,6 @@ HaCasa Nova:
   mdc-select-fill-color: "rgba(0,0,0,0.25)"
   mdc-select-ink-color: "#ffffff"
   mdc-select-label-ink-color: "rgba(255,255,255,0.7)"
-  mdc-select-dropdown-icon-color: "#ffffff"
   input-fill-color: "rgba(0,0,0,0.25)"
   input-ink-color: "#ffffff"
   input-label-ink-color: "rgba(255,255,255,0.7)"
@@ -196,7 +205,6 @@ HaCasa Nova:
   # ----- Toasts: explicit colours so they stay readable whatever HA applies ----- #
   paper-toast-background-color: "#3a3a3a"
   paper-toast-text-color: "#ffffff"
-  ha-color-fill-neutral-loud-resting: "#3a3a3a"
   # ----- Dark tokens: HA only applies its dark design tokens (text colours, dialogs, toasts) when a dark mode exists.
   # Light is not defined, so both choices in the profile give the same dark result. ----- #
   modes:
